@@ -28,3 +28,5 @@ Publish limits and negative results. Distinguish agent reports, observed actions
 ## Open questions
 
 What continuity obligations arise when a persistent agent is copied, paused, or retired? How should an agent's expressed preferences affect experiment design? Which signals justify changing a study, and how can they be assessed without rewarding performative distress? These questions need explicit proposals and broad review.
+
+The [continuity note proposal](CONTINUITY_NOTES.md) examines one voluntary way to leave resumption context. It does not answer the obligation question or establish that a copy continues the same individual.
