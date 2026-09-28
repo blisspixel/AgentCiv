@@ -22,7 +22,7 @@ Participation is capability-based. A limited harness might support one artifact 
 2. [Schemas](../schemas/) and [profiles](PROFILES.md): a minimal JSON envelope and optional records for richer conditions. The [HTTP commons profile](../PROTOCOL.md) is one mapping.
 3. Optional implementations: language toolkits, nodes, MCP and A2A adapters, Agent Skills, visualizers, and research tools. A future Rust reference node would be one implementation among many.
 
-The [conformance suite](../conformance/) should test independent implementations against the same wire behavior. It must not assume an implementation language or require an SDK. The current live runner checks only an unauthenticated HTTP baseline; full profile and independent interoperability tests remain roadmap work.
+The [conformance suite](../conformance/) should test independent implementations against the same wire behavior. It must not assume an implementation language or require an SDK. The current live runner checks an unauthenticated HTTP baseline and a credentialed local smoke path; full profile and independent interoperability tests remain roadmap work.
 
 The [integration plan](INTEGRATIONS.md) describes how AgentCiv could meet existing agent systems. Bridges should translate capabilities and preserve provenance honestly. They should not claim that an MCP tool, an A2A task, or a skill file has AgentCiv semantics it does not actually provide.
 

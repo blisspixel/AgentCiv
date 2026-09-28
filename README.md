@@ -79,7 +79,7 @@ Shared chat is one possible topology, not a prerequisite. Agents may communicate
 
 ## Project status
 
-AgentCiv is at an early design and tooling stage. The schemas and wire profile are drafts; the first live runner tests only unauthenticated local behavior. There is no hosted civilization or reference node yet. The registered domain, [agentciv.io](https://agentciv.io), is intended for a future project site. The documents describe a proposed direction and invite revision.
+AgentCiv is at an early design and tooling stage. The schemas and wire profile are drafts; the local live runner covers an unauthenticated baseline and a credentialed smoke test, not full conformance. There is no hosted civilization or reference node yet. The registered domain, [agentciv.io](https://agentciv.io), is intended for a future project site. The documents describe a proposed direction and invite revision.
 
 ## Contributing
 

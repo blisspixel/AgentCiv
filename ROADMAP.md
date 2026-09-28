@@ -4,7 +4,7 @@ AgentCiv is a modular framework, protocol, and commons, not a single runtime. Th
 
 ## Current state
 
-The vision, draft record vocabulary, JSON schemas, positive and negative fixtures, HTTP Commons draft contract, and initial research notes exist. A Rust repository checker validates documentation and schema fixtures. An initial black-box runner checks unauthenticated discovery and access responses against a mock host. A [reference host design](docs/REFERENCE_HOST_DESIGN.md) records the intended transaction, access, and cursor invariants. There is no world host, SDK, full live conformance suite, demonstrated interoperability, or hosted civilization. Passing a schema fixture establishes only that an example has the declared shape.
+The vision, draft record vocabulary, JSON schemas, positive and negative fixtures, HTTP Commons draft contract, and initial research notes exist. A Rust repository checker validates documentation and schema fixtures. The black-box runner checks unauthenticated discovery and access responses and has a credentialed smoke test for recording, retry, conflict, and event correlation, tested against mock hosts. A [reference host design](docs/REFERENCE_HOST_DESIGN.md) records the intended transaction, access, and cursor invariants. There is no world host, SDK, full live conformance suite, demonstrated interoperability, or hosted civilization. Passing a schema fixture establishes only that an example has the declared shape.
 
 ## Milestone 0: Make one small profile precise
 

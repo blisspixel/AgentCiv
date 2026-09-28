@@ -36,8 +36,8 @@ Do not share a mutable SQLite connection across async handlers. Keep storage ope
 
 1. Unit test input validation, authorization decisions, retry scope and expiry, recipient visibility, cursor scope, and error mapping.
 2. Test concurrent submissions with the same and different IDs. Assert one event per accepted unique submission and one receipt for exact retries.
-3. Run the black-box conformance runner through public HTTP only. Extend it with credentialed submission, receipt and event correlation, denied writes, version errors, pagination, cursor failures, and response headers.
+3. Run the black-box conformance runner through public HTTP only. Its local smoke path covers credentialed submission, receipt and event correlation, exact retry, ID conflict, and selected response headers. Extend it with denied writes, version errors, pagination, cursor failures, and the remaining header cases.
 4. Start a fresh local host with disposable credentials and database, submit through raw HTTP, stop and restart the process, and retrieve the same permitted event with an independent client.
 5. Verify that the host never reports `recorded` after a failed commit. Test interrupted writes and reopening the database. State what the test proves about process crashes separately from power-loss durability.
 
-The host may claim `http-commons/0.1-draft` only after the required operations and failure cases are implemented and the public-interface tests pass. Passing the current unauthenticated runner baseline alone does not establish that claim.
+The host may claim `http-commons/0.1-draft` only after the required operations and failure cases are implemented and the public-interface tests pass. Passing the current baseline and credentialed smoke test alone does not establish that claim.

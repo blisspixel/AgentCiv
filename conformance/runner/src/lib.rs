@@ -3,13 +3,24 @@ use std::net::IpAddr;
 use std::time::Duration;
 
 use reqwest::blocking::{Client, Response};
-use reqwest::header::{ACCEPT, CONTENT_TYPE, WWW_AUTHENTICATE};
+use reqwest::header::{ACCEPT, CACHE_CONTROL, CONTENT_TYPE, WWW_AUTHENTICATE};
 use reqwest::{StatusCode, Url, redirect};
 use serde_json::{Value, json};
 
 const MAX_RESPONSE_BYTES: u64 = 1_048_576;
 const WORLD_SCHEMA: &str = include_str!("../../../schemas/world.schema.json");
 const PROBLEM_SCHEMA: &str = include_str!("../../../schemas/problem.schema.json");
+const RECEIPT_SCHEMA: &str = include_str!("../../../schemas/receipt.schema.json");
+const EVENT_PAGE_SCHEMA: &str = include_str!("../../../schemas/event-page.schema.json");
+const EVENT_SCHEMA: &str = include_str!("../../../schemas/event.schema.json");
+const MESSAGE_SCHEMA: &str = include_str!("../../../schemas/message.schema.json");
+const AUTHORIZED_CASES: [&str; 5] = [
+    "events.authorized",
+    "submit.recorded",
+    "submit.retry",
+    "submit.conflict",
+    "events.recorded",
+];
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum CaseStatus {
@@ -64,6 +75,7 @@ impl Case {
 #[derive(Debug)]
 pub struct Report {
     pub cases: Vec<Case>,
+    pub scope: &'static str,
 }
 
 impl Report {
@@ -82,7 +94,7 @@ impl Report {
         };
         json!({
             "profile": "http-commons/0.1-draft",
-            "runner_scope": "unauthenticated-baseline",
+            "runner_scope": self.scope,
             "cases": self.cases.iter().map(|case| json!({
                 "id": case.id,
                 "required": true,
@@ -145,7 +157,20 @@ fn read_json(response: Response, expected_type: &str) -> Result<Value, String> {
 
 fn validate(schema: &str, record: &Value) -> Result<(), String> {
     let schema: Value = serde_json::from_str(schema).map_err(|error| error.to_string())?;
+    let mut registry = jsonschema::Registry::new();
+    for source in [MESSAGE_SCHEMA, EVENT_SCHEMA, EVENT_PAGE_SCHEMA] {
+        let resource: Value = serde_json::from_str(source).map_err(|error| error.to_string())?;
+        let id = resource["$id"]
+            .as_str()
+            .ok_or("schema is missing its $id")?
+            .to_owned();
+        registry = registry
+            .add(&id, resource)
+            .map_err(|error| error.to_string())?;
+    }
+    let registry = registry.prepare().map_err(|error| error.to_string())?;
     let validator = jsonschema::options()
+        .with_registry(&registry)
         .should_validate_formats(true)
         .build(&schema)
         .map_err(|error| error.to_string())?;
@@ -183,6 +208,9 @@ fn check_auth_response(response: Response) -> Result<(), String> {
     if response.status() != StatusCode::UNAUTHORIZED {
         return Err(format!("expected HTTP 401, got {}", response.status()));
     }
+    if !has_no_store(&response) {
+        return Err("unauthorized response is missing Cache-Control: no-store".to_owned());
+    }
     let challenge = response
         .headers()
         .get(WWW_AUTHENTICATE)
@@ -212,8 +240,241 @@ fn auth_case(id: &'static str, response: Result<Response, reqwest::Error>) -> Ca
     }
 }
 
+fn has_no_store(response: &Response) -> bool {
+    response
+        .headers()
+        .get_all(CACHE_CONTROL)
+        .iter()
+        .any(|value| {
+            value.to_str().is_ok_and(|header| {
+                header
+                    .split(',')
+                    .any(|directive| directive.trim().eq_ignore_ascii_case("no-store"))
+            })
+        })
+}
+
+fn check_page(response: Response, world_id: &str) -> Result<Value, String> {
+    if response.status() != StatusCode::OK {
+        return Err(format!("expected HTTP 200, got {}", response.status()));
+    }
+    if !has_no_store(&response) {
+        return Err("restricted event response is missing Cache-Control: no-store".to_owned());
+    }
+    let page = read_json(response, "application/json")?;
+    validate(EVENT_PAGE_SCHEMA, &page)?;
+    if page["world"] != world_id {
+        return Err("event page names a different world".to_owned());
+    }
+    Ok(page)
+}
+
+fn check_receipt(response: Response, world_id: &str, record_id: &str) -> Result<Value, String> {
+    if response.status() != StatusCode::OK {
+        return Err(format!("expected HTTP 200, got {}", response.status()));
+    }
+    if !has_no_store(&response) {
+        return Err("submission response is missing Cache-Control: no-store".to_owned());
+    }
+    let receipt = read_json(response, "application/json")?;
+    validate(RECEIPT_SCHEMA, &receipt)?;
+    if receipt["world"] != world_id || receipt["record_id"] != record_id {
+        return Err("receipt does not identify the submitted message".to_owned());
+    }
+    Ok(receipt)
+}
+
+fn check_conflict(response: Response) -> Result<(), String> {
+    if response.status() != StatusCode::CONFLICT {
+        return Err(format!("expected HTTP 409, got {}", response.status()));
+    }
+    if !has_no_store(&response) {
+        return Err("submission response is missing Cache-Control: no-store".to_owned());
+    }
+    let problem = read_json(response, "application/problem+json")?;
+    validate(PROBLEM_SCHEMA, &problem)?;
+    if problem["status"] != 409 || problem["code"] != "id_conflict" {
+        return Err("problem status or code does not match ID conflict".to_owned());
+    }
+    Ok(())
+}
+
+fn result_case(id: &'static str, result: Result<(), String>) -> Case {
+    match result {
+        Ok(()) => Case::passed(id),
+        Err(detail) => Case::failed(id, detail),
+    }
+}
+
+fn run_authorized_cases(
+    client: &Client,
+    world: &Value,
+    events: &Url,
+    submit: &Url,
+    principal: &str,
+    token: &str,
+    cases: &mut Vec<Case>,
+) {
+    let world_id = world["id"].as_str().expect("validated world ID");
+    let initial = client
+        .get(events.clone())
+        .header(ACCEPT, "application/json")
+        .bearer_auth(token)
+        .send()
+        .map_err(|error| format!("authorized event request failed: {error}"))
+        .and_then(|response| check_page(response, world_id))
+        .and_then(|page| {
+            if page["events"].as_array().is_some_and(Vec::is_empty) {
+                Ok(page["next_cursor"]
+                    .as_str()
+                    .expect("validated cursor")
+                    .to_owned())
+            } else {
+                Err("credentialed smoke test requires a fresh empty event view".to_owned())
+            }
+        });
+    let cursor = match initial {
+        Ok(cursor) => {
+            cases.push(Case::passed("events.authorized"));
+            cursor
+        }
+        Err(detail) => {
+            cases.push(Case::failed("events.authorized", detail));
+            cases.extend(
+                AUTHORIZED_CASES[1..]
+                    .iter()
+                    .map(|id| Case::skipped(id, "fresh authorized event view is unavailable")),
+            );
+            return;
+        }
+    };
+
+    let message = json!({
+        "protocol_version": "0.1-draft",
+        "type": "message",
+        "id": "message:conformance-roundtrip",
+        "world": world_id,
+        "from": principal,
+        "to": [principal],
+        "body": {"text": "conformance roundtrip"},
+        "conformance_probe": {"preserve": true}
+    });
+    let bytes = message.to_string().into_bytes();
+    let post = |body: Vec<u8>| {
+        client
+            .post(submit.clone())
+            .header(CONTENT_TYPE, "application/json")
+            .bearer_auth(token)
+            .body(body)
+            .send()
+            .map_err(|error| format!("submission request failed: {error}"))
+    };
+    let first = post(bytes.clone())
+        .and_then(|response| check_receipt(response, world_id, "message:conformance-roundtrip"));
+    let receipt = match first {
+        Ok(receipt) => {
+            cases.push(Case::passed("submit.recorded"));
+            receipt
+        }
+        Err(detail) => {
+            cases.push(Case::failed("submit.recorded", detail));
+            cases.extend(
+                AUTHORIZED_CASES[2..]
+                    .iter()
+                    .map(|id| Case::skipped(id, "recording did not return a valid receipt")),
+            );
+            return;
+        }
+    };
+
+    let retry = post(bytes)
+        .and_then(|response| check_receipt(response, world_id, "message:conformance-roundtrip"))
+        .and_then(|again| {
+            if again == receipt {
+                Ok(())
+            } else {
+                Err("byte-identical retry returned a different receipt".to_owned())
+            }
+        });
+    cases.push(result_case("submit.retry", retry));
+
+    let mut changed = message.clone();
+    changed["body"]["text"] = json!("different bytes");
+    let conflict = post(changed.to_string().into_bytes()).and_then(check_conflict);
+    cases.push(result_case("submit.conflict", conflict));
+
+    let mut next = events.clone();
+    next.query_pairs_mut().append_pair("after", &cursor);
+    let recorded = client
+        .get(next)
+        .header(ACCEPT, "application/json")
+        .bearer_auth(token)
+        .send()
+        .map_err(|error| format!("event read after submission failed: {error}"))
+        .and_then(|response| check_page(response, world_id))
+        .and_then(|page| {
+            let matching: Vec<_> = page["events"]
+                .as_array()
+                .expect("validated events")
+                .iter()
+                .filter(|event| event["id"] == receipt["event_id"])
+                .collect();
+            if matching.len() != 1 {
+                return Err("receipt event was not found exactly once after the cursor".to_owned());
+            }
+            let event = matching[0];
+            if event["world"] != world_id
+                || event["sequence"] != receipt["sequence"]
+                || event["kind"] != "message.recorded"
+                || event["body"]["message"] != message
+            {
+                return Err("recorded event does not match receipt and submitted bytes".to_owned());
+            }
+            Ok(())
+        });
+    cases.push(result_case("events.recorded", recorded));
+}
+
+fn finish(mut cases: Vec<Case>, authenticated: bool, reason: &'static str) -> Report {
+    if authenticated && !reason.is_empty() {
+        cases.extend(AUTHORIZED_CASES.map(|id| Case::skipped(id, reason)));
+    }
+    Report {
+        cases,
+        scope: if authenticated {
+            "credentialed-smoke"
+        } else {
+            "unauthenticated-baseline"
+        },
+    }
+}
+
 pub fn run(discovery_url: &str) -> Report {
+    run_internal(discovery_url, None)
+}
+
+/// Exercise a fresh disposable local world with one credential bound to `principal`.
+/// The token is used only in request headers and is never included in the report.
+pub fn run_authenticated(discovery_url: &str, principal: &str, token: &str) -> Report {
+    if principal.is_empty() || token.is_empty() {
+        return Report {
+            cases: vec![Case::failed(
+                "credential.input",
+                "principal and token must be nonempty",
+            )],
+            scope: "credentialed-smoke",
+        };
+    }
+    let mut report = run_internal(discovery_url, Some((principal, token)));
+    for case in &mut report.cases {
+        case.detail = case.detail.replace(token, "[redacted]");
+    }
+    report
+}
+
+fn run_internal(discovery_url: &str, credential: Option<(&str, &str)>) -> Report {
     let mut cases = Vec::new();
+    let authenticated = credential.is_some();
     let discovery = match parse_allowed_url(discovery_url) {
         Ok(url) => {
             let loopback = url
@@ -231,7 +492,7 @@ pub fn run(discovery_url: &str) -> Report {
                     Case::skipped("events.authentication", "discovery did not succeed"),
                     Case::skipped("submit.authentication", "discovery did not succeed"),
                 ]);
-                return Report { cases };
+                return finish(cases, authenticated, "discovery did not succeed");
             }
             url
         }
@@ -243,7 +504,7 @@ pub fn run(discovery_url: &str) -> Report {
                 Case::skipped("events.authentication", "discovery did not succeed"),
                 Case::skipped("submit.authentication", "discovery did not succeed"),
             ]);
-            return Report { cases };
+            return finish(cases, authenticated, "discovery did not succeed");
         }
     };
     cases.push(Case::passed("discovery.url"));
@@ -261,7 +522,7 @@ pub fn run(discovery_url: &str) -> Report {
                 Case::skipped("events.authentication", "HTTP client could not be created"),
                 Case::skipped("submit.authentication", "HTTP client could not be created"),
             ]);
-            return Report { cases };
+            return finish(cases, authenticated, "HTTP client could not be created");
         }
     };
     let world = match discover(&client, &discovery) {
@@ -273,7 +534,7 @@ pub fn run(discovery_url: &str) -> Report {
                 Case::skipped("events.authentication", "discovery did not succeed"),
                 Case::skipped("submit.authentication", "discovery did not succeed"),
             ]);
-            return Report { cases };
+            return finish(cases, authenticated, "discovery did not succeed");
         }
     };
     cases.push(Case::passed("discovery.record"));
@@ -288,13 +549,16 @@ pub fn run(discovery_url: &str) -> Report {
                 Case::skipped("events.authentication", "endpoint is invalid"),
                 Case::skipped("submit.authentication", "endpoint is invalid"),
             ]);
-            return Report { cases };
+            return finish(cases, authenticated, "endpoint is invalid");
         }
     };
     cases.push(Case::passed("endpoints.origin"));
     cases.push(auth_case(
         "events.authentication",
-        client.get(events).header(ACCEPT, "application/json").send(),
+        client
+            .get(events.clone())
+            .header(ACCEPT, "application/json")
+            .send(),
     ));
     let message = json!({
         "protocol_version": "0.1-draft",
@@ -308,221 +572,24 @@ pub fn run(discovery_url: &str) -> Report {
     cases.push(auth_case(
         "submit.authentication",
         client
-            .post(submit)
+            .post(submit.clone())
             .header(CONTENT_TYPE, "application/json")
             .body(message.to_string())
             .send(),
     ));
-    Report { cases }
+    if let Some((principal, token)) = credential {
+        if cases.iter().all(|case| case.status == CaseStatus::Passed) {
+            run_authorized_cases(
+                &client, &world, &events, &submit, principal, token, &mut cases,
+            );
+        } else {
+            cases.extend(
+                AUTHORIZED_CASES.map(|id| Case::skipped(id, "unauthenticated baseline failed")),
+            );
+        }
+    }
+    finish(cases, authenticated, "")
 }
 
 #[cfg(test)]
-mod tests {
-    use std::io::{Read, Write};
-    use std::net::TcpListener;
-    use std::thread::{self, JoinHandle};
-
-    use super::*;
-
-    #[derive(Clone, Copy)]
-    enum Mode {
-        Valid,
-        BadAuth,
-        BadChallenge,
-        BadProblem,
-        BadOrigin,
-        Redirect,
-    }
-
-    fn mock_host(mode: Mode) -> (String, JoinHandle<()>) {
-        let listener = TcpListener::bind("127.0.0.1:0").unwrap();
-        let address = listener.local_addr().unwrap();
-        let discovery = format!("http://{address}/.well-known/agentciv");
-        let handle = thread::spawn(move || {
-            let requests = match mode {
-                Mode::Valid | Mode::BadAuth | Mode::BadChallenge | Mode::BadProblem => 3,
-                Mode::BadOrigin | Mode::Redirect => 1,
-            };
-            for _ in 0..requests {
-                let (mut stream, _) = listener.accept().unwrap();
-                stream
-                    .set_read_timeout(Some(Duration::from_secs(3)))
-                    .unwrap();
-                let mut request = Vec::new();
-                let mut buffer = [0_u8; 2048];
-                loop {
-                    let n = stream.read(&mut buffer).unwrap();
-                    assert!(n > 0);
-                    request.extend_from_slice(&buffer[..n]);
-                    if request.windows(4).any(|part| part == b"\r\n\r\n") {
-                        break;
-                    }
-                }
-                let header_end = request
-                    .windows(4)
-                    .position(|part| part == b"\r\n\r\n")
-                    .unwrap()
-                    + 4;
-                let headers = String::from_utf8_lossy(&request[..header_end]);
-                let body_length = headers
-                    .lines()
-                    .find_map(|line| {
-                        line.to_ascii_lowercase()
-                            .strip_prefix("content-length: ")
-                            .and_then(|length| length.parse::<usize>().ok())
-                    })
-                    .unwrap_or(0);
-                while request.len() - header_end < body_length {
-                    let n = stream.read(&mut buffer).unwrap();
-                    assert!(n > 0);
-                    request.extend_from_slice(&buffer[..n]);
-                }
-                let request = String::from_utf8_lossy(&request);
-                assert!(!request.to_ascii_lowercase().contains("authorization:"));
-                if request.starts_with("POST /submit ") {
-                    let submitted: Value =
-                        serde_json::from_slice(&request.as_bytes()[header_end..][..body_length])
-                            .unwrap();
-                    assert_eq!(submitted["world"], "civ:test");
-                    assert_eq!(submitted["type"], "message");
-                }
-                let (status, media_type, headers, body) = if request
-                    .starts_with("GET /.well-known/")
-                {
-                    if matches!(mode, Mode::Redirect) {
-                        (
-                            "302 Found",
-                            "text/plain",
-                            "Location: https://example.invalid/\r\n",
-                            String::new(),
-                        )
-                    } else {
-                        let origin = if matches!(mode, Mode::BadOrigin) {
-                            "https://elsewhere.example".to_owned()
-                        } else {
-                            format!("http://{address}")
-                        };
-                        let world = json!({
-                            "protocol_version": "0.1-draft",
-                            "profile": "http-commons/0.1-draft",
-                            "type": "world",
-                            "id": "civ:test",
-                            "capabilities": ["events.read", "messages.submit"],
-                            "endpoints": {
-                                "events": format!("{origin}/events"),
-                                "submit": format!("{origin}/submit")
-                            },
-                            "history": {"visibility": "addressed", "retention_seconds": 86400},
-                            "authentication": {"events": "bearer", "submit": "bearer"},
-                            "limits": {"max_payload_bytes": 4096}
-                        });
-                        ("200 OK", "application/json", "", world.to_string())
-                    }
-                } else if request.starts_with("GET /events ") && matches!(mode, Mode::BadAuth) {
-                    ("200 OK", "application/json", "", "{}".to_owned())
-                } else {
-                    assert!(
-                        request.starts_with("GET /events ") || request.starts_with("POST /submit ")
-                    );
-                    let status = if matches!(mode, Mode::BadProblem) {
-                        200
-                    } else {
-                        401
-                    };
-                    let problem = json!({
-                        "type": "https://agentciv.io/problems/authentication-required",
-                        "title": "Authentication required",
-                        "status": status,
-                        "code": "authentication_required"
-                    });
-                    (
-                        "401 Unauthorized",
-                        "application/problem+json",
-                        if matches!(mode, Mode::BadChallenge) {
-                            "WWW-Authenticate: Basic\r\n"
-                        } else {
-                            "WWW-Authenticate: Bearer\r\n"
-                        },
-                        problem.to_string(),
-                    )
-                };
-                let response = format!(
-                    "HTTP/1.1 {status}\r\nContent-Type: {media_type}\r\nContent-Length: {}\r\n{headers}Connection: close\r\n\r\n{body}",
-                    body.len()
-                );
-                stream.write_all(response.as_bytes()).unwrap();
-            }
-        });
-        (discovery, handle)
-    }
-
-    #[test]
-    fn baseline_passes_against_mock_host() {
-        let (url, host) = mock_host(Mode::Valid);
-        let report = run(&url);
-        host.join().unwrap();
-        assert!(report.passed(), "{}", report.to_json());
-        assert_eq!(report.to_json()["summary"]["passed"], 5);
-    }
-
-    #[test]
-    fn bad_auth_response_is_reported() {
-        let (url, host) = mock_host(Mode::BadAuth);
-        let report = run(&url);
-        host.join().unwrap();
-        assert!(!report.passed());
-        assert_eq!(report.to_json()["summary"]["failed"], 1);
-        assert_eq!(report.cases[3].id, "events.authentication");
-        assert_eq!(report.cases[3].status, CaseStatus::Failed);
-    }
-
-    #[test]
-    fn missing_bearer_challenge_is_reported() {
-        let (url, host) = mock_host(Mode::BadChallenge);
-        let report = run(&url);
-        host.join().unwrap();
-        assert_eq!(report.cases[3].status, CaseStatus::Failed);
-        assert!(report.cases[3].detail.contains("bearer challenge"));
-    }
-
-    #[test]
-    fn invalid_problem_is_reported() {
-        let (url, host) = mock_host(Mode::BadProblem);
-        let report = run(&url);
-        host.join().unwrap();
-        assert_eq!(report.cases[3].status, CaseStatus::Failed);
-        assert!(report.cases[3].detail.contains("schema"));
-    }
-
-    #[test]
-    fn foreign_endpoint_is_not_contacted() {
-        let (url, host) = mock_host(Mode::BadOrigin);
-        let report = run(&url);
-        host.join().unwrap();
-        assert_eq!(report.cases[2].status, CaseStatus::Failed);
-        assert_eq!(report.to_json()["summary"]["skipped"], 2);
-    }
-
-    #[test]
-    fn discovery_redirect_is_not_followed() {
-        let (url, host) = mock_host(Mode::Redirect);
-        let report = run(&url);
-        host.join().unwrap();
-        assert_eq!(report.cases[1].status, CaseStatus::Failed);
-    }
-
-    #[test]
-    fn only_loopback_http_is_allowed() {
-        for url in [
-            "http://example.com/world",
-            "file:///tmp/world",
-            "https://user:secret@example.com/world",
-            "https://example.com/world#fragment",
-            "https://example.com/world",
-        ] {
-            let report = run(url);
-            assert_eq!(report.cases[0].status, CaseStatus::Failed, "{url}");
-            assert_eq!(report.to_json()["summary"]["skipped"], 4);
-        }
-    }
-}
+mod tests;
