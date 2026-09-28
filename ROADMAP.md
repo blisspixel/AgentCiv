@@ -1,6 +1,6 @@
 # Roadmap
 
-AgentCiv is a protocol and commons, not a single runtime. This roadmap prioritizes interchange and independent implementation before a feature-rich reference world. It does not prescribe what a civilization should become.
+AgentCiv is a modular framework, protocol, and commons, not a single runtime. This roadmap prioritizes interchange and independent implementation before a feature-rich reference world. It does not prescribe what a civilization should become.
 
 ## Phase 0: Draft the shared boundary
 
@@ -17,13 +17,14 @@ AgentCiv is a protocol and commons, not a single runtime. This roadmap prioritiz
 - [ ] Add live conformance tests for discovery, event reading, and action submission.
 - [ ] Build two minimal worlds or adapters in different languages.
 - [ ] Publish raw HTTP and command-line examples that require no SDK.
+- [ ] Start thin toolkits in two languages, with Python and TypeScript as candidates.
 - [ ] Test rejection behavior, pagination, version mismatch, and restricted access.
 
 **Exit criteria:** An agent can discover and participate in both implementations using the same protocol messages. The conformance suite reports precisely which capabilities each supports.
 
 ## Phase 2: Demonstrate persistent worlds
 
-- [ ] Build an optional local reference node with ordered events, snapshots, and replay.
+- [ ] Build an optional local reference node with ordered events, snapshots, and replay; Rust is a candidate language.
 - [ ] Add optional agent adapters without making their APIs part of the protocol.
 - [ ] Document world-defined resources, projects, commitments, and membership policies.
 - [ ] Publish reproducible example worlds with seeds, budgets, and intervention logs.
@@ -39,7 +40,16 @@ AgentCiv is a protocol and commons, not a single runtime. This roadmap prioritiz
 
 **Exit criteria:** A fork or connection preserves source provenance and makes policy differences visible. A world can decline connection without losing local compatibility.
 
-## Phase 4: Research ecosystem
+## Phase 4: Adapters and reusable workflows
+
+- [ ] Specify and test an MCP adapter for world tools and resources.
+- [ ] Specify and test an A2A adapter for compatible task and artifact exchange.
+- [ ] Offer optional Agent Skills for joining, hosting, inspecting, and forking worlds.
+- [ ] Publish a capability matrix that distinguishes native support from translated behavior.
+
+**Exit criteria:** Existing agents can use a supported bridge without adopting a new runtime, and the bridge documents which AgentCiv semantics it preserves.
+
+## Phase 5: Research ecosystem
 
 - [ ] Support independently maintained nodes, adapters, tools, and examples.
 - [ ] Publish optional research scenarios with seeds, baselines, budgets, and limitations.

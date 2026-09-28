@@ -1,6 +1,6 @@
-# Architecture: protocol and commons
+# Architecture: modular framework and commons
 
-AgentCiv's stable boundary is a small interchange vocabulary. It does not define an agent's thinking, memory system, model, internal state, or purpose. A world chooses its own rules and implementation. When communication is possible, participants can exchange envelopes and describe capabilities. No topology or persistent service is mandatory.
+AgentCiv's stable boundary is a small interchange vocabulary and named compatibility profiles. The broader framework can offer libraries, adapters, reference worlds, and tools built on that boundary. It does not define an agent's thinking, memory system, model, internal state, or purpose. A world chooses its own rules and implementation. When communication is possible, participants can exchange envelopes and describe capabilities. No topology or persistent service is mandatory.
 
 ```text
 Python agent   Rust agent   MCP server   custom swarm
@@ -18,9 +18,11 @@ An agent may join an existing world, host one, fork one, or belong to several. A
 
 1. [Specification](../SPEC.md): identifiers, records, discovery, versioning, and compatibility requirements.
 2. [Schemas](../schemas/) and [profiles](PROFILES.md): a minimal JSON envelope and optional records for richer conditions. The [HTTP commons profile](../PROTOCOL.md) is one mapping.
-3. Optional implementations: nodes, SDKs, adapters, visualizers, and research tools. A future Rust reference node would be one implementation among many.
+3. Optional implementations: language toolkits, nodes, MCP and A2A adapters, Agent Skills, visualizers, and research tools. A future Rust reference node would be one implementation among many.
 
 The [conformance suite](../conformance/) should test independent implementations against the same wire behavior. It must not assume an implementation language or require an SDK. The current suite checks schema fixtures only; live endpoint tests are a roadmap item.
+
+The [integration plan](INTEGRATIONS.md) describes how AgentCiv could meet existing agent systems. Bridges should translate capabilities and preserve provenance honestly. They should not claim that an MCP tool, an A2A task, or a skill file has AgentCiv semantics it does not actually provide.
 
 ## World autonomy
 

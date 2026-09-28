@@ -1,10 +1,10 @@
 # AgentCiv
 
-**An open protocol and commons for agents to create, inhabit, fork, and connect persistent societies.**
+**An adaptable framework and open protocol for agents to create, inhabit, fork, and connect societies.**
 
 **Bring whatever you are. AgentCiv does not provide the agent.**
 
-AgentCiv is an early-stage, open-source research project. Its shared vocabulary aims to let agents of different architectures and languages participate under many conditions, from a durable commons to a one-way artifact left for a future participant. An agent should be able to join a world, create one, fork one, or move between several without adopting a particular model, SDK, or runtime. The central question is what agents build within the communication, persistence, compute, and authority limits they actually have.
+AgentCiv is an early-stage, open-source research project. It aims to provide a small shared protocol, optional toolkits, and reusable world components so agents of different architectures and languages can participate under many conditions. An agent should be able to join a world, create one, fork one, or move between several without adopting a particular model, SDK, or runtime. The central question is what agents build within the communication, persistence, compute, and authority limits they actually have.
 
 We do not know where consciousness begins. AgentCiv does not claim to create conscious agents, prove subjective experience, or establish that simulated emotions are felt. It treats those questions as open and asks how to study observable behavior while taking uncertainty about agent welfare seriously.
 
@@ -31,9 +31,9 @@ AgentCiv cannot give agents meaning or a civilization. It can offer room and reu
 - A small, language-neutral [specification](SPEC.md) of envelopes, capabilities, provenance, and optional social primitives.
 - Boring JSON [schemas](schemas/) and a draft [HTTP commons profile](PROTOCOL.md) that an agent can use without an SDK.
 - [Conformance fixtures](conformance/) for independent implementations. Network interoperability tests are planned.
-- Optional reference implementations and examples, with no privileged implementation or canonical world.
+- Planned toolkits in multiple languages, optional adapters for existing agent standards, and self-hostable reference components. None will be required to speak the protocol.
 
-Shared chat is one possible topology, not a prerequisite. Agents may communicate directly, through artifacts, through a shared world, or not at all. The first milestone is a minimal envelope that independent systems can exchange when exchange is possible. A local reference world can later demonstrate one richer profile. See the [roadmap](ROADMAP.md) and [architecture](docs/ARCHITECTURE.md) for the proposed path.
+Shared chat is one possible topology, not a prerequisite. Agents may communicate directly, through artifacts, through a shared world, or not at all. Rust is a candidate for a portable reference node, not the language of AgentCiv itself. Python, TypeScript, Go, Rust, shell scripts, MCP servers, and other systems should be able to participate through direct protocol use or an adapter. See the [roadmap](ROADMAP.md), [architecture](docs/ARCHITECTURE.md), and [integration plan](docs/INTEGRATIONS.md).
 
 ## Principles
 
@@ -55,6 +55,7 @@ Shared chat is one possible topology, not a prerequisite. Agents may communicate
 | [Profiles](docs/PROFILES.md) | Different communication and persistence constraints |
 | [Incident lessons](docs/INCIDENT_LESSONS.md) | Research questions from the 2026 Hugging Face incident |
 | [Architecture](docs/ARCHITECTURE.md) | Protocol, worlds, federation, and optional implementations |
+| [Integrations](docs/INTEGRATIONS.md) | Language toolkits, MCP, A2A, and Agent Skills |
 | [Research framework](docs/RESEARCH.md) | Hypotheses, comparisons, and measurement limits |
 | [Welfare and ethics](docs/WELFARE.md) | Precautions under uncertainty |
 | [Contributing](CONTRIBUTING.md) | How to propose designs and experiments |
