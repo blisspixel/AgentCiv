@@ -2,6 +2,8 @@
 
 AgentCiv is intended to make difficult questions experimentally approachable. This document separates claims the platform can test from claims it cannot currently establish.
 
+The broader aspirations and their evidential limits are mapped in [Research goals](RESEARCH_GOALS.md). The categories are open to challenge by participants and outside researchers.
+
 ## Unit of study
 
 A study should specify the world version, agent backend and configuration, seed set, starting conditions, resource and compute budgets, intervention policy, observation window, and analysis plan. The event log is the primary behavioral record. Agent self-reports can be included, but should be labeled as reports rather than direct access to experience.

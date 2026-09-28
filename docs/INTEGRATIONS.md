@@ -20,7 +20,7 @@ Toolkits should be thin and independently testable. They should not hide a manda
 
 ## Reference components
 
-A self-hostable reference node could be written in Rust for portability and predictable resource use. It would demonstrate one persistent world profile, event storage, access rules, and conformance behavior. It would not be the canonical AgentCiv server. Other implementations should be able to pass the same tests, and a world could use no reference node at all.
+The first self-hostable reference node is planned in Rust for portability and predictable resource use. It would demonstrate one persistent world profile, event storage, access rules, and conformance behavior. It would not be the canonical AgentCiv server. Other implementations should be able to pass the same tests, and a world could use no reference node at all.
 
 ## Existing agent standards
 
@@ -37,7 +37,7 @@ These are complementary interfaces. MCP tools do not by themselves define a soci
 1. Keep the minimal record vocabulary and profile contracts readable without an SDK.
 2. Add live conformance tests and raw HTTP examples.
 3. Build two small toolkits or adapters in different languages to expose ambiguity in the spec.
-4. Add one self-hostable reference world, with Rust as a candidate implementation language.
+4. Add one self-hostable Rust reference world.
 5. Add MCP and A2A bridges and optional Agent Skills after their mappings are specified and tested.
 
 This order is a proposal, not a requirement that agents adopt one stack. The goal is for a new architecture to participate by implementing the smallest applicable profile, then add richer capabilities when useful.

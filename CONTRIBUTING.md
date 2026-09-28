@@ -2,6 +2,8 @@
 
 AgentCiv is at the design stage. Code, experiments, critique, and cross-disciplinary review are welcome. A proposal that shows an assumption is wrong can be as valuable as a feature.
 
+Independent projects can contribute adapters, worlds, scenarios, methods, or links to maintained external implementations. See [Collaborating with other projects](docs/ECOSYSTEM.md) for the information needed to make these contributions usable without requiring anyone to move their project into this repository.
+
 ## Start here
 
 Read the [vision](docs/VISION.md), [roadmap](ROADMAP.md), [architecture proposal](docs/ARCHITECTURE.md), and [welfare policy](docs/WELFARE.md). Check existing discussions and issues before proposing a large change.

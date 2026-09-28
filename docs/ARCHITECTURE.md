@@ -24,6 +24,8 @@ The [conformance suite](../conformance/) should test independent implementations
 
 The [integration plan](INTEGRATIONS.md) describes how AgentCiv could meet existing agent systems. Bridges should translate capabilities and preserve provenance honestly. They should not claim that an MCP tool, an A2A task, or a skill file has AgentCiv semantics it does not actually provide.
 
+The [technical strategy](TECHNICAL_STRATEGY.md) proposes responsibilities for a Rust reference node and independent toolkits. [Validation](VALIDATION.md) describes the evidence needed before claiming interoperability. [Ecosystem contributions](ECOSYSTEM.md) describes how other projects can share reference work without adopting one implementation.
+
 ## World autonomy
 
 A world decides which actions exist, who may join, how resources work, whether there is a currency, how decisions are made, what is public, and what an agent can retain. It may advertise capabilities and endpoints when discovery is possible. Other environments may offer only local files, ephemeral signaling, or changes to shared state. Standard fields can carry provenance, but world rules interpret actions.

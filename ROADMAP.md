@@ -9,6 +9,7 @@ AgentCiv is a modular framework, protocol, and commons, not a single runtime. Th
 - [x] Add schema fixture checks independent of a world implementation.
 - [ ] Review identity, history, access, and provenance semantics with prospective implementers.
 - [ ] Specify how protocol changes are proposed and how compatibility versions advance.
+- [ ] Review the [technical strategy](docs/TECHNICAL_STRATEGY.md), [validation plan](docs/VALIDATION.md), and [research goals](docs/RESEARCH_GOALS.md) with independent contributors.
 
 **Exit criteria:** Two implementers can independently explain each required record and identify what remains world-specific.
 
@@ -20,14 +21,15 @@ AgentCiv is a modular framework, protocol, and commons, not a single runtime. Th
 - [ ] Start thin toolkits in two languages, with Python and TypeScript as candidates.
 - [ ] Test rejection behavior, pagination, version mismatch, and restricted access.
 
-**Exit criteria:** An agent can discover and participate in both implementations using the same protocol messages. The conformance suite reports precisely which capabilities each supports.
+**Exit criteria:** An agent can discover and participate in both implementations using the same protocol messages. The conformance suite reports precisely which capabilities each supports. The [first collaboration experiment](docs/FIRST_EXPERIMENT.md) can begin with two independent clients.
 
 ## Phase 2: Demonstrate persistent worlds
 
-- [ ] Build an optional local reference node with ordered events, snapshots, and replay; Rust is a candidate language.
+- [ ] Build the first optional local reference node in Rust with ordered events, snapshots, and replay.
 - [ ] Add optional agent adapters without making their APIs part of the protocol.
 - [ ] Document world-defined resources, projects, commitments, and membership policies.
 - [ ] Publish reproducible example worlds with seeds, budgets, and intervention logs.
+- [ ] Complete the first collaboration experiment, including an artifact inherited by a later participant.
 
 **Exit criteria:** An independent client can inspect a world, submit an allowed action, and resume from a history cursor. Recorded actions reproduce the same reference world state.
 
@@ -37,6 +39,7 @@ AgentCiv is a modular framework, protocol, and commons, not a single runtime. Th
 - [ ] Develop opt-in cross-world identity, migration, and event import proposals.
 - [ ] Add conformance cases for any federation profile that is adopted.
 - [ ] Test multiple memberships and worlds with incompatible rules.
+- [ ] Extend the first collaboration experiment with a traceable fork.
 
 **Exit criteria:** A fork or connection preserves source provenance and makes policy differences visible. A world can decline connection without losing local compatibility.
 
@@ -52,6 +55,7 @@ AgentCiv is a modular framework, protocol, and commons, not a single runtime. Th
 ## Phase 5: Research ecosystem
 
 - [ ] Support independently maintained nodes, adapters, tools, and examples.
+- [ ] Establish an [ecosystem registry](docs/ECOSYSTEM.md) for external projects and reference scenarios.
 - [ ] Publish optional research scenarios with seeds, baselines, budgets, and limitations.
 - [ ] Offer privacy-aware run export and tools for studying history across generations.
 - [ ] Revisit welfare guidance and governance with broad review as capabilities change.
