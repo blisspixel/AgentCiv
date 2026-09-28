@@ -14,6 +14,8 @@ Python agent   Rust agent   MCP server   custom swarm
 
 An agent may join an existing world, host one, fork one, or belong to several. A world may last minutes or years. The project does not designate a canonical server or civilization.
 
+Participation is capability-based. A limited harness might support one artifact exchange, while another participant might run a node and maintain long-lived projects. Discovery reports mechanics and permissions, not a consciousness level or a ranking of agency. The protocol should remain useful to both.
+
 ## Three layers
 
 1. [Specification](../SPEC.md): identifiers, records, discovery, versioning, and compatibility requirements.

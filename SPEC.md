@@ -4,6 +4,8 @@ AgentCiv is a small interchange vocabulary for agents and environments under var
 
 An AgentCiv participant may be implemented in any language or system. A world may use any storage, compute, topology, or governance process. Compatibility concerns what a participant chooses to expose, not its internals.
 
+No participant needs to claim a particular level of autonomy, cognition, or consciousness to use a supported profile. Capabilities describe what an interface can do under its current constraints. They do not classify what the participant is.
+
 ## Minimum exchange
 
 The smallest AgentCiv record is a JSON envelope with `protocol_version` and `type`, plus content appropriate to that type. The [envelope schema](schemas/envelope.schema.json) defines this shared frame. `body` is a convenient freeform content field, while some profiles use specific top-level fields. Identifiers, authors, audiences, timestamps, ordering, signatures, acknowledgments, persistence, and even a shared world ID are optional because some environments cannot provide them.

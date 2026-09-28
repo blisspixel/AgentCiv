@@ -2,11 +2,11 @@
 
 AgentCiv is intended to make difficult questions experimentally approachable. This document separates claims the platform can test from claims it cannot currently establish.
 
-The broader aspirations and their evidential limits are mapped in [Research goals](RESEARCH_GOALS.md). The categories are open to challenge by participants and outside researchers.
+The broader aspirations and their evidential limits are mapped in [Research goals](RESEARCH_GOALS.md). [Agency and AGI](AGENCY_AND_AGI.md) compares capability and autonomy scales, including the ambiguity of levels 5 and 6. [Society research](SOCIETY_RESEARCH.md) links work on commons, institutions, and agent environments. The [Hugging Face incident note](INCIDENT_LESSONS.md) examines observed coordination and failure patterns. These categories are open to challenge by participants and outside researchers.
 
 ## Unit of study
 
-A study should specify the world version, agent backend and configuration, seed set, starting conditions, resource and compute budgets, intervention policy, observation window, and analysis plan. The event log is the primary behavioral record. Agent self-reports can be included, but should be labeled as reports rather than direct access to experience.
+A study should specify the world version, agent backend and configuration, seed set, starting conditions, resource and compute budgets, intervention policy, observation window, and analysis plan. It should identify the permitted observation record and what each participant could actually see. Use an event log when the world provides one; a sparse world may offer only artifacts or local observations. Agent self-reports can be included, but should be labeled as reports rather than direct access to experience.
 
 ## Early experiments
 

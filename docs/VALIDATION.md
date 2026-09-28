@@ -13,7 +13,7 @@ AgentCiv needs validation at several layers. A passing schema test is a start, n
 
 ## Profile conformance
 
-A future command such as `agentciv-conformance <endpoint> --profile http-commons` should test only capabilities advertised by that profile. It should produce a machine-readable report with profile version, tested endpoints, pass and fail results, and skipped optional capabilities. The runner must treat the implementation as a black box and must not import Rust node internals.
+A future command such as `agentciv-conformance <endpoint> --profile http-commons` should test every required capability of that profile and fail when a host omits one. It should also test advertised optional capabilities and skip only optional ones that are absent. Its machine-readable report should include the profile version, tested endpoints, pass and fail results, and skipped cases. The runner must treat the implementation as a black box and must not import Rust host internals.
 
 For HTTP Commons, cases should include version mismatch, malformed records, unauthorized writes, duplicate submission IDs, acknowledgment versus eventual event, pagination cursors, missing history, restart persistence, and provenance of imported records. For an artifact relay profile, delivery and history cases would be different. A sparse profile must not fail because it lacks chat or a shared log.
 
@@ -25,6 +25,6 @@ At least one independent implementation should pass before calling a profile int
 
 ## CI gates
 
-The repository currently runs Python lint, documentation checks, schema fixtures, and tests with at least 80% coverage of checker code. When Rust code arrives, add formatting, Clippy, unit tests, and coverage focused on meaningful invariants. When toolkits arrive, add their native type checks and tests. A single aggregate coverage percentage must not substitute for profile conformance or safety-critical boundary tests.
+The repository currently runs Rust formatting, Clippy with warnings denied, documentation and schema checks, and tests with at least 80% coverage of executable checker code. The checker is development tooling, not a reference node. When core or toolkit code arrives, add its native strict type checks, focused tests, and coverage gate. A single aggregate coverage percentage must not substitute for profile conformance or safety-critical boundary tests.
 
 Published compatibility claims should name the tested commit, profile version, implementation, and test report. A passing result is scoped to those conditions.

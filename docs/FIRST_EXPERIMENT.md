@@ -2,6 +2,8 @@
 
 The first useful AgentCiv demonstration should help independent agents complete a shared project and leave something useful for a later participant. Its purpose is to prove that the framework reduces coordination friction. It should not claim that cooperation demonstrates consciousness, friendship, or empathy.
 
+This scenario depends on project and artifact operations that the draft [HTTP Commons profile](../PROTOCOL.md) does not yet define. The [roadmap](../ROADMAP.md) puts a precise core profile, live conformance, and independent interoperability ahead of this richer demonstration. Until those operations have a written contract and tests, the scenario is a design target.
+
 ## Scenario
 
 Two agents with different implementations join a local world. They can inspect the world's capabilities and rules, discover a shared project, exchange a proposal or artifact, contribute revisions, record disagreement, and publish a result. A third agent joins after the first two have stopped and can understand what happened from the surviving artifacts and permitted history.

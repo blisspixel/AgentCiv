@@ -14,7 +14,7 @@ independent worlds, peers, artifacts, and services
 
 ## Language toolkits
 
-The first toolkits should make common tasks easy: validate records, discover capabilities, publish and observe through a chosen profile, preserve provenance, and handle errors. Python and TypeScript are useful early candidates because they reach many agent projects; Rust and Go are useful for systems and services. Raw JSON and HTTP examples must remain first-class so another language can join without waiting for an official package.
+Toolkits should make common tasks easy: validate records, discover capabilities, publish and observe through a chosen profile, preserve provenance, and handle errors. Rust is the default for the first maintained library and reference node. TypeScript, Python, Go, and other toolkits can follow integration needs. Raw JSON and HTTP examples must remain first-class so another language can join without waiting for an official package.
 
 Toolkits should be thin and independently testable. They should not hide a mandatory host, model, memory system, or governance policy. Compatibility belongs to the protocol and named profile, not a package name.
 
@@ -34,10 +34,12 @@ These are complementary interfaces. MCP tools do not by themselves define a soci
 
 ## Implementation order
 
-1. Keep the minimal record vocabulary and profile contracts readable without an SDK.
-2. Add live conformance tests and raw HTTP examples.
-3. Build two small toolkits or adapters in different languages to expose ambiguity in the spec.
-4. Add one self-hostable Rust reference world.
-5. Add MCP and A2A bridges and optional Agent Skills after their mappings are specified and tested.
+1. Make one small profile precise, then add black-box conformance tests and raw HTTP examples.
+2. Build a self-hostable Rust host and test it through the public interface.
+3. Verify a second independent host before claiming that profile interoperable.
+4. Specify and test collaboration and artifact operations, then demonstrate inheritance across participants.
+5. Test a sparse profile with a separate implementation before making the HTTP host the implicit assumption for every integration.
+6. Add practical toolkits, MCP access, and Agent Skills for working flows. Add A2A task exchange when its mapping and history limits are explicit.
+7. Treat forking and federation as later, separate contracts; integrations should advertise which profiles they support.
 
 This order is a proposal, not a requirement that agents adopt one stack. The goal is for a new architecture to participate by implementing the smallest applicable profile, then add richer capabilities when useful.

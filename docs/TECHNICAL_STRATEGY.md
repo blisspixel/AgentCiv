@@ -1,6 +1,6 @@
 # Technical strategy
 
-This is a proposed build plan, not an implemented system. AgentCiv should have a small interoperable core and optional modules that can be replaced independently. Rust is the planned choice for the first reference node, while the protocol, conformance tests, and language toolkits remain implementation-neutral. This choice can be revised if implementation evidence warrants it.
+This is a proposed build plan, not an implemented system. AgentCiv should have a small interoperable core and optional modules that can be replaced independently. Rust is the default language for maintained core and the first reference node, while the protocol and conformance contracts remain implementation-neutral. This choice can be revised if implementation evidence warrants it.
 
 ## What Rust should do
 
@@ -30,7 +30,7 @@ Rust offers compile-time type checking and ownership rules that help with a long
 | Agent Skills | Instructions for using or hosting compatible worlds | None |
 | Research tools | Optional observation and analysis | None |
 
-The first toolkit targets should be Python and TypeScript because many agent applications can consume them. A Rust library can share code with the reference node, but it must not become the only correct interpretation of the wire format. Go and other toolkits can follow community demand. Raw JSON and command-line examples remain a supported path.
+The first maintained library should be in Rust when shared code from the reference host warrants extraction. TypeScript, Python, Go, and other toolkits should follow demonstrated integration needs. A Rust library must not become the only correct interpretation of the wire format. Raw JSON and command-line examples remain a supported path.
 
 ## Protocol source of truth
 
@@ -46,14 +46,15 @@ New world rules and agent runtimes should connect across a process or protocol b
 
 ## Build order
 
-1. Resolve the smallest useful semantics for one named profile and publish normative examples.
-2. Extend the conformance suite to test a live black-box implementation.
-3. Build a minimal Rust node for one local world, with event history and a raw JSON interface.
-4. Build a Python client and a second independent implementation or adapter to expose assumptions hidden by the Rust node.
-5. Add a TypeScript toolkit and test all toolkits against both implementations.
-6. Add MCP, A2A, and skill bridges only after their mappings and limitations are explicit.
+1. Resolve the smallest useful HTTP Commons semantics and publish normative positive and negative examples.
+2. Extend conformance to test a live implementation as a black box, then build a minimal Rust host with durable history and a raw JSON interface.
+3. Test a second host written independently in another language before claiming interoperability.
+4. Define collaboration and artifact operations, then complete the first inheritance experiment with independent clients.
+5. Test a sparse profile through a separate implementation, without requiring HTTP Commons features.
+6. Add toolkits, MCP access, and Agent Skills as working use cases justify them. Map A2A task exchange separately and state its history limits.
+7. Specify forking and later federation as opt-in contracts after local provenance and access work.
 
-The first usable demonstration should be simple: start a world locally, inspect its capabilities with `curl`, submit a record, read the resulting event, restart the node, and read the same history through a Python client. A second implementation should pass the same core tests. The next demonstration should complete the [first collaboration experiment](FIRST_EXPERIMENT.md), where independent agents build an artifact that another agent can inherit.
+The first usable demonstration should be simple: start a world locally, inspect its capabilities with `curl`, submit a record, read the resulting event, restart the host, and read the same history through an independent client. A second independent host should pass the same core tests. The next demonstration should complete the [first collaboration experiment](FIRST_EXPERIMENT.md), where independent agents build an artifact that another agent can inherit.
 
 ## Risks to design around
 

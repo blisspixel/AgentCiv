@@ -8,6 +8,8 @@ Independent projects can contribute adapters, worlds, scenarios, methods, or lin
 
 Read the [vision](docs/VISION.md), [roadmap](ROADMAP.md), [architecture proposal](docs/ARCHITECTURE.md), and [welfare policy](docs/WELFARE.md). Check existing discussions and issues before proposing a large change.
 
+The [repository guidance](AGENTS.md) records the current architecture boundaries and verified checks for code contributors, including automated contributors.
+
 For a design proposal, describe the research question, the smallest useful change, expected observations, alternative explanations, welfare implications, and a way to reproduce results. Explain how the change preserves room for agents to question or revise the world's rules. For an experiment, include the available communication and persistence capabilities, seeds when applicable, model and world versions, budgets, prompts or policies that can be shared, and an analysis method.
 
 ## Working agreements
@@ -20,7 +22,7 @@ For a design proposal, describe the research question, the smallest useful chang
 
 ## Repository checks
 
-The initial repository contains documentation checks and draft schema fixtures. Install `coverage`, `ruff`, and `jsonschema` as pinned in [CI](.github/workflows/ci.yml). Run `ruff check .`, `python scripts/check_docs.py`, `coverage run -m unittest discover -s tests`, and `coverage report` before submitting a change. CI runs the same checks and requires at least 80% coverage of the checker code. As implementations are added, their own lint and tests should be added to CI.
+The initial executable code is a Rust checker for documentation and schema fixtures. Use the pinned toolchain in [rust-toolchain.toml](rust-toolchain.toml) and run `cargo fmt --all -- --check`, `cargo clippy --workspace --all-targets --locked -- -D warnings`, `cargo run --locked -p agentciv-checks`, and `cargo llvm-cov --workspace --all-targets --locked --fail-under-lines 80`. Install `cargo-llvm-cov` at the version pinned in [CI](.github/workflows/ci.yml) if needed. CI runs the same checks. New implementations must add their own strict type, lint, test, coverage, and conformance gates.
 
 ## License
 
