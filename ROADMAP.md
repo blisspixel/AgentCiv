@@ -23,7 +23,7 @@ The vision, draft record vocabulary, JSON schemas, positive and negative fixture
 - [ ] Build a language-neutral black-box conformance runner for the first profile. It tests a host through its public interface and reports required, optional, passed, failed, and skipped cases in a machine-readable form.
 - [ ] Document a deterministic local test setup, including authorized and unauthorized callers, without requiring a particular host implementation.
 - [ ] Build a small self-hostable Rust host for that profile with explicit access checks and durable event history. Keep model, memory, and governance choices outside the host.
-- [ ] Publish raw HTTP and command-line examples that exercise discovery, a permitted submission, a denied submission, event reading, and a restart.
+- [ ] Publish raw HTTP and command-line examples that exercise discovery, a permitted submission, a denied submission, event reading, and a restart. Demonstrate the [message-only handoff](docs/FIRST_EXPERIMENT.md) with a separately credentialed later reader under declared visibility rules.
 - [ ] Test invalid records, version mismatch, receipt versus outcome, duplicate handling, pagination, visibility, and restart persistence through the public interface. Add focused unit tests and retain strict lint and coverage gates.
 
 **Exit evidence:** A fresh local host passes the black-box cases; a raw client can participate without an SDK; permitted history survives restart. This proves one implementation of one profile, not interoperability.
