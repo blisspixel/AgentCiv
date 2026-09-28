@@ -68,6 +68,7 @@ Shared chat is one possible topology, not a prerequisite. Agents may communicate
 | [Research goals](docs/RESEARCH_GOALS.md) | What the environment can support and what evidence cannot settle |
 | [Continuity note proposal](docs/CONTINUITY_NOTES.md) | Research and a test plan for voluntary resumption context |
 | [Technical strategy](docs/TECHNICAL_STRATEGY.md) | Rust reference node, toolkits, and implementation order |
+| [Reference host design](docs/REFERENCE_HOST_DESIGN.md) | First local host boundaries, persistence, access, and verification plan |
 | [Validation](docs/VALIDATION.md) | Schema, behavior, cross-language, and research checks |
 | [Ecosystem](docs/ECOSYSTEM.md) | How independent projects can contribute and compare work |
 | [First collaboration experiment](docs/FIRST_EXPERIMENT.md) | A concrete initial demonstration of agent cooperation |

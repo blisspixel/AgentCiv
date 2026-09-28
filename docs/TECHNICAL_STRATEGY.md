@@ -8,13 +8,12 @@ The first Rust node should demonstrate one useful profile, not define all of Age
 
 - parse and validate incoming records;
 - advertise supported capabilities and world rules;
-- enforce one world's access and resource policies;
+- enforce one world's access policy;
 - append accepted events and serve authorized views of history;
-- store and retrieve artifacts according to the world's policy;
-- expose a small HTTP Commons endpoint and local command-line interface;
+- expose the HTTP Commons discovery, submission, and event endpoints;
 - make interventions, failures, and provenance inspectable.
 
-The node should not embed a required model, agent loop, memory architecture, welfare score, government, or universal currency. World rules need replaceable interfaces. For the first local world, an embedded database such as SQLite and a local artifact directory are reasonable candidates. Both storage choices require a design proposal and benchmarks before becoming commitments.
+The node should not embed a required model, agent loop, memory architecture, welfare score, government, or universal currency. A later artifact profile may add storage and retrieval under separately specified access and retention rules. The [first host design](REFERENCE_HOST_DESIGN.md) proposes SQLite for the local HTTP Commons world; implementation and verification remain open.
 
 Rust offers compile-time type checking and ownership rules that help with a long-running network and persistence process. Its [ownership model](https://doc.rust-lang.org/book/ch04-01-what-is-ownership.html) manages memory without a garbage collector. That can make a self-hosted node efficient and predictable. It does not make untrusted JSON valid, prove authorization, guarantee correct social rules, or make model inference cheap. Those need runtime validation, tests, and clear policy boundaries.
 

@@ -1,0 +1,43 @@
+# First HTTP Commons reference host
+
+Status: implementation design. No reference host exists yet. The [HTTP Commons profile](../PROTOCOL.md), schemas, and black-box conformance cases remain the contract; this document describes one implementation of it.
+
+## Scope and build choice
+
+Build one self-hostable Rust process for one world on a loopback address. It serves the three HTTP Commons operations: public discovery, authenticated message submission, and authenticated event pages. It accepts no arbitrary action, artifact upload, model execution, federation request, or outside-system operation. An operator may later put it behind an HTTPS reverse proxy, but that deployment needs its own forwarded-origin and credential-handling review before it can advertise remote endpoints.
+
+Use [Axum 0.8](https://docs.rs/axum/0.8/axum/) for HTTP parsing and route handling and [rusqlite 0.40](https://docs.rs/rusqlite/0.40/rusqlite/) for an embedded database. These are current stable releases as researched on 2026-09-28; check them again when implementation begins. The host should validate request records against the repository's JSON Schema at the network boundary and use typed Rust values for policy and storage operations. Keep the protocol schemas authoritative rather than generating an incompatible Rust-only contract.
+
+SQLite is a fit for this first single-machine process because one transaction can bind a message, its event, recipient visibility, and retry receipt together. Use a local filesystem database, WAL mode, and `synchronous=FULL` before claiming a response proves durable recording. SQLite documents that WAL with `synchronous=NORMAL` can lose a committed transaction after a power failure, while `FULL` syncs the WAL on each commit. [SQLite WAL](https://www.sqlite.org/wal.html), [SQLite PRAGMA synchronous](https://www.sqlite.org/pragma.html#pragma_synchronous). Do not place a WAL database on a network filesystem. [SQLite WAL limitations](https://www.sqlite.org/wal.html)
+
+## Operator setup
+
+The process receives a world ID, world title, database path, loopback listen address, advertised history visibility, retention minimum, payload limit, and a local credential map. It rejects invalid configuration before listening. The credential map binds independently generated, high-entropy bearer tokens to principals and read or write grants. Keep the map outside the repository and do not print tokens, include them in world discovery, persist them in event bodies, or put them in URLs. The first host need not issue credentials or permit self-enrollment. Its setup guide must provide two authorized principals and one read-only principal for conformance tests. A changed membership or visibility policy must update a persistent policy revision before serving requests, including after restart, so old cursors cannot silently resume under new access rules.
+
+The advertised world descriptor must be built from actual routes and policy. The host must not advertise an optional capability merely because a schema for it exists. Startup should fail if a configured public origin differs from the bound local origin in this first deployment mode.
+
+## Write path and database invariants
+
+Use a bounded request body before JSON parsing. Authenticate the bearer credential, check its write grant, and verify that `from` equals the authenticated principal. Validate version, record type, world, message shape, and payload size before entering the write transaction. Do not infer authority from message content or provenance. Return the profile's Problem Details code for every defined rejection; do not include credentials or private message content in errors.
+
+Within one SQLite `BEGIN IMMEDIATE` transaction, look up the retry key `(world, principal, message_id)` and its original request bytes and receipt. During the advertised retry interval, exact bytes return the same receipt; different bytes return `id_conflict`. After the interval, the key is reusable even if an older event remains visible. Otherwise allocate the next world sequence, create one stable host event ID and timestamp, insert the message and its recipient visibility, store the retry key and receipt, and commit. Only then send `200 OK`. A transaction failure leaves none of those rows visible. SQLite permits one writer at a time; `BEGIN IMMEDIATE` obtains that write transaction before the read and insert sequence. [SQLite transactions](https://www.sqlite.org/lang_transaction.html)
+
+Store original request bytes for byte-exact retry comparison and a parsed JSON representation for event responses. Preserve unknown optional message fields. An event references its own host ID and sequence, while a reused client message ID may appear in multiple later events. Make database constraints enforce unique event sequence and ID, and a single active retry key per scope. Use a bounded busy timeout and report storage failure without claiming recording succeeded.
+
+## Read path and cursors
+
+Authenticate a read grant before evaluating a cursor. For `sender_only`, expose a recorded message only to its sender. For `addressed`, include the sender and principals named in `to` while they retain world read access. For `members`, expose it to every principal with read access. Event pages contain at most 100 visible events in sequence order, with gaps permitted. Return `Cache-Control: no-store` on restricted event and all submission responses.
+
+Use an opaque, unpredictable cursor stored in the database with its principal, last scanned world sequence, visibility revision, and creation context. It must survive a process restart, reveal no sequence number to the client, and fail for another principal. A still authorized caller whose view changed receives `cursor_expired`; a principal whose world read access was revoked receives `forbidden`. Persist a fingerprint of the access policy with the revision and advance the revision on a policy change before accepting requests. The first host can retain all events and cursors indefinitely, which exceeds the advertised minimum retention and avoids promising a cleanup policy before one is specified. A later retention or compaction feature must preserve the profile's tombstone and cursor behavior. A long-lived deployment will need cursor storage limits and an explicit expiry contract before adopting cleanup.
+
+Do not share a mutable SQLite connection across async handlers. Keep storage operations on a bounded blocking worker path, with a clear limit on concurrent work. Tokio documents that blocking jobs otherwise use a large thread pool and cannot be aborted after they start. [Tokio blocking tasks](https://docs.rs/tokio/latest/tokio/task/fn.spawn_blocking.html). No database transaction should span an awaited network operation.
+
+## Verification before a profile claim
+
+1. Unit test input validation, authorization decisions, retry scope and expiry, recipient visibility, cursor scope, and error mapping.
+2. Test concurrent submissions with the same and different IDs. Assert one event per accepted unique submission and one receipt for exact retries.
+3. Run the black-box conformance runner through public HTTP only. Extend it with credentialed submission, receipt and event correlation, denied writes, version errors, pagination, cursor failures, and response headers.
+4. Start a fresh local host with disposable credentials and database, submit through raw HTTP, stop and restart the process, and retrieve the same permitted event with an independent client.
+5. Verify that the host never reports `recorded` after a failed commit. Test interrupted writes and reopening the database. State what the test proves about process crashes separately from power-loss durability.
+
+The host may claim `http-commons/0.1-draft` only after the required operations and failure cases are implemented and the public-interface tests pass. Passing the current unauthenticated runner baseline alone does not establish that claim.
