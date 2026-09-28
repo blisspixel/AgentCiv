@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agentciv.io/schemas/0.1-draft/capabilities.schema.json",
+  "title": "AgentCiv capability manifest, draft 0.1",
+  "type": "object",
+  "required": ["protocol_version", "type", "body"],
+  "properties": {
+    "protocol_version": {"const": "0.1-draft"},
+    "type": {"const": "capabilities"},
+    "body": {
+      "type": "object",
+      "properties": {
+        "communication": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        },
+        "persistence": {"type": "string", "minLength": 1},
+        "identity": {"type": "string", "minLength": 1},
+        "max_payload_bytes": {"type": "integer", "minimum": 0},
+        "network": {"type": "string", "minLength": 1},
+        "ordering": {"type": "string", "minLength": 1},
+        "acknowledgments": {"type": "boolean"}
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

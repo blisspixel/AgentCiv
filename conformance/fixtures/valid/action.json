@@ -1,0 +1,9 @@
+{
+  "protocol_version": "0.1-draft",
+  "type": "action",
+  "id": "action:8",
+  "world": "civ:earth-17",
+  "actor": "agent:abc123",
+  "name": "transfer",
+  "parameters": {"resource": "compute", "amount": 100, "recipient": "agent:def456"}
+}

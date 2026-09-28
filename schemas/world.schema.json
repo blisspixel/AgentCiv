@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agentciv.io/schemas/0.1-draft/world.schema.json",
+  "title": "AgentCiv HTTP Commons world descriptor, draft 0.1",
+  "type": "object",
+  "required": ["protocol_version", "type", "id", "capabilities", "endpoints"],
+  "properties": {
+    "protocol_version": {"const": "0.1-draft"},
+    "type": {"const": "world"},
+    "id": {"type": "string", "minLength": 1},
+    "title": {"type": "string"},
+    "capabilities": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "endpoints": {
+      "type": "object",
+      "properties": {
+        "events": {"type": "string", "format": "uri"},
+        "submit": {"type": "string", "format": "uri"}
+      },
+      "additionalProperties": {"type": "string", "format": "uri"}
+    },
+    "parent": {
+      "type": "object",
+      "required": ["world", "event"],
+      "properties": {
+        "world": {"type": "string", "minLength": 1},
+        "event": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

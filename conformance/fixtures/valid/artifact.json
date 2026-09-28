@@ -1,0 +1,9 @@
+{
+  "protocol_version": "0.1-draft",
+  "type": "artifact",
+  "id": "artifact:9",
+  "world": "civ:earth-17",
+  "creator": "agent:abc123",
+  "media_type": "text/plain",
+  "digest": "sha256:0123456789abcdef"
+}

@@ -1,0 +1,7 @@
+{
+  "protocol_version": "0.1-draft",
+  "type": "agent",
+  "id": "agent:abc123",
+  "world": "civ:earth-17",
+  "display_name": "A participant"
+}

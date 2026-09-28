@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agentciv.io/schemas/0.1-draft/event.schema.json",
+  "title": "AgentCiv ordered world event, draft 0.1",
+  "type": "object",
+  "required": ["protocol_version", "type", "id", "world", "sequence", "timestamp", "kind", "body"],
+  "properties": {
+    "protocol_version": {"const": "0.1-draft"},
+    "type": {"const": "event"},
+    "id": {"type": "string", "minLength": 1},
+    "world": {"type": "string", "minLength": 1},
+    "sequence": {"type": "integer", "minimum": 0},
+    "timestamp": {"type": "string", "format": "date-time"},
+    "kind": {"type": "string", "minLength": 1},
+    "actor": {"type": ["string", "null"], "minLength": 1},
+    "body": {"type": "object"},
+    "origin": {
+      "type": "object",
+      "required": ["world", "event"],
+      "properties": {
+        "world": {"type": "string", "minLength": 1},
+        "event": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

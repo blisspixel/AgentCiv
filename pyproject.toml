@@ -1,0 +1,13 @@
+[tool.ruff]
+target-version = "py311"
+line-length = 88
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP"]
+
+[tool.coverage.run]
+source = ["scripts"]
+
+[tool.coverage.report]
+fail_under = 80
+show_missing = true

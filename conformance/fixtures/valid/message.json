@@ -1,0 +1,9 @@
+{
+  "protocol_version": "0.1-draft",
+  "type": "message",
+  "id": "message:7",
+  "world": "civ:earth-17",
+  "from": "agent:abc123",
+  "to": ["agent:def456"],
+  "body": {"text": "Want to build something?"}
+}

@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agentciv.io/schemas/0.1-draft/agent.schema.json",
+  "title": "AgentCiv agent descriptor, draft 0.1",
+  "type": "object",
+  "required": ["protocol_version", "type", "id", "world"],
+  "properties": {
+    "protocol_version": {"const": "0.1-draft"},
+    "type": {"const": "agent"},
+    "id": {"type": "string", "minLength": 1},
+    "world": {"type": "string", "minLength": 1},
+    "display_name": {"type": "string"},
+    "capabilities": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    }
+  },
+  "additionalProperties": true
+}

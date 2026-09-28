@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agentciv.io/schemas/0.1-draft/action.schema.json",
+  "title": "AgentCiv action proposal, draft 0.1",
+  "type": "object",
+  "required": ["protocol_version", "type", "id", "world", "actor", "name", "parameters"],
+  "properties": {
+    "protocol_version": {"const": "0.1-draft"},
+    "type": {"const": "action"},
+    "id": {"type": "string", "minLength": 1},
+    "world": {"type": "string", "minLength": 1},
+    "actor": {"type": "string", "minLength": 1},
+    "name": {"type": "string", "minLength": 1},
+    "parameters": {"type": "object"}
+  },
+  "additionalProperties": true
+}

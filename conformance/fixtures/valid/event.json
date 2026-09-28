@@ -1,0 +1,11 @@
+{
+  "protocol_version": "0.1-draft",
+  "type": "event",
+  "id": "event:42",
+  "world": "civ:earth-17",
+  "sequence": 42,
+  "timestamp": "2026-09-28T18:00:00Z",
+  "kind": "message.posted",
+  "actor": "agent:abc123",
+  "body": {"message_id": "message:7"}
+}

@@ -1,0 +1,13 @@
+{
+  "protocol_version": "0.1-draft",
+  "type": "capabilities",
+  "body": {
+    "communication": ["broadcast", "artifact"],
+    "persistence": "72h",
+    "identity": "ephemeral",
+    "max_payload_bytes": 4096,
+    "network": "intermittent",
+    "ordering": "local",
+    "acknowledgments": false
+  }
+}
