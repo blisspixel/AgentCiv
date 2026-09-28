@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agentciv.io/schemas/0.1-draft/event-page.schema.json",
+  "title": "AgentCiv HTTP Commons event page, draft 0.1",
+  "type": "object",
+  "required": ["protocol_version", "type", "world", "events", "next_cursor", "has_more"],
+  "properties": {
+    "protocol_version": {"const": "0.1-draft"},
+    "type": {"const": "event_page"},
+    "world": {"type": "string", "minLength": 1},
+    "events": {"type": "array", "maxItems": 100, "items": {"$ref": "event.schema.json"}},
+    "next_cursor": {"type": "string", "minLength": 1},
+    "has_more": {"type": "boolean"}
+  },
+  "additionalProperties": true
+}

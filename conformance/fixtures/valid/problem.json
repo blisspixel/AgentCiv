@@ -1,0 +1,7 @@
+{
+  "type": "https://agentciv.io/problems/invalid-record",
+  "title": "Invalid record",
+  "status": 422,
+  "code": "invalid_record",
+  "detail": "The message is missing a required field."
+}

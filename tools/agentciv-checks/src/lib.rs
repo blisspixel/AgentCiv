@@ -101,8 +101,13 @@ fn read_json(path: &Path) -> CheckResult<Value> {
     Ok(serde_json::from_str(&fs::read_to_string(path)?)?)
 }
 
-fn validate_record(schema: &Value, record: &Value) -> CheckResult<()> {
+fn validate_with_registry(
+    schema: &Value,
+    record: &Value,
+    registry: &jsonschema::Registry<'_>,
+) -> CheckResult<()> {
     let validator = jsonschema::options()
+        .with_registry(registry)
         .should_validate_formats(true)
         .build(schema)?;
     validator
@@ -111,11 +116,25 @@ fn validate_record(schema: &Value, record: &Value) -> CheckResult<()> {
     Ok(())
 }
 
+fn schema_registry(paths: &[PathBuf]) -> CheckResult<jsonschema::Registry<'static>> {
+    let mut builder = jsonschema::Registry::new();
+    for path in paths {
+        let schema = read_json(path)?;
+        let id = schema["$id"]
+            .as_str()
+            .ok_or("schema is missing its $id")?
+            .to_owned();
+        builder = builder.add(&id, schema)?;
+    }
+    Ok(builder.prepare()?)
+}
+
 /// Compile every schema and validate its matching example fixture.
 pub fn check_schemas(root: &Path) -> CheckResult<Vec<String>> {
     let schema_dir = root.join("schemas");
-    let fixture_dir = root.join("conformance/fixtures/valid");
-    let mut schema_paths = fs::read_dir(schema_dir)?
+    let fixture_root = root.join("conformance/fixtures");
+    let fixture_dir = fixture_root.join("valid");
+    let mut schema_paths = fs::read_dir(&schema_dir)?
         .map(|entry| entry.map(|entry| entry.path()))
         .collect::<Result<Vec<_>, _>>()?;
     schema_paths.retain(|path| {
@@ -129,6 +148,7 @@ pub fn check_schemas(root: &Path) -> CheckResult<Vec<String>> {
         issues.push("no JSON schemas found".to_owned());
         return Ok(issues);
     }
+    let registry = schema_registry(&schema_paths)?;
     let envelope = read_json(&root.join("schemas/envelope.schema.json"))?;
     for path in schema_paths {
         let name = path
@@ -139,12 +159,54 @@ pub fn check_schemas(root: &Path) -> CheckResult<Vec<String>> {
         let result = read_json(&path)
             .and_then(|schema| read_json(&fixture).map(|record| (schema, record)))
             .and_then(|(schema, record)| {
-                validate_record(&schema, &record)?;
-                validate_record(&envelope, &record)
+                validate_with_registry(&schema, &record, &registry)?;
+                if name != "problem.schema.json" {
+                    validate_with_registry(&envelope, &record, &registry)?;
+                }
+                Ok(())
             });
         if let Err(error) = result {
             issues.push(format!("{}: {error}", path.display()));
         }
+    }
+    let negative_dir = fixture_root.join("invalid");
+    let mut negative_count = 0;
+    for group in fs::read_dir(negative_dir)? {
+        let group = group?;
+        if !group.file_type()?.is_dir() {
+            issues.push(format!(
+                "{}: expected schema group directory",
+                group.path().display()
+            ));
+            continue;
+        }
+        let schema = schema_dir.join(format!(
+            "{}.schema.json",
+            group.file_name().to_string_lossy()
+        ));
+        if !schema.is_file() {
+            issues.push(format!("{}: no matching schema", group.path().display()));
+            continue;
+        }
+        let schema = read_json(&schema)?;
+        for entry in fs::read_dir(group.path())? {
+            let entry = entry?;
+            if entry.path().extension().is_none_or(|ext| ext != "json") {
+                issues.push(format!("{}: expected JSON fixture", entry.path().display()));
+                continue;
+            }
+            negative_count += 1;
+            let record = read_json(&entry.path())?;
+            if validate_with_registry(&schema, &record, &registry).is_ok() {
+                issues.push(format!(
+                    "{}: invalid fixture was accepted",
+                    entry.path().display()
+                ));
+            }
+        }
+    }
+    if negative_count == 0 {
+        issues.push("no invalid JSON fixtures found".to_owned());
     }
     Ok(issues)
 }
@@ -215,6 +277,17 @@ mod tests {
         let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
         let schemas = root.join("schemas");
         let fixtures = root.join("conformance/fixtures/valid");
+        let paths = fs::read_dir(&schemas)
+            .unwrap()
+            .map(|entry| entry.unwrap().path())
+            .filter(|path| {
+                path.file_name()
+                    .unwrap()
+                    .to_string_lossy()
+                    .ends_with(".schema.json")
+            })
+            .collect::<Vec<_>>();
+        let registry = schema_registry(&paths).unwrap();
         for entry in fs::read_dir(schemas).unwrap() {
             let path = entry.unwrap().path();
             let Some(name) = path.file_name().and_then(|name| name.to_str()) else {
@@ -226,9 +299,14 @@ mod tests {
             let schema = read_json(&path).unwrap();
             let fixture = fixtures.join(name.replace(".schema.json", ".json"));
             let record = read_json(&fixture).unwrap();
-            let mut wrong_version = record.clone();
-            wrong_version["protocol_version"] = Value::from("unsupported");
-            assert!(validate_record(&schema, &wrong_version).is_err(), "{name}");
+            if name != "problem.schema.json" {
+                let mut wrong_version = record.clone();
+                wrong_version["protocol_version"] = Value::from("unsupported");
+                assert!(
+                    validate_with_registry(&schema, &wrong_version, &registry).is_err(),
+                    "{name}"
+                );
+            }
             for field in schema["required"].as_array().unwrap() {
                 let mut missing = record.clone();
                 missing
@@ -236,7 +314,7 @@ mod tests {
                     .unwrap()
                     .remove(field.as_str().unwrap());
                 assert!(
-                    validate_record(&schema, &missing).is_err(),
+                    validate_with_registry(&schema, &missing, &registry).is_err(),
                     "{name}: {field}"
                 );
             }
@@ -246,9 +324,12 @@ mod tests {
     #[test]
     fn invalid_date_time_format_is_rejected() {
         let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
-        let schema = read_json(&root.join("schemas/event.schema.json")).unwrap();
+        let schema_path = root.join("schemas/event.schema.json");
+        let schema = read_json(&schema_path).unwrap();
+        let message_path = root.join("schemas/message.schema.json");
+        let registry = schema_registry(&[schema_path, message_path]).unwrap();
         let mut record = read_json(&root.join("conformance/fixtures/valid/event.json")).unwrap();
         record["timestamp"] = Value::from("not-a-date");
-        assert!(validate_record(&schema, &record).is_err());
+        assert!(validate_with_registry(&schema, &record, &registry).is_err());
     }
 }

@@ -1,0 +1,8 @@
+{
+  "protocol_version": "0.1-draft",
+  "type": "event_page",
+  "world": "civ:earth-17",
+  "events": [{}],
+  "next_cursor": "opaque-cursor-42",
+  "has_more": false
+}

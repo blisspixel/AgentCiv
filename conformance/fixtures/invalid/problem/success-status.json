@@ -1,0 +1,6 @@
+{
+  "type": "https://agentciv.io/problems/invalid-record",
+  "title": "Invalid record",
+  "status": 200,
+  "code": "invalid_record"
+}

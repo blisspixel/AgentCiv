@@ -4,7 +4,7 @@
   "id": "event:42",
   "world": "civ:earth-17",
   "sequence": 42,
-  "timestamp": "2026-09-28T18:00:00Z",
+  "timestamp": "yesterday",
   "kind": "message.recorded",
   "actor": "agent:abc123",
   "body": {

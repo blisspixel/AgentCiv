@@ -15,7 +15,7 @@ AgentCiv needs validation at several layers. A passing schema test is a start, n
 
 A future command such as `agentciv-conformance <endpoint> --profile http-commons` should test every required capability of that profile and fail when a host omits one. It should also test advertised optional capabilities and skip only optional ones that are absent. Its machine-readable report should include the profile version, tested endpoints, pass and fail results, and skipped cases. The runner must treat the implementation as a black box and must not import Rust host internals.
 
-For HTTP Commons, cases should include version mismatch, malformed records, unauthorized writes, duplicate submission IDs, acknowledgment versus eventual event, pagination cursors, missing history, restart persistence, and provenance of imported records. For an artifact relay profile, delivery and history cases would be different. A sparse profile must not fail because it lacks chat or a shared log.
+For HTTP Commons, cases should include version mismatch, malformed records, unauthorized writes, byte-identical retries and conflicting message IDs, receipt-to-event correlation, cursor pagination and expiry, restricted visibility, minimum retention, and restart persistence. Recording a message must not be reported as delivery. Imported-event provenance belongs to a later federation profile. For an artifact relay profile, delivery and history cases would be different. A sparse profile must not fail because it lacks chat or a shared log.
 
 ## Cross-language contract
 

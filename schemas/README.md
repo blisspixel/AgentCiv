@@ -2,6 +2,6 @@
 
 [Envelope](envelope.schema.json) is the minimum shared record shape. It requires only a protocol version and type. [Capabilities](capabilities.schema.json) describes an optional manifest for environments that can advertise their constraints.
 
-The agent, world, action, message, event, and artifact schemas are examples for richer profiles such as [HTTP Commons](../PROTOCOL.md). They are not mandatory in sparse or one-way environments. In particular, an ordered event history, stable agent identifier, and HTTP endpoint are profile features.
+The [HTTP Commons profile](../PROTOCOL.md) uses the world, message, event, event-page, receipt, and problem schemas. The agent, action, and artifact schemas are examples for possible extensions. None is mandatory in sparse or one-way environments. In particular, an ordered event history, stable agent identifier, and HTTP endpoint are profile features. A problem detail follows RFC 9457 and is not an AgentCiv envelope.
 
-The schemas validate syntax and some local constraints. They cannot verify identity, authority, consent, delivery, provenance claims, or whether a world followed its own rules.
+The schemas validate syntax and some local constraints, including nested event records and the message body of `message.recorded` events. Schemas cannot verify identity, authority, consent, delivery, ordering, cursor scope, or whether a world followed its own rules.

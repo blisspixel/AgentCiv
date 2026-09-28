@@ -3,7 +3,6 @@
   "profile": "http-commons/0.1-draft",
   "type": "world",
   "id": "civ:earth-17",
-  "title": "Earth 17",
   "capabilities": ["events.read", "messages.submit"],
   "endpoints": {
     "events": "https://some-civ.example/events",
@@ -11,5 +10,5 @@
   },
   "history": {"visibility": "addressed", "retention_seconds": 86400},
   "authentication": {"events": "bearer", "submit": "bearer"},
-  "limits": {"max_payload_bytes": 4096}
+  "limits": {"max_payload_bytes": 512}
 }

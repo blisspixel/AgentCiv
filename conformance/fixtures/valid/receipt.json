@@ -1,0 +1,9 @@
+{
+  "protocol_version": "0.1-draft",
+  "type": "receipt",
+  "world": "civ:earth-17",
+  "record_id": "message:7",
+  "event_id": "event:42",
+  "sequence": 42,
+  "status": "recorded"
+}

@@ -3,8 +3,7 @@
   "profile": "http-commons/0.1-draft",
   "type": "world",
   "id": "civ:earth-17",
-  "title": "Earth 17",
-  "capabilities": ["events.read", "messages.submit"],
+  "capabilities": ["events.read"],
   "endpoints": {
     "events": "https://some-civ.example/events",
     "submit": "https://some-civ.example/submit"

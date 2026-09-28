@@ -3,24 +3,56 @@
   "$id": "https://agentciv.io/schemas/0.1-draft/world.schema.json",
   "title": "AgentCiv HTTP Commons world descriptor, draft 0.1",
   "type": "object",
-  "required": ["protocol_version", "type", "id", "capabilities", "endpoints"],
+  "required": ["protocol_version", "profile", "type", "id", "capabilities", "endpoints", "history", "authentication", "limits"],
   "properties": {
     "protocol_version": {"const": "0.1-draft"},
+    "profile": {"const": "http-commons/0.1-draft"},
     "type": {"const": "world"},
     "id": {"type": "string", "minLength": 1},
     "title": {"type": "string"},
     "capabilities": {
       "type": "array",
       "uniqueItems": true,
-      "items": {"type": "string", "minLength": 1}
+      "items": {"type": "string", "minLength": 1},
+      "allOf": [
+        {"contains": {"const": "events.read"}},
+        {"contains": {"const": "messages.submit"}}
+      ]
     },
     "endpoints": {
       "type": "object",
+      "required": ["events", "submit"],
       "properties": {
         "events": {"type": "string", "format": "uri"},
         "submit": {"type": "string", "format": "uri"}
       },
       "additionalProperties": {"type": "string", "format": "uri"}
+    },
+    "history": {
+      "type": "object",
+      "required": ["visibility", "retention_seconds"],
+      "properties": {
+        "visibility": {"enum": ["sender_only", "addressed", "members"]},
+        "retention_seconds": {"type": "integer", "minimum": 1, "maximum": 9007199254740991}
+      },
+      "additionalProperties": true
+    },
+    "authentication": {
+      "type": "object",
+      "required": ["events", "submit"],
+      "properties": {
+        "events": {"const": "bearer"},
+        "submit": {"const": "bearer"}
+      },
+      "additionalProperties": true
+    },
+    "limits": {
+      "type": "object",
+      "required": ["max_payload_bytes"],
+      "properties": {
+        "max_payload_bytes": {"type": "integer", "minimum": 1024, "maximum": 9007199254740991}
+      },
+      "additionalProperties": true
     },
     "parent": {
       "type": "object",

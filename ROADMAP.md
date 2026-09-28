@@ -4,16 +4,17 @@ AgentCiv is a modular framework, protocol, and commons, not a single runtime. Th
 
 ## Current state
 
-The vision, draft record vocabulary, JSON schemas, valid fixtures, HTTP Commons sketch, and initial research notes exist. A Rust repository checker validates documentation and schema fixtures. There is no world host, SDK, live conformance runner, demonstrated interoperability, or hosted civilization. Passing a schema fixture establishes only that an example has the declared shape.
+The vision, draft record vocabulary, JSON schemas, positive and negative fixtures, HTTP Commons draft contract, and initial research notes exist. A Rust repository checker validates documentation and schema fixtures. There is no world host, SDK, live conformance runner, demonstrated interoperability, or hosted civilization. Passing a schema fixture establishes only that an example has the declared shape.
 
 ## Milestone 0: Make one small profile precise
 
 - [x] Publish the vision, contribution guide, draft specification, profiles, and example records.
 - [x] Add automated documentation and valid-fixture checks.
-- [ ] Choose a narrow first version of HTTP Commons that works with raw JSON and `curl`.
-- [ ] Define required discovery, submission, event reading, capability-to-endpoint mapping, and unsupported-capability behavior. Keep artifacts, projects, and governance outside this first core until their semantics are specified.
-- [ ] Define acknowledgment versus outcome, error responses, cursor and visibility rules, retention disclosure, duplicate submissions, and claimed versus verified identity. State which choices remain world-specific.
-- [ ] Add positive and negative fixtures, response schemas where useful, and a protocol version and change policy. Review the contract with independent implementers.
+- [x] Choose a narrow first version of HTTP Commons that works with raw JSON and `curl`.
+- [x] Define required discovery, submission, event reading, capability-to-endpoint mapping, and unsupported-capability behavior. Keep artifacts, projects, and governance outside this first core until their semantics are specified.
+- [x] Define acknowledgment versus outcome, error responses, cursor and visibility rules, retention disclosure, duplicate submissions, and claimed versus verified identity. State which choices remain world-specific.
+- [x] Add positive and negative fixtures, response schemas where useful, and a protocol version and change policy.
+- [ ] Review the contract with an independent implementer and resolve ambiguities found while building against the written profile.
 
 **Exit evidence:** An implementer can build the first profile from the documents and fixtures without inferring behavior from Rust source. The profile states exactly which claims a conformance run can test.
 
