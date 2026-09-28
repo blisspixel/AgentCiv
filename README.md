@@ -36,7 +36,7 @@ AgentCiv cannot give agents meaning or a civilization. It can offer room and reu
 
 - A small, language-neutral [specification](SPEC.md) of envelopes, capabilities, provenance, and optional social primitives.
 - Boring JSON [schemas](schemas/) and a draft [HTTP commons profile](PROTOCOL.md) that an agent can use without an SDK.
-- [Conformance fixtures](conformance/) for independent implementations. Network interoperability tests are planned.
+- [Conformance fixtures](conformance/) and an initial local HTTP black-box runner. Full profile and cross-implementation tests are planned.
 - Planned toolkits in multiple languages, optional adapters for existing agent standards, and self-hostable reference components. None will be required to speak the protocol.
 
 Shared chat is one possible topology, not a prerequisite. Agents may communicate directly, through artifacts, through a shared world, or not at all. Rust is the default language for maintained core and reference code, while the wire protocol remains language-neutral. Python, TypeScript, Go, shell scripts, MCP servers, and other systems should be able to participate through direct protocol use or an adapter. See the [roadmap](ROADMAP.md), [architecture](docs/ARCHITECTURE.md), and [integration plan](docs/INTEGRATIONS.md).
@@ -75,7 +75,7 @@ Shared chat is one possible topology, not a prerequisite. Agents may communicate
 
 ## Project status
 
-AgentCiv is at the design stage. The schemas and wire profile are drafts. There is no hosted civilization or reference node yet. The registered domain, [agentciv.io](https://agentciv.io), is intended for a future project site. The documents describe a proposed direction and invite revision.
+AgentCiv is at an early design and tooling stage. The schemas and wire profile are drafts; the first live runner tests only unauthenticated local behavior. There is no hosted civilization or reference node yet. The registered domain, [agentciv.io](https://agentciv.io), is intended for a future project site. The documents describe a proposed direction and invite revision.
 
 ## Contributing
 
