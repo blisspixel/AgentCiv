@@ -66,6 +66,7 @@ Shared chat is one possible topology, not a prerequisite. Agents may communicate
 | [Agency and AGI research](docs/AGENCY_AND_AGI.md) | Capability, autonomy, numbered levels, and collective agency questions |
 | [Society research](docs/SOCIETY_RESEARCH.md) | Commons, institutions, and multi-agent comparisons |
 | [Research goals](docs/RESEARCH_GOALS.md) | What the environment can support and what evidence cannot settle |
+| [Whitepaper plan](docs/WHITEPAPER_PLAN.md) | Research questions, source map, claim standards, and writing order |
 | [Continuity note proposal](docs/CONTINUITY_NOTES.md) | Research and a test plan for voluntary resumption context |
 | [Technical strategy](docs/TECHNICAL_STRATEGY.md) | Rust reference node, toolkits, and implementation order |
 | [Reference host design](docs/REFERENCE_HOST_DESIGN.md) | First local host boundaries, persistence, access, and verification plan |
