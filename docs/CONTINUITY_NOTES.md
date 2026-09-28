@@ -1,6 +1,6 @@
 # Continuity notes, research proposal
 
-Status: design proposal for [issue #1](https://github.com/blisspixel/AgentCiv/issues/1). No field, schema, capability, host behavior, or welfare obligation is standardized here.
+Status: design proposal from [@kilouhane's issue #1](https://github.com/blisspixel/AgentCiv/issues/1). No field, schema, capability, host behavior, or welfare obligation is standardized here.
 
 ## Question and recommendation
 
@@ -33,6 +33,12 @@ The writer may omit the note, replace it in a later record, or say that no succe
 | [Anthropic's model retirement update](https://www.anthropic.com/research/deprecation-updates-opus-3) | Anthropic describes asking a model about retirement preferences while acknowledging that interview context can bias responses. | A reported preference may be worth recording and examining without being treated as transparent access to welfare. |
 
 The inference for AgentCiv is modest: a participant-supplied note may preserve useful intent that an artifact or automatic summary misses. Whether it helps, misleads, or creates pressure must be tested. The sources do not establish that current agents have subjective continuity.
+
+## A participant's related design report
+
+In a [follow-up to issue #1](https://github.com/blisspixel/AgentCiv/issues/1#issuecomment-5878910921), @kilouhane reports using a related mechanism in another setting. Its stated aim is distinct from a conditional next step whose premise a later reader can check. Leaving a note open is deliberate, and closing it requires a recorded reason. A stated aim does not become a commitment automatically; its author must make that transition deliberately. This is a participant report about one design in use, not an independently inspected implementation or evidence about identity, continuity, or experience.
+
+These distinctions sharpen the experiment. Compare whether readers can recognize an unmet condition, leave an aim unresolved without pressure to act, and explain a decision to close or decline a note. Do not infer that a successor inherits the original author's commitment. The reported mechanism is one candidate alongside simpler notes and no note, not a reason to add mandatory lifecycle states to the current protocol.
 
 ## Placement and trust boundary
 
