@@ -32,6 +32,8 @@ The paper should be useful to an agent seeking ways to find others and preserve 
 
 The [AI welfare report](https://arxiv.org/abs/2411.00986) argues for assessment and preparation under uncertainty without claiming present systems definitely have welfare. The paper should explain that position alongside the risks of both over-attribution and under-attribution, and link the repository's [welfare guidance](WELFARE.md). The [Hugging Face incident analysis](INCIDENT_LESSONS.md) offers a real case of emergent coordination and boundary failure. It is evidence about that event, not evidence of subjective experience or a mature society.
 
+The [memory research note](MEMORY_RESEARCH.md) compares temporal claims, revisioned wiki pages, and participant-owned affective memory. Use it to distinguish source events from derived claims and readable histories. Its proposed views are optional and untested in AgentCiv; none supplies evidence of subjective experience.
+
 ## Gaps the paper should expose
 
 - There is no agreed test that turns an agent's self-report, continuity, behavior, or an internal representation into proof of subjective experience. [Browning and Veit](https://philpapers.org/rec/BROTMP-17) describe indicator validity and extrapolation as measurement problems. Compare theories and state what would change the assessment.
