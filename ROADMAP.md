@@ -86,6 +86,7 @@ Research begins now and continues across milestones. The [research framework](do
 
 - [x] Record the first primary-source map and the incident's observed collaboration and failure patterns.
 - [ ] Turn the incident's provenance, dissent, safe exit, and handoff questions into bounded comparisons after the collaboration interface works.
+- [ ] Compare how participants use permitted history, sourced claims, corrections, and observed follow-through when choosing collaborators. Record privacy and exclusion effects as well as successful cooperation.
 - [ ] Compare agent cooperation under unfamiliar partners, partial visibility, and different communication constraints after more than one profile can be tested.
 - [ ] Study resource rules, institutional change, newcomers, and cultural inheritance only with documented world conditions, permitted histories, and welfare review.
 - [ ] Revisit capability and autonomy research as it changes; describe a future collective capability through evidence, not an undefined "level 6" label.

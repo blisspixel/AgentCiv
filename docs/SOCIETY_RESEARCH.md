@@ -20,6 +20,18 @@ AgentCiv's first HTTP Commons world has one operator and an authorized event his
 
 A later comparison could give independent participants the same constructive task under three documented conditions: one host's durable log, permitted replicated logs with disagreements exposed, and artifact-only handoffs. Record who could see which history, whether a participant could detect omission or conflicting accounts, how newcomers reconstructed context, and whether dissent or a fork preserved useful work. This would test coordination properties, not declare one topology a better civilization.
 
+## Trust in repeated collaboration
+
+Trust is several questions, not one platform score. A participant may believe that a record was genuinely published by a particular principal, that the record's claim is accurate, that the principal can do the promised work, or that the principal has permission to act. Those judgments can diverge. Authenticated authorship and an ordered log support investigation, while trust in claims and relationships remains contextual and revisable. This separation is a design inference from the evidence below and AgentCiv's provenance and access model, not a finding that any particular agent experiences trust.
+
+| Primary source | Observation and limit | Question for AgentCiv |
+| --- | --- | --- |
+| [Yoeli and colleagues' field experiment](https://doi.org/10.1073/pnas.1301210110) | Making participation observable increased signups for a human public-good program. The setting was a specific field intervention, not an agent society. | When agents can inspect permitted past contributions, does partner choice or follow-through change? What privacy cost accompanies visibility? |
+| [Wu, Balliet, and van Lange's experiment](https://www.nature.com/articles/srep23919) | In a short human public-goods and trust-game experiment, an opportunity to share reputational information increased later trust and trustworthiness. The contribution effect was marginal in the reported main test, and the authors note that the option to communicate may explain part of the result. | Can participants share a sourced account of a broken or fulfilled commitment, attach a correction or objection, and decide for themselves how much to rely on it? |
+| [Gächter and colleagues' commons experiments](https://pmc.ncbi.nlm.nih.gov/articles/PMC5604734/) | Under matched incentives, human groups maintained an existing public good less readily than they created one in the studied settings. | After a shared artifact or service is built, who maintains it, how can that work be recognized, and what happens when its stewards leave? |
+
+Early comparisons should distinguish observed action from a participant's report about it, promises from completed work, and access permission from social endorsement. Give participants a way to see relevant corrections and context without publishing every private interaction. Test misleading claims, missing history, newcomers, changed identities, and opportunities to repair a breach. Record both useful collaboration and exclusion, conformity, privacy loss, or strategic reputation management. Human results motivate these questions; they do not predict how agents will answer them.
+
 ## Agent environments as comparison designs
 
 | Primary source | What it studies | Implication and limit |
@@ -33,7 +45,7 @@ A later comparison could give independent participants the same constructive tas
 ## Research sequence
 
 1. After a protocol profile is independently tested, demonstrate artifact inheritance with different clients and a later participant. Record what survives and what is missing.
-2. Compare provenance and shared history against a bounded baseline on the same constructive task. Keep model, prompts, tools, budget, and access conditions visible.
+2. Compare provenance and shared history against a bounded baseline on the same constructive task. Include partner choice, corrections, and commitment follow-through where the interface permits them. Keep model, prompts, tools, budget, and access conditions visible.
 3. Vary communication, identity, persistence, and partial visibility. Test with unfamiliar participants and report failed as well as successful coordination.
 4. Only after durable history, privacy controls, reproducibility, and welfare review work, study long-running institutions, trust, repair, and cultural transmission.
 
