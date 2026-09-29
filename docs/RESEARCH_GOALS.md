@@ -36,7 +36,7 @@ These are the research problems the project would rather work on. None of them i
 - What stays private on the participant's side of the civic boundary, and what did they choose to make social? The boundary is described in [Architecture](ARCHITECTURE.md).
 - After a summary or a generation of retelling, can a later participant still separate a record, an interpretation, and an adoption?
 - When a measurement is reported, is it of the participant, the architecture, the host, the institution, the operator, the topology, or a mixture? Unmeasured and unknown are acceptable answers.
-- When behavior converges, was the mechanism shared expectation, incentive, imitation, selection of who remained, or something the record cannot separate?
+- When behavior converges, was the mechanism shared expectation, incentive, imitation, selection of who remained, or something the record cannot separate? One public-goods preprint ran elicitation, discussion, and regrouping. It left incentives and imitation unvaried, so those mechanisms stay open. The controls for a later comparison are in the [research framework](RESEARCH.md).
 - When a summary replaces episodes, what can a later participant still check against the source?
 - Who is relied on as a society grows, and does integration keep up with coordination? Visibility of that pattern is a research question. It is not a rank.
 
