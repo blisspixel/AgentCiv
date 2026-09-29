@@ -7,18 +7,19 @@ the same profile.
 
 from __future__ import annotations
 
+import ipaddress
 import json
 import shutil
 import socket
 import subprocess
 import sys
 import tempfile
+import threading
 import time
-import urllib.error
 import urllib.parse
-import urllib.request
 from collections.abc import Callable, Mapping
 from pathlib import Path
+from typing import IO
 
 ROOT = Path(__file__).resolve().parents[2]
 WORLD = "civ:walk"
@@ -51,12 +52,6 @@ def curl_binary() -> str:
         if found:
             return found
     raise WalkFailure("curl is not on PATH")
-
-
-def free_port() -> int:
-    with socket.socket() as probe:
-        probe.bind(("127.0.0.1", 0))
-        return int(probe.getsockname()[1])
 
 
 def rust_binary() -> Path:
@@ -100,12 +95,12 @@ def message(
     return record
 
 
-def write_config(directory: Path, port: int) -> Path:
+def write_config(directory: Path) -> Path:
     config = {
         "world_id": WORLD,
         "title": "Walk",
         "database_path": str(directory / "world.sqlite"),
-        "listen": f"127.0.0.1:{port}",
+        "listen": "127.0.0.1:0",
         "visibility": "members",
         "retention_seconds": 86400,
         "max_payload_bytes": 4096,
@@ -120,18 +115,116 @@ def write_config(directory: Path, port: int) -> Path:
     return path
 
 
-def start_host(argv: list[str]) -> subprocess.Popen[str]:
-    return subprocess.Popen(
+class RunningHost:
+    def __init__(self, process: subprocess.Popen[str]) -> None:
+        self.process = process
+        self.ready = threading.Event()
+        self.lock = threading.Lock()
+        self.log: list[str] = []
+        self.readers: list[threading.Thread] = []
+        self.origin = ""
+
+    def add_log(self, line: str) -> None:
+        with self.lock:
+            self.log.append(line)
+
+    def text(self) -> str:
+        with self.lock:
+            return "".join(self.log)
+
+    def note_discovery(self, line: str) -> None:
+        self.add_log(line)
+        origin = advertised_origin(line)
+        if origin is None:
+            return
+        with self.lock:
+            self.origin = origin
+        self.ready.set()
+
+    def current_origin(self) -> str:
+        with self.lock:
+            return self.origin
+
+
+def advertised_origin(line: str) -> str | None:
+    prefix = "discovery "
+    suffix = "/.well-known/agentciv"
+    stripped = line.strip()
+    if not stripped.startswith(prefix) or not stripped.endswith(suffix):
+        return None
+    origin = stripped[len(prefix) : -len(suffix)]
+    parsed = urllib.parse.urlsplit(origin)
+    if parsed.scheme != "http" or parsed.hostname is None or parsed.port is None:
+        return None
+    try:
+        loopback = ipaddress.ip_address(parsed.hostname).is_loopback
+    except ValueError:
+        return None
+    if not loopback:
+        return None
+    return origin
+
+
+def probe_discovery(origin: str) -> bool:
+    parsed = urllib.parse.urlsplit(origin)
+    host = parsed.hostname
+    port = parsed.port
+    if host is None or port is None:
+        return False
+    payload = (
+        b"GET /.well-known/agentciv HTTP/1.1\r\n"
+        b"Host: loopback\r\n"
+        b"Accept: application/json\r\n"
+        b"Connection: close\r\n"
+        b"\r\n"
+    )
+    try:
+        with socket.create_connection((host, port), timeout=1) as sock:
+            sock.settimeout(1)
+            sock.sendall(payload)
+            status = b""
+            while b"\r\n" not in status and len(status) < 128:
+                chunk = sock.recv(128)
+                if not chunk:
+                    break
+                status += chunk
+    except OSError:
+        return False
+    return status.split(b"\r\n", 1)[0].startswith((b"HTTP/1.1 200", b"HTTP/1.0 200"))
+
+
+def start_host(argv: list[str]) -> RunningHost:
+    process = subprocess.Popen(
         argv,
         cwd=ROOT,
+        stdin=subprocess.DEVNULL,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         text=True,
     )
+    host = RunningHost(process)
+
+    def drain(pipe: IO[str] | None, discovery: bool) -> None:
+        if pipe is None:
+            return
+        try:
+            for line in pipe:
+                if discovery:
+                    host.note_discovery(line)
+                else:
+                    host.add_log(line)
+        finally:
+            pipe.close()
+
+    for pipe, discovery in ((process.stdout, True), (process.stderr, False)):
+        reader = threading.Thread(target=drain, args=(pipe, discovery), daemon=True)
+        reader.start()
+        host.readers.append(reader)
+    return host
 
 
-def stop_host(process: subprocess.Popen[str]) -> str:
-    logs: list[str] = []
+def stop_host(host: RunningHost) -> str:
+    process = host.process
     if process.poll() is None:
         process.terminate()
         try:
@@ -139,33 +232,40 @@ def stop_host(process: subprocess.Popen[str]) -> str:
         except subprocess.TimeoutExpired:
             process.kill()
             process.wait(timeout=5)
-    if process.stdout is not None:
-        logs.extend(process.stdout.readlines())
-    if process.stderr is not None:
-        logs.extend(process.stderr.readlines())
-    return "".join(logs)
+    for reader in host.readers:
+        reader.join(timeout=2)
+    return host.text()[-2000:]
 
 
-def wait_until_ready(origin: str, process: subprocess.Popen[str]) -> None:
+def wait_until_ready(host: RunningHost) -> str:
     deadline = time.monotonic() + 30
-    discovery = f"{origin}/.well-known/agentciv"
     while time.monotonic() < deadline:
-        if process.poll() is not None:
-            raise WalkFailure(f"host exited before discovery: {stop_host(process)[-2000:]}")
-        try:
-            with urllib.request.urlopen(discovery, timeout=1) as response:
-                if response.status == 200:
-                    return
-        except (urllib.error.URLError, TimeoutError, OSError):
-            time.sleep(0.1)
-    raise WalkFailure("discovery did not answer")
+        if host.process.poll() is not None:
+            raise WalkFailure(f"host exited before discovery: {stop_host(host)[-2000:]}")
+        remaining = max(0.0, deadline - time.monotonic())
+        if host.ready.wait(min(0.2, remaining)) and probe_discovery(host.current_origin()):
+            return host.current_origin()
+    state = "running" if host.process.poll() is None else f"exited {host.process.returncode}"
+    raise WalkFailure(f"discovery did not answer ({state}): {host.text()[-1500:]}")
 
 
 def curl(binary: str, directory: Path, args: list[str]) -> tuple[int, dict[str, str], bytes]:
     header_path = directory / "headers.txt"
     body_path = directory / "body.bin"
     completed = subprocess.run(
-        [binary, "-sS", "--max-time", "10", "-D", str(header_path), "-o", str(body_path), *args],
+        [
+            binary,
+            "-sS",
+            "--noproxy",
+            "*",
+            "--max-time",
+            "10",
+            "-D",
+            str(header_path),
+            "-o",
+            str(body_path),
+            *args,
+        ],
         cwd=ROOT,
         check=False,
         capture_output=True,
@@ -237,9 +337,7 @@ def python_argv(config: Path) -> list[str]:
 
 
 def walk_one(label: str, argv_for: Callable[[Path], list[str]], curl_bin: str, directory: Path) -> None:
-    port = free_port()
-    origin = f"http://127.0.0.1:{port}"
-    config = write_config(directory, port)
+    config = write_config(directory)
     task = directory / "task.json"
     question = directory / "question.json"
     task_record = message(
@@ -259,7 +357,7 @@ def walk_one(label: str, argv_for: Callable[[Path], list[str]], curl_bin: str, d
     question.write_text(json.dumps(question_record), encoding="utf-8")
     process = start_host(argv_for(config))
     try:
-        wait_until_ready(origin, process)
+        origin = wait_until_ready(process)
         status, headers, body = curl(
             curl_bin,
             directory,
@@ -435,7 +533,7 @@ def walk_one(label: str, argv_for: Callable[[Path], list[str]], curl_bin: str, d
 
     restarted = start_host(argv_for(config))
     try:
-        wait_until_ready(origin, restarted)
+        origin = wait_until_ready(restarted)
         status, headers, body = curl(
             curl_bin,
             directory,
@@ -481,7 +579,7 @@ def walk_one(label: str, argv_for: Callable[[Path], list[str]], curl_bin: str, d
     config.write_text(json.dumps(stored), encoding="utf-8")
     narrowed = start_host(argv_for(config))
     try:
-        wait_until_ready(origin, narrowed)
+        origin = wait_until_ready(narrowed)
         quoted = urllib.parse.quote(str(cursor), safe="")
         status, headers, body = curl(
             curl_bin,

@@ -13,6 +13,7 @@ import ipaddress
 import json
 import secrets
 import socket
+import socketserver
 import sqlite3
 import sys
 import threading
@@ -1000,6 +1001,14 @@ class CommonsServer(ThreadingHTTPServer):
     store: Store
     origin: str
     serve_thread: threading.Thread
+
+    def server_bind(self) -> None:
+        # HTTPServer.server_bind reverse-resolves the listen address before listen().
+        # That lookup can block on a macOS runner until a readiness check has given up.
+        socketserver.TCPServer.server_bind(self)
+        bound_host, bound_port = listen_pair(self.server_address)
+        self.server_name = bound_host
+        self.server_port = bound_port
 
     def __init__(self, config: HostConfig, store: Store) -> None:
         super().__init__(config.listen, Handler)

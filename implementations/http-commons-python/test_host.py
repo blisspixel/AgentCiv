@@ -14,6 +14,7 @@ import sys
 import tempfile
 import threading
 import unittest
+from unittest import mock
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -404,6 +405,12 @@ class HttpTests(unittest.TestCase):
         )
         self.servers.append(server)
         return server
+
+    def test_startup_does_not_reverse_resolve_the_listen_address(self) -> None:
+        with mock.patch("socket.getfqdn", side_effect=AssertionError("dns")):
+            server = self.start()
+        status, _, _ = request("GET", f"{server.origin}/.well-known/agentciv")
+        self.assertEqual(status, 200)
 
     def test_discovery_auth_recording_and_retry(self) -> None:
         server = self.start()
