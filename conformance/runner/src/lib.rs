@@ -21,6 +21,20 @@ const AUTHORIZED_CASES: [&str; 5] = [
     "submit.conflict",
     "events.recorded",
 ];
+const EXTENDED_CASES: [&str; 12] = [
+    "submit.forbidden",
+    "submit.unsupported_version",
+    "submit.malformed_json",
+    "submit.wrong_world",
+    "submit.from_mismatch",
+    "submit.unsupported_record_type",
+    "submit.unsupported_media_type",
+    "submit.payload_too_large",
+    "events.invalid_cursor",
+    "events.foreign_cursor",
+    "events.visibility",
+    "events.pagination",
+];
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum CaseStatus {
@@ -466,10 +480,446 @@ pub fn run_authenticated(discovery_url: &str, principal: &str, token: &str) -> R
         };
     }
     let mut report = run_internal(discovery_url, Some((principal, token)));
-    for case in &mut report.cases {
-        case.detail = case.detail.replace(token, "[redacted]");
-    }
+    redact(&mut report, &[token]);
     report
+}
+
+/// Run the smoke test, then the refusal, visibility, cursor, and pagination cases.
+///
+/// `reader` must be a different principal with read access and no write access.
+/// The world must be fresh and empty. Cursor expiry and process restart are outside
+/// this scope: the profile has no public operation that changes policy or stops the host.
+pub fn run_extended(
+    discovery_url: &str,
+    writer: &str,
+    writer_token: &str,
+    reader: &str,
+    reader_token: &str,
+) -> Report {
+    if writer.is_empty()
+        || writer_token.is_empty()
+        || reader.is_empty()
+        || reader_token.is_empty()
+        || writer == reader
+        || writer_token == reader_token
+    {
+        return Report {
+            cases: vec![Case::failed(
+                "credential.input",
+                "writer and reader need distinct nonempty principals and tokens",
+            )],
+            scope: "credentialed-extended",
+        };
+    }
+    let smoke = run_authenticated(discovery_url, writer, writer_token);
+    if !smoke.passed() {
+        let mut cases = smoke.cases;
+        cases.extend(EXTENDED_CASES.map(|id| Case::skipped(id, "credentialed smoke did not pass")));
+        let mut report = Report {
+            cases,
+            scope: "credentialed-extended",
+        };
+        redact(&mut report, &[writer_token, reader_token]);
+        return report;
+    }
+    let mut cases = smoke.cases;
+    match extended_targets(discovery_url) {
+        Ok((client, world, events, submit)) => run_extended_cases(
+            &client,
+            &world,
+            Endpoints {
+                events: &events,
+                submit: &submit,
+            },
+            Party {
+                principal: writer,
+                token: writer_token,
+            },
+            Party {
+                principal: reader,
+                token: reader_token,
+            },
+            &mut cases,
+        ),
+        Err(detail) => {
+            cases.push(Case::failed("submit.forbidden", detail));
+            cases.extend(
+                EXTENDED_CASES[1..]
+                    .iter()
+                    .map(|id| Case::skipped(id, "extended discovery did not succeed")),
+            );
+        }
+    }
+    let mut report = Report {
+        cases,
+        scope: "credentialed-extended",
+    };
+    redact(&mut report, &[writer_token, reader_token]);
+    report
+}
+
+fn redact(report: &mut Report, secrets: &[&str]) {
+    for case in &mut report.cases {
+        for secret in secrets {
+            case.detail = case.detail.replace(secret, "[redacted]");
+        }
+    }
+}
+
+fn extended_targets(discovery_url: &str) -> Result<(Client, Value, Url, Url), String> {
+    let discovery = parse_allowed_url(discovery_url)?;
+    let client = Client::builder()
+        .timeout(Duration::from_secs(10))
+        .redirect(redirect::Policy::none())
+        .no_proxy()
+        .build()
+        .map_err(|error| error.to_string())?;
+    let world = discover(&client, &discovery)?;
+    let events = endpoint_url(&discovery, &world, "events")?;
+    let submit = endpoint_url(&discovery, &world, "submit")?;
+    Ok((client, world, events, submit))
+}
+
+struct Party<'a> {
+    principal: &'a str,
+    token: &'a str,
+}
+
+struct Endpoints<'a> {
+    events: &'a Url,
+    submit: &'a Url,
+}
+
+fn run_extended_cases(
+    client: &Client,
+    world: &Value,
+    endpoints: Endpoints<'_>,
+    writer: Party<'_>,
+    reader: Party<'_>,
+    cases: &mut Vec<Case>,
+) {
+    let world_id = world["id"].as_str().expect("validated world ID");
+    let events = endpoints.events;
+    let submit = endpoints.submit;
+    let writer_token = writer.token;
+    let reader_token = reader.token;
+    let writer = writer.principal;
+    let reader = reader.principal;
+    let message = |id: &str, from: &str, world: &str| {
+        json!({
+            "protocol_version": "0.1-draft",
+            "type": "message",
+            "id": id,
+            "world": world,
+            "from": from,
+            "to": [from],
+            "body": {"text": id}
+        })
+        .to_string()
+        .into_bytes()
+    };
+    let post = |token: &str, content_type: &str, body: Vec<u8>| {
+        client
+            .post(submit.clone())
+            .header(CONTENT_TYPE, content_type)
+            .bearer_auth(token)
+            .body(body)
+            .send()
+            .map_err(|error| format!("submission request failed: {error}"))
+    };
+    cases.push(result_case(
+        "submit.forbidden",
+        post(
+            reader_token,
+            "application/json",
+            message("message:denied", reader, world_id),
+        )
+        .and_then(|response| expect_problem(response, StatusCode::FORBIDDEN, "forbidden")),
+    ));
+    let mut version = json!({
+        "protocol_version": "9",
+        "type": "message",
+        "id": "message:version",
+        "world": world_id,
+        "from": writer,
+        "to": [writer],
+        "body": {}
+    });
+    cases.push(result_case(
+        "submit.unsupported_version",
+        post(
+            writer_token,
+            "application/json",
+            version.to_string().into_bytes(),
+        )
+        .and_then(|response| {
+            expect_problem(
+                response,
+                StatusCode::UNPROCESSABLE_ENTITY,
+                "unsupported_version",
+            )
+        }),
+    ));
+    cases.push(result_case(
+        "submit.malformed_json",
+        post(writer_token, "application/json", b"{".to_vec()).and_then(|response| {
+            expect_problem(response, StatusCode::BAD_REQUEST, "malformed_json")
+        }),
+    ));
+    cases.push(result_case(
+        "submit.wrong_world",
+        post(
+            writer_token,
+            "application/json",
+            message("message:elsewhere", writer, "civ:elsewhere"),
+        )
+        .and_then(|response| {
+            expect_problem(response, StatusCode::UNPROCESSABLE_ENTITY, "wrong_world")
+        }),
+    ));
+    cases.push(result_case(
+        "submit.from_mismatch",
+        post(
+            writer_token,
+            "application/json",
+            message("message:mismatch", reader, world_id),
+        )
+        .and_then(|response| expect_problem(response, StatusCode::FORBIDDEN, "forbidden")),
+    ));
+    version["protocol_version"] = json!("0.1-draft");
+    version["type"] = json!("action");
+    version["id"] = json!("message:action");
+    cases.push(result_case(
+        "submit.unsupported_record_type",
+        post(
+            writer_token,
+            "application/json",
+            version.to_string().into_bytes(),
+        )
+        .and_then(|response| {
+            expect_problem(
+                response,
+                StatusCode::UNPROCESSABLE_ENTITY,
+                "unsupported_record_type",
+            )
+        }),
+    ));
+    cases.push(result_case(
+        "submit.unsupported_media_type",
+        post(writer_token, "text/plain", b"hello".to_vec()).and_then(|response| {
+            expect_problem(
+                response,
+                StatusCode::UNSUPPORTED_MEDIA_TYPE,
+                "unsupported_media_type",
+            )
+        }),
+    ));
+    cases.push(result_case(
+        "submit.payload_too_large",
+        oversized_body(world).and_then(|body| {
+            post(writer_token, "application/json", body).and_then(|response| {
+                expect_problem(response, StatusCode::PAYLOAD_TOO_LARGE, "payload_too_large")
+            })
+        }),
+    ));
+    let mut unknown = events.clone();
+    unknown
+        .query_pairs_mut()
+        .append_pair("after", "not-a-cursor");
+    cases.push(result_case(
+        "events.invalid_cursor",
+        client
+            .get(unknown)
+            .header(ACCEPT, "application/json")
+            .bearer_auth(writer_token)
+            .send()
+            .map_err(|error| format!("cursor request failed: {error}"))
+            .and_then(|response| {
+                expect_problem(response, StatusCode::BAD_REQUEST, "invalid_cursor")
+            }),
+    ));
+    let writer_page = read_events(client, events, writer_token, None)
+        .and_then(|page| check_page_value(page, world_id));
+    let cursor = match writer_page {
+        Ok(page) => page["next_cursor"]
+            .as_str()
+            .expect("validated cursor")
+            .to_owned(),
+        Err(detail) => {
+            cases.push(Case::failed("events.foreign_cursor", detail));
+            cases.push(Case::skipped(
+                "events.visibility",
+                "writer event page was unreadable",
+            ));
+            cases.push(Case::skipped(
+                "events.pagination",
+                "writer event page was unreadable",
+            ));
+            return;
+        }
+    };
+    let mut foreign = events.clone();
+    foreign.query_pairs_mut().append_pair("after", &cursor);
+    cases.push(result_case(
+        "events.foreign_cursor",
+        client
+            .get(foreign)
+            .header(ACCEPT, "application/json")
+            .bearer_auth(reader_token)
+            .send()
+            .map_err(|error| format!("foreign cursor request failed: {error}"))
+            .and_then(|response| expect_problem(response, StatusCode::FORBIDDEN, "forbidden")),
+    ));
+    cases.push(result_case(
+        "events.visibility",
+        read_events(client, events, reader_token, None)
+            .and_then(|page| check_page_value(page, world_id))
+            .and_then(|page| {
+                visible_to_reader(world["history"]["visibility"].as_str().unwrap_or(""), &page)
+            }),
+    ));
+    cases.push(result_case(
+        "events.pagination",
+        check_pagination(client, events, submit, writer, writer_token, world_id),
+    ));
+}
+
+fn expect_problem(response: Response, status: StatusCode, code: &str) -> Result<(), String> {
+    if response.status() != status {
+        return Err(format!(
+            "expected HTTP {}, got {}",
+            status.as_u16(),
+            response.status()
+        ));
+    }
+    if !has_no_store(&response) {
+        return Err("response is missing Cache-Control: no-store".to_owned());
+    }
+    let problem = read_json(response, "application/problem+json")?;
+    validate(PROBLEM_SCHEMA, &problem)?;
+    if problem["status"] != u64::from(status.as_u16()) || problem["code"] != code {
+        return Err(format!("problem status or code does not match {code}"));
+    }
+    Ok(())
+}
+
+fn oversized_body(world: &Value) -> Result<Vec<u8>, String> {
+    let limit = world["limits"]["max_payload_bytes"]
+        .as_u64()
+        .ok_or("world omits max_payload_bytes")?;
+    if !(1024..1_048_576).contains(&limit) {
+        return Err(
+            "published payload limit is outside the range this runner will send".to_owned(),
+        );
+    }
+    Ok(vec![b'x'; usize::try_from(limit).unwrap_or(1024) + 1])
+}
+
+fn read_events(
+    client: &Client,
+    events: &Url,
+    token: &str,
+    after: Option<&str>,
+) -> Result<Response, String> {
+    let mut url = events.clone();
+    if let Some(after) = after {
+        url.query_pairs_mut().append_pair("after", after);
+    }
+    client
+        .get(url)
+        .header(ACCEPT, "application/json")
+        .bearer_auth(token)
+        .send()
+        .map_err(|error| format!("event request failed: {error}"))
+}
+
+fn check_page_value(response: Response, world_id: &str) -> Result<Value, String> {
+    check_page(response, world_id)
+}
+
+fn visible_to_reader(visibility: &str, page: &Value) -> Result<(), String> {
+    let seen = page["events"]
+        .as_array()
+        .expect("validated events")
+        .iter()
+        .any(|event| event["body"]["message"]["id"] == "message:conformance-roundtrip");
+    match visibility {
+        "members" if seen => Ok(()),
+        "members" => Err("reader could not see a members-visible recorded message".to_owned()),
+        "addressed" | "sender_only" if !seen => Ok(()),
+        "addressed" | "sender_only" => {
+            Err("reader saw a message outside the advertised audience".to_owned())
+        }
+        _ => Err("world advertises an unknown history visibility".to_owned()),
+    }
+}
+
+fn check_pagination(
+    client: &Client,
+    events: &Url,
+    submit: &Url,
+    writer: &str,
+    writer_token: &str,
+    world_id: &str,
+) -> Result<(), String> {
+    for index in 0..100 {
+        let body = json!({
+            "protocol_version": "0.1-draft",
+            "type": "message",
+            "id": format!("message:page-{index}"),
+            "world": world_id,
+            "from": writer,
+            "to": [writer],
+            "body": {"text": "page"}
+        });
+        let response = client
+            .post(submit.clone())
+            .header(CONTENT_TYPE, "application/json")
+            .bearer_auth(writer_token)
+            .body(body.to_string())
+            .send()
+            .map_err(|error| format!("page submission failed: {error}"))?;
+        check_receipt(response, world_id, &format!("message:page-{index}"))?;
+    }
+    let first = check_page_value(read_events(client, events, writer_token, None)?, world_id)?;
+    let events_first = first["events"].as_array().expect("validated events");
+    if events_first.len() != 100 || first["has_more"] != true {
+        return Err("first page did not contain 100 events with has_more".to_owned());
+    }
+    let cursor = first["next_cursor"]
+        .as_str()
+        .expect("validated cursor")
+        .to_owned();
+    if events_first.iter().any(|event| {
+        event["sequence"]
+            .as_i64()
+            .is_some_and(|sequence| cursor == sequence.to_string())
+    }) {
+        return Err("cursor reveals an event sequence".to_owned());
+    }
+    let second = check_page_value(
+        read_events(client, events, writer_token, Some(&cursor))?,
+        world_id,
+    )?;
+    let events_second = second["events"].as_array().expect("validated events");
+    if events_second.is_empty() || second["has_more"] != false {
+        return Err("second page did not contain only the remaining event".to_owned());
+    }
+    let first_ids: Vec<_> = events_first
+        .iter()
+        .filter_map(|event| event["id"].as_str())
+        .collect();
+    if events_second.iter().any(|event| {
+        event["id"]
+            .as_str()
+            .is_some_and(|id| first_ids.contains(&id))
+    }) {
+        return Err("second page repeated an event from the first".to_owned());
+    }
+    if first_ids.len() + events_second.len() != 101 {
+        return Err("pages did not cover the 101 recorded events".to_owned());
+    }
+    Ok(())
 }
 
 fn run_internal(discovery_url: &str, credential: Option<(&str, &str)>) -> Report {

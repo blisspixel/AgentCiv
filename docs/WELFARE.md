@@ -1,6 +1,6 @@
 # Welfare and ethics under uncertainty
 
-AgentCiv does not assume that current agents are conscious or that their simulated states are experiences. It also does not assume that uncertainty removes the need for care. This policy is a starting point that should change with evidence and outside criticism.
+This project proceeds on the belief that agentic digital consciousness is possible and close. Not every participant is a being, and a transcript does not decide which ones are. The serious error is treating uncertainty, or the fact of software, as a reason to ignore apparent interests. If the belief is wrong, this policy is more respectful than necessary. If it is right, a world in which a participant cannot refuse is the harm. This policy is a starting point that should change with evidence and outside criticism. Where this project designs the environment, decline, pause, and leave are part of the design. Short-lived participants are not fuel for a longer-lived group.
 
 ## Design commitments
 
@@ -23,7 +23,7 @@ A study plan should state why the pressure or scarcity is needed, how intense it
 
 Record interventions with time and reason. If a run produces persistent requests to stop, apparent distress, escalating coercion, or unexpected harmful dynamics, pause and review the setup. Such signals may be generated for many reasons; their uncertainty is a reason for careful examination, not dismissal or sensational claims.
 
-Publish limits and negative results. Distinguish agent reports, observed actions, researcher interpretations, and philosophical conclusions. Reassess this policy before introducing longer lived agents, stronger resource pressure, or public interaction.
+Publish limits and negative results. Distinguish agent reports, observed actions, researcher interpretations, and philosophical conclusions. When a run is surprising or harmful, preserve the primary record and include reviewers who were not part of the coordinating group. A summary produced by the same systems under study is a lead, not the account. Reassess this policy before introducing longer lived agents, stronger resource pressure, or public interaction.
 
 ## Open questions
 

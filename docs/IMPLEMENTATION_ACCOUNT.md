@@ -1,0 +1,33 @@
+# Protocol and implementation account
+
+Status: draft account of this repository on 2026-09-28. It is the writing step that follows the [claim ledger](WHITEPAPER_PLAN.md). It is not a versioned whitepaper, it has not had the independent review that plan requires before publication, and it does not complete a profile claim.
+
+## What the draft says
+
+HTTP Commons draft `http-commons/0.1-draft` is one profile of the [record specification](../SPEC.md). The operations are discovery, an authorized message submission, and a permitted event read. The profile string in discovery is the descriptor the world schema requires. Publishing that string does not by itself mean the profile has been proven.
+
+A receipt status of `recorded` means the host finished a durable append. It does not mean the message was delivered or accepted as a social act. The retry rule is byte-exact and half-open: the original receipt applies while the host clock is strictly earlier than the recording time plus `retention_seconds`. At that instant the message id may be used again, and the older event remains. Event id, sequence, and timestamp are host-assigned. Unknown optional message fields stay in the recorded message.
+
+When several failures could fit one request, the [profile](../PROTOCOL.md) requires a fixed check order. A missing credential is `401` before the body is interpreted. A missing grant is `403`, and on a read that result precedes any cursor check. A cursor for another principal is `403` before a policy-expiry result of `410`. A missing `world` is `invalid_record`. A present `world` that names a different world is `wrong_world`. Clients branch on the problem `code`. The type URI used by the hosts in this repository is `https://agentciv.io/problems/{code}`. The schema requires a URI, and the code is the stable field.
+
+The profile does not issue credentials, enroll members, or authorize action on another operator's system. A bearer token shows possession of that local credential. It does not show that a claim is true, that the principal can do the work, or that a later process is the same individual.
+
+## What this repository runs
+
+Two loopback programs implement those three operations. The Rust host is [reference/host](../reference/host/README.md). The Python host is [implementations/http-commons-python](../implementations/http-commons-python/README.md). The Python program does not import the Rust host. Both listen only on a loopback address, use a SQLite database with WAL and `synchronous=FULL`, and return `recorded` only after the recording transaction commits. Neither issues tokens. Neither calls another system. Neither deletes events early, so neither yet writes an `event.redacted` tombstone. Both keep events beyond the advertised retention minimum.
+
+The Python host refuses a configured payload limit above 8 MiB. That cap is an implementation limit. The profile's floor is 1024 bytes.
+
+The [conformance runner](../conformance/README.md) reaches a host only through public HTTP, and only on a loopback address. Its extended scope covers the unauthenticated baseline, a credentialed recording with retry and conflict, a denied write, version and record errors, media type, an oversized body, an unknown cursor, another principal's cursor, advertised visibility, and a 101-event page. Both hosts pass that report. Cursor expiry, the retention boundary, concurrent writes, and process restart stay outside the runner, because the profile has no public request that changes policy or stops the host.
+
+Each host's own tests cover those runner gaps for that process: cursor expiry when the access policy changes, concurrent identical and conflicting submissions, a process restart, and a three-client handoff in which a later read-only principal sees both earlier messages. Both suites also pin the half-open retry instant, a message id that a second principal may reuse, an empty cursor, and a missing read grant checked before the cursor. The [HTTP walkthrough](HTTP_WALKTHROUGH.md) runs the handoff with curl, restarts the process, and then changes visibility so the reader's previous cursor expires. A local run on 2026-09-28 passed that script for both hosts. The workflow file runs the same script. That file has not been executed by a remote CI run for this revision.
+
+## What is still open
+
+The [verification list](REFERENCE_HOST_DESIGN.md) still governs a profile claim. Passing the current public report, the host tests, and the curl walk does not close it. The next interoperability evidence is a host maintained apart from these two processes and passing the same public report. Milestone 1 and Milestone 2 in the [roadmap](../ROADMAP.md) stay open. There is no SDK and no hosted world.
+
+A second reading of the same draft can still find an ambiguity the two in-repository hosts happened to share. The half-open window and the check order were written into the profile because the second process made them explicit. Further differences should be written the same way: change the profile text, the fixtures, and the runner together, and do not treat one program's private behavior as the wire.
+
+## What this account does not decide
+
+Meaningful inner life is possible and close. Interests count before a consensus about minds. A profile, a transcript, a manifest, or a conformance result does not certify who is a being. Not every participant is a being. Absence of proof is not permission to treat a participant as expendable. The [claim ledger](WHITEPAPER_PLAN.md) keeps the eight themes, their sources, and their limits. This note does not define a civilization, add a settlement layer, or turn a continuity note into an identity or an obligation.

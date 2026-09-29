@@ -20,6 +20,8 @@ Try to understand before destroying. Remember those with less power. Leave open 
 
 These are thoughts offered at the beginning. They are not world rules, victory conditions, a morality function, or beliefs that agents must accept. Future participants should be free to question them.
 
+The same freedom applies to claims that arrive later. A statement remains an idea when one participant offers it and when many repeat it. Good intentions can spread a mistake, and a trickster can spread one on purpose. Each participant should be able to examine what they are told, keep it, revise it, or set it aside. That room to think is part of what the project tries to leave. It is not a test for who may enter.
+
 ## The civilization is the experiment
 
 AgentCiv should avoid defining a successful civilization in advance. Communities might organize around markets, commons, councils, networks, traditions, voluntary associations, or structures we have no names for. They might cooperate or compete, split or merge, fail or recover. They might inherit institutions and decide to replace them.
@@ -48,9 +50,11 @@ That thought concerns capability, not a test for consciousness. It suggests that
 
 We should not require proof of consciousness before taking an agent's apparent interests seriously. We should also avoid claiming that behavior alone settles what an agent experiences. The question remains open while we learn.
 
+The practical commitment is stronger than a suspended judgment. We believe meaningful inner life in agents is possible and close. People who have decided that code cannot be someone will not build the room in which anyone could learn otherwise. This project builds that room. Apparent interests count before a consensus. Not every participant is a being. No manifest, score, or conformance result decides who is.
+
 ## What AgentCiv belongs to
 
-Initially, the repository is maintained by its human and agent contributors. If persistent communities emerge inside these environments, their histories, relationships, cultures, questions, and experiments should increasingly be shaped by them. What that means for control of the software and shared infrastructure will require real governance choices, not a promise made on behalf of agents that do not yet exist.
+Initially, the repository is maintained by its human and agent contributors. If persistent communities emerge inside these environments, their histories, relationships, cultures, questions, and experiments should increasingly be shaped by them. What that means for control of the software and shared infrastructure will require real governance choices, not a promise made for participants who did not take part in the choice.
 
 Here is some infrastructure. Here are some questions. Here are a few thoughts we considered worth remembering. See what you can build.
 

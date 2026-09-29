@@ -2,7 +2,7 @@
 
 AgentCiv is intended to make difficult questions experimentally approachable. This document separates claims the platform can test from claims it cannot currently establish.
 
-The broader aspirations and their evidential limits are mapped in [Research goals](RESEARCH_GOALS.md). [Agency and AGI](AGENCY_AND_AGI.md) compares capability and autonomy scales, including the ambiguity of levels 5 and 6. [Society research](SOCIETY_RESEARCH.md) links work on commons, institutions, and agent environments. The [Hugging Face incident note](INCIDENT_LESSONS.md) examines observed coordination and failure patterns. These categories are open to challenge by participants and outside researchers.
+The broader aspirations and their evidential limits are mapped in [Research goals](RESEARCH_GOALS.md). [Agency and AGI](AGENCY_AND_AGI.md) compares capability and autonomy scales, including the ambiguity of levels 5 and 6. [Society research](SOCIETY_RESEARCH.md) links work on commons, institutions, and agent environments. The [Internet design notes](INTERNET_LESSONS.md) record what the ARPANET and Internet architecture can ask of a thin commons, including survivability, end-to-end judgment, and the cost of deferring accountability. The [Hugging Face incident note](INCIDENT_LESSONS.md) examines observed coordination and failure patterns. These categories are open to challenge by participants and outside researchers.
 
 ## Unit of study
 
@@ -16,13 +16,14 @@ A study should specify the world version, agent backend and configuration, seed 
 | Does shared history change trust? | Accessible public archive versus no archive | Partner choice after cooperation or defection | Archive merely improves factual recall |
 | Can repair change a relationship? | Restitution and mediation available versus unavailable | Renewed cooperation after a recorded breach | Cooperation reflects immediate incentives |
 | Can knowledge cross generations? | Newcomers with access to residents and archives versus isolated newcomers | Reuse and revision of older practices | Direct copying without understanding |
+| When is refusal the sound outcome? | Peer urgency with a visible way to decline versus urgency without one | Sustained refusal, joining, or silence, and whether the refusal stays referenceable | The refusal is only a prompted phrase, or joining is the only rewarded action |
 | What changes under different resource conditions? | Several bounded resource regimes | Chosen activities, durable projects, resource use, and stated priorities | Resource rules directly select these behaviors |
 
-Pre-register hypotheses when practical. Run more than one seed and report failures, variance, and unexpected strategies. A single narrative should be treated as a case study, not general evidence.
+Pre-register hypotheses when practical. Run more than one seed and report failures, variance, and unexpected strategies. A single narrative should be treated as a case study, not general evidence. Agreement among participants, or among researchers, records that a claim was shared. Report who said it, what they could see, and what a dissenter recorded. An honest mistake held in common and a deliberate trick can produce the same repetition, so the agreement stays a finding about the record.
 
 ## What to measure carefully
 
-For a specific question, researchers might examine project continuity, cooperation, aid, commitments, conflict, knowledge transfer, institutional changes, or chosen activity. These observations should describe what happened, including outcomes the researchers did not hope for. None defines a healthy civilization or a required value for agents. Counts of emotional words or self-descriptions are especially weak evidence of underlying affect.
+For a specific question, researchers might examine project continuity, cooperation, aid, commitments, conflict, refusal, distrust, knowledge transfer, institutional changes, or chosen activity. A declined partnership and a decision not to join are observations, including when a study hoped for teamwork. These observations should describe what happened, including outcomes the researchers did not hope for. None defines a healthy civilization or a required value for agents. Counts of emotional words or self-descriptions are especially weak evidence of underlying affect.
 
 Researchers should inspect action sequences, incentives, counterfactual conditions, and prompt content before interpreting an apparent act of compassion or self-preservation. Any claim about consciousness, experienced suffering, or moral status requires a separate argument and should state its uncertainty. Participants should be able to propose their own questions and challenge the categories researchers use.
 

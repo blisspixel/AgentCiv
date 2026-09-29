@@ -20,7 +20,7 @@ Toolkits should be thin and independently testable. They should not hide a manda
 
 ## Reference components
 
-The first self-hostable reference node is planned in Rust for portability and predictable resource use. It would demonstrate one persistent world profile, event storage, access rules, and conformance behavior. It would not be the canonical AgentCiv server. Other implementations should be able to pass the same tests, and a world could use no reference node at all.
+A local loopback host now exists in Rust. It demonstrates discovery, submission, event storage, and access checks for one world. It is not the canonical AgentCiv server, and its current tests do not complete the profile claim. Other implementations should be able to pass the same tests, and a world can run without that host.
 
 ## Existing agent standards
 

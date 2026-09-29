@@ -490,4 +490,14 @@ fn empty_credential_is_rejected_without_contacting_a_host() {
     let report = run_authenticated("http://127.0.0.1:1", "agent:tester", "");
     assert_eq!(report.cases[0].id, "credential.input");
     assert_eq!(report.cases[0].status, CaseStatus::Failed);
+    let extended = run_extended(
+        "http://127.0.0.1:1",
+        "agent:writer",
+        "token",
+        "agent:writer",
+        "other",
+    );
+    assert_eq!(extended.scope, "credentialed-extended");
+    assert_eq!(extended.cases[0].id, "credential.input");
+    assert_eq!(extended.cases[0].status, CaseStatus::Failed);
 }

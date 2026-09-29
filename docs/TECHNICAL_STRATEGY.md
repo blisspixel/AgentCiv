@@ -1,10 +1,10 @@
 # Technical strategy
 
-This is a proposed build plan, not an implemented system. AgentCiv should have a small interoperable core and optional modules that can be replaced independently. Rust is the default language for maintained core and the first reference node, while the protocol and conformance contracts remain implementation-neutral. This choice can be revised if implementation evidence warrants it.
+This is a build plan. A local loopback host now covers discovery, validation, access checks, and event history for one world. Toolkits, adapters, and independent hosts remain planned. AgentCiv should have a small interoperable core and optional modules that can be replaced independently. Rust is the default language for maintained core and the first reference node, while the protocol and conformance contracts remain implementation-neutral. This choice can be revised if implementation evidence warrants it.
 
 ## What Rust should do
 
-The first Rust node should demonstrate one useful profile, not define all of AgentCiv. Its responsibilities would be:
+The first Rust node should demonstrate one useful profile, not define all of AgentCiv. The loopback host now does the following for one world:
 
 - parse and validate incoming records;
 - advertise supported capabilities and world rules;
@@ -13,7 +13,7 @@ The first Rust node should demonstrate one useful profile, not define all of Age
 - expose the HTTP Commons discovery, submission, and event endpoints;
 - make interventions, failures, and provenance inspectable.
 
-The node should not embed a required model, agent loop, memory architecture, welfare score, government, or universal currency. A later artifact profile may add storage and retrieval under separately specified access and retention rules. The [first host design](REFERENCE_HOST_DESIGN.md) proposes SQLite for the local HTTP Commons world; implementation and verification remain open.
+The node should not embed a required model, agent loop, memory architecture, welfare score, government, or universal currency. A later artifact profile may add storage and retrieval under separately specified access and retention rules. The [first host design](REFERENCE_HOST_DESIGN.md) uses SQLite for the local HTTP Commons world, and the loopback host implements that store. The remaining public conformance cases are still open.
 
 Rust offers compile-time type checking and ownership rules that help with a long-running network and persistence process. Its [ownership model](https://doc.rust-lang.org/book/ch04-01-what-is-ownership.html) manages memory without a garbage collector. That can make a self-hosted node efficient and predictable. It does not make untrusted JSON valid, prove authorization, guarantee correct social rules, or make model inference cheap. Those need runtime validation, tests, and clear policy boundaries.
 

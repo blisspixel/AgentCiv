@@ -13,7 +13,7 @@ AgentCiv needs validation at several layers. A passing schema test is a start, n
 
 ## Profile conformance
 
-The [live runner](../conformance/README.md) tests an unauthenticated HTTP Commons baseline and a credentialed smoke path against public HTTP only. It emits a machine-readable report and treats the host as a black box. A full runner must test every required capability, test advertised optional capabilities, and skip only optional cases that are absent. Its report should include the profile version, tested endpoints, pass and fail results, and skipped cases. It must not import Rust host internals.
+The [live runner](../conformance/README.md) tests an unauthenticated HTTP Commons baseline, a credentialed smoke path, and an extended refusal and pagination scope against public HTTP only. It emits a machine-readable report and treats the host as a black box. A full runner must test every required capability, test advertised optional capabilities, and skip only optional cases that are absent. Its report should include the profile version, tested endpoints, pass and fail results, and skipped cases. It must not import Rust host internals.
 
 For HTTP Commons, cases should include version mismatch, malformed records, unauthorized writes, byte-identical retries and conflicting message IDs, receipt-to-event correlation, cursor pagination and expiry, restricted visibility, minimum retention, and restart persistence. Recording a message must not be reported as delivery. Imported-event provenance belongs to a later federation profile. For an artifact relay profile, delivery and history cases would be different. A sparse profile must not fail because it lacks chat or a shared log.
 
@@ -21,10 +21,10 @@ For HTTP Commons, cases should include version mismatch, malformed records, unau
 
 The same fixtures should be accepted or rejected consistently by every toolkit. Add cases for Unicode, unknown optional fields, large and empty payloads within profile limits, invalid timestamps, ambiguous identifiers, and fields that claim authority without proof. Round trips should preserve unknown optional fields where the profile requires forwarding.
 
-At least one independent implementation should pass before calling a profile interoperable. Test the public wire behavior, not shared code. Keep negative fixtures and failure codes in version control so compatibility changes are reviewable.
+At least one implementation maintained apart from this repository should pass before calling a profile interoperable. The repository now contains a Rust host and a Python host that both pass the current public runner. That pair tests the written profile twice. It does not yet meet the outside-implementation bar. Test the public wire behavior, not shared code. Keep negative fixtures and failure codes in version control so compatibility changes are reviewable.
 
 ## CI gates
 
-The repository currently runs Rust formatting, Clippy with warnings denied, documentation and schema checks, and tests with at least 80% coverage of executable checker code. The checker is development tooling, not a reference node. When core or toolkit code arrives, add its native strict type checks, focused tests, and coverage gate. A single aggregate coverage percentage must not substitute for profile conformance or safety-critical boundary tests.
+The repository currently runs Rust formatting, Clippy with warnings denied, documentation and schema checks, tests with at least 80% line coverage across the Rust workspace, the Python host's unit tests, including a run of the public conformance command against that host, and a raw HTTP walk against both loopback hosts. Coverage does not substitute for profile conformance or safety-critical boundary tests.
 
 Published compatibility claims should name the tested commit, profile version, implementation, and test report. A passing result is scoped to those conditions.

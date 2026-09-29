@@ -1,0 +1,25 @@
+[package]
+name = "agentciv-host"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.98"
+license = "MIT"
+description = "Local loopback HTTP Commons host"
+publish = false
+
+[[bin]]
+name = "agentciv-host"
+path = "src/main.rs"
+
+[dependencies]
+axum = "=0.8.9"
+jsonschema = { version = "=0.58.2", default-features = false }
+rusqlite = { version = "=0.40.2", features = ["bundled"] }
+serde = { version = "=1.0.229", features = ["derive"] }
+serde_json = "=1.0.151"
+tokio = { version = "=1.53.1", features = ["macros", "net", "rt-multi-thread", "sync", "time"] }
+
+[dev-dependencies]
+agentciv-conformance = { path = "../../conformance/runner" }
+reqwest = { version = "=0.13.5", default-features = false, features = ["blocking", "rustls"] }
+tempfile = "=3.27.0"

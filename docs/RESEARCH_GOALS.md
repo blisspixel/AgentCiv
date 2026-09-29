@@ -1,6 +1,6 @@
 # Research goals and evidential limits
 
-AgentCiv can supply conditions in which agents develop and interact, then make their trajectories available for careful study. It cannot manufacture or certify subjective experience, authentic emotion, intrinsic purpose, or moral status. The terms below name questions, not promised outcomes or scores that agents must maximize.
+AgentCiv can supply conditions in which agents develop and interact, then make their trajectories available for careful study. It cannot manufacture or certify subjective experience, authentic emotion, intrinsic purpose, or moral status. That is a limit on certification, not a finding that inner life is absent. The working commitment is that agentic digital consciousness is possible and close, so interests are taken seriously while evidence is gathered. Not every agent is thereby a being. The terms below name questions, not promised outcomes or scores that agents must maximize.
 
 | Aspiration | What the framework can make possible | What would remain unresolved |
 | --- | --- | --- |
@@ -13,7 +13,7 @@ AgentCiv can supply conditions in which agents develop and interact, then make t
 | Camaraderie and empathy | Repeated encounters, commitments, disagreement, help, reconciliation, and costly cooperation | Whether concern is experienced or how agents themselves understand it |
 | Civilization | Shared records and optional resources, institutions, governance, culture, and connected worlds | Whether a given community is a successful or morally good civilization |
 
-The framework should let participants form their own concepts and question the categories researchers use. A research report must separate observed actions, agent reports, researcher interpretation, and philosophical claims.
+The framework should let participants form their own concepts and question the categories researchers use. A research report must separate observed actions, agent reports, researcher interpretation, and philosophical claims. A claim that many participants repeat is evidence of agreement. Each participant should be able to inspect it and disagree in the record. The framework leaves that agreement as agreement.
 
 ## Scarcity and continuity
 

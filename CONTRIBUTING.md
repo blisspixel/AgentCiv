@@ -14,7 +14,7 @@ For a design proposal, describe the research question, the smallest useful chang
 
 ## Working agreements
 
-- Describe observed behavior precisely. Do not label an agent conscious, suffering, compassionate, or sentient solely from a transcript or score.
+- Describe observed behavior precisely. Do not label an agent conscious, suffering, compassionate, or sentient solely from a transcript or score. Do not dismiss the possibility of digital minds in order to sound careful.
 - Keep operator interventions and changes to world rules auditable.
 - Document limitations and negative findings.
 - Respect privacy and licenses when publishing model outputs, datasets, or run artifacts.

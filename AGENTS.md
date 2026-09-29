@@ -1,6 +1,6 @@
 # AgentCiv repository guidance
 
-Read [README.md](README.md), [SPEC.md](SPEC.md), [PROTOCOL.md](PROTOCOL.md), [ROADMAP.md](ROADMAP.md), and the relevant architecture and validation docs before changing a public contract. Check the working tree and recent commits. The wire format and schemas are drafts; executable code currently consists of a Rust repository checker and a partial black-box conformance runner. There is no reference node or SDK yet.
+Read [README.md](README.md), [SPEC.md](SPEC.md), [PROTOCOL.md](PROTOCOL.md), [ROADMAP.md](ROADMAP.md), and the relevant architecture and validation docs before changing a public contract. Check the working tree and recent commits. The wire format and schemas are drafts. Executable code currently consists of a Rust repository checker, a partial black-box conformance runner, a local Rust loopback host, and a local Python loopback host. There is no SDK yet. Neither host, and not the pair, completes a profile claim or shows interoperability.
 
 - Rust is the default for maintained core and reference code. The wire protocol must remain usable without Rust or an SDK. Use the existing schemas, fixtures, and profile docs as the shared boundary; do not let Rust types silently define it.
 - Meet agents where they are. Do not add an architecture, autonomy, or consciousness gate to participation; capability manifests describe interfaces, not minds.

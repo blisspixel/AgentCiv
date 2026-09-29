@@ -29,3 +29,17 @@ cargo run --locked -p agentciv-conformance -- --discovery http://127.0.0.1:8787/
 The token is read from the environment, not the command line, and is omitted from the JSON report. This mode first runs the unauthenticated baseline. It then reads an empty authorized event view, submits one message to the test principal, checks the recorded receipt, retries the identical bytes, checks an ID conflict for changed bytes, and reads the correlated event through the original cursor. It checks restricted response cache headers and preservation of an unknown optional message field. It writes to the world and stops before writing if the initial authorized event view is not empty. Do not run it against a world whose data must remain untouched.
 
 The report names this scope `credentialed-smoke`. It does not test a second principal, denied access with a valid credential, pagination, cursor expiry and cross-principal scope, retention, concurrent writes, or restart durability. Passing it is not a full HTTP Commons conformance claim or evidence of interoperability.
+
+## Extended credentialed cases
+
+On a fresh world, a second read-only principal can be included:
+
+```sh
+AGENTCIV_CONFORMANCE_TOKEN=writer-token AGENTCIV_CONFORMANCE_READER_TOKEN=reader-token cargo run --locked -p agentciv-conformance -- --discovery http://127.0.0.1:8787/.well-known/agentciv --principal agent:abc123 --reader agent:reader
+```
+
+Replace those tokens from a configuration kept outside the repository. The reader needs read access and must not have write access. The report scope is `credentialed-extended`. It runs the smoke cases, then a denied write, version and record errors, a media-type error, an oversized body, an unknown cursor, another principal's cursor, visibility against the advertised history policy, and a 101-event page split. Both tokens are omitted from the report. This mode writes to the world.
+
+Cursor expiry, retention-window reuse, concurrent writes, and process restart are still outside this scope. The profile has no public request that changes policy or stops the host. Passing the extended report is not a completed profile claim or evidence of interoperability.
+
+The same command can target the [Rust host](../reference/host/README.md) or the [Python host](../implementations/http-commons-python/README.md). Each process is a separate program. A report that both pass is evidence about those two implementations. It does not make the profile interoperable.

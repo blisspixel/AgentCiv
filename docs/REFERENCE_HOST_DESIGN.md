@@ -1,6 +1,6 @@
 # First HTTP Commons reference host
 
-Status: implementation design. No reference host exists yet. The [HTTP Commons profile](../PROTOCOL.md), schemas, and black-box conformance cases remain the contract; this document describes one implementation of it.
+Status: a loopback host now exists at [reference/host](../reference/host). The [HTTP Commons profile](../PROTOCOL.md), schemas, and black-box conformance cases remain the contract. This document describes that implementation. Checked again when implementation began: Axum 0.8.9 and rusqlite 0.40.2. The host does not by itself complete the profile claim below.
 
 ## Scope and build choice
 
@@ -36,8 +36,8 @@ Do not share a mutable SQLite connection across async handlers. Keep storage ope
 
 1. Unit test input validation, authorization decisions, retry scope and expiry, recipient visibility, cursor scope, and error mapping.
 2. Test concurrent submissions with the same and different IDs. Assert one event per accepted unique submission and one receipt for exact retries.
-3. Run the black-box conformance runner through public HTTP only. Its local smoke path covers credentialed submission, receipt and event correlation, exact retry, ID conflict, and selected response headers. Extend it with denied writes, version errors, pagination, cursor failures, and the remaining header cases.
-4. Start a fresh local host with disposable credentials and database, submit through raw HTTP, stop and restart the process, and retrieve the same permitted event with an independent client.
+3. Run the black-box conformance runner through public HTTP only. The current runner covers the unauthenticated baseline, the credentialed smoke path, and an extended scope for a denied write, version and record errors, payload and media-type failures, unknown and foreign cursors, advertised visibility, and pagination. Cursor expiry, retention-window reuse, concurrent writes, and process restart remain outside that runner.
+4. Start a fresh local host with disposable credentials and database, submit through raw HTTP, stop and restart the process, and retrieve the same permitted event with an independent client. The [HTTP walkthrough](HTTP_WALKTHROUGH.md) is that curl transcript for each loopback host in this repository, and it also checks that a visibility change expires the reader's cursor. It does not by itself warrant the profile claim.
 5. Verify that the host never reports `recorded` after a failed commit. Test interrupted writes and reopening the database. State what the test proves about process crashes separately from power-loss durability.
 
-The host may claim `http-commons/0.1-draft` only after the required operations and failure cases are implemented and the public-interface tests pass. Passing the current baseline and credentialed smoke test alone does not establish that claim.
+The host may claim `http-commons/0.1-draft` only after the required operations and failure cases are implemented and the public-interface tests pass. Passing the current baseline, credentialed smoke test, and extended refusal and pagination scope does not establish that claim. Cursor expiry and process restart are still demonstrated by this host's own tests, because the runner has no public request that changes policy or stops the process.
