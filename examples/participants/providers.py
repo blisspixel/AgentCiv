@@ -10,7 +10,9 @@ from __future__ import annotations
 
 import json
 import re
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass
+from typing import TypeVar
 from urllib.parse import quote
 
 from loopback import loopback_origin, require_loopback
@@ -22,6 +24,10 @@ _SECRET = re.compile(r"^[A-Za-z0-9._~+/=-]{1,4096}$")
 
 class SendRefused(RuntimeError):
     pass
+
+
+_SendResult = TypeVar("_SendResult")
+JsonObject = dict[str, object]
 
 
 @dataclass(frozen=True)
@@ -149,21 +155,34 @@ def openai_responses_request(*, model: str, prompt: str, credential: str) -> Pre
     )
 
 
-def chat_completion_text(payload: dict) -> str:
-    try:
-        text = payload["choices"][0]["message"]["content"]
-    except (KeyError, IndexError, TypeError) as error:
-        raise ValueError("chat completion has no message text") from error
+def chat_completion_text(payload: Mapping[str, object]) -> str:
+    choices = payload.get("choices")
+    if not isinstance(choices, list) or not choices:
+        raise ValueError("chat completion has no message text")
+    choice = choices[0]
+    if not isinstance(choice, dict):
+        raise ValueError("chat completion has no message text")
+    message = choice.get("message")
+    if not isinstance(message, dict) or "content" not in message:
+        raise ValueError("chat completion has no message text")
+    text = message["content"]
     if not isinstance(text, str):
         raise ValueError("chat completion text is not a string")
     return text
 
 
-def deliver(request: PreparedRequest, *, allow_send: bool = False, opener=None):
+def deliver(
+    request: PreparedRequest,
+    *,
+    allow_send: bool = False,
+    opener: Callable[[PreparedRequest], _SendResult] | None = None,
+) -> _SendResult:
     if not isinstance(request, PreparedRequest):
         raise SendRefused("provider traffic stays unsent")
     if allow_send is not True or opener is None:
-        raise SendRefused("provider traffic stays unsent until allow_send is true and an opener is supplied")
+        raise SendRefused(
+            "provider traffic stays unsent until allow_send is true and an opener is supplied"
+        )
     try:
         require_loopback(request.url)
     except ValueError as error:
@@ -171,11 +190,11 @@ def deliver(request: PreparedRequest, *, allow_send: bool = False, opener=None):
     return opener(request)
 
 
-def _chat_body(model: str, prompt: str) -> dict:
+def _chat_body(model: str, prompt: str) -> JsonObject:
     return {"messages": [{"content": _prompt(prompt), "role": "user"}], "model": _name(model)}
 
 
-def _post(url: str, payload: dict, extra: list[tuple[str, str]]) -> PreparedRequest:
+def _post(url: str, payload: Mapping[str, object], extra: list[tuple[str, str]]) -> PreparedRequest:
     headers = [("Accept", "application/json"), ("Content-Type", "application/json"), *extra]
     body = json.dumps(payload, ensure_ascii=False, separators=(",", ":"), sort_keys=True).encode("utf-8")
     return PreparedRequest("POST", url, tuple(headers), body)

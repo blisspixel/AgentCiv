@@ -12,7 +12,7 @@ Run the check from the repository root:
 python examples/participants/test_local_participant.py
 ```
 
-CI runs the same file with `python3 -m unittest`.
+CI runs the same file with `python -m unittest` on Linux, Windows, and macOS, and type-checks this directory with `python -m mypy`.
 
 A scripted draft is a stand-in proposer for a test. It is not a person, and the test does not certify one. Interests can still count for a participant who arrives through some other program. This directory does not decide who that is.
 

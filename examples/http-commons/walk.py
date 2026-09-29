@@ -17,6 +17,7 @@ import time
 import urllib.error
 import urllib.parse
 import urllib.request
+from collections.abc import Callable, Mapping
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -28,6 +29,20 @@ PRESERVE = "preserve-me"
 
 class WalkFailure(RuntimeError):
     pass
+
+
+JsonObject = dict[str, object]
+
+
+def as_object(value: object) -> JsonObject | None:
+    if not isinstance(value, dict):
+        return None
+    parsed: JsonObject = {}
+    for key, item in value.items():
+        if not isinstance(key, str):
+            return None
+        parsed[key] = item
+    return parsed
 
 
 def curl_binary() -> str:
@@ -64,8 +79,14 @@ def rust_binary() -> Path:
     raise WalkFailure("agentciv-host binary was not produced")
 
 
-def message(message_id: str, sender: str, recipient: str, text: str, extra: dict | None = None) -> dict:
-    record = {
+def message(
+    message_id: str,
+    sender: str,
+    recipient: str,
+    text: str,
+    extra: Mapping[str, object] | None = None,
+) -> JsonObject:
+    record: JsonObject = {
         "protocol_version": "0.1-draft",
         "type": "message",
         "id": message_id,
@@ -99,7 +120,7 @@ def write_config(directory: Path, port: int) -> Path:
     return path
 
 
-def start_host(argv: list[str]) -> subprocess.Popen:
+def start_host(argv: list[str]) -> subprocess.Popen[str]:
     return subprocess.Popen(
         argv,
         cwd=ROOT,
@@ -109,7 +130,7 @@ def start_host(argv: list[str]) -> subprocess.Popen:
     )
 
 
-def stop_host(process: subprocess.Popen) -> str:
+def stop_host(process: subprocess.Popen[str]) -> str:
     logs: list[str] = []
     if process.poll() is None:
         process.terminate()
@@ -125,7 +146,7 @@ def stop_host(process: subprocess.Popen) -> str:
     return "".join(logs)
 
 
-def wait_until_ready(origin: str, process: subprocess.Popen) -> None:
+def wait_until_ready(origin: str, process: subprocess.Popen[str]) -> None:
     deadline = time.monotonic() + 30
     discovery = f"{origin}/.well-known/agentciv"
     while time.monotonic() < deadline:
@@ -163,17 +184,23 @@ def curl(binary: str, directory: Path, args: list[str]) -> tuple[int, dict[str, 
     return status, headers, body_path.read_bytes()
 
 
-def decode(body: bytes) -> dict:
-    parsed = json.loads(body.decode("utf-8"))
-    if not isinstance(parsed, dict):
+def decode(body: bytes) -> JsonObject:
+    try:
+        parsed: object = json.loads(body.decode("utf-8"))
+    except (UnicodeError, json.JSONDecodeError) as error:
+        raise WalkFailure("response JSON was not an object") from error
+    found = as_object(parsed)
+    if found is None:
         raise WalkFailure("response JSON was not an object")
-    return parsed
+    return found
 
 
-def expect(status: int, headers: dict[str, str], body: bytes, code: int, problem: str | None) -> dict:
+def expect(
+    status: int, headers: dict[str, str], body: bytes, code: int, problem: str | None
+) -> JsonObject:
     if status != code:
         raise WalkFailure(f"expected HTTP {code}, got {status}: {body[:500]!r}")
-    parsed = decode(body) if body else {}
+    parsed: JsonObject = decode(body) if body else {}
     if problem is not None:
         if "problem+json" not in headers.get("content-type", ""):
             raise WalkFailure(f"expected problem+json, got {headers.get('content-type')}")
@@ -184,7 +211,32 @@ def expect(status: int, headers: dict[str, str], body: bytes, code: int, problem
     return parsed
 
 
-def walk_one(label: str, argv_for: callable, curl_bin: str, directory: Path) -> None:
+def events_of(page: JsonObject) -> list[object]:
+    events = page.get("events")
+    if not isinstance(events, list):
+        raise WalkFailure("event page did not include events")
+    return list(events)
+
+
+def message_in(event: object) -> JsonObject:
+    event_object = as_object(event)
+    body = as_object(event_object.get("body")) if event_object is not None else None
+    message_object = as_object(body.get("message")) if body is not None else None
+    if message_object is None:
+        raise WalkFailure("event page did not include the expected message")
+    return message_object
+
+
+def python_argv(config: Path) -> list[str]:
+    return [
+        sys.executable,
+        str(ROOT / "implementations" / "http-commons-python" / "host.py"),
+        "--config",
+        str(config),
+    ]
+
+
+def walk_one(label: str, argv_for: Callable[[Path], list[str]], curl_bin: str, directory: Path) -> None:
     port = free_port()
     origin = f"http://127.0.0.1:{port}"
     config = write_config(directory, port)
@@ -342,15 +394,20 @@ def walk_one(label: str, argv_for: callable, curl_bin: str, directory: Path) -> 
                 ],
             )
             page = expect(status, headers, body, 200, None)
-            events = page.get("events")
-            if not isinstance(events, list) or not page.get("next_cursor") or page.get("has_more") is not False:
+            events = events_of(page)
+            if not page.get("next_cursor") or page.get("has_more") is not False:
                 raise WalkFailure(f"{label} event page was not the two-message handoff")
-            message_ids = []
-            assigned = []
+            message_ids: list[str] = []
+            assigned_ids: list[str] = []
             for event in events:
-                message_ids.append(event["body"]["message"]["id"])
-                assigned.append(event["id"])
-            return message_ids, assigned
+                message_id = message_in(event).get("id")
+                event_object = as_object(event)
+                event_id_value = event_object.get("id") if event_object is not None else None
+                if not isinstance(message_id, str) or not isinstance(event_id_value, str):
+                    raise WalkFailure(f"{label} event page was not the two-message handoff")
+                message_ids.append(message_id)
+                assigned_ids.append(event_id_value)
+            return message_ids, assigned_ids
 
         message_ids, assigned = read_events()
         if message_ids != [TASK_ID, QUESTION_ID]:
@@ -370,7 +427,8 @@ def walk_one(label: str, argv_for: callable, curl_bin: str, directory: Path) -> 
             ],
         )
         page = expect(status, headers, body, 200, None)
-        if page["events"][0]["body"]["message"].get("later_note") != PRESERVE:
+        first_events = events_of(page)
+        if not first_events or message_in(first_events[0]).get("later_note") != PRESERVE:
             raise WalkFailure(f"{label} dropped an unknown message field")
     finally:
         stop_host(process)
@@ -390,17 +448,35 @@ def walk_one(label: str, argv_for: callable, curl_bin: str, directory: Path) -> 
             ],
         )
         page = expect(status, headers, body, 200, None)
-        seen = [event["id"] for event in page["events"]]
-        texts = [event["body"]["message"]["id"] for event in page["events"]]
+        restarted_events = events_of(page)
+        seen: list[str] = []
+        texts: list[str] = []
+        for event in restarted_events:
+            event_object = as_object(event)
+            event_id_value = event_object.get("id") if event_object is not None else None
+            message_id = message_in(event).get("id")
+            if not isinstance(event_id_value, str) or not isinstance(message_id, str):
+                raise WalkFailure(f"{label} restart did not keep the same events")
+            seen.append(event_id_value)
+            texts.append(message_id)
         if texts != [TASK_ID, QUESTION_ID] or seen != assigned:
             raise WalkFailure(f"{label} restart did not keep the same events")
-        if page["events"][0]["body"]["message"].get("later_note") != PRESERVE:
+        if not restarted_events or message_in(restarted_events[0]).get("later_note") != PRESERVE:
             raise WalkFailure(f"{label} restart dropped an unknown message field")
-        cursor = page["next_cursor"]
+        found_cursor = page.get("next_cursor")
+        if not isinstance(found_cursor, str) or not found_cursor:
+            raise WalkFailure(f"{label} event page did not include a cursor")
+        cursor = found_cursor
     finally:
         stop_host(restarted)
 
-    stored = json.loads(config.read_text(encoding="utf-8"))
+    try:
+        loaded: object = json.loads(config.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as error:
+        raise WalkFailure("host config was not an object") from error
+    stored = as_object(loaded)
+    if stored is None:
+        raise WalkFailure("host config was not an object")
     stored["visibility"] = "sender_only"
     config.write_text(json.dumps(stored), encoding="utf-8")
     narrowed = start_host(argv_for(config))
@@ -431,7 +507,7 @@ def walk_one(label: str, argv_for: callable, curl_bin: str, directory: Path) -> 
             ],
         )
         hidden = expect(status, headers, body, 200, None)
-        leaked = [event["body"]["message"]["id"] for event in hidden.get("events", [])]
+        leaked = [message_in(event).get("id") for event in events_of(hidden)]
         if TASK_ID in leaked or QUESTION_ID in leaked:
             raise WalkFailure(f"{label} sender_only still showed another principal's message")
     finally:
@@ -441,18 +517,14 @@ def walk_one(label: str, argv_for: callable, curl_bin: str, directory: Path) -> 
 
 def main() -> int:
     binary = curl_binary()
-    host = rust_binary()
-    targets = [
-        (
-            "python",
-            lambda config: [
-                sys.executable,
-                str(ROOT / "implementations" / "http-commons-python" / "host.py"),
-                "--config",
-                str(config),
-            ],
-        ),
-        ("rust", lambda config: [str(host), "--config", str(config)]),
+    host_path = rust_binary()
+
+    def rust_argv(config: Path) -> list[str]:
+        return [str(host_path), "--config", str(config)]
+
+    targets: list[tuple[str, Callable[[Path], list[str]]]] = [
+        ("python", python_argv),
+        ("rust", rust_argv),
     ]
     try:
         for label, argv_for in targets:

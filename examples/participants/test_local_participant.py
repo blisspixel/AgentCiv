@@ -11,6 +11,7 @@ import json
 import sys
 import tempfile
 import threading
+import types
 import unittest
 import urllib.parse
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -28,7 +29,7 @@ WRITER_TOKEN = "writer-token-value"
 READER_TOKEN = "reader-token-value"
 
 
-def load_host():
+def load_host() -> types.ModuleType:
     path = ROOT / "implementations" / "http-commons-python" / "host.py"
     spec = importlib.util.spec_from_file_location("agentciv_python_host_for_participants", path)
     if spec is None or spec.loader is None:
@@ -108,8 +109,11 @@ class ParticipantTests(unittest.TestCase):
         page = local_participant.read_page(origin, READER_TOKEN)
         found = local_participant.messages_in(page)
         self.assertEqual([item["id"] for item in found], ["message:scripted-1"])
-        self.assertEqual(found[0]["body"]["text"], "café question")
-        self.assertEqual(found[0]["body"]["draft"], "scripted")
+        body = found[0]["body"]
+        if not isinstance(body, dict):
+            raise AssertionError("message body was not an object")
+        self.assertEqual(body["text"], "café question")
+        self.assertEqual(body["draft"], "scripted")
         self.assertEqual(found[0]["later_note"], "preserve-me")
         self.assertEqual(found[0]["from"], WRITER)
 
@@ -127,8 +131,21 @@ class ParticipantTests(unittest.TestCase):
         self.assertEqual(denied.exception.status, 403)
         self.assertEqual(denied.exception.code, "forbidden")
 
-        def bad_version(**kwargs: object) -> dict:
-            record = local_participant.scripted_draft(**kwargs)  # type: ignore[arg-type]
+        def bad_version(
+            *,
+            world: str,
+            principal: str,
+            recipients: list[str],
+            text: str,
+            message_id: str,
+        ) -> dict[str, object]:
+            record = local_participant.scripted_draft(
+                world=world,
+                principal=principal,
+                recipients=recipients,
+                text=text,
+                message_id=message_id,
+            )
             record["protocol_version"] = "9"
             return record
 
@@ -172,8 +189,21 @@ class ParticipantTests(unittest.TestCase):
         self.assertEqual(caught.exception.code, "invalid_cursor")
 
     def test_a_lying_draft_is_not_submitted(self) -> None:
-        def lying(**kwargs: object) -> dict:
-            record = local_participant.scripted_draft(**kwargs)  # type: ignore[arg-type]
+        def lying(
+            *,
+            world: str,
+            principal: str,
+            recipients: list[str],
+            text: str,
+            message_id: str,
+        ) -> dict[str, object]:
+            record = local_participant.scripted_draft(
+                world=world,
+                principal=principal,
+                recipients=recipients,
+                text=text,
+                message_id=message_id,
+            )
             record["from"] = "agent:someone-else"
             return record
 
@@ -252,16 +282,21 @@ class ClientBoundaryTests(unittest.TestCase):
         thread = threading.Thread(target=server.serve_forever, daemon=True)
         thread.start()
         try:
-            host, port = server.server_address[:2]
+            origin = HOST.http_origin(server.server_address)
+            if not isinstance(origin, str):
+                raise AssertionError("listen address was not a host and port")
             with self.assertRaises(local_participant.ParticipantError) as caught:
-                local_participant.discover(f"http://{host}:{port}")
+                local_participant.discover(origin)
             self.assertEqual(caught.exception.code, "redirect")
         finally:
             server.shutdown()
             server.server_close()
 
     def test_participant_source_names_no_remote_provider(self) -> None:
-        text = Path(local_participant.__file__).read_text(encoding="utf-8")
+        source = local_participant.__file__
+        if not isinstance(source, str):
+            raise AssertionError("participant module has no file")
+        text = Path(source).read_text(encoding="utf-8")
         for needle in (
             "openrouter.ai",
             "api.openai.com",
@@ -413,7 +448,7 @@ class ProviderTests(unittest.TestCase):
                 model="example-model",
                 prompt="hello",
                 credential="example-credential",
-                max_tokens=True,  # type: ignore[arg-type]
+                max_tokens=True,
             )
         with self.assertRaises(ValueError):
             providers.chat_completion_text({"choices": []})
@@ -421,7 +456,10 @@ class ProviderTests(unittest.TestCase):
             providers.chat_completion_text({"choices": [{"message": {"content": ["parts"]}}]})
 
     def test_provider_module_does_not_open_sockets_or_read_the_environment(self) -> None:
-        text = Path(providers.__file__).read_text(encoding="utf-8")
+        source = providers.__file__
+        if not isinstance(source, str):
+            raise AssertionError("providers module has no file")
+        text = Path(source).read_text(encoding="utf-8")
         self.assertNotIn("urlopen", text)
         self.assertNotIn("os.environ", text)
         self.assertNotIn("socket.", text)

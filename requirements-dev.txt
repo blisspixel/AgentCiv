@@ -1,0 +1,2 @@
+# Development tools. The Python host does not import this file.
+mypy==2.3.1

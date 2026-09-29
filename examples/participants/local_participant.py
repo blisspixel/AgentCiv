@@ -12,6 +12,8 @@ import json
 import urllib.error
 import urllib.parse
 import urllib.request
+from http.client import HTTPMessage
+from typing import IO, Protocol, TypedDict
 
 from loopback import loopback_origin, require_loopback
 
@@ -26,9 +28,38 @@ class ParticipantError(RuntimeError):
         self.code = code
 
 
+JsonObject = dict[str, object]
+
+
+class RecordedMessage(TypedDict):
+    discovery: JsonObject
+    record: JsonObject
+    receipt: JsonObject
+
+
+class Draft(Protocol):
+    def __call__(
+        self,
+        *,
+        world: str,
+        principal: str,
+        recipients: list[str],
+        text: str,
+        message_id: str,
+    ) -> JsonObject: ...
+
+
 class _RefuseRedirect(urllib.request.HTTPRedirectHandler):
-    def redirect_request(self, req, fp, code, msg, headers, newurl):  # noqa: ANN001
-        raise ParticipantError(int(code), "redirect")
+    def redirect_request(
+        self,
+        req: urllib.request.Request,
+        fp: IO[bytes],
+        code: int,
+        msg: str,
+        headers: HTTPMessage,
+        newurl: str,
+    ) -> urllib.request.Request | None:
+        raise ParticipantError(code, "redirect")
 
 
 def scripted_draft(
@@ -38,8 +69,8 @@ def scripted_draft(
     recipients: list[str],
     text: str,
     message_id: str,
-) -> dict:
-    return {
+) -> JsonObject:
+    record: JsonObject = {
         "protocol_version": PROTOCOL_VERSION,
         "type": "message",
         "id": message_id,
@@ -49,9 +80,10 @@ def scripted_draft(
         "body": {"text": text, "draft": "scripted"},
         "later_note": "preserve-me",
     }
+    return record
 
 
-def world_endpoints(origin: str, discovery: dict) -> tuple[str, str]:
+def world_endpoints(origin: str, discovery: JsonObject) -> tuple[str, str]:
     origin = loopback_origin(origin)
     if not isinstance(discovery, dict) or discovery.get("profile") != PROFILE:
         raise ParticipantError(200, "unexpected_discovery")
@@ -76,7 +108,7 @@ def world_endpoints(origin: str, discovery: dict) -> tuple[str, str]:
     return submit, events
 
 
-def discover(origin: str) -> dict:
+def discover(origin: str) -> JsonObject:
     root = loopback_origin(origin)
     status, payload = exchange("GET", root + "/.well-known/agentciv")
     if status != 200:
@@ -94,8 +126,8 @@ def record_message(
     *,
     text: str,
     message_id: str,
-    draft=scripted_draft,
-) -> dict:
+    draft: Draft = scripted_draft,
+) -> RecordedMessage:
     if not isinstance(principal, str) or not principal:
         raise ValueError("principal is required")
     if not isinstance(message_id, str) or not message_id:
@@ -113,8 +145,10 @@ def record_message(
         text=text,
         message_id=message_id,
     )
-    if not isinstance(record, dict):
+    submitted = _as_object(record)
+    if submitted is None:
         raise ValueError("draft must return an object")
+    record = submitted
     if record.get("world") != discovery.get("id") or record.get("from") != principal:
         raise ValueError("draft world and from must match this call")
     body = json.dumps(record, ensure_ascii=False, separators=(",", ":"), sort_keys=True).encode("utf-8")
@@ -127,7 +161,7 @@ def record_message(
     return {"discovery": discovery, "record": record, "receipt": receipt}
 
 
-def read_page(origin: str, token: str, *, after: str | None = None) -> dict:
+def read_page(origin: str, token: str, *, after: str | None = None) -> JsonObject:
     discovery = discover(origin)
     _submit, events = world_endpoints(origin, discovery)
     url = events
@@ -142,14 +176,21 @@ def read_page(origin: str, token: str, *, after: str | None = None) -> dict:
     return page
 
 
-def messages_in(page: dict) -> list[dict]:
-    found: list[dict] = []
-    for event in page.get("events", []):
-        if not isinstance(event, dict):
+def messages_in(page: JsonObject) -> list[JsonObject]:
+    found: list[JsonObject] = []
+    events = page.get("events", [])
+    if not isinstance(events, list):
+        return found
+    for event in events:
+        event_object = _as_object(event)
+        if event_object is None:
             continue
-        body = event.get("body")
-        if isinstance(body, dict) and isinstance(body.get("message"), dict):
-            found.append(body["message"])
+        body = _as_object(event_object.get("body"))
+        if body is None:
+            continue
+        message = _as_object(body.get("message"))
+        if message is not None:
+            found.append(message)
     return found
 
 
@@ -196,14 +237,26 @@ def _same_origin(origin: str, url: str) -> bool:
     return (left.scheme, left.hostname, left.port) == (right.scheme, right.hostname, right.port)
 
 
-def _object(payload: bytes, status: int) -> dict:
+def _as_object(value: object) -> JsonObject | None:
+    if not isinstance(value, dict):
+        return None
+    parsed: JsonObject = {}
+    for key, item in value.items():
+        if not isinstance(key, str):
+            return None
+        parsed[key] = item
+    return parsed
+
+
+def _object(payload: bytes, status: int) -> JsonObject:
     try:
-        value = json.loads(payload)
+        value: object = json.loads(payload)
     except json.JSONDecodeError as error:
         raise ParticipantError(status, "unreadable") from error
-    if not isinstance(value, dict):
+    found = _as_object(value)
+    if found is None:
         raise ParticipantError(status, "unreadable")
-    return value
+    return found
 
 
 def _fail(status: int, payload: bytes) -> None:

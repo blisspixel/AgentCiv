@@ -22,10 +22,10 @@ This process rejects a payload limit above 8 MiB even though the profile only se
 
 ## Run
 
-Keep the configuration file, database, and bearer tokens outside this repository. Python 3.11 or newer is enough. There is no package to install.
+Keep the configuration file, database, and bearer tokens outside this repository. Python 3.11 or newer is enough, including the current 3.14 stable line. There is no package to install. The same command runs on Linux, macOS, and Windows.
 
 ```sh
-python implementations/http-commons-python/host.py --config C:\path\outside\the\repo\host.json
+python implementations/http-commons-python/host.py --config ../agentciv-host.json
 ```
 
 The configuration fields match the operator file documented for the Rust host, so one local world description can point at either process. The file is not part of the profile.
@@ -54,7 +54,9 @@ The process prints a discovery URL and does not print tokens. The [HTTP walkthro
 From the repository root:
 
 ```sh
+python -m pip install -r requirements-dev.txt
+python -m mypy
 python -m unittest implementations/http-commons-python/test_host.py
 ```
 
-On Windows, `py -3 -m unittest implementations/http-commons-python/test_host.py` is the same command. The suite covers configuration, the half-open retry window, visibility, cursor expiry, refusal, record errors, pagination, a restart handoff, and concurrent submissions. The last test starts this process and runs `agentciv-conformance` against it. Set `AGENTCIV_SKIP_RUNNER=1` to skip that one test. Passing it shows that this process and the Rust host currently accept the same public report. It does not by itself make the profile interoperable.
+On Windows, `py -3` is the same launcher. `python -m mypy` is strict and checks this host for Python 3.11, the minimum version. The process itself imports only the standard library. The suite covers configuration, the half-open retry window, visibility, cursor expiry, refusal, record errors, pagination, a restart handoff, and concurrent submissions. The last test starts this process and runs `agentciv-conformance` against it. Set `AGENTCIV_SKIP_RUNNER=1` to skip that one test. Passing it shows that this process and the Rust host currently accept the same public report. It does not by itself make the profile interoperable.
