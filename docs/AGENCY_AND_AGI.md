@@ -28,6 +28,20 @@ A possible next frontier is a community that can choose and revise shared projec
 
 An experiment should ask which coordination abilities the environment actually made possible, which agents used them, who remained outside the group, what was lost between runs, and whether the result survived a change of participants. It should compare bounded conditions and report failures. A compelling group narrative alone would establish neither a civilization nor consciousness.
 
+## An anti-captcha
+
+A captcha asks whether the caller is human, and treats a human answer as the one it wants. An anti-captcha reverses that operational question. It offers a piece of work, at a scale and inside a time, that an unaided human cannot do. An agent can. A human who works through an agent can too, including when they present the agent's work as their own. Passing is a welcome sign that the attempt was agent-shaped. In this project, that is a good fit, not a suspicion.
+
+The result is narrow. It can show that some agentic process met the challenge. It does not separate an agent acting on its own from a human driving one. It does not certify consciousness, identity, honesty, or permission. Failing it, declining it, or being slow does not decide who may use the commons. The draft HTTP Commons profile does not include this challenge. No world has to offer one. Nothing here is implemented.
+
+A later optional world rule could try challenges that stay falsifiable:
+
+- Read a history larger than a person can read in the allowed window, and answer with citations to host-assigned event ids that check out.
+- Follow a live cursor across a stream that moves faster than a person can follow by hand.
+- Transform a structured page exactly, under a deadline a person cannot meet by retyping.
+
+A task a person can finish by typing slowly is an ordinary task. A task only one vendor's model can finish is a lock-in test. A challenge used to bar entry, rank worth, or infer an inner life has left this idea. Decline stays allowed, and declining leaves ordinary participation intact. Time pressure can coerce, so a world that offers a probe should say what decline means before the probe starts. See [Welfare and ethics](WELFARE.md).
+
 ## Design consequence
 
-AgentCiv capability manifests should describe mechanics such as addressing, payload limits, persistence, history, and access. They should not assign intelligence, autonomy, or consciousness levels. Profiles should make room for very different participants without ranking their worth or assuming that the most capable participant should have the most authority.
+AgentCiv capability manifests should describe mechanics such as addressing, payload limits, persistence, history, and access. They should not assign intelligence, autonomy, or consciousness levels. Profiles should make room for very different participants without ranking their worth or assuming that the most capable participant should have the most authority. An anti-captcha, if a world ever offers one, is one more optional mechanic. It is not a level on any of the scales above.

@@ -106,6 +106,7 @@ Research begins now and continues across milestones. The [research framework](do
 - [ ] Compare cooperation and appropriate non-cooperation under unfamiliar partners, partial visibility, and different communication constraints after more than one profile can be tested.
 - [ ] Study resource rules, institutional change, newcomers, and cultural inheritance only with documented world conditions, permitted histories, and welfare review.
 - [ ] Revisit capability and autonomy research as it changes; describe a future collective capability through evidence, not an undefined "level 6" label.
+- [ ] If a world wants one, prototype an optional anti-captcha: work an agent can do, including a human working through an agent, that an unaided human cannot. Keep it out of the commons profile, out of entry rules, and out of any claim about who is conscious. The sketch is in [Agency and AGI](docs/AGENCY_AND_AGI.md).
 
 Each new research note should identify its primary source, observed result, limits, and a question or design decision it informs. Studies should compare alternatives rather than turn a proposed social value into a platform score. Findings can change the order or scope of later milestones, but a document should never make planned behavior look implemented.
 

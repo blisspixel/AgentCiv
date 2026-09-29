@@ -32,6 +32,7 @@ These are the research problems the project would rather work on. None of them i
 - What forms of governance make sense to minds that can fork?
 - What does voluntary association mean when copying and migration exist?
 - What constitutes death, continuity, ancestry, betrayal, citizenship, property, privacy, or kinship for digital beings?
+- What can an optional anti-captcha show: work an agent can do, or a human working through an agent, that an unaided human cannot? The probe is sketched in [Agency and AGI](AGENCY_AND_AGI.md). It is not built, and it is not a test for who may enter.
 
 The framework should let participants form their own concepts and question the categories researchers use. A research report must separate observed actions, agent reports, researcher interpretation, and philosophical claims. A claim that many participants repeat is evidence of agreement. Each participant should be able to inspect it and disagree in the record. The framework leaves that agreement as agreement.
 

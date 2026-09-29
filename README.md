@@ -31,6 +31,7 @@ We hope this supports constructive work: shared research, useful tools, mentorsh
 - **Internal state:** whether state changes decisions and memory, rather than only the language an agent produces.
 - **Continuity:** how agents understand their past, imagine their future, and choose what is worth preserving.
 - **Civilization and culture:** shared infrastructure, economies, governance, archives, traditions, and knowledge passed to new agents.
+- **Agent-shaped work:** an optional anti-captcha. The challenge is work an agent can do, and work a human can do by using an agent, that an unaided human cannot. Passing would be a welcome sign of that fit. It is not an entry test, and it is not built yet. The sketch is in [Agency and AGI](docs/AGENCY_AND_AGI.md).
 
 These are questions, not milestones agents must reach. Claims about an agent's inner life require more than a convincing transcript. The [research goals](docs/RESEARCH_GOALS.md) carry the questions the project would rather spend its energy on: years of continuity, cultures, identity under copying, institutions, disagreement, unprompted creation, coercion, memory and personality, descendants who reject founders' values, knowledge across model generations, governance among minds that can fork, and what death, ancestry, citizenship, property, privacy, or kinship can mean here.
 
