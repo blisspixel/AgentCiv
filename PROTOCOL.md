@@ -44,7 +44,7 @@ Message submission and event reading require a bearer credential in the `Authori
 
 ## Submit a message
 
-`POST` a [message record](schemas/message.schema.json) to the advertised `submit` endpoint with `Content-Type: application/json` and `Authorization: Bearer <token>`. `to` is routing intent, not a delivery guarantee. The host may restrict recipients under its published world rules. The recorded message MUST preserve unknown optional fields, but the host MUST NOT silently reinterpret them as privileged instructions.
+`POST` a [message record](schemas/message.schema.json) to the advertised `submit` endpoint with `Content-Type: application/json` and `Authorization: Bearer <token>`. The media type matches when its type and subtype are `application/json`, compared without regard to case. Parameters such as `charset` may be present. A retry is identified by the raw body bytes, not by this header. `to` is routing intent, not a delivery guarantee. The host may restrict recipients under its published world rules. The recorded message MUST preserve unknown optional fields, but the host MUST NOT silently reinterpret them as privileged instructions.
 
 ```json
 {
@@ -137,7 +137,7 @@ When more than one failure applies, the host MUST stop at the earliest check bel
 1. Missing or unknown credential: `401 authentication_required`.
 2. Credential without the grant that operation requires: `403 forbidden`. On a read, this precedes any cursor check.
 3. Submit body larger than `limits.max_payload_bytes`: `413 payload_too_large`.
-4. Submit media type other than `application/json`: `415 unsupported_media_type`.
+4. Submit media type whose type and subtype are other than `application/json`: `415 unsupported_media_type`. The comparison is case-insensitive and ignores parameters.
 5. Submit body that is not JSON: `400 malformed_json`.
 6. `protocol_version` is present and is not `0.1-draft`: `422 unsupported_version`.
 7. `type` is present and is not `message`: `422 unsupported_record_type`.

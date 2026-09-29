@@ -249,7 +249,7 @@ def walk_one(label: str, argv_for: callable, curl_bin: str, directory: Path) -> 
             directory,
             [
                 "-H",
-                "Content-Type: application/json",
+                "Content-Type: application/json; charset=utf-8",
                 "-H",
                 "Authorization: Bearer walk-token-a",
                 "--data-binary",
