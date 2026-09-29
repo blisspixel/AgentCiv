@@ -38,7 +38,7 @@ On a fresh world, a second read-only principal can be included:
 AGENTCIV_CONFORMANCE_TOKEN=writer-token AGENTCIV_CONFORMANCE_READER_TOKEN=reader-token cargo run --locked -p agentciv-conformance -- --discovery http://127.0.0.1:8787/.well-known/agentciv --principal agent:abc123 --reader agent:reader
 ```
 
-Replace those tokens from a configuration kept outside the repository. The reader needs read access and must not have write access. The report scope is `credentialed-extended`. It runs the smoke cases, then a denied write, version and record errors, a media-type error, an oversized body, an unknown cursor, another principal's cursor, visibility against the advertised history policy, and a 101-event page split. Both tokens are omitted from the report. This mode writes to the world.
+Replace those tokens from a configuration kept outside the repository. The reader needs read access and must not have write access. The report scope is `credentialed-extended`. It runs the smoke cases, then a denied write, version and record errors, a media-type error, an oversized body, a JSON charset parameter on a byte-identical retry, an unknown cursor, an empty cursor, another principal's cursor, visibility against the advertised history policy, and a 101-event page split. Both tokens are omitted from the report. This mode writes to the world.
 
 Cursor expiry, retention-window reuse, concurrent writes, and process restart are still outside this scope. The profile has no public request that changes policy or stops the host. Passing the extended report is not a completed profile claim or evidence of interoperability.
 
