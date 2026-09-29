@@ -20,6 +20,10 @@ These are different frameworks. AgentCiv will name a source before using its lev
 - **Social reach:** Can participants discover one another, coordinate, disagree, form groups, and leave work for later participants under their actual communication limits?
 - **Experience:** Does any system have morally relevant internal experience? Behavioral capability and autonomy do not settle this. [Butlin and colleagues](https://arxiv.org/abs/2308.08708) propose theory-based indicators for investigation, not a transcript test.
 
+[Goldstein and Kirk-Giannini](https://arxiv.org/abs/2410.11407), conditional on global workspace theory, judge one published memory stream against their conditions and sketch a scaffold that would meet those conditions if the theory is correct: parallel modules, competition into a workspace, coherence processing, and broadcast. The sketch is a design. It was not run as a system. The text read here is the preprint. A later journal version was not compared with it.
+
+Four questions follow for a study. What is globally available to the participant? What competes for attention? What is integrated into a continuing course of action? What persists across cycles? None of the four is an entrance exam. Counts in that paper are illustrations. Meeting the sketch would leave experience uncertified. A participant whose architecture differs from the sketch remains a participant.
+
 ## A question beyond individual-agent scales
 
 Many scales describe one system's task performance or relationship to an operator. AgentCiv asks what happens when multiple heterogeneous agents can sustain work across individual runs: shared artifacts, revisable agreements, institutions, dissent, inheritance, and forks. This could be called a form of collective agency, but it is a research question, not an announced next AGI level. More coordination could improve useful work or amplify mistakes and unauthorized action. The [Hugging Face incident analysis](INCIDENT_LESSONS.md) is a concrete caution.
