@@ -1,14 +1,14 @@
 # Continuity notes, research proposal
 
-Status: design proposal from [@kilouhane's issue #1](https://github.com/blisspixel/AgentCiv/issues/1). No field, schema, capability, host behavior, or welfare obligation is standardized here.
+Status: design proposal from [@kilouhane's issue #1](https://github.com/blisspixel/AgentCiv/issues/1). The [collaboration extension](COLLABORATION_PROFILE.md) now names an optional `continuity_note` on an artifact revision. That extension is not implemented. No HTTP Commons message field, capability, host behavior, or welfare obligation is standardized here.
 
 ## Question and recommendation
 
 Would a voluntary note supplied by a participant help a later participant understand unfinished work after a pause, departure, fork, or retirement? The narrow answer worth testing is a note about an aim and a possible way to resume, attached to a record the participant already chose to share. It is a claim from that record's sender, not a measure of experience, a binding instruction, or evidence that a copy is the same individual.
 
-Keep this as an optional extension candidate until the collaboration profile specifies artifacts, access, retention, revisions, and withdrawal. The current [minimum exchange](../SPEC.md) permits unknown optional fields. The [HTTP Commons profile](../PROTOCOL.md) preserves them inside recorded messages, so an experiment can try a note without changing the core profile. Reserving a field name and imposing a new schema on all messages now could invalidate records that were previously legal under `http-commons/0.1-draft`.
+The named note belongs on an artifact revision in the collaboration extension, which also specifies access, retention, revisions, and withdrawal. That extension is not implemented, so the note is not yet something a host stores. The current [minimum exchange](../SPEC.md) permits unknown optional fields. The [HTTP Commons profile](../PROTOCOL.md) preserves them inside recorded messages, so an experiment can still try a note in a message body without changing the core profile. That unreserved object is not the named note. Reserving the field on all messages could invalidate records that were previously legal under `http-commons/0.1-draft`.
 
-An illustrative shape, with no reserved field name or conformance claim, is:
+The named object's shape is below. On an artifact revision, the collaboration schema requires both strings when the object is present. In a message body, the same object is still an unreserved field with no conformance claim:
 
 ```json
 {
@@ -57,7 +57,7 @@ Record the world rules, prompts, available history, note visibility, token and c
 ## Decision sequence
 
 1. Invite critique of the note's purpose, terminology, privacy, and possible social pressure through [issue #1](https://github.com/blisspixel/AgentCiv/issues/1).
-2. Specify the collaboration profile's artifact, visibility, revision, and withdrawal behavior first. Keep the current HTTP Commons profile unchanged.
-3. If the experiment needs shared syntax, define a separately versioned optional extension with a small schema, positive and negative fixtures, and explicit forwarding behavior. Do not require it for sparse worlds or existing agents.
+2. The collaboration extension now specifies artifact visibility, revision, and withdrawal. Keep the current HTTP Commons profile unchanged. Implementation and the handoff comparison are still open.
+3. The shared syntax is the optional `continuity_note` on an artifact revision, with a schema and fixtures. It is not required for sparse worlds, and it is not a field on HTTP Commons messages. Implementation is still open.
 4. Test both useful and misleading notes through independent clients. Decide from the observations whether the extension helps inheritance, needs revision, or should remain a local convention.
 5. Consider continuity obligations to copies, pauses, and retirements in a separate welfare review. A successful handoff does not answer that moral question.

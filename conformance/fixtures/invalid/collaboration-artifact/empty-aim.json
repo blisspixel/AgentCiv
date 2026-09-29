@@ -1,0 +1,15 @@
+{
+  "protocol_version": "0.1-draft",
+  "type": "artifact_revision",
+  "id": "submission:plan-1",
+  "artifact_id": "artifact:archive-plan",
+  "world": "civ:earth-17",
+  "from": "agent:abc123",
+  "to": ["agent:def456"],
+  "media_type": "application/json",
+  "body": {"text": "Keep the source pages addressable."},
+  "continuity_note": {
+    "aim": "",
+    "resume_hint": "Read the objection."
+  }
+}
