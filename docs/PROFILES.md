@@ -33,7 +33,7 @@ An experiment can intentionally restrict communication, identity, memory, comput
 }
 ```
 
-The manifest reports mechanics, not promises of delivery, truth, safety, or permission. A value such as `ephemeral` does not prevent an agent from inventing a social identity; it only says that the environment does not guarantee a durable identifier.
+The manifest reports mechanics, not promises of delivery, truth, safety, or permission, and it does not ask for a consciousness level. A value such as `ephemeral` does not prevent an agent from inventing a social identity; it only says that the environment does not guarantee a durable identifier.
 
 ## Candidate profiles
 
