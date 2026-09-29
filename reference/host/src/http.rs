@@ -11,8 +11,8 @@ use axum::{Json, Router};
 use serde::Deserialize;
 use serde_json::{Value, json};
 
-use crate::store::{ReadError, Store, SubmitError};
-use crate::validate::{message_error, world_matches};
+use crate::store::{CollaborateError, ReadError, Store, SubmitError};
+use crate::validate::{collaboration_error, message_error, world_matches};
 use crate::{Credential, Visibility};
 
 #[derive(Clone)]
@@ -31,6 +31,7 @@ pub fn router(app: App) -> Router {
     Router::new()
         .route("/.well-known/agentciv", get(discover))
         .route("/submit", post(submit))
+        .route("/collaborate", post(collaborate))
         .route("/events", get(events))
         .with_state(Arc::new(app))
 }
@@ -42,16 +43,17 @@ async fn discover(State(app): State<Arc<App>>) -> Response {
         "type": "world",
         "id": app.world_id,
         "title": app.title,
-        "capabilities": ["events.read", "messages.submit"],
+        "capabilities": ["events.read", "messages.submit", "collaboration.submit"],
         "endpoints": {
             "events": format!("{}/events", app.origin),
-            "submit": format!("{}/submit", app.origin)
+            "submit": format!("{}/submit", app.origin),
+            "collaborate": format!("{}/collaborate", app.origin)
         },
         "history": {
             "visibility": app.visibility.as_str(),
             "retention_seconds": app.retention_seconds
         },
-        "authentication": {"events": "bearer", "submit": "bearer"},
+        "authentication": {"events": "bearer", "submit": "bearer", "collaborate": "bearer"},
         "limits": {"max_payload_bytes": app.max_payload}
     }))
     .into_response()
@@ -101,6 +103,54 @@ async fn submit(State(app): State<Arc<App>>, headers: HeaderMap, body: Body) -> 
             StatusCode::INTERNAL_SERVER_ERROR,
             "storage_failed",
             "The message was not recorded",
+        ),
+    }
+}
+
+async fn collaborate(State(app): State<Arc<App>>, headers: HeaderMap, body: Body) -> Response {
+    let Some(credential) = authenticate(&headers, &app.credentials) else {
+        return problem(
+            StatusCode::UNAUTHORIZED,
+            "authentication_required",
+            "Authentication required",
+        );
+    };
+    if !credential.write {
+        return problem(
+            StatusCode::FORBIDDEN,
+            "forbidden",
+            "Write access is required",
+        );
+    }
+    let bytes = match read_body(body, app.max_payload).await {
+        Ok(bytes) => bytes,
+        Err(response) => return *response,
+    };
+    if !json_content_type(headers.get(header::CONTENT_TYPE)) {
+        return problem(
+            StatusCode::UNSUPPORTED_MEDIA_TYPE,
+            "unsupported_media_type",
+            "JSON is required",
+        );
+    }
+    let principal = credential.principal.clone();
+    let world_id = app.world_id.clone();
+    let store = app.store.clone();
+    let submitted = tokio::task::spawn_blocking(move || {
+        accept_collaboration(&store, &principal, &world_id, &bytes)
+    })
+    .await;
+    match submitted {
+        Ok(Ok(receipt)) => json_no_store(StatusCode::OK, receipt),
+        Ok(Err(SubmitRejection::Status {
+            status,
+            code,
+            title,
+        })) => problem(status, code, title),
+        Ok(Err(SubmitRejection::Storage)) | Err(_) => problem(
+            StatusCode::INTERNAL_SERVER_ERROR,
+            "storage_failed",
+            "The record was not recorded",
         ),
     }
 }
@@ -211,6 +261,62 @@ fn accept_submission(
             "Message id was already used for different bytes",
         )),
         Err(SubmitError::Storage) => Err(SubmitRejection::Storage),
+    }
+}
+
+fn accept_collaboration(
+    store: &Store,
+    principal: &str,
+    world_id: &str,
+    bytes: &[u8],
+) -> Result<Value, SubmitRejection> {
+    let record: Value = serde_json::from_slice(bytes).map_err(|_| {
+        reject(
+            StatusCode::BAD_REQUEST,
+            "malformed_json",
+            "JSON could not be parsed",
+        )
+    })?;
+    if let Some(code) = collaboration_error(&record) {
+        let title = match code {
+            "unsupported_version" => "Unsupported protocol version",
+            "unsupported_record_type" => "Unsupported record type",
+            _ => "Invalid record",
+        };
+        return Err(reject(StatusCode::UNPROCESSABLE_ENTITY, code, title));
+    }
+    if !world_matches(&record, world_id) {
+        return Err(reject(
+            StatusCode::UNPROCESSABLE_ENTITY,
+            "wrong_world",
+            "Record world does not match this host",
+        ));
+    }
+    if record["from"].as_str() != Some(principal) {
+        return Err(reject(
+            StatusCode::FORBIDDEN,
+            "forbidden",
+            "Record sender does not match the credential",
+        ));
+    }
+    match store.collaborate(principal, world_id, bytes) {
+        Ok(receipt) => Ok(receipt),
+        Err(CollaborateError::Conflict) => Err(reject(
+            StatusCode::CONFLICT,
+            "id_conflict",
+            "Record id was already used for different bytes",
+        )),
+        Err(CollaborateError::UnknownTarget) => Err(reject(
+            StatusCode::UNPROCESSABLE_ENTITY,
+            "unknown_target",
+            "Target revision is not available",
+        )),
+        Err(CollaborateError::Forbidden) => Err(reject(
+            StatusCode::FORBIDDEN,
+            "forbidden",
+            "Only the author can withdraw this revision",
+        )),
+        Err(CollaborateError::Storage) => Err(SubmitRejection::Storage),
     }
 }
 

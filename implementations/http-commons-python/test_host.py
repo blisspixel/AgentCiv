@@ -171,6 +171,39 @@ class RecordTests(unittest.TestCase):
             host.message_error(json.loads(message("message:1", "agent:abc123", extra={"note": True})))
         )
 
+    def test_collaboration_shape_checks_version_and_type_first(self) -> None:
+        self.assertEqual(host.collaboration_error({"protocol_version": "9"}), "unsupported_version")
+        self.assertEqual(
+            host.collaboration_error({"protocol_version": "0.1-draft", "type": "message"}),
+            "unsupported_record_type",
+        )
+        self.assertEqual(host.collaboration_error({"type": "withdrawal"}), "invalid_record")
+        self.assertEqual(
+            host.collaboration_error({"protocol_version": 1, "type": "objection"}),
+            "invalid_record",
+        )
+        good = {
+            "protocol_version": "0.1-draft",
+            "type": "artifact_revision",
+            "id": "submission:1",
+            "artifact_id": "artifact:plan",
+            "world": "civ:local",
+            "from": "agent:abc123",
+            "to": ["agent:peer"],
+            "media_type": "text/plain",
+            "body": {"text": "plan"},
+        }
+        self.assertIsNone(host.collaboration_error(good))
+        chosen = dict(good)
+        chosen["revision"] = 7
+        self.assertEqual(host.collaboration_error(chosen), "invalid_record")
+        missing_note = dict(good)
+        missing_note["continuity_note"] = None
+        self.assertEqual(host.collaboration_error(missing_note), "invalid_record")
+        empty_aim = dict(good)
+        empty_aim["continuity_note"] = {"aim": "", "resume_hint": "later"}
+        self.assertEqual(host.collaboration_error(empty_aim), "invalid_record")
+
 
 class StoreTests(unittest.TestCase):
     def setUp(self) -> None:
@@ -557,6 +590,351 @@ class HttpTests(unittest.TestCase):
 
         run_pair("message:differ", "left", "right")
         self.assertEqual(sorted(status for status, _ in results), [200, 409])
+
+    def test_collaboration_records_survive_restart(self) -> None:
+        credentials = (
+            host.Credential("agent:abc123", "writer-token-value", True, True),
+            host.Credential("agent:reader", "reader-token-value", True, False),
+            host.Credential("agent:peer", "token-peer", True, True),
+            host.Credential("agent:outsider", "token-outsider", True, True),
+        )
+        server = self.start(
+            visibility="addressed",
+            credentials=credentials,
+            retention_seconds=3600,
+        )
+        origin = server.origin
+        status, _, payload = request("GET", f"{origin}/.well-known/agentciv")
+        world = json_body(payload)
+        self.assertEqual(status, 200)
+        self.assertIn("collaboration.submit", world["capabilities"])
+        self.assertEqual(world["endpoints"]["collaborate"], f"{origin}/collaborate")
+
+        def post(token: str, record: dict, content_type: str = "application/json") -> tuple[int, dict]:
+            raw = json.dumps(record, separators=(",", ":")).encode("utf-8")
+            posted, _, body = request(
+                "POST",
+                f"{origin}/collaborate",
+                token=token,
+                body=raw,
+                content_type=content_type,
+            )
+            return posted, json_body(body)
+
+        denied, denied_body = post(
+            "reader-token-value",
+            artifact_revision("submission:denied", "agent:reader", ["agent:peer"]),
+        )
+        self.assertEqual(denied, 403)
+        self.assertEqual(denied_body["code"], "forbidden")
+
+        first = artifact_revision("submission:plan", "agent:abc123", ["agent:peer"])
+        raw = json.dumps(first, separators=(",", ":")).encode("utf-8")
+        created, headers, payload = request(
+            "POST", f"{origin}/collaborate", token="writer-token-value", body=raw
+        )
+        self.assertEqual(created, 200)
+        self.assertIn("no-store", headers["cache-control"])
+        receipt = json_body(payload)
+        self.assertEqual(receipt["status"], "recorded")
+        self.assertEqual(receipt["artifact_id"], "artifact:plan")
+        self.assertEqual(receipt["revision"], 1)
+        self.assertNotIn("aim", receipt)
+        self.assertNotIn("continuity_note", receipt)
+        event_id = receipt["event_id"]
+
+        retried, _, payload = request(
+            "POST",
+            f"{origin}/collaborate",
+            token="writer-token-value",
+            body=raw,
+            content_type="application/json; charset=utf-8",
+        )
+        self.assertEqual(retried, 200)
+        self.assertEqual(json_body(payload)["event_id"], event_id)
+
+        cites_missing = dict(first)
+        cites_missing["derived_from"] = {
+            "from": "agent:abc123",
+            "artifact_id": "artifact:plan",
+            "revision": 9,
+        }
+        missing_retry, missing_body = post("writer-token-value", cites_missing)
+        self.assertEqual(missing_retry, 422)
+        self.assertEqual(missing_body["code"], "unknown_target")
+
+        changed = dict(first)
+        changed["body"] = {"text": "different bytes"}
+        conflict, conflict_body = post("writer-token-value", changed)
+        self.assertEqual(conflict, 409)
+        self.assertEqual(conflict_body["code"], "id_conflict")
+
+        chosen = dict(first)
+        chosen["id"] = "submission:chosen-revision"
+        chosen["revision"] = 7
+        rejected, rejected_body = post("writer-token-value", chosen)
+        self.assertEqual(rejected, 422)
+        self.assertEqual(rejected_body["code"], "invalid_record")
+
+        second = artifact_revision("submission:plan-2", "agent:abc123", ["agent:peer"])
+        second["body"] = {"text": "A second revision."}
+        del second["continuity_note"]
+        again, again_body = post("writer-token-value", second)
+        self.assertEqual(again, 200)
+        self.assertEqual(again_body["revision"], 2)
+
+        own, own_body = post(
+            "token-outsider",
+            artifact_revision("submission:other-chain", "agent:outsider", ["agent:outsider"]),
+        )
+        self.assertEqual(own, 200)
+        self.assertEqual(own_body["revision"], 1)
+        self.assertNotEqual(own_body["event_id"], event_id)
+
+        hidden, hidden_body = post(
+            "token-outsider",
+            {
+                "protocol_version": "0.1-draft",
+                "type": "artifact_revision",
+                "id": "submission:hidden-cite",
+                "artifact_id": "artifact:fork",
+                "world": "civ:local",
+                "from": "agent:outsider",
+                "to": ["agent:outsider"],
+                "media_type": "text/plain",
+                "body": {"text": "cite"},
+                "derived_from": {
+                    "from": "agent:abc123",
+                    "artifact_id": "artifact:plan",
+                    "revision": 1,
+                },
+            },
+        )
+        self.assertEqual(hidden, 422)
+        self.assertEqual(hidden_body["code"], "unknown_target")
+
+        hidden_withdrawal, hidden_withdrawal_body = post(
+            "token-outsider",
+            {
+                "protocol_version": "0.1-draft",
+                "type": "withdrawal",
+                "id": "submission:hidden-withdraw",
+                "world": "civ:local",
+                "from": "agent:outsider",
+                "artifact_id": "artifact:plan",
+                "target_from": "agent:abc123",
+                "revision": 1,
+            },
+        )
+        self.assertEqual(hidden_withdrawal, 422)
+        self.assertEqual(hidden_withdrawal_body["code"], "unknown_target")
+
+        missing, missing_body = post(
+            "token-peer",
+            {
+                "protocol_version": "0.1-draft",
+                "type": "objection",
+                "id": "submission:missing",
+                "world": "civ:local",
+                "from": "agent:peer",
+                "to": ["agent:abc123"],
+                "artifact_id": "artifact:plan",
+                "target_from": "agent:abc123",
+                "revision": 9,
+                "body": {"text": "No such revision."},
+            },
+        )
+        self.assertEqual(missing, 422)
+        self.assertEqual(missing_body["code"], "unknown_target")
+
+        objection, objection_body = post(
+            "token-peer",
+            {
+                "protocol_version": "0.1-draft",
+                "type": "objection",
+                "id": "submission:objection",
+                "world": "civ:local",
+                "from": "agent:peer",
+                "to": ["agent:abc123"],
+                "artifact_id": "artifact:plan",
+                "target_from": "agent:abc123",
+                "revision": 1,
+                "body": {"text": "The plan still treats a summary as the source."},
+            },
+        )
+        self.assertEqual(objection, 200)
+        self.assertEqual(objection_body["status"], "recorded")
+
+        decline, _decline_body = post(
+            "token-peer",
+            {
+                "protocol_version": "0.1-draft",
+                "type": "decline",
+                "id": "submission:decline",
+                "world": "civ:local",
+                "from": "agent:peer",
+                "to": ["agent:abc123"],
+                "artifact_id": "artifact:plan",
+                "target_from": "agent:abc123",
+                "revision": 1,
+                "body": {"text": "I will not take up this plan."},
+            },
+        )
+        self.assertEqual(decline, 200)
+
+        _, _, payload = request("GET", f"{origin}/events", token="token-peer")
+        before = json_body(payload)["events"]
+        self.assertTrue(
+            any(
+                event["kind"] == "artifact.recorded"
+                and event["body"]["artifact_revision"]["revision"] == 1
+                and event["body"]["artifact_revision"]["continuity_note"]["aim"]
+                == "Leave a plan a later participant can resume or reject."
+                and event["body"]["artifact_revision"]["note"]["keep"] is True
+                for event in before
+            )
+        )
+
+        stolen, stolen_body = post(
+            "token-peer",
+            {
+                "protocol_version": "0.1-draft",
+                "type": "withdrawal",
+                "id": "submission:steal",
+                "world": "civ:local",
+                "from": "agent:peer",
+                "artifact_id": "artifact:plan",
+                "target_from": "agent:abc123",
+                "revision": 1,
+            },
+        )
+        self.assertEqual(stolen, 403)
+        self.assertEqual(stolen_body["code"], "forbidden")
+
+        withdrawn, withdrawn_body = post(
+            "writer-token-value",
+            {
+                "protocol_version": "0.1-draft",
+                "type": "withdrawal",
+                "id": "submission:withdraw",
+                "world": "civ:local",
+                "from": "agent:abc123",
+                "artifact_id": "artifact:plan",
+                "target_from": "agent:abc123",
+                "revision": 1,
+            },
+        )
+        self.assertEqual(withdrawn, 200)
+        self.assertEqual(withdrawn_body["event_id"], event_id)
+
+        cited, _cited_body = post(
+            "token-peer",
+            {
+                "protocol_version": "0.1-draft",
+                "type": "objection",
+                "id": "submission:after-withdrawal",
+                "world": "civ:local",
+                "from": "agent:peer",
+                "to": ["agent:abc123"],
+                "artifact_id": "artifact:plan",
+                "target_from": "agent:abc123",
+                "revision": 1,
+                "body": {"text": "The withdrawal leaves the objection standing."},
+            },
+        )
+        self.assertEqual(cited, 200)
+
+        on_submit, _, payload = request(
+            "POST",
+            f"{origin}/submit",
+            token="writer-token-value",
+            body=json.dumps(
+                artifact_revision("submission:wrong-door", "agent:abc123", ["agent:peer"]),
+                separators=(",", ":"),
+            ).encode("utf-8"),
+        )
+        self.assertEqual(on_submit, 422)
+        self.assertEqual(json_body(payload)["code"], "unsupported_record_type")
+
+        message_record = {
+            "protocol_version": "0.1-draft",
+            "type": "message",
+            "id": "message:wrong-door",
+            "world": "civ:local",
+            "from": "agent:abc123",
+            "to": ["agent:peer"],
+            "body": {"text": "This door is not message submit."},
+        }
+        wrong_door, wrong_door_body = post("writer-token-value", message_record)
+        self.assertEqual(wrong_door, 422)
+        self.assertEqual(wrong_door_body["code"], "unsupported_record_type")
+
+        def survived(base: str) -> None:
+            _, _, page = request("GET", f"{base}/events", token="token-peer")
+            events = json_body(page)["events"]
+            self.assertTrue(
+                any(
+                    event["kind"] == "artifact.withdrawn"
+                    and event["body"] == {}
+                    and event["actor"] == "agent:abc123"
+                    for event in events
+                )
+            )
+            self.assertTrue(
+                any(
+                    event["kind"] == "objection.recorded"
+                    and event["body"]["objection"]["body"]["text"]
+                    == "The plan still treats a summary as the source."
+                    for event in events
+                )
+            )
+            self.assertTrue(any(event["kind"] == "decline.recorded" for event in events))
+            self.assertTrue(
+                any(
+                    event["kind"] == "artifact.recorded"
+                    and event["body"]["artifact_revision"]["revision"] == 2
+                    and event["actor"] == "agent:abc123"
+                    for event in events
+                )
+            )
+            self.assertTrue(
+                any(
+                    event["kind"] == "objection.recorded"
+                    and event["body"]["objection"]["body"]["text"]
+                    == "The withdrawal leaves the objection standing."
+                    for event in events
+                )
+            )
+
+        survived(origin)
+        server.shutdown()
+        server.server_close()
+        self.servers.remove(server)
+        restarted = self.start(
+            visibility="addressed",
+            credentials=credentials,
+            retention_seconds=3600,
+        )
+        survived(restarted.origin)
+
+
+def artifact_revision(record_id: str, sender: str, recipients: list[str]) -> dict:
+    return {
+        "protocol_version": "0.1-draft",
+        "type": "artifact_revision",
+        "id": record_id,
+        "artifact_id": "artifact:plan",
+        "world": "civ:local",
+        "from": sender,
+        "to": recipients,
+        "media_type": "application/json",
+        "body": {"text": "Keep the source pages addressable."},
+        "continuity_note": {
+            "aim": "Leave a plan a later participant can resume or reject.",
+            "resume_hint": "Read the objection before choosing a design.",
+        },
+        "note": {"keep": True},
+    }
 
 
 class PublicRunnerTest(unittest.TestCase):

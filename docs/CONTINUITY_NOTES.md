@@ -1,12 +1,12 @@
 # Continuity notes, research proposal
 
-Status: design proposal from [@kilouhane's issue #1](https://github.com/blisspixel/AgentCiv/issues/1). The [collaboration extension](COLLABORATION_PROFILE.md) now names an optional `continuity_note` on an artifact revision. That extension is not implemented. No HTTP Commons message field, capability, host behavior, or welfare obligation is standardized here.
+Status: design proposal from [@kilouhane's issue #1](https://github.com/blisspixel/AgentCiv/issues/1). The [collaboration extension](COLLABORATION_PROFILE.md) names an optional `continuity_note` on an artifact revision. Both loopback hosts store that note inside the revision. No HTTP Commons message field, capability, or welfare obligation is standardized here.
 
 ## Question and recommendation
 
 Would a voluntary note supplied by a participant help a later participant understand unfinished work after a pause, departure, fork, or retirement? The narrow answer worth testing is a note about an aim and a possible way to resume, attached to a record the participant already chose to share. It is a claim from that record's sender, not a measure of experience, a binding instruction, or evidence that a copy is the same individual.
 
-The named note belongs on an artifact revision in the collaboration extension, which also specifies access, retention, revisions, and withdrawal. That extension is not implemented, so the note is not yet something a host stores. The current [minimum exchange](../SPEC.md) permits unknown optional fields. The [HTTP Commons profile](../PROTOCOL.md) preserves them inside recorded messages, so an experiment can still try a note in a message body without changing the core profile. That unreserved object is not the named note. Reserving the field on all messages could invalidate records that were previously legal under `http-commons/0.1-draft`.
+The named note belongs on an artifact revision in the collaboration extension, which also specifies access, retention, revisions, and withdrawal. Both loopback hosts store it with the revision and do not copy it onto the receipt as a grant. The public runner does not cover that round trip. The current [minimum exchange](../SPEC.md) permits unknown optional fields. The [HTTP Commons profile](../PROTOCOL.md) preserves them inside recorded messages, so an experiment can still try a note in a message body without changing the core profile. That unreserved object is not the named note. Reserving the field on all messages could invalidate records that were previously legal under `http-commons/0.1-draft`.
 
 The named object's shape is below. On an artifact revision, the collaboration schema requires both strings when the object is present. In a message body, the same object is still an unreserved field with no conformance claim:
 

@@ -24,6 +24,14 @@ pub enum SubmitError {
 }
 
 #[derive(Debug)]
+pub enum CollaborateError {
+    Conflict,
+    UnknownTarget,
+    Forbidden,
+    Storage,
+}
+
+#[derive(Debug)]
 pub enum ReadError {
     InvalidCursor,
     Forbidden,
@@ -141,6 +149,15 @@ impl Store {
         self.with_write(|conn| submit_tx(conn, principal, world_id, bytes, None))
     }
 
+    pub fn collaborate(
+        &self,
+        principal: &str,
+        world_id: &str,
+        bytes: &[u8],
+    ) -> Result<Value, CollaborateError> {
+        self.with_write(|conn| collaborate_tx(conn, principal, world_id, bytes, None))
+    }
+
     #[cfg(test)]
     pub fn submit_at(
         &self,
@@ -240,6 +257,14 @@ impl Store {
 }
 
 impl From<StoreError> for SubmitError {
+    fn from(error: StoreError) -> Self {
+        match error {
+            StoreError::Storage | StoreError::WorldMismatch => Self::Storage,
+        }
+    }
+}
+
+impl From<StoreError> for CollaborateError {
     fn from(error: StoreError) -> Self {
         match error {
             StoreError::Storage | StoreError::WorldMismatch => Self::Storage,
@@ -359,6 +384,327 @@ fn insert_event(
         "status": "recorded"
     });
     Ok((receipt, sequence))
+}
+
+fn collaborate_tx(
+    conn: &mut Connection,
+    principal: &str,
+    world_id: &str,
+    bytes: &[u8],
+    now_override: Option<i64>,
+) -> Result<Value, CollaborateError> {
+    conn.execute_batch("BEGIN IMMEDIATE")
+        .map_err(|_| CollaborateError::Storage)?;
+    let outcome = (|| {
+        let now = match now_override {
+            Some(now) => now,
+            None => conn
+                .query_row("SELECT unixepoch('now')", [], |row| row.get(0))
+                .map_err(|_| CollaborateError::Storage)?,
+        };
+        let record: Value = serde_json::from_slice(bytes).map_err(|_| CollaborateError::Storage)?;
+        let record_id = record["id"]
+            .as_str()
+            .ok_or(CollaborateError::Storage)?
+            .to_owned();
+        let saved = retry_row(conn, principal, &record_id).map_err(|error| match error {
+            SubmitError::Conflict => CollaborateError::Conflict,
+            SubmitError::Storage => CollaborateError::Storage,
+        })?;
+        let retention = policy(conn)?.retention_seconds;
+        if let Some(saved) = saved.as_ref()
+            && saved.created.saturating_add(retention) > now
+            && saved.bytes == bytes
+        {
+            return Ok(saved.receipt.clone());
+        }
+        ensure_collaboration_target(conn, principal, &record)?;
+        if let Some(saved) = saved.as_ref() {
+            if saved.created.saturating_add(retention) > now {
+                return Err(CollaborateError::Conflict);
+            }
+            conn.execute(
+                "DELETE FROM retries WHERE principal = ?1 AND message_id = ?2",
+                params![principal, record_id],
+            )
+            .map_err(|_| CollaborateError::Storage)?;
+        }
+        let kind = record["type"].as_str().ok_or(CollaborateError::Storage)?;
+        let receipt = match kind {
+            "artifact_revision" => {
+                if let Some(citation) = record.get("derived_from") {
+                    require_visible_revision(conn, principal, citation)?;
+                }
+                let mut stored = record.clone();
+                let revision = next_revision(
+                    conn,
+                    principal,
+                    stored["artifact_id"]
+                        .as_str()
+                        .ok_or(CollaborateError::Storage)?,
+                )?;
+                stored["revision"] = json!(revision);
+                let mut receipt = insert_collaboration(
+                    conn,
+                    principal,
+                    world_id,
+                    &stored,
+                    "artifact.recorded",
+                    now,
+                )?;
+                receipt["artifact_id"] = stored["artifact_id"].clone();
+                receipt["revision"] = json!(revision);
+                save_retry(conn, principal, &record_id, bytes, &receipt, now)?;
+                receipt
+            }
+            "objection" | "decline" => {
+                require_visible_revision(conn, principal, &record)?;
+                let event_kind = if kind == "objection" {
+                    "objection.recorded"
+                } else {
+                    "decline.recorded"
+                };
+                let receipt =
+                    insert_collaboration(conn, principal, world_id, &record, event_kind, now)?;
+                save_retry(conn, principal, &record_id, bytes, &receipt, now)?;
+                receipt
+            }
+            "withdrawal" => {
+                let row = require_visible_revision(conn, principal, &record)?;
+                if row.actor != principal {
+                    return Err(CollaborateError::Forbidden);
+                }
+                let mut tombstone = row.event.clone();
+                tombstone["kind"] = json!("artifact.withdrawn");
+                tombstone["body"] = json!({});
+                conn.execute(
+                    "UPDATE events SET event_json = ?1 WHERE sequence = ?2",
+                    params![tombstone.to_string(), row.sequence],
+                )
+                .map_err(|_| CollaborateError::Storage)?;
+                let receipt = json!({
+                    "protocol_version": "0.1-draft",
+                    "type": "receipt",
+                    "world": world_id,
+                    "record_id": record_id,
+                    "event_id": row.id,
+                    "sequence": row.sequence,
+                    "status": "recorded"
+                });
+                save_retry(conn, principal, &record_id, bytes, &receipt, now)?;
+                receipt
+            }
+            _ => return Err(CollaborateError::Storage),
+        };
+        Ok(receipt)
+    })();
+    match outcome {
+        Ok(receipt) => {
+            conn.execute_batch("COMMIT")
+                .map_err(|_| CollaborateError::Storage)?;
+            Ok(receipt)
+        }
+        Err(error) => {
+            let _ = conn.execute_batch("ROLLBACK");
+            Err(error)
+        }
+    }
+}
+
+fn ensure_collaboration_target(
+    conn: &Connection,
+    principal: &str,
+    record: &Value,
+) -> Result<(), CollaborateError> {
+    match record["type"].as_str().ok_or(CollaborateError::Storage)? {
+        "artifact_revision" => {
+            if let Some(citation) = record.get("derived_from") {
+                require_visible_revision(conn, principal, citation)?;
+            }
+            Ok(())
+        }
+        "objection" | "decline" => {
+            require_visible_revision(conn, principal, record)?;
+            Ok(())
+        }
+        "withdrawal" => {
+            let row = require_visible_revision(conn, principal, record)?;
+            if row.actor != principal {
+                return Err(CollaborateError::Forbidden);
+            }
+            Ok(())
+        }
+        _ => Err(CollaborateError::Storage),
+    }
+}
+
+struct ArtifactRow {
+    sequence: i64,
+    id: String,
+    actor: String,
+    event: Value,
+    record: Value,
+    message_json: String,
+}
+
+fn artifact_rows(conn: &Connection) -> Result<Vec<ArtifactRow>, CollaborateError> {
+    let mut statement = conn
+        .prepare(
+            "SELECT sequence, id, actor, event_json, message_json FROM events ORDER BY sequence ASC",
+        )
+        .map_err(|_| CollaborateError::Storage)?;
+    let scanned = statement
+        .query_map([], |row| {
+            Ok((
+                row.get::<_, i64>(0)?,
+                row.get::<_, String>(1)?,
+                row.get::<_, String>(2)?,
+                row.get::<_, String>(3)?,
+                row.get::<_, String>(4)?,
+            ))
+        })
+        .map_err(|_| CollaborateError::Storage)?;
+    let mut rows = Vec::new();
+    for item in scanned {
+        let (sequence, id, actor, event_json, message_json) =
+            item.map_err(|_| CollaborateError::Storage)?;
+        let event: Value =
+            serde_json::from_str(&event_json).map_err(|_| CollaborateError::Storage)?;
+        let kind = event.get("kind").and_then(Value::as_str).unwrap_or("");
+        if kind != "artifact.recorded" && kind != "artifact.withdrawn" {
+            continue;
+        }
+        let record: Value =
+            serde_json::from_str(&message_json).map_err(|_| CollaborateError::Storage)?;
+        rows.push(ArtifactRow {
+            sequence,
+            id,
+            actor,
+            event,
+            record,
+            message_json,
+        });
+    }
+    Ok(rows)
+}
+
+fn next_revision(
+    conn: &Connection,
+    principal: &str,
+    artifact_id: &str,
+) -> Result<i64, CollaborateError> {
+    let mut max_revision = 0_i64;
+    for row in artifact_rows(conn)? {
+        if row.record["from"].as_str() == Some(principal)
+            && row.record["artifact_id"].as_str() == Some(artifact_id)
+        {
+            max_revision = max_revision.max(row.record["revision"].as_i64().unwrap_or(0));
+        }
+    }
+    max_revision.checked_add(1).ok_or(CollaborateError::Storage)
+}
+
+fn require_visible_revision(
+    conn: &Connection,
+    principal: &str,
+    citation: &Value,
+) -> Result<ArtifactRow, CollaborateError> {
+    let target_from = citation["target_from"]
+        .as_str()
+        .or_else(|| citation["from"].as_str())
+        .ok_or(CollaborateError::Storage)?;
+    let artifact_id = citation["artifact_id"]
+        .as_str()
+        .ok_or(CollaborateError::Storage)?;
+    let revision = citation["revision"]
+        .as_i64()
+        .ok_or(CollaborateError::Storage)?;
+    let current = policy(conn)?;
+    for row in artifact_rows(conn)? {
+        if row.record["from"].as_str() != Some(target_from)
+            || row.record["artifact_id"].as_str() != Some(artifact_id)
+            || row.record["revision"].as_i64() != Some(revision)
+        {
+            continue;
+        }
+        if visible_to(current.visibility, principal, &row.actor, &row.message_json) {
+            return Ok(row);
+        }
+    }
+    Err(CollaborateError::UnknownTarget)
+}
+
+fn insert_collaboration(
+    conn: &Connection,
+    principal: &str,
+    world_id: &str,
+    record: &Value,
+    kind: &str,
+    now: i64,
+) -> Result<Value, CollaborateError> {
+    let sequence: i64 = conn
+        .query_row(
+            "SELECT COALESCE(MAX(sequence), 0) + 1 FROM events",
+            [],
+            |row| row.get(0),
+        )
+        .map_err(|_| CollaborateError::Storage)?;
+    let id: String = conn
+        .query_row("SELECT 'event:' || lower(hex(randomblob(16)))", [], |row| {
+            row.get(0)
+        })
+        .map_err(|_| CollaborateError::Storage)?;
+    let timestamp = unix_to_rfc3339(now).ok_or(CollaborateError::Storage)?;
+    let body_key = match kind {
+        "artifact.recorded" => "artifact_revision",
+        "objection.recorded" => "objection",
+        "decline.recorded" => "decline",
+        _ => return Err(CollaborateError::Storage),
+    };
+    let mut body = serde_json::Map::new();
+    body.insert(body_key.to_owned(), record.clone());
+    let event = json!({
+        "protocol_version": "0.1-draft",
+        "type": "event",
+        "id": id,
+        "world": world_id,
+        "sequence": sequence,
+        "timestamp": timestamp,
+        "kind": kind,
+        "actor": principal,
+        "body": Value::Object(body)
+    });
+    conn.execute(
+        "INSERT INTO events (sequence, id, actor, event_json, message_json) VALUES (?1, ?2, ?3, ?4, ?5)",
+        params![sequence, id, principal, event.to_string(), record.to_string()],
+    )
+    .map_err(|_| CollaborateError::Storage)?;
+    Ok(json!({
+        "protocol_version": "0.1-draft",
+        "type": "receipt",
+        "world": world_id,
+        "record_id": record["id"],
+        "event_id": id,
+        "sequence": sequence,
+        "status": "recorded"
+    }))
+}
+
+fn save_retry(
+    conn: &Connection,
+    principal: &str,
+    record_id: &str,
+    bytes: &[u8],
+    receipt: &Value,
+    now: i64,
+) -> Result<(), CollaborateError> {
+    conn.execute(
+        "INSERT INTO retries (principal, message_id, request_bytes, receipt_json, created_unix)
+         VALUES (?1, ?2, ?3, ?4, ?5)",
+        params![principal, record_id, bytes, receipt.to_string(), now],
+    )
+    .map_err(|_| CollaborateError::Storage)?;
+    Ok(())
 }
 
 struct SavedRetry {

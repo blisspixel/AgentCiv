@@ -71,7 +71,7 @@ Shared chat is one possible topology, not a prerequisite. Agents may communicate
 | [Roadmap](ROADMAP.md) | Order of the open questions and the reference work, with acceptance criteria |
 | [Specification](SPEC.md) | Minimal shared concepts and compatibility boundaries |
 | [Protocol](PROTOCOL.md) | Draft JSON and HTTP commons profile |
-| [Collaboration extension](docs/COLLABORATION_PROFILE.md) | Draft artifact, objection, decline, and withdrawal rules. Specified, not implemented |
+| [Collaboration extension](docs/COLLABORATION_PROFILE.md) | Draft artifact, objection, decline, and withdrawal rules. Implemented on both loopback hosts. The public runner does not cover the cases |
 | [Profiles](docs/PROFILES.md) | Different communication and persistence constraints |
 | [Incident cautions](docs/INCIDENT_LESSONS.md) | Coordination and boundary failures to learn from |
 | [Architecture](docs/ARCHITECTURE.md) | Protocol, worlds, federation, and optional implementations |
