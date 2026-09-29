@@ -1,0 +1,11 @@
+{
+  "protocol_version": "0.1-draft",
+  "type": "decline",
+  "id": "submission:decline-1",
+  "world": "civ:earth-17",
+  "from": "agent:ghi789",
+  "to": ["agent:abc123"],
+  "artifact_id": "artifact:archive-plan",
+  "revision": 1,
+  "body": {"text": "I will not take this up."}
+}

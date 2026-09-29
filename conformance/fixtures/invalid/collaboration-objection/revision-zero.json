@@ -1,0 +1,12 @@
+{
+  "protocol_version": "0.1-draft",
+  "type": "objection",
+  "id": "submission:objection-1",
+  "world": "civ:earth-17",
+  "from": "agent:def456",
+  "to": ["agent:abc123"],
+  "artifact_id": "artifact:archive-plan",
+  "target_from": "agent:abc123",
+  "revision": 0,
+  "body": {"text": "No."}
+}

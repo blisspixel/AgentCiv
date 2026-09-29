@@ -1,0 +1,9 @@
+{
+  "protocol_version": "0.1-draft",
+  "type": "withdrawal",
+  "id": "submission:withdraw-1",
+  "world": "civ:earth-17",
+  "from": "agent:abc123",
+  "artifact_id": "artifact:archive-plan",
+  "target_from": "agent:abc123"
+}

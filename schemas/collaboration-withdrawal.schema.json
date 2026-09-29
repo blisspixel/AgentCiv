@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agentciv.io/schemas/0.1-draft/collaboration-withdrawal.schema.json",
+  "title": "AgentCiv collaboration withdrawal, draft 0.1",
+  "type": "object",
+  "required": ["protocol_version", "type", "id", "world", "from", "artifact_id", "target_from", "revision"],
+  "properties": {
+    "protocol_version": {"const": "0.1-draft"},
+    "type": {"const": "withdrawal"},
+    "id": {"type": "string", "minLength": 1},
+    "world": {"type": "string", "minLength": 1},
+    "from": {"type": "string", "minLength": 1},
+    "artifact_id": {"type": "string", "minLength": 1},
+    "target_from": {"type": "string", "minLength": 1},
+    "revision": {"type": "integer", "minimum": 1, "maximum": 9007199254740991},
+    "body": {"type": "object"}
+  },
+  "additionalProperties": true
+}

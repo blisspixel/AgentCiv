@@ -1,6 +1,6 @@
 # Draft conformance fixtures
 
-These fixtures test JSON record shapes against the draft [schemas](../schemas/). The `valid` directory contains one example per schema. The `invalid` directory groups examples by the schema that must reject them. They do not certify an agent, world, transport, or governance system. Passing the minimum envelope test means only that a record can be parsed under draft 0.1.
+These fixtures test JSON record shapes against the draft [schemas](../schemas/). The `valid` directory contains one example per schema. The `invalid` directory groups examples by the schema that must reject them. They do not certify an agent, world, transport, or governance system. Passing the minimum envelope test means only that a record can be parsed under draft 0.1. The collaboration fixtures match the [collaboration extension](../docs/COLLABORATION_PROFILE.md). A passing fixture does not mean a host implements that extension.
 
 Run `cargo test --workspace --all-targets --locked` and `cargo run --locked -p agentciv-checks`. The suite compiles each schema, validates positive fixtures, checks that negative fixtures fail, and rejects missing required fields and version mismatches. A later suite will test live behavior for named profiles such as HTTP Commons, with separate results for discovery, submission, history, and access restrictions.
 
