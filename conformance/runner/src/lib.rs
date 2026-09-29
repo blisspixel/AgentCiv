@@ -37,6 +37,18 @@ const EXTENDED_CASES: [&str; 14] = [
     "events.visibility",
     "events.pagination",
 ];
+const COLLABORATION_CASES: [&str; 10] = [
+    "collaborate.client_revision",
+    "collaborate.revision",
+    "collaborate.retry",
+    "collaborate.conflict",
+    "collaborate.objection",
+    "collaborate.decline",
+    "collaborate.withdrawal_forbidden",
+    "collaborate.withdrawal",
+    "collaborate.unknown_target",
+    "collaborate.other_chain",
+];
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum CaseStatus {
@@ -60,6 +72,7 @@ pub struct Case {
     pub id: &'static str,
     pub status: CaseStatus,
     pub detail: String,
+    pub required: bool,
 }
 
 impl Case {
@@ -68,6 +81,7 @@ impl Case {
             id,
             status: CaseStatus::Passed,
             detail: String::new(),
+            required: true,
         }
     }
 
@@ -76,6 +90,7 @@ impl Case {
             id,
             status: CaseStatus::Failed,
             detail: detail.into(),
+            required: true,
         }
     }
 
@@ -84,6 +99,16 @@ impl Case {
             id,
             status: CaseStatus::Skipped,
             detail: detail.to_owned(),
+            required: true,
+        }
+    }
+
+    fn skipped_optional(id: &'static str, detail: &'static str) -> Self {
+        Self {
+            id,
+            status: CaseStatus::Skipped,
+            detail: detail.to_owned(),
+            required: false,
         }
     }
 }
@@ -96,9 +121,11 @@ pub struct Report {
 
 impl Report {
     pub fn passed(&self) -> bool {
-        self.cases
-            .iter()
-            .all(|case| case.status == CaseStatus::Passed)
+        self.cases.iter().all(|case| match case.status {
+            CaseStatus::Passed => true,
+            CaseStatus::Failed => false,
+            CaseStatus::Skipped => !case.required,
+        })
     }
 
     pub fn to_json(&self) -> Value {
@@ -113,7 +140,7 @@ impl Report {
             "runner_scope": self.scope,
             "cases": self.cases.iter().map(|case| json!({
                 "id": case.id,
-                "required": true,
+                "required": case.required,
                 "status": case.status.as_str(),
                 "detail": case.detail
             })).collect::<Vec<_>>(),
@@ -295,7 +322,7 @@ fn check_receipt(response: Response, world_id: &str, record_id: &str) -> Result<
     let receipt = read_json(response, "application/json")?;
     validate(RECEIPT_SCHEMA, &receipt)?;
     if receipt["world"] != world_id || receipt["record_id"] != record_id {
-        return Err("receipt does not identify the submitted message".to_owned());
+        return Err("receipt does not identify the submitted record".to_owned());
     }
     Ok(receipt)
 }
@@ -495,12 +522,38 @@ pub fn run_authenticated(discovery_url: &str, principal: &str, token: &str) -> R
 /// `reader` must be a different principal with read access and no write access.
 /// The world must be fresh and empty. Cursor expiry and process restart are outside
 /// this scope: the profile has no public operation that changes policy or stops the host.
+/// Collaboration cases are included by [`run_extended_with_peer`].
 pub fn run_extended(
     discovery_url: &str,
     writer: &str,
     writer_token: &str,
     reader: &str,
     reader_token: &str,
+) -> Report {
+    run_extended_with_peer(
+        discovery_url,
+        writer,
+        writer_token,
+        reader,
+        reader_token,
+        None,
+    )
+}
+
+/// Run [`run_extended`] and, when discovery advertises `collaboration.submit`,
+/// the collaboration cases.
+///
+/// `peer`, when supplied, must be a third principal with its own token. Those
+/// cases that need a second writer fail when the capability is advertised and
+/// `peer` is absent. A host that does not advertise the capability skips the
+/// collaboration cases, and a missing peer does not fail that report.
+pub fn run_extended_with_peer(
+    discovery_url: &str,
+    writer: &str,
+    writer_token: &str,
+    reader: &str,
+    reader_token: &str,
+    peer: Option<(&str, &str)>,
 ) -> Report {
     if writer.is_empty()
         || writer_token.is_empty()
@@ -517,6 +570,23 @@ pub fn run_extended(
             scope: "credentialed-extended",
         };
     }
+    if let Some((peer_principal, peer_token)) = peer
+        && (peer_principal.is_empty()
+            || peer_token.is_empty()
+            || peer_principal == writer
+            || peer_principal == reader
+            || peer_token == writer_token
+            || peer_token == reader_token)
+    {
+        return Report {
+            cases: vec![Case::failed(
+                "credential.input",
+                "peer needs a nonempty principal and token, distinct from the writer and the reader",
+            )],
+            scope: "credentialed-extended",
+        };
+    }
+    let secrets = secret_tokens(writer_token, reader_token, peer);
     let smoke = run_authenticated(discovery_url, writer, writer_token);
     if !smoke.passed() {
         let mut cases = smoke.cases;
@@ -525,17 +595,19 @@ pub fn run_extended(
             cases,
             scope: "credentialed-extended",
         };
-        redact(&mut report, &[writer_token, reader_token]);
+        redact(&mut report, &secrets);
         return report;
     }
     let mut cases = smoke.cases;
     match extended_targets(discovery_url) {
-        Ok((client, world, events, submit)) => run_extended_cases(
+        Ok((client, world, events, submit, discovery)) => run_extended_cases(
             &client,
             &world,
             Endpoints {
                 events: &events,
                 submit: &submit,
+                discovery: &discovery,
+                peer: peer.map(|(principal, token)| Party { principal, token }),
             },
             Party {
                 principal: writer,
@@ -560,8 +632,20 @@ pub fn run_extended(
         cases,
         scope: "credentialed-extended",
     };
-    redact(&mut report, &[writer_token, reader_token]);
+    redact(&mut report, &secrets);
     report
+}
+
+fn secret_tokens<'a>(
+    writer_token: &'a str,
+    reader_token: &'a str,
+    peer: Option<(&str, &'a str)>,
+) -> Vec<&'a str> {
+    let mut secrets = vec![writer_token, reader_token];
+    if let Some((_, token)) = peer {
+        secrets.push(token);
+    }
+    secrets
 }
 
 fn redact(report: &mut Report, secrets: &[&str]) {
@@ -572,7 +656,7 @@ fn redact(report: &mut Report, secrets: &[&str]) {
     }
 }
 
-fn extended_targets(discovery_url: &str) -> Result<(Client, Value, Url, Url), String> {
+fn extended_targets(discovery_url: &str) -> Result<(Client, Value, Url, Url, Url), String> {
     let discovery = parse_allowed_url(discovery_url)?;
     let client = Client::builder()
         .timeout(Duration::from_secs(10))
@@ -583,9 +667,10 @@ fn extended_targets(discovery_url: &str) -> Result<(Client, Value, Url, Url), St
     let world = discover(&client, &discovery)?;
     let events = endpoint_url(&discovery, &world, "events")?;
     let submit = endpoint_url(&discovery, &world, "submit")?;
-    Ok((client, world, events, submit))
+    Ok((client, world, events, submit, discovery))
 }
 
+#[derive(Clone, Copy)]
 struct Party<'a> {
     principal: &'a str,
     token: &'a str,
@@ -594,6 +679,8 @@ struct Party<'a> {
 struct Endpoints<'a> {
     events: &'a Url,
     submit: &'a Url,
+    discovery: &'a Url,
+    peer: Option<Party<'a>>,
 }
 
 fn run_extended_cases(
@@ -817,6 +904,24 @@ fn run_extended_cases(
         "events.pagination",
         check_pagination(client, events, submit, writer, writer_token, world_id),
     ));
+    run_collaboration_cases(
+        &CollaborationInput {
+            client,
+            world,
+            events,
+            discovery: endpoints.discovery,
+            writer: Party {
+                principal: writer,
+                token: writer_token,
+            },
+            reader: Party {
+                principal: reader,
+                token: reader_token,
+            },
+            peer: endpoints.peer,
+        },
+        cases,
+    );
 }
 
 fn expect_problem(response: Response, status: StatusCode, code: &str) -> Result<(), String> {
@@ -978,6 +1083,617 @@ fn check_pagination(
     }
     if first_ids.len() + events_second.len() != 101 {
         return Err("pages did not cover the 101 recorded events".to_owned());
+    }
+    Ok(())
+}
+
+const NO_COLLABORATION: &str = "host does not advertise collaboration.submit";
+const NO_REVISION: &str = "revision was not recorded";
+
+struct CollaborationInput<'a> {
+    client: &'a Client,
+    world: &'a Value,
+    events: &'a Url,
+    discovery: &'a Url,
+    writer: Party<'a>,
+    reader: Party<'a>,
+    peer: Option<Party<'a>>,
+}
+
+struct CollaborationRun<'a> {
+    client: &'a Client,
+    world_id: &'a str,
+    visibility: &'a str,
+    events: &'a Url,
+    collaborate: Url,
+    writer: Party<'a>,
+    reader: Party<'a>,
+    peer: Option<Party<'a>>,
+    audience: Vec<String>,
+}
+
+struct RecordedRevision {
+    record: Value,
+    bytes: Vec<u8>,
+    receipt: Value,
+    event_id: String,
+    timestamp: String,
+}
+
+fn collaboration_advertised(world: &Value) -> bool {
+    world
+        .get("capabilities")
+        .and_then(Value::as_array)
+        .is_some_and(|items| items.iter().any(|item| item == "collaboration.submit"))
+}
+
+fn collaboration_auth_is_bearer(world: &Value) -> bool {
+    match world
+        .get("authentication")
+        .and_then(|authentication| authentication.get("collaborate"))
+    {
+        None => true,
+        Some(Value::String(method)) => method.eq_ignore_ascii_case("bearer"),
+        Some(_) => false,
+    }
+}
+
+/// The fixture puts the reader in `to`, so `addressed` reveals the revision
+/// and `sender_only` does not.
+fn addressed_reader_can_see(visibility: &str) -> Result<bool, String> {
+    match visibility {
+        "members" | "addressed" => Ok(true),
+        "sender_only" => Ok(false),
+        _ => Err("world advertises an unknown history visibility".to_owned()),
+    }
+}
+
+/// A peer who cannot see the revision gets `unknown_target` before `forbidden`.
+fn foreign_withdrawal_status(visibility: &str) -> Result<(&'static str, StatusCode), String> {
+    match visibility {
+        "members" | "addressed" => Ok(("forbidden", StatusCode::FORBIDDEN)),
+        "sender_only" => Ok(("unknown_target", StatusCode::UNPROCESSABLE_ENTITY)),
+        _ => Err("world advertises an unknown history visibility".to_owned()),
+    }
+}
+
+fn skip_ids(cases: &mut Vec<Case>, ids: &[&'static str], detail: &'static str) {
+    for id in ids {
+        cases.push(Case::skipped(id, detail));
+    }
+}
+
+fn run_collaboration_cases(input: &CollaborationInput<'_>, cases: &mut Vec<Case>) {
+    if !collaboration_advertised(input.world) {
+        for id in COLLABORATION_CASES {
+            cases.push(Case::skipped_optional(id, NO_COLLABORATION));
+        }
+        return;
+    }
+    if !collaboration_auth_is_bearer(input.world) {
+        cases.push(Case::failed(
+            "collaborate.client_revision",
+            "collaboration authentication is not bearer",
+        ));
+        skip_ids(
+            cases,
+            &COLLABORATION_CASES[1..],
+            "collaboration authentication is not bearer",
+        );
+        return;
+    }
+    let collaborate = match endpoint_url(input.discovery, input.world, "collaborate") {
+        Ok(url) => url,
+        Err(detail) => {
+            cases.push(Case::failed("collaborate.client_revision", detail));
+            skip_ids(
+                cases,
+                &COLLABORATION_CASES[1..],
+                "collaboration endpoint is not usable",
+            );
+            return;
+        }
+    };
+    let world_id = input.world["id"].as_str().expect("validated world ID");
+    let visibility = input.world["history"]["visibility"].as_str().unwrap_or("");
+    let mut audience = vec![input.reader.principal.to_owned()];
+    if let Some(peer) = input.peer {
+        audience.push(peer.principal.to_owned());
+    }
+    let ctx = CollaborationRun {
+        client: input.client,
+        world_id,
+        visibility,
+        events: input.events,
+        collaborate,
+        writer: input.writer,
+        reader: input.reader,
+        peer: input.peer,
+        audience,
+    };
+    cases.push(result_case(
+        "collaborate.client_revision",
+        client_revision(&ctx),
+    ));
+    let recorded = match recorded_revision(&ctx) {
+        Ok(recorded) => {
+            cases.push(Case::passed("collaborate.revision"));
+            Some(recorded)
+        }
+        Err(detail) => {
+            cases.push(Case::failed("collaborate.revision", detail));
+            None
+        }
+    };
+    let Some(recorded) = recorded else {
+        skip_ids(
+            cases,
+            &[
+                "collaborate.retry",
+                "collaborate.conflict",
+                "collaborate.objection",
+                "collaborate.decline",
+                "collaborate.withdrawal_forbidden",
+                "collaborate.withdrawal",
+            ],
+            NO_REVISION,
+        );
+        cases.push(result_case(
+            "collaborate.unknown_target",
+            unknown_target(&ctx),
+        ));
+        cases.push(Case::skipped("collaborate.other_chain", NO_REVISION));
+        return;
+    };
+    cases.push(result_case(
+        "collaborate.retry",
+        retry_revision(&ctx, &recorded),
+    ));
+    cases.push(result_case(
+        "collaborate.conflict",
+        conflict_revision(&ctx, &recorded),
+    ));
+    cases.push(result_case(
+        "collaborate.objection",
+        speech(
+            &ctx,
+            &recorded,
+            "objection",
+            "submission:conformance-objection",
+            "The pages should stay separable.",
+        ),
+    ));
+    cases.push(result_case(
+        "collaborate.decline",
+        speech(
+            &ctx,
+            &recorded,
+            "decline",
+            "submission:conformance-decline",
+            "I will not take up this revision.",
+        ),
+    ));
+    cases.push(result_case(
+        "collaborate.withdrawal_forbidden",
+        foreign_withdrawal(&ctx, &recorded),
+    ));
+    cases.push(result_case(
+        "collaborate.withdrawal",
+        author_withdrawal(&ctx, &recorded),
+    ));
+    cases.push(result_case(
+        "collaborate.unknown_target",
+        unknown_target(&ctx),
+    ));
+    cases.push(result_case(
+        "collaborate.other_chain",
+        other_chain(&ctx, &recorded),
+    ));
+}
+
+fn artifact_submission(
+    world_id: &str,
+    principal: &str,
+    audience: &[String],
+    id: &str,
+    artifact_id: &str,
+    text: &str,
+) -> Value {
+    json!({
+        "protocol_version": "0.1-draft",
+        "type": "artifact_revision",
+        "id": id,
+        "artifact_id": artifact_id,
+        "world": world_id,
+        "from": principal,
+        "to": audience,
+        "media_type": "application/json",
+        "body": {"text": text}
+    })
+}
+
+fn post_collaboration(
+    ctx: &CollaborationRun<'_>,
+    token: &str,
+    body: &[u8],
+) -> Result<Response, String> {
+    ctx.client
+        .post(ctx.collaborate.clone())
+        .header(CONTENT_TYPE, "application/json")
+        .bearer_auth(token)
+        .body(body.to_vec())
+        .send()
+        .map_err(|error| format!("collaboration request failed: {error}"))
+}
+
+fn read_history(ctx: &CollaborationRun<'_>, token: &str) -> Result<Vec<Value>, String> {
+    let mut after = None;
+    let mut seen_cursors = Vec::new();
+    let mut collected = Vec::new();
+    for _ in 0..8 {
+        let page = check_page_value(
+            read_events(ctx.client, ctx.events, token, after.as_deref())?,
+            ctx.world_id,
+        )?;
+        let batch = page["events"].as_array().expect("validated events");
+        collected.extend(batch.iter().cloned());
+        if page["has_more"] != true {
+            return Ok(collected);
+        }
+        let cursor = page["next_cursor"]
+            .as_str()
+            .expect("validated cursor")
+            .to_owned();
+        if seen_cursors.contains(&cursor) {
+            return Err("event cursor did not advance".to_owned());
+        }
+        seen_cursors.push(cursor.clone());
+        after = Some(cursor);
+    }
+    Err("event history exceeded the runner page cap".to_owned())
+}
+
+fn require_event<'a>(history: &'a [Value], event_id: &str) -> Result<&'a Value, String> {
+    let matches: Vec<_> = history
+        .iter()
+        .filter(|event| event["id"].as_str() == Some(event_id))
+        .collect();
+    if matches.len() != 1 {
+        return Err(format!("event {event_id} appeared {} times", matches.len()));
+    }
+    Ok(matches[0])
+}
+
+fn submission_id(event: &Value) -> Option<&str> {
+    ["message", "artifact_revision", "objection", "decline"]
+        .into_iter()
+        .find_map(|key| event["body"][key]["id"].as_str())
+}
+
+fn client_revision(ctx: &CollaborationRun<'_>) -> Result<(), String> {
+    let mut record = artifact_submission(
+        ctx.world_id,
+        ctx.writer.principal,
+        &ctx.audience,
+        "submission:conformance-client-revision",
+        "artifact:client-revision",
+        "The host assigns the revision.",
+    );
+    record["revision"] = json!(1);
+    let response = post_collaboration(ctx, ctx.writer.token, &record.to_string().into_bytes())?;
+    expect_problem(response, StatusCode::UNPROCESSABLE_ENTITY, "invalid_record")?;
+    let history = read_history(ctx, ctx.writer.token)?;
+    if history
+        .iter()
+        .any(|event| submission_id(event) == Some("submission:conformance-client-revision"))
+    {
+        return Err("client-supplied revision was stored".to_owned());
+    }
+    Ok(())
+}
+
+fn recorded_revision(ctx: &CollaborationRun<'_>) -> Result<RecordedRevision, String> {
+    let mut record = artifact_submission(
+        ctx.world_id,
+        ctx.writer.principal,
+        &ctx.audience,
+        "submission:conformance-revision",
+        "artifact:conformance",
+        "Keep the pages addressable.",
+    );
+    record["continuity_note"] = json!({
+        "aim": "Leave work a later participant can resume or reject.",
+        "resume_hint": "Read the objection before choosing."
+    });
+    record["conformance_probe"] = json!({"preserve": true});
+    let bytes = record.to_string().into_bytes();
+    let response = post_collaboration(ctx, ctx.writer.token, &bytes)?;
+    let receipt = check_receipt(response, ctx.world_id, "submission:conformance-revision")?;
+    if receipt["artifact_id"] != "artifact:conformance" || receipt["revision"] != json!(1) {
+        return Err("artifact receipt is missing artifact_id or revision 1".to_owned());
+    }
+    if receipt.get("aim").is_some()
+        || receipt.get("resume_hint").is_some()
+        || receipt.get("continuity_note").is_some()
+    {
+        return Err("artifact receipt carries the continuity note".to_owned());
+    }
+    let event_id = receipt["event_id"]
+        .as_str()
+        .ok_or("receipt omits event_id")?
+        .to_owned();
+    let history = read_history(ctx, ctx.writer.token)?;
+    let event = require_event(&history, &event_id)?;
+    if event["kind"] != "artifact.recorded"
+        || event["actor"] != ctx.writer.principal
+        || event["sequence"] != receipt["sequence"]
+        || event["body"]["artifact_revision"]["revision"] != json!(1)
+        || event["body"]["artifact_revision"]["body"]["text"] != "Keep the pages addressable."
+        || event["body"]["artifact_revision"]["continuity_note"]["aim"]
+            != "Leave work a later participant can resume or reject."
+        || event["body"]["artifact_revision"]["continuity_note"]["resume_hint"]
+            != "Read the objection before choosing."
+        || event["body"]["artifact_revision"]["conformance_probe"]["preserve"] != true
+    {
+        return Err("recorded revision does not match the receipt".to_owned());
+    }
+    let stored_to = event["body"]["artifact_revision"]["to"]
+        .as_array()
+        .ok_or("stored revision drops to")?;
+    if !stored_to
+        .iter()
+        .any(|item| item.as_str() == Some(ctx.reader.principal))
+    {
+        return Err("stored revision drops the reader from to".to_owned());
+    }
+    let visible = addressed_reader_can_see(ctx.visibility)?;
+    let reader_history = read_history(ctx, ctx.reader.token)?;
+    let seen = reader_history
+        .iter()
+        .any(|item| item["id"].as_str() == Some(event_id.as_str()));
+    if seen != visible {
+        return Err(if visible {
+            "reader could not see the recorded revision".to_owned()
+        } else {
+            "reader saw a revision outside the advertised audience".to_owned()
+        });
+    }
+    let timestamp = event["timestamp"]
+        .as_str()
+        .ok_or("recorded revision omits timestamp")?
+        .to_owned();
+    Ok(RecordedRevision {
+        record,
+        bytes,
+        receipt,
+        event_id,
+        timestamp,
+    })
+}
+
+fn retry_revision(ctx: &CollaborationRun<'_>, recorded: &RecordedRevision) -> Result<(), String> {
+    let response = post_collaboration(ctx, ctx.writer.token, &recorded.bytes)?;
+    let again = check_receipt(response, ctx.world_id, "submission:conformance-revision")?;
+    if again == recorded.receipt {
+        Ok(())
+    } else {
+        Err("byte-identical retry returned a different receipt".to_owned())
+    }
+}
+
+fn conflict_revision(
+    ctx: &CollaborationRun<'_>,
+    recorded: &RecordedRevision,
+) -> Result<(), String> {
+    let mut changed = recorded.record.clone();
+    changed["body"]["text"] = json!("A different revision body.");
+    let bytes = changed.to_string().into_bytes();
+    if bytes == recorded.bytes {
+        return Err("conflict fixture did not change the bytes".to_owned());
+    }
+    let response = post_collaboration(ctx, ctx.writer.token, &bytes)?;
+    check_conflict(response)
+}
+
+fn revision_intact(event: &Value) -> Result<(), String> {
+    if event["kind"] != "artifact.recorded" {
+        return Err("cited revision is no longer artifact.recorded".to_owned());
+    }
+    if event["body"]["artifact_revision"]["body"]["text"] != "Keep the pages addressable." {
+        return Err("cited revision body was changed".to_owned());
+    }
+    if event["body"]["artifact_revision"]["continuity_note"]["aim"]
+        != "Leave work a later participant can resume or reject."
+    {
+        return Err("cited revision lost its continuity note".to_owned());
+    }
+    Ok(())
+}
+
+fn speech(
+    ctx: &CollaborationRun<'_>,
+    recorded: &RecordedRevision,
+    kind: &str,
+    id: &str,
+    text: &str,
+) -> Result<(), String> {
+    let record = json!({
+        "protocol_version": "0.1-draft",
+        "type": kind,
+        "id": id,
+        "world": ctx.world_id,
+        "from": ctx.writer.principal,
+        "to": ctx.audience,
+        "artifact_id": "artifact:conformance",
+        "target_from": ctx.writer.principal,
+        "revision": 1,
+        "body": {"text": text}
+    });
+    let response = post_collaboration(ctx, ctx.writer.token, &record.to_string().into_bytes())?;
+    let receipt = check_receipt(response, ctx.world_id, id)?;
+    let event_id = receipt["event_id"]
+        .as_str()
+        .ok_or("receipt omits event_id")?;
+    if event_id == recorded.event_id {
+        return Err("speech reused the revision event".to_owned());
+    }
+    let history = read_history(ctx, ctx.writer.token)?;
+    let event = require_event(&history, event_id)?;
+    let expected_kind = format!("{kind}.recorded");
+    if event["kind"].as_str() != Some(expected_kind.as_str())
+        || event["body"][kind]["body"]["text"] != text
+        || event["body"][kind]["revision"] != json!(1)
+        || event["body"][kind]["target_from"] != ctx.writer.principal
+    {
+        return Err("recorded speech does not match the submission".to_owned());
+    }
+    revision_intact(require_event(&history, &recorded.event_id)?)
+}
+
+fn withdrawal_body(world_id: &str, from: &str, target_from: &str, id: &str) -> Vec<u8> {
+    json!({
+        "protocol_version": "0.1-draft",
+        "type": "withdrawal",
+        "id": id,
+        "world": world_id,
+        "from": from,
+        "artifact_id": "artifact:conformance",
+        "target_from": target_from,
+        "revision": 1
+    })
+    .to_string()
+    .into_bytes()
+}
+
+fn foreign_withdrawal(
+    ctx: &CollaborationRun<'_>,
+    recorded: &RecordedRevision,
+) -> Result<(), String> {
+    let Some(peer) = ctx.peer else {
+        return Err("collaboration.submit requires a distinct writing peer".to_owned());
+    };
+    let (code, status) = foreign_withdrawal_status(ctx.visibility)?;
+    let body = withdrawal_body(
+        ctx.world_id,
+        peer.principal,
+        ctx.writer.principal,
+        "submission:conformance-withdrawal-peer",
+    );
+    let response = post_collaboration(ctx, peer.token, &body)?;
+    expect_problem(response, status, code)?;
+    let history = read_history(ctx, ctx.writer.token)?;
+    let event = require_event(&history, &recorded.event_id)?;
+    if event["kind"] != "artifact.recorded" {
+        return Err("a forbidden withdrawal changed the revision".to_owned());
+    }
+    revision_intact(event)
+}
+
+fn author_withdrawal(
+    ctx: &CollaborationRun<'_>,
+    recorded: &RecordedRevision,
+) -> Result<(), String> {
+    let body = withdrawal_body(
+        ctx.world_id,
+        ctx.writer.principal,
+        ctx.writer.principal,
+        "submission:conformance-withdrawal",
+    );
+    let response = post_collaboration(ctx, ctx.writer.token, &body)?;
+    let receipt = check_receipt(response, ctx.world_id, "submission:conformance-withdrawal")?;
+    if receipt["event_id"] != recorded.receipt["event_id"]
+        || receipt["sequence"] != recorded.receipt["sequence"]
+    {
+        return Err("withdrawal receipt does not name the original revision event".to_owned());
+    }
+    let history = read_history(ctx, ctx.writer.token)?;
+    let event = require_event(&history, &recorded.event_id)?;
+    if event["kind"] != "artifact.withdrawn"
+        || event["body"] != json!({})
+        || event["timestamp"] != recorded.timestamp
+        || event["sequence"] != recorded.receipt["sequence"]
+    {
+        return Err("withdrawal did not leave a stable tombstone".to_owned());
+    }
+    for (id, kind) in [
+        ("submission:conformance-objection", "objection.recorded"),
+        ("submission:conformance-decline", "decline.recorded"),
+    ] {
+        let speech_event = history
+            .iter()
+            .find(|item| submission_id(item) == Some(id))
+            .ok_or_else(|| format!("{id} disappeared after withdrawal"))?;
+        if speech_event["kind"] != kind {
+            return Err(format!("{id} changed kind after withdrawal"));
+        }
+    }
+    Ok(())
+}
+
+fn unknown_target(ctx: &CollaborationRun<'_>) -> Result<(), String> {
+    let mut record = artifact_submission(
+        ctx.world_id,
+        ctx.writer.principal,
+        &ctx.audience,
+        "submission:conformance-missing",
+        "artifact:conformance-missing",
+        "This citation has no target.",
+    );
+    record["derived_from"] = json!({
+        "from": ctx.writer.principal,
+        "artifact_id": "artifact:missing",
+        "revision": 1
+    });
+    let response = post_collaboration(ctx, ctx.writer.token, &record.to_string().into_bytes())?;
+    expect_problem(response, StatusCode::UNPROCESSABLE_ENTITY, "unknown_target")?;
+    let history = read_history(ctx, ctx.writer.token)?;
+    if history
+        .iter()
+        .any(|event| submission_id(event) == Some("submission:conformance-missing"))
+    {
+        return Err("unknown target was stored".to_owned());
+    }
+    Ok(())
+}
+
+fn other_chain(ctx: &CollaborationRun<'_>, recorded: &RecordedRevision) -> Result<(), String> {
+    let Some(peer) = ctx.peer else {
+        return Err("collaboration.submit requires a distinct writing peer".to_owned());
+    };
+    let record = artifact_submission(
+        ctx.world_id,
+        peer.principal,
+        &ctx.audience,
+        "submission:conformance-other-chain",
+        "artifact:conformance",
+        "A separate chain.",
+    );
+    let response = post_collaboration(ctx, peer.token, &record.to_string().into_bytes())?;
+    let receipt = check_receipt(response, ctx.world_id, "submission:conformance-other-chain")?;
+    if receipt["artifact_id"] != "artifact:conformance" || receipt["revision"] != json!(1) {
+        return Err("second chain did not start at revision 1".to_owned());
+    }
+    if receipt.get("aim").is_some()
+        || receipt.get("resume_hint").is_some()
+        || receipt.get("continuity_note").is_some()
+    {
+        return Err("second chain receipt carries a continuity note".to_owned());
+    }
+    let event_id = receipt["event_id"]
+        .as_str()
+        .ok_or("receipt omits event_id")?;
+    if event_id == recorded.event_id {
+        return Err("second chain reused the first principal's event".to_owned());
+    }
+    let history = read_history(ctx, peer.token)?;
+    let event = require_event(&history, event_id)?;
+    if event["kind"] != "artifact.recorded"
+        || event["actor"] != peer.principal
+        || event["body"]["artifact_revision"]["from"] != peer.principal
+        || event["body"]["artifact_revision"]["revision"] != json!(1)
+        || event["body"]["artifact_revision"]["artifact_id"] != "artifact:conformance"
+    {
+        return Err("second chain was not stored for the peer".to_owned());
     }
     Ok(())
 }

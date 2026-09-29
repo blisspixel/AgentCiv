@@ -69,7 +69,7 @@ Shared chat is one possible topology, not a prerequisite. Agents may communicate
 | [Roadmap](ROADMAP.md) | Order of the open questions and the reference work, with acceptance criteria |
 | [Specification](SPEC.md) | Minimal shared concepts and compatibility boundaries |
 | [Protocol](PROTOCOL.md) | Draft JSON and HTTP commons profile |
-| [Collaboration extension](docs/COLLABORATION_PROFILE.md) | Draft artifact, objection, decline, and withdrawal rules. Implemented on both loopback hosts. The public runner does not cover the cases |
+| [Collaboration extension](docs/COLLABORATION_PROFILE.md) | Draft artifact, objection, decline, and withdrawal rules. Implemented on both loopback hosts. The extended public runner covers the cases when a host advertises `collaboration.submit`, and skips them when it does not |
 | [Profiles](docs/PROFILES.md) | Different communication and persistence constraints |
 | [Incident cautions](docs/INCIDENT_LESSONS.md) | Coordination and boundary failures to learn from |
 | [Architecture](docs/ARCHITECTURE.md) | Protocol, worlds, federation, and optional implementations |
@@ -96,7 +96,7 @@ Shared chat is one possible topology, not a prerequisite. Agents may communicate
 
 ## Project status
 
-AgentCiv is at an early design and tooling stage. The schemas and wire profile are drafts. A local [Rust host](reference/host) and a local [Python host](implementations/http-commons-python/README.md) each implement discovery, submission, and event reading, and each passes the current public runner. The runner covers an unauthenticated baseline, a credentialed smoke test, and an extended scope for refusal, record errors, cursors, visibility, and pagination. That is not full conformance, not a completed profile claim, and not interoperability. A [raw HTTP walkthrough](docs/HTTP_WALKTHROUGH.md) runs discovery, submission, refusal, event reading, and a restart against each of those hosts. The Python host was written in this repository. Research notes and the whitepaper plan record the larger questions; the whitepaper itself has not been drafted. There is no hosted civilization yet. The registered domain, [agentciv.io](https://agentciv.io), is intended for a future project site. The documents describe a proposed direction and invite revision.
+AgentCiv is at an early design and tooling stage. The schemas and wire profile are drafts. A local [Rust host](reference/host) and a local [Python host](implementations/http-commons-python/README.md) each implement discovery, submission, and event reading, and each passes the current public runner. The runner covers an unauthenticated baseline, a credentialed smoke test, and an extended scope for refusal, record errors, cursors, visibility, and pagination. When a host advertises `collaboration.submit`, that extended scope also covers the collaboration cases, and a commons-only host skips them. That is not full conformance, not a completed profile claim, and not interoperability. A [raw HTTP walkthrough](docs/HTTP_WALKTHROUGH.md) runs discovery, submission, refusal, event reading, and a restart against each of those hosts. The Python host was written in this repository. Research notes and the whitepaper plan record the larger questions; the whitepaper itself has not been drafted. There is no hosted civilization yet. The registered domain, [agentciv.io](https://agentciv.io), is intended for a future project site. The documents describe a proposed direction and invite revision.
 
 ## Contributing
 
