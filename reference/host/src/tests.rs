@@ -6,8 +6,10 @@ use reqwest::header::{AUTHORIZATION, CONTENT_TYPE};
 use serde_json::json;
 use tempfile::tempdir;
 
-use crate::store::{ReadError, Store, SubmitError};
-use crate::{Credential, HostConfig, Visibility, checked_config, load_config, start_test_host};
+use crate::store::{ReadError, Store, StoreError, SubmitError};
+use crate::{
+    Credential, HostConfig, HostError, Visibility, checked_config, load_config, start_test_host,
+};
 
 fn config(dir: &std::path::Path, visibility: Visibility) -> HostConfig {
     HostConfig {
@@ -104,6 +106,7 @@ fn failed_commit_leaves_no_event_and_a_dropped_transaction_rolls_back() {
     let grants = vec![("agent:abc123".to_owned(), true, true)];
     let store = Store::open(
         &host.database_path,
+        &host.world_id,
         host.visibility,
         host.retention_seconds,
         &grants,
@@ -124,7 +127,7 @@ fn failed_commit_leaves_no_event_and_a_dropped_transaction_rolls_back() {
     )
     .expect("insert");
     drop(conn);
-    let store = Store::open(&path, Visibility::Members, 60, &grants).expect("reopen");
+    let store = Store::open(&path, "civ:local", Visibility::Members, 60, &grants).expect("reopen");
     assert_eq!(store.event_count().expect("count"), 0);
 }
 
@@ -137,8 +140,14 @@ fn retry_conflict_expiry_visibility_and_pages() {
         ("agent:reader".to_owned(), true, false),
         ("agent:other".to_owned(), true, false),
     ];
-    let store =
-        Store::open(&host.database_path, Visibility::Addressed, 10, &grants).expect("store");
+    let store = Store::open(
+        &host.database_path,
+        &host.world_id,
+        Visibility::Addressed,
+        10,
+        &grants,
+    )
+    .expect("store");
     let bytes = message("message:1", "one");
     let first = store
         .submit_at("agent:abc123", "civ:local", &bytes, 1_000)
@@ -216,6 +225,7 @@ fn same_message_id_is_scoped_to_each_principal() {
     ];
     let store = Store::open(
         &dir.path().join("world.sqlite"),
+        "civ:local",
         Visibility::Members,
         60,
         &grants,
@@ -239,8 +249,8 @@ fn concurrent_submissions_keep_one_receipt_per_exact_submission() {
     let dir = tempdir().expect("temp");
     let path = dir.path().join("world.sqlite");
     let grants = [("agent:abc123".to_owned(), true, true)];
-    let left = Store::open(&path, Visibility::Members, 60, &grants).expect("left");
-    let right = Store::open(&path, Visibility::Members, 60, &grants).expect("right");
+    let left = Store::open(&path, "civ:local", Visibility::Members, 60, &grants).expect("left");
+    let right = Store::open(&path, "civ:local", Visibility::Members, 60, &grants).expect("right");
 
     let exact = message("message:exact", "same");
     let (left_exact, right_exact) = std::thread::scope(|scope| {
@@ -302,6 +312,7 @@ fn sender_only_hides_a_message_from_another_principal() {
     ];
     let store = Store::open(
         &dir.path().join("world.sqlite"),
+        "civ:local",
         Visibility::SenderOnly,
         60,
         &grants,
@@ -327,6 +338,67 @@ fn sender_only_hides_a_message_from_another_principal() {
         store.read_page("agent:reader", "civ:local", Some(cursor), true),
         Err(ReadError::Forbidden)
     ));
+}
+
+#[test]
+fn a_database_keeps_the_world_it_was_opened_for() {
+    let dir = tempdir().expect("temp");
+    let path = dir.path().join("world.sqlite");
+    let grants = [("agent:abc123".to_owned(), true, true)];
+    let store = Store::open(&path, "civ:local", Visibility::Members, 60, &grants).expect("open");
+    store
+        .submit(
+            "agent:abc123",
+            "civ:local",
+            &message("message:kept", "stay"),
+        )
+        .expect("record");
+    assert_eq!(store.event_count().expect("count"), 1);
+    drop(store);
+
+    let mismatch = Store::open(&path, "civ:other", Visibility::Members, 60, &grants);
+    assert!(matches!(mismatch, Err(StoreError::WorldMismatch)));
+
+    let reopened =
+        Store::open(&path, "civ:local", Visibility::Members, 60, &grants).expect("same world");
+    assert_eq!(reopened.event_count().expect("count"), 1);
+    let page = reopened
+        .read_page("agent:abc123", "civ:local", None, true)
+        .expect("read");
+    let events = page["events"].as_array().expect("events");
+    assert_eq!(events.len(), 1);
+    assert_eq!(
+        events[0]["body"]["message"]["id"].as_str(),
+        Some("message:kept")
+    );
+}
+
+#[tokio::test]
+async fn reopening_for_another_world_fails_before_listen() {
+    let dir = tempdir().expect("temp");
+    let host_config = config(dir.path(), Visibility::Members);
+    let grants = vec![("agent:abc123".to_owned(), true, true)];
+    let store = Store::open(
+        &host_config.database_path,
+        &host_config.world_id,
+        host_config.visibility,
+        host_config.retention_seconds,
+        &grants,
+    )
+    .expect("open");
+    drop(store);
+    let mut other = host_config.clone();
+    other.world_id = "civ:other".to_owned();
+    match start_test_host(other).await {
+        Err(HostError::Config(detail)) => {
+            assert_eq!(detail, "database belongs to a different world");
+        }
+        Ok(host) => {
+            drop(host);
+            panic!("host listened for a foreign world");
+        }
+        Err(error) => panic!("unexpected host error: {error}"),
+    }
 }
 
 #[tokio::test]

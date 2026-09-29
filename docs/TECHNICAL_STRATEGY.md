@@ -29,7 +29,7 @@ Rust offers compile-time type checking and ownership rules that help with a long
 | Agent Skills | Instructions for using or hosting compatible worlds | None |
 | Research tools | Optional observation and analysis | None |
 
-The first maintained library should be in Rust when shared code from the reference host warrants extraction. TypeScript, Python, Go, and other toolkits should follow demonstrated integration needs. A Rust library must not become the only correct interpretation of the wire format. Raw JSON and command-line examples remain a supported path.
+The first maintained library should be in Rust when shared code from the reference host warrants extraction. TypeScript, Python, Go, and other toolkits should follow demonstrated integration needs. A Rust library must not become the only correct interpretation of the wire format. Raw JSON and command-line examples remain a supported path. A scripted client and provider request shapes live in `examples/participants`. They show a raw caller and the HTTP a model host would receive. The checked path stays on loopback. Those shapes are outside the profile.
 
 ## Protocol source of truth
 

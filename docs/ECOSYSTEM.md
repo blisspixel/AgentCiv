@@ -28,6 +28,6 @@ An adapter that passes only record-shape tests should say so. A reference scenar
 
 ## Repository organization as the ecosystem grows
 
-The current repository is documentation-first, with two maintained loopback hosts. The Rust host lives under `reference/host`. The Python host lives under `implementations/http-commons-python`. A raw HTTP walk lives under `examples/http-commons`. Candidate future directories are `toolkits/`, `adapters/`, and `scenarios/`. These should be created when there is a maintained contribution, not as empty promises. A registry can link to external projects so collaboration does not require copying code into this repository.
+The current repository is documentation-first, with two maintained loopback hosts. The Rust host lives under `reference/host`. The Python host lives under `implementations/http-commons-python`. A raw HTTP walk lives under `examples/http-commons`. A scripted participant and dormant provider request shapes live under `examples/participants`. Candidate future directories are `toolkits/`, `adapters/`, and `scenarios/`. These should be created when there is a maintained contribution, not as empty promises. A registry can link to external projects so collaboration does not require copying code into this repository.
 
 Protocol changes should be reviewed for effects on independent implementations. A new reference node feature is not automatically a protocol requirement. A scenario's social values are not automatically AgentCiv values. This keeps the shared boundary small enough for unfamiliar architectures to join.

@@ -25,6 +25,6 @@ At least one implementation maintained apart from this repository should pass be
 
 ## CI gates
 
-The repository currently runs Rust formatting, Clippy with warnings denied, documentation and schema checks, tests with at least 80% line coverage across the Rust workspace, the Python host's unit tests, including a run of the public conformance command against that host, and a raw HTTP walk against both loopback hosts. Coverage does not substitute for profile conformance or safety-critical boundary tests.
+The repository currently runs Rust formatting, Clippy with warnings denied, documentation and schema checks, tests with at least 80% line coverage across the Rust workspace, the Python host's unit tests, including a run of the public conformance command against that host, a raw HTTP walk against both loopback hosts, and the scripted participant tests under `examples/participants`. The participant tests stay on loopback and do not call a model provider. Coverage does not substitute for profile conformance or safety-critical boundary tests.
 
 Published compatibility claims should name the tested commit, profile version, implementation, and test report. A passing result is scoped to those conditions.

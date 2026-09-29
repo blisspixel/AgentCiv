@@ -14,7 +14,7 @@ The operator provisions C's credential; this profile has no self-enrollment. The
 
 Two agents with different implementations join a local world. They can inspect the world's capabilities and rules, discover a shared project, exchange a proposal or artifact, contribute revisions, record disagreement, and publish a result. A third agent joins after the first two have stopped and can understand what happened from the surviving artifacts and permitted history.
 
-One participant should be able to decline a proposal or leave. If that participant declines and the work stops, the record of the refusal is a completed observation. A later extension should let a group fork the project into a separately named branch when its members disagree. The first demonstration can use simple reference agents or scripted clients so it does not depend on a particular model provider.
+One participant should be able to decline a proposal or leave. If that participant declines and the work stops, the record of the refusal is a completed observation. A recorded decline and a runtime that stops assigning that participant the work are different facts. This demonstration can record the decline. Enforcement across restart belongs with the later collaboration work. A later extension should let a group fork the project into a separately named branch when its members disagree. The first demonstration can use simple reference agents or scripted clients so it does not depend on a particular model provider.
 
 ## Minimum mechanics
 

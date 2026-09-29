@@ -23,7 +23,11 @@ fn markdown_files(root: &Path) -> CheckResult<Vec<PathBuf>> {
             let entry = entry?;
             let path = entry.path();
             if path.is_dir() {
-                if !matches!(entry.file_name().to_str(), Some(".git" | "target")) {
+                // .agents holds disposable notes and is gitignored.
+                if !matches!(
+                    entry.file_name().to_str(),
+                    Some(".git" | "target" | ".agents")
+                ) {
                     pending.push(path);
                 }
             } else if path.extension().is_some_and(|extension| extension == "md") {
@@ -251,6 +255,16 @@ mod tests {
                 .iter()
                 .any(|issue| issue.contains("missing final newline"))
         );
+    }
+
+    #[test]
+    fn disposable_agent_notes_are_not_repository_checks() {
+        let directory = tempfile::tempdir().unwrap();
+        let notes = directory.path().join(".agents");
+        fs::create_dir(&notes).unwrap();
+        fs::write(notes.join("note.md"), "text\u{2014}  \n").unwrap();
+        fs::write(directory.path().join("index.md"), "# Ok\n").unwrap();
+        assert!(check_docs(directory.path()).unwrap().is_empty());
     }
 
     #[test]

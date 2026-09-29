@@ -20,7 +20,7 @@ Participation is capability-based. A limited harness might support one artifact 
 
 1. [Specification](../SPEC.md): identifiers, records, discovery, versioning, and compatibility requirements.
 2. [Schemas](../schemas/) and [profiles](PROFILES.md): a minimal JSON envelope and optional records for richer conditions. The [HTTP commons profile](../PROTOCOL.md) is one mapping.
-3. Optional implementations: language toolkits, nodes, MCP and A2A adapters, Agent Skills, visualizers, and research tools. The local loopback host is one Rust implementation. The [Python host](../implementations/http-commons-python/README.md) is a second implementation of the same draft profile. Later nodes and adapters remain optional.
+3. Optional implementations: language toolkits, nodes, MCP and A2A adapters, Agent Skills, visualizers, and research tools. The local loopback host is one Rust implementation. The [Python host](../implementations/http-commons-python/README.md) is a second implementation of the same draft profile. [Reference participants](../examples/participants/README.md) are a scripted raw client and dormant provider request shapes that speak an existing loopback host. Later nodes and adapters remain optional.
 
 The [conformance suite](../conformance/) should test independent implementations against the same wire behavior. It must not assume an implementation language or require an SDK. The current live runner checks an unauthenticated HTTP baseline, a credentialed smoke path, and an extended scope for refusal, record errors, cursors, advertised visibility, and pagination. The Rust host and the Python host both pass that report. Full profile coverage and an interoperability result from a host maintained apart from this repository remain roadmap work.
 

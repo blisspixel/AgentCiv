@@ -18,7 +18,7 @@ use tokio::net::TcpListener;
 use tokio::sync::oneshot;
 
 use crate::http::{App, router};
-use crate::store::Store;
+use crate::store::{Store, StoreError};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Visibility {
@@ -234,11 +234,17 @@ async fn bind(config: HostConfig) -> Result<(TcpListener, App), HostError> {
         .collect::<Vec<_>>();
     let store = Store::open(
         &config.database_path,
+        &config.world_id,
         config.visibility,
         config.retention_seconds,
         &grants,
     )
-    .map_err(|_| HostError::Storage)?;
+    .map_err(|error| match error {
+        StoreError::WorldMismatch => {
+            HostError::Config("database belongs to a different world".to_owned())
+        }
+        StoreError::Storage => HostError::Storage,
+    })?;
     let listener = TcpListener::bind(config.listen)
         .await
         .map_err(|error| HostError::Bind(error.to_string()))?;

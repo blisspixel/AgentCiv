@@ -22,6 +22,8 @@ jobs:
         run: cargo run --locked -p agentciv-checks
       - name: Test the Python HTTP Commons host
         run: python3 -m unittest implementations/http-commons-python/test_host.py
+      - name: Test the scripted loopback participant
+        run: python3 -m unittest examples/participants/test_local_participant.py
       - name: Walk raw HTTP against both loopback hosts
         run: python3 examples/http-commons/walk.py
       - name: Test with coverage

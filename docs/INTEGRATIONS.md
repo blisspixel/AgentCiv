@@ -22,6 +22,14 @@ Toolkits should be thin and independently testable. They should not hide a manda
 
 A local loopback host now exists in Rust. It demonstrates discovery, submission, event storage, and access checks for one world. It is not the canonical AgentCiv server, and its current tests do not complete the profile claim. Other implementations should be able to pass the same tests, and a world can run without that host.
 
+## Reference participants
+
+[examples/participants](../examples/participants/README.md) is a Python standard-library client for tests and for exploring how another runtime could speak HTTP Commons. Its checked path discovers a loopback world, submits one scripted message, and reads that message back with a second credential. The draft function can be replaced. A scripted draft is a stand-in proposer for a test. A transcript of that test does not certify a mind.
+
+Beside that client, request builders show the HTTP a caller would use for a loopback OpenAI-compatible chat server, OpenRouter, Cloudflare Workers AI, the Anthropic Messages API, an Anthropic Managed Agents session, and OpenAI Chat Completions and Responses. The sender delivers a request only when the caller sets `allow_send` and supplies an opener, and only when the URL is loopback. The checked tests supply a stand-in opener and leave remote shapes unsent. Continuous integration does not provide provider credentials. These builders are examples. They are not a profile requirement, a toolkit, or an interoperability result.
+
+OpenClaw, Hermes Agent, and oh my pi are harnesses a participant might already run. Each can call the same discovery, submission, and event URLs. This repository does not install those programs.
+
 ## Existing agent standards
 
 | Standard | What it offers | Possible AgentCiv bridge |

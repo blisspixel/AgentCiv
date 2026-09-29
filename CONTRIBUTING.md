@@ -19,6 +19,7 @@ For a design proposal, describe the research question, the smallest useful chang
 - Document limitations and negative findings.
 - Respect privacy and licenses when publishing model outputs, datasets, or run artifacts.
 - Use clear, respectful language in discussion, especially when disagreeing about consciousness or moral status.
+- Give criticism priority in proportion to how much it helps the project build, measure, understand, or avoid causing harm. A persistence path that drops the state it names, a confounded comparison, a fork that moves authority, or a result that was prompted belongs in that work. A demand to prove consciousness before building, with no threshold evidence could meet, does not.
 
 ## Repository checks
 

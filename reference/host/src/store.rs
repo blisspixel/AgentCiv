@@ -14,6 +14,7 @@ const PAGE_LIMIT: i64 = 100;
 #[derive(Debug)]
 pub enum StoreError {
     Storage,
+    WorldMismatch,
 }
 
 #[derive(Debug)]
@@ -44,6 +45,7 @@ struct Policy {
 impl Store {
     pub fn open(
         path: &Path,
+        world_id: &str,
         visibility: Visibility,
         retention_seconds: i64,
         grants: &[(String, bool, bool)],
@@ -99,8 +101,35 @@ impl Store {
         let store = Self {
             conn: Arc::new(Mutex::new(conn)),
         };
+        store.bind_world(world_id)?;
         store.sync_policy(visibility, retention_seconds, grants)?;
         Ok(store)
+    }
+
+    /// Record the world on first open. A later open for another world fails
+    /// before policy or history is rewritten. This is not a fork.
+    fn bind_world(&self, world_id: &str) -> Result<(), StoreError> {
+        if world_id.is_empty() {
+            return Err(StoreError::WorldMismatch);
+        }
+        self.with_write(|conn| {
+            conn.execute_batch("BEGIN IMMEDIATE")
+                .map_err(|_| StoreError::Storage)?;
+            let outcome = match meta(conn, "world_id") {
+                Ok(Some(stored)) if stored == world_id => Ok(()),
+                Ok(Some(_)) => Err(StoreError::WorldMismatch),
+                Ok(None) => put_meta(conn, "world_id", world_id),
+                Err(error) => Err(error),
+            };
+            if outcome.is_ok() {
+                conn.execute_batch("COMMIT")
+                    .map_err(|_| StoreError::Storage)?;
+                Ok(())
+            } else {
+                let _ = conn.execute_batch("ROLLBACK");
+                outcome
+            }
+        })
     }
 
     pub fn submit(
@@ -213,7 +242,7 @@ impl Store {
 impl From<StoreError> for SubmitError {
     fn from(error: StoreError) -> Self {
         match error {
-            StoreError::Storage => Self::Storage,
+            StoreError::Storage | StoreError::WorldMismatch => Self::Storage,
         }
     }
 }
@@ -221,7 +250,7 @@ impl From<StoreError> for SubmitError {
 impl From<StoreError> for ReadError {
     fn from(error: StoreError) -> Self {
         match error {
-            StoreError::Storage => Self::Storage,
+            StoreError::Storage | StoreError::WorldMismatch => Self::Storage,
         }
     }
 }

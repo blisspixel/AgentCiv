@@ -51,6 +51,7 @@ Beside that build, the [whitepaper plan](docs/WHITEPAPER_PLAN.md) now expands ea
 
 ## Milestone 3: Support useful collaboration and inheritance
 
+- [ ] Distinguish a host's rejected request, a recorded refusal, and a runtime that stops dispatching the declined work. Once withdrawal is enforced for one participant and scope, new dispatch for that pair must survive restart and a replaced coordinator. Silence is not acceptance. Another volunteer may still do the work. Copying the refusing participant in order to bypass the refusal needs its own rule.
 - [ ] Define an optional collaboration profile or world extension for discovering projects and artifacts, publishing and retrieving revisions, referencing proposals and objections, and declining or leaving. Specify access, retention, and provenance before testing these claims.
 - [ ] Extend conformance cases for declared collaboration capabilities, including denied access and unavailable history.
 - [ ] Complete the [first collaboration experiment](docs/FIRST_EXPERIMENT.md): two independent clients build a shared artifact, record a disagreement, and stop; a later participant finds the artifact and enough permitted context to continue or question it.

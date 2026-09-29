@@ -183,6 +183,18 @@ class StoreTests(unittest.TestCase):
     def tearDown(self) -> None:
         self.temporary.cleanup()
 
+    def test_database_keeps_the_world_it_was_opened_for(self) -> None:
+        body = message("message:kept", "agent:abc123", text="stay")
+        self.store.submit("agent:abc123", body)
+        self.assertEqual(self.store.event_count(), 1)
+        with self.assertRaises(host.ConfigError) as caught:
+            host.Store(config(self.directory, world_id="civ:other", retention_seconds=10))
+        self.assertIn("different world", str(caught.exception))
+        reopened = host.Store(self.config)
+        self.assertEqual(reopened.event_count(), 1)
+        page = reopened.read_page("agent:abc123", None, True)
+        self.assertEqual(page["events"][0]["body"]["message"]["id"], "message:kept")
+
     def test_retry_window_is_half_open_and_keeps_the_old_event(self) -> None:
         body = message("message:1", "agent:abc123", text="first")
         receipt = self.store.submit("agent:abc123", body)
