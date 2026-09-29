@@ -224,6 +224,19 @@ def walk_one(label: str, argv_for: callable, curl_bin: str, directory: Path) -> 
         status, headers, body = curl(
             curl_bin,
             directory,
+            [
+                "-H",
+                "Accept: application/json",
+                "-H",
+                "Authorization: Bearer walk-token-c",
+                f"{origin}/events?after=",
+            ],
+        )
+        expect(status, headers, body, 400, "invalid_cursor")
+
+        status, headers, body = curl(
+            curl_bin,
+            directory,
             ["-H", "Content-Type: application/json", "--data-binary", f"@{task}", f"{origin}/submit"],
         )
         denied = expect(status, headers, body, 401, "authentication_required")

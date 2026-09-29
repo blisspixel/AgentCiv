@@ -146,7 +146,7 @@ When more than one failure applies, the host MUST stop at the earliest check bel
 10. `from` does not match the authenticated principal: `403 forbidden`.
 11. Same retry scope and message id with different bytes inside the retry window: `409 id_conflict`.
 
-A read whose cursor the host does not know returns `400 invalid_cursor`. A cursor bound to another principal returns `403 forbidden`. A cursor whose access policy no longer matches returns `410 cursor_expired`. The other-principal result precedes the expiry result. A missing `world` is an invalid record, not `wrong_world`.
+A read whose cursor the host does not know returns `400 invalid_cursor`. An empty `after` value is invalid, rather than a request to start at the earliest event. A cursor bound to another principal returns `403 forbidden`. A cursor whose access policy no longer matches returns `410 cursor_expired`. The other-principal result precedes the expiry result. A missing `world` is an invalid record, not `wrong_world`.
 
 `0.1-draft` is a draft protocol version, and `http-commons/0.1-draft` names this profile. Earlier repository sketches did not define an implementable profile. From this revision onward, a breaking change to required profile behavior MUST use a new profile identifier and fixtures; a breaking change to shared record semantics also requires a new `protocol_version`. A host claiming this profile MUST reject unsupported `protocol_version` values with `unsupported_version`; it MUST NOT guess how to execute an unknown record. Readers may ignore unknown optional fields. A forwarder should preserve fields it does not understand. A stable compatibility claim will require independent conformance evidence.
 

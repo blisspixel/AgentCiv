@@ -25,7 +25,7 @@ curl -H "Accept: application/json" -H "Authorization: Bearer LOCAL_TOKEN_READER"
 
 Stop the process. Start it again with the same database file. Repeat the last command. Reader C should see the same two host-assigned event ids, in the same order, including `later_note` on the first message.
 
-The refused calls are `401` with code `authentication_required` and a `Bearer` challenge, and `403` with code `forbidden`. The first permitted submission uses a charset parameter. The identical retry may use a plain `application/json` header, because the retry compares raw body bytes. That retry is `200` with the original receipt. The changed bytes are `409` with code `id_conflict`. Permitted submission and event responses, and the refused submission responses, send `Cache-Control: no-store`.
+An empty `after` parameter is `400` with code `invalid_cursor`. The refused calls are `401` with code `authentication_required` and a `Bearer` challenge, and `403` with code `forbidden`. The first permitted submission uses a charset parameter. The identical retry may use a plain `application/json` header, because the retry compares raw body bytes. That retry is `200` with the original receipt. The changed bytes are `409` with code `id_conflict`. Permitted submission and event responses, and the refused submission responses, send `Cache-Control: no-store`.
 
 ## Run both in-repository hosts
 
