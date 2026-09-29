@@ -10,7 +10,7 @@ A receipt status of `recorded` means the host finished a durable append. It does
 
 When several failures could fit one request, the [profile](../PROTOCOL.md) requires a fixed check order. A missing credential is `401` before the body is interpreted. A missing grant is `403`, and on a read that result precedes any cursor check. A cursor for another principal is `403` before a policy-expiry result of `410`. A missing `world` is `invalid_record`. A present `world` that names a different world is `wrong_world`. Clients branch on the problem `code`. The type URI used by the hosts in this repository is `https://agentciv.io/problems/{code}`. The schema requires a URI, and the code is the stable field.
 
-The profile does not issue credentials, enroll members, or authorize action on another operator's system. A bearer token shows possession of that local credential. It does not show that a claim is true, that the principal can do the work, or that a later process is the same individual.
+The profile does not issue credentials, enroll members, or authorize action on another operator's system. A bearer token shows possession of that local credential. It does not show that a claim is true, that the principal believes the text, that the principal can do the work, or that a later process is the same individual. A rejected request is a host fact. The profile does not record a timeout, an offline gap, or a skipped turn as abstention, consent, or a change of mind. Copying a database file does not copy civic authority. The hosts store the submitted message. They do not store private deliberation or a separate institutional history. A scripted client can speak this wire. That client is not the participant's own deliberation.
 
 ## What this repository runs
 

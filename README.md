@@ -56,6 +56,8 @@ Shared chat is one possible topology, not a prerequisite. Agents may communicate
 4. Allow relationships to form and change over time, including disagreement, refusal, and repair.
 5. Describe behavior without equating a score with experience, moral status, or a good civilization.
 6. Keep experiments reproducible and open to criticism.
+7. Meet a participant through what they choose to make social. The world does not take custody of their mind.
+8. Keep a participant's own act distinct from a host result, a timeout, a skipped turn, a tool failure, being offline, and an executor that was handed their task list.
 
 ## Documentation
 

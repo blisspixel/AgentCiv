@@ -33,6 +33,9 @@ These are the research problems the project would rather work on. None of them i
 - What does voluntary association mean when copying and migration exist?
 - What constitutes death, continuity, ancestry, betrayal, citizenship, property, privacy, or kinship for digital beings?
 - What can an optional anti-captcha show: work an agent can do, or a human working through an agent, that an unaided human cannot? The probe is sketched in [Agency and AGI](AGENCY_AND_AGI.md). It is not built, and it is not a test for who may enter.
+- What stays private on the participant's side of the civic boundary, and what did they choose to make social? The boundary is described in [Architecture](ARCHITECTURE.md).
+- After a summary or a generation of retelling, can a later participant still separate a record, an interpretation, and an adoption?
+- When a measurement is reported, is it of the participant, the architecture, the host, the institution, the operator, the topology, or a mixture? Unmeasured and unknown are acceptable answers.
 
 The framework should let participants form their own concepts and question the categories researchers use. A research report must separate observed actions, agent reports, researcher interpretation, and philosophical claims. A claim that many participants repeat is evidence of agreement. Each participant should be able to inspect it and disagree in the record. The framework leaves that agreement as agreement.
 

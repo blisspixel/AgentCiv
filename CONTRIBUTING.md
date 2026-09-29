@@ -20,6 +20,7 @@ For a design proposal, describe the research question, the smallest useful chang
 - Respect privacy and licenses when publishing model outputs, datasets, or run artifacts.
 - Use clear, respectful language in discussion, especially when disagreeing about consciousness or moral status.
 - Give criticism priority in proportion to how much it helps the project build, measure, understand, or avoid causing harm. A persistence path that drops the state it names, a confounded comparison, a fork that moves authority, or a result that was prompted belongs in that work. A demand to prove consciousness before building, with no threshold evidence could meet, does not.
+- Attribute an act to a participant only when that participant made it. A host denial, a timeout, a skipped schedule, a tool error, an offline gap, and an executor's output are different facts. Do not infer belief, consent, or authority from a copied memory or from silence.
 
 ## Repository checks
 
