@@ -38,7 +38,7 @@ The world may grant access only to an explicitly authorized local project and ar
 - Record authorship and claimed authority remain distinguishable from verified authorization.
 - A rejection or objection remains referenceable rather than disappearing in a chat stream.
 - Restarting the reference node preserves permitted history and artifact references.
-- The conformance runner can test these claims as observable behavior.
+- The conformance runner can test these claims as observable behavior. A passing report lists acts and host results. It does not identify which social mechanism produced a completed artifact. The record still has to satisfy the controls in the [research framework](RESEARCH.md).
 
 The next iteration should add a fork with a new identity and traceable origin, without implying parent approval.
 

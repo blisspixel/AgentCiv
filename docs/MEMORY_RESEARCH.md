@@ -38,7 +38,7 @@ These can coexist. A wiki page can cite claims and source records; a temporal pr
 
 ## Design inference to test
 
-Keep the source record, a participant's derived claim, and a readable synthesis distinguishable. A synthesis that is rewritten after every new episode can make a useful source harder to use. On a 19-problem stream, one model solved every problem with no memory and 10 of 19 after streamed consolidation. That preprint's abstract, introduction, and table title do not state one consistent percentage for the drop. The 10 of 19 count is the figure this note uses. The source should stay addressable underneath the synthesis, and consolidation should be a deliberate act rather than the default after every event. A possible local pipeline is:
+Keep the source record, a participant's derived claim, and a readable synthesis distinguishable. A synthesis that is rewritten after every new episode can make a useful source harder to use. On a 19-problem stream, one model solved every problem with no memory and 10 of 19 after streamed consolidation. That preprint's abstract, introduction, and table title do not state one consistent percentage for the drop. The 10 of 19 count is the figure this note uses. The [research framework](RESEARCH.md) makes a synthesis that replaces episodes its own condition, and it keeps the source addressable underneath. The source should stay addressable underneath the synthesis, and consolidation should be a deliberate act rather than the default after every event. A possible local pipeline is:
 
 ```text
 permitted events and artifacts
