@@ -431,7 +431,7 @@ async fn public_http_covers_recording_refusal_and_restart() {
     })
     .await
     .expect("runner");
-    assert_eq!(report.cases.len(), 34, "{report:?}");
+    assert_eq!(report.cases.len(), 36, "{report:?}");
     assert!(
         report
             .cases
@@ -443,11 +443,13 @@ async fn public_http_covers_recording_refusal_and_restart() {
         "submit.json_charset",
         "events.empty_cursor",
         "collaborate.client_revision",
+        "collaborate.forbidden",
         "collaborate.revision",
         "collaborate.retry",
         "collaborate.conflict",
         "collaborate.objection",
         "collaborate.decline",
+        "collaborate.absent_revision",
         "collaborate.withdrawal_forbidden",
         "collaborate.withdrawal",
         "collaborate.unknown_target",

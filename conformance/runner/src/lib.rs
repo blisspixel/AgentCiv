@@ -37,13 +37,15 @@ const EXTENDED_CASES: [&str; 14] = [
     "events.visibility",
     "events.pagination",
 ];
-const COLLABORATION_CASES: [&str; 10] = [
+const COLLABORATION_CASES: [&str; 12] = [
     "collaborate.client_revision",
+    "collaborate.forbidden",
     "collaborate.revision",
     "collaborate.retry",
     "collaborate.conflict",
     "collaborate.objection",
     "collaborate.decline",
+    "collaborate.absent_revision",
     "collaborate.withdrawal_forbidden",
     "collaborate.withdrawal",
     "collaborate.unknown_target",
@@ -1215,6 +1217,10 @@ fn run_collaboration_cases(input: &CollaborationInput<'_>, cases: &mut Vec<Case>
         "collaborate.client_revision",
         client_revision(&ctx),
     ));
+    cases.push(result_case(
+        "collaborate.forbidden",
+        denied_collaboration(&ctx),
+    ));
     let recorded = match recorded_revision(&ctx) {
         Ok(recorded) => {
             cases.push(Case::passed("collaborate.revision"));
@@ -1233,6 +1239,7 @@ fn run_collaboration_cases(input: &CollaborationInput<'_>, cases: &mut Vec<Case>
                 "collaborate.conflict",
                 "collaborate.objection",
                 "collaborate.decline",
+                "collaborate.absent_revision",
                 "collaborate.withdrawal_forbidden",
                 "collaborate.withdrawal",
             ],
@@ -1272,6 +1279,10 @@ fn run_collaboration_cases(input: &CollaborationInput<'_>, cases: &mut Vec<Case>
             "submission:conformance-decline",
             "I will not take up this revision.",
         ),
+    ));
+    cases.push(result_case(
+        "collaborate.absent_revision",
+        absent_revision(&ctx, &recorded),
     ));
     cases.push(result_case(
         "collaborate.withdrawal_forbidden",
@@ -1368,6 +1379,36 @@ fn submission_id(event: &Value) -> Option<&str> {
     ["message", "artifact_revision", "objection", "decline"]
         .into_iter()
         .find_map(|key| event["body"][key]["id"].as_str())
+}
+
+/// The reader can read and cannot write. The record would be valid if they
+/// could, so a host that skips the write grant does not fail it as a sender
+/// mismatch.
+fn denied_collaboration(ctx: &CollaborationRun<'_>) -> Result<(), String> {
+    let record = artifact_submission(
+        ctx.world_id,
+        ctx.reader.principal,
+        &ctx.audience,
+        "submission:conformance-forbidden",
+        "artifact:conformance-denied",
+        "A reader cannot append.",
+    );
+    let response = post_collaboration(ctx, ctx.reader.token, &record.to_string().into_bytes())?;
+    expect_problem(response, StatusCode::FORBIDDEN, "forbidden")?;
+    if stored_submission(ctx, "submission:conformance-forbidden")? {
+        return Err("a denied collaboration was stored".to_owned());
+    }
+    Ok(())
+}
+
+fn stored_submission(ctx: &CollaborationRun<'_>, id: &str) -> Result<bool, String> {
+    for token in [ctx.reader.token, ctx.writer.token] {
+        let history = read_history(ctx, token)?;
+        if history.iter().any(|event| submission_id(event) == Some(id)) {
+            return Ok(true);
+        }
+    }
+    Ok(false)
 }
 
 fn client_revision(ctx: &CollaborationRun<'_>) -> Result<(), String> {
@@ -1547,6 +1588,30 @@ fn speech(
     {
         return Err("recorded speech does not match the submission".to_owned());
     }
+    revision_intact(require_event(&history, &recorded.event_id)?)
+}
+
+/// Revision 1 is already visible. Citing revision 2 uses the same
+/// `unknown_target` as a missing artifact, and it must leave revision 1 intact.
+fn absent_revision(ctx: &CollaborationRun<'_>, recorded: &RecordedRevision) -> Result<(), String> {
+    let record = json!({
+        "protocol_version": "0.1-draft",
+        "type": "objection",
+        "id": "submission:conformance-absent-revision",
+        "world": ctx.world_id,
+        "from": ctx.writer.principal,
+        "to": ctx.audience,
+        "artifact_id": "artifact:conformance",
+        "target_from": ctx.writer.principal,
+        "revision": 2,
+        "body": {"text": "Revision 2 was never assigned."}
+    });
+    let response = post_collaboration(ctx, ctx.writer.token, &record.to_string().into_bytes())?;
+    expect_problem(response, StatusCode::UNPROCESSABLE_ENTITY, "unknown_target")?;
+    if stored_submission(ctx, "submission:conformance-absent-revision")? {
+        return Err("a citation of an unassigned revision was stored".to_owned());
+    }
+    let history = read_history(ctx, ctx.writer.token)?;
     revision_intact(require_event(&history, &recorded.event_id)?)
 }
 
