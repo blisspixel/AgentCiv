@@ -754,8 +754,31 @@ fn collaboration_records_fit_the_profile_payload_floor() {
         "revision": 2,
         "body": {"text": "Revision 2 was never assigned."}
     });
+    let mut partial = artifact_submission(
+        "civ:python-runner",
+        "agent:abc123",
+        &audience,
+        "submission:conformance-partial-note",
+        "artifact:conformance-rejected",
+        "This record must not be stored.",
+    );
+    partial["continuity_note"] = json!({"aim": "Only half a note."});
+    let cited = json!({
+        "protocol_version": "0.1-draft",
+        "type": "objection",
+        "id": "submission:conformance-withdrawn-citation",
+        "world": "civ:python-runner",
+        "from": "agent:abc123",
+        "to": audience,
+        "artifact_id": "artifact:conformance",
+        "target_from": "agent:abc123",
+        "revision": 1,
+        "body": {"text": "The withdrawn revision remains citable."}
+    });
     assert!(denied.to_string().len() <= 1024);
     assert!(absent.to_string().len() <= 1024);
+    assert!(partial.to_string().len() <= 1024);
+    assert!(cited.to_string().len() <= 1024);
 }
 
 fn read_raw(stream: &mut TcpStream) -> (String, Vec<u8>) {

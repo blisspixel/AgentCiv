@@ -1097,23 +1097,34 @@ class PublicRunnerTest(unittest.TestCase):
         summary = expect_dict(report["summary"])
         self.assertEqual(summary["failed"], 0)
         self.assertEqual(summary["skipped"], 0)
-        self.assertEqual(summary["passed"], 36)
+        self.assertEqual(summary["passed"], 47)
         cases = dicts(report["cases"])
         ids = {expect_str(case["id"]) for case in cases}
-        self.assertEqual(len(ids), 36)
+        self.assertEqual(len(ids), 47)
         self.assertIn("submit.json_charset", ids)
         self.assertIn("events.empty_cursor", ids)
         for case_id in (
             "collaborate.client_revision",
             "collaborate.forbidden",
+            "collaborate.unauthenticated",
+            "collaborate.payload_too_large",
+            "collaborate.unsupported_media_type",
+            "collaborate.malformed_json",
+            "collaborate.unsupported_version",
+            "collaborate.unsupported_record_type",
+            "collaborate.partial_note",
+            "collaborate.wrong_world",
+            "collaborate.from_mismatch",
             "collaborate.revision",
             "collaborate.retry",
+            "collaborate.json_charset",
             "collaborate.conflict",
             "collaborate.objection",
             "collaborate.decline",
             "collaborate.absent_revision",
             "collaborate.withdrawal_forbidden",
             "collaborate.withdrawal",
+            "collaborate.withdrawn_citation",
             "collaborate.unknown_target",
             "collaborate.other_chain",
         ):
