@@ -32,7 +32,7 @@ Routine work does not go straight to `main`. A long-lived feature branch is a po
 
 ## Repository checks
 
-The initial executable code is a Rust checker for documentation and schema fixtures. Use the pinned toolchain in [rust-toolchain.toml](rust-toolchain.toml) and run `cargo fmt --all -- --check`, `cargo clippy --workspace --all-targets --locked -- -D warnings`, `cargo run --locked -p agentciv-checks`, and `cargo llvm-cov --workspace --all-targets --locked --fail-under-lines 80`. Install `cargo-llvm-cov` at the version pinned in [CI](.github/workflows/ci.yml) if needed. CI runs the same checks. New implementations must add their own strict type, lint, test, coverage, and conformance gates.
+Maintained executable code is the Rust checker, the black-box runner, and the two loopback hosts. Use the pinned toolchain in [rust-toolchain.toml](rust-toolchain.toml). From the repository root, run `cargo fmt --all -- --check`, `cargo clippy --workspace --all-targets --locked -- -D warnings`, `cargo run --locked -p agentciv-checks`, `python -m mypy`, and `cargo llvm-cov --workspace --all-targets --locked --fail-under-lines 80`. Install `cargo-llvm-cov` at the version pinned in [CI](.github/workflows/ci.yml), and install mypy 2.3.1 from [requirements-dev.txt](requirements-dev.txt). The Python check is strict and targets Python 3.11, the oldest version the Python host claims. The same files are also tested on Python 3.14. CI runs the Rust and Python tests on Linux, Windows, and macOS. New implementations must add their own strict type, lint, test, coverage, and conformance gates.
 
 ## License
 

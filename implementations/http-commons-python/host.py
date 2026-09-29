@@ -13,14 +13,19 @@ import ipaddress
 import json
 import secrets
 import socket
+import socketserver
 import sqlite3
 import sys
 import threading
 import time
 import urllib.parse
+from collections.abc import Callable
 from dataclasses import dataclass
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from typing import TypeGuard
+
+JsonObject = dict[str, object]
 
 PAGE_LIMIT = 100
 MAX_PAYLOAD_CAP = 8 * 1024 * 1024
@@ -339,7 +344,7 @@ def _citation_shape(value: object) -> bool:
     )
 
 
-def _nonempty_string(value: object) -> bool:
+def _nonempty_string(value: object) -> TypeGuard[str]:
     return isinstance(value, str) and bool(value)
 
 
@@ -362,7 +367,57 @@ def _fingerprint(visibility: str, retention_seconds: int, grants: tuple[Credenti
     return "\n".join(lines)
 
 
-def visible_to(visibility: str, principal: str, actor: str, message: dict) -> bool:
+def as_object(value: object) -> JsonObject | None:
+    if not isinstance(value, dict):
+        return None
+    parsed: JsonObject = {}
+    for key, item in value.items():
+        if not isinstance(key, str):
+            return None
+        parsed[key] = item
+    return parsed
+
+
+def parse_object(raw: str | bytes) -> JsonObject:
+    try:
+        parsed: object = json.loads(raw)
+    except json.JSONDecodeError as error:
+        raise StorageFailure from error
+    found = as_object(parsed)
+    if found is None:
+        raise StorageFailure
+    return found
+
+
+def listen_pair(address: object) -> tuple[str, int]:
+    if not isinstance(address, tuple) or len(address) < 2:
+        raise StorageFailure
+    host = address[0]
+    port = address[1]
+    if isinstance(host, bytearray):
+        host = bytes(host)
+    if isinstance(host, bytes):
+        try:
+            host = host.decode("ascii")
+        except UnicodeDecodeError as error:
+            raise StorageFailure from error
+    if not isinstance(host, str) or isinstance(port, bool) or not isinstance(port, int):
+        raise StorageFailure
+    return host, port
+
+
+def http_origin(address: object) -> str:
+    host, port = listen_pair(address)
+    if ":" in host:
+        return f"http://[{host}]:{port}"
+    return f"http://{host}:{port}"
+
+
+def _wall_time() -> int:
+    return int(time.time())
+
+
+def visible_to(visibility: str, principal: str, actor: str, message: JsonObject) -> bool:
     if visibility == "members":
         return True
     if visibility == "sender_only":
@@ -378,7 +433,7 @@ def visible_to(visibility: str, principal: str, actor: str, message: dict) -> bo
 class Store:
     def __init__(self, config: HostConfig) -> None:
         self.config = config
-        self.clock = lambda: int(time.time())
+        self.clock: Callable[[], int] = _wall_time
         self._lock = threading.Lock()
         self._sync_policy()
 
@@ -460,7 +515,7 @@ class Store:
             """
         )
 
-    def submit(self, principal: str, body: bytes) -> dict:
+    def submit(self, principal: str, body: bytes) -> JsonObject:
         with self._lock:
             connection = self._connect()
             try:
@@ -477,15 +532,12 @@ class Store:
             finally:
                 connection.close()
 
-    def _submit(self, connection: sqlite3.Connection, principal: str, body: bytes) -> dict:
-        try:
-            message = json.loads(body)
-        except json.JSONDecodeError as error:
-            raise StorageFailure from error
-        if not isinstance(message, dict) or not _nonempty_string(message.get("id")):
+    def _submit(self, connection: sqlite3.Connection, principal: str, body: bytes) -> JsonObject:
+        message = parse_object(body)
+        message_id = message.get("id")
+        if not _nonempty_string(message_id):
             raise StorageFailure
-        message_id = message["id"]
-        now = int(self.clock())
+        now = self.clock()
         retention = int(self._required_meta(connection, "retention_seconds"))
         saved = connection.execute(
             """
@@ -498,23 +550,24 @@ class Store:
             # Half-open window: [created, created + retention).
             if saved["created_unix"] + retention > now:
                 if bytes(saved["request_bytes"]) == body:
-                    receipt = json.loads(saved["receipt_json"])
-                    if not isinstance(receipt, dict):
-                        raise StorageFailure
-                    return receipt
+                    return parse_object(str(saved["receipt_json"]))
                 raise Conflict
             connection.execute(
                 "DELETE FROM retries WHERE principal = ? AND message_id = ?",
                 (principal, message_id),
             )
-        sequence_row = connection.execute("SELECT COALESCE(MAX(sequence), 0) + 1 FROM events").fetchone()
+        sequence_row = connection.execute(
+            "SELECT COALESCE(MAX(sequence), 0) + 1 FROM events"
+        ).fetchone()
+        if sequence_row is None:
+            raise StorageFailure
         sequence = int(sequence_row[0])
         event_id = "event:" + secrets.token_hex(16)
         try:
             timestamp = unix_to_rfc3339(now)
         except (OverflowError, OSError, ValueError) as error:
             raise StorageFailure from error
-        event = {
+        event: JsonObject = {
             "protocol_version": PROTOCOL_VERSION,
             "type": "event",
             "id": event_id,
@@ -525,7 +578,7 @@ class Store:
             "actor": principal,
             "body": {"message": message},
         }
-        receipt = {
+        receipt: JsonObject = {
             "protocol_version": PROTOCOL_VERSION,
             "type": "receipt",
             "world": self.config.world_id,
@@ -563,7 +616,7 @@ class Store:
         )
         return receipt
 
-    def collaborate(self, principal: str, body: bytes) -> dict:
+    def collaborate(self, principal: str, body: bytes) -> JsonObject:
         with self._lock:
             connection = self._connect()
             try:
@@ -580,15 +633,12 @@ class Store:
             finally:
                 connection.close()
 
-    def _collaborate(self, connection: sqlite3.Connection, principal: str, body: bytes) -> dict:
-        try:
-            record = json.loads(body)
-        except json.JSONDecodeError as error:
-            raise StorageFailure from error
-        if not isinstance(record, dict) or not _nonempty_string(record.get("id")):
+    def _collaborate(self, connection: sqlite3.Connection, principal: str, body: bytes) -> JsonObject:
+        record = parse_object(body)
+        record_id = record.get("id")
+        if not _nonempty_string(record_id):
             raise StorageFailure
-        record_id = record["id"]
-        now = int(self.clock())
+        now = self.clock()
         retention = int(self._required_meta(connection, "retention_seconds"))
         saved = connection.execute(
             """
@@ -602,10 +652,7 @@ class Store:
             and saved["created_unix"] + retention > now
             and bytes(saved["request_bytes"]) == body
         ):
-            receipt = json.loads(saved["receipt_json"])
-            if not isinstance(receipt, dict):
-                raise StorageFailure
-            return receipt
+            return parse_object(str(saved["receipt_json"]))
         self._ensure_collaboration_target(connection, principal, record)
         if saved is not None and saved["created_unix"] + retention > now:
             raise Conflict
@@ -615,34 +662,34 @@ class Store:
                 (principal, record_id),
             )
         kind = record.get("type")
+        receipt: JsonObject
         if kind == "artifact_revision":
-            citation = record.get("derived_from")
-            if isinstance(citation, dict):
+            citation = as_object(record.get("derived_from"))
+            if citation is not None:
                 self._require_visible_revision(connection, principal, citation, cited_by="from")
+            artifact_id = record.get("artifact_id")
+            if not _nonempty_string(artifact_id):
+                raise StorageFailure
             stored = dict(record)
-            stored["revision"] = self._next_revision(connection, principal, str(record["artifact_id"]))
+            stored["revision"] = self._next_revision(connection, principal, artifact_id)
             receipt = self._insert_collaboration(
                 connection, principal, stored, "artifact.recorded", "artifact_revision", now
             )
             receipt["artifact_id"] = stored["artifact_id"]
             receipt["revision"] = stored["revision"]
-        elif kind in {"objection", "decline"}:
+        elif isinstance(kind, str) and kind in {"objection", "decline"}:
             self._require_visible_revision(connection, principal, record, cited_by="target_from")
+            recorded = "objection.recorded" if kind == "objection" else "decline.recorded"
             receipt = self._insert_collaboration(
-                connection,
-                principal,
-                record,
-                "objection.recorded" if kind == "objection" else "decline.recorded",
-                kind,
-                now,
+                connection, principal, record, recorded, kind, now
             )
         elif kind == "withdrawal":
-            row = self._require_visible_revision(connection, principal, record, cited_by="target_from")
+            row = self._require_visible_revision(
+                connection, principal, record, cited_by="target_from"
+            )
             if row["actor"] != principal:
                 raise NotAuthor
-            event = json.loads(row["event_json"])
-            if not isinstance(event, dict):
-                raise StorageFailure
+            event = parse_object(str(row["event_json"]))
             event["kind"] = "artifact.withdrawn"
             event["body"] = {}
             connection.execute(
@@ -676,12 +723,12 @@ class Store:
         return receipt
 
     def _ensure_collaboration_target(
-        self, connection: sqlite3.Connection, principal: str, record: dict
+        self, connection: sqlite3.Connection, principal: str, record: JsonObject
     ) -> None:
         kind = record.get("type")
         if kind == "artifact_revision":
-            citation = record.get("derived_from")
-            if isinstance(citation, dict):
+            citation = as_object(record.get("derived_from"))
+            if citation is not None:
                 self._require_visible_revision(connection, principal, citation, cited_by="from")
             return
         if kind in {"objection", "decline"}:
@@ -707,10 +754,8 @@ class Store:
     def _next_revision(self, connection: sqlite3.Connection, principal: str, artifact_id: str) -> int:
         maximum = 0
         for row in self._artifact_rows(connection):
-            event = json.loads(row["event_json"])
-            record = json.loads(row["message_json"])
-            if not isinstance(event, dict) or not isinstance(record, dict):
-                continue
+            event = parse_object(str(row["event_json"]))
+            record = parse_object(str(row["message_json"]))
             if event.get("kind") not in {"artifact.recorded", "artifact.withdrawn"}:
                 continue
             if record.get("from") == principal and record.get("artifact_id") == artifact_id:
@@ -723,7 +768,7 @@ class Store:
         self,
         connection: sqlite3.Connection,
         principal: str,
-        citation: dict,
+        citation: JsonObject,
         cited_by: str,
     ) -> sqlite3.Row:
         target_from = citation.get(cited_by)
@@ -731,10 +776,8 @@ class Store:
         revision = citation.get("revision")
         visibility = self._required_meta(connection, "visibility")
         for row in self._artifact_rows(connection):
-            event = json.loads(row["event_json"])
-            record = json.loads(row["message_json"])
-            if not isinstance(event, dict) or not isinstance(record, dict):
-                continue
+            event = parse_object(str(row["event_json"]))
+            record = parse_object(str(row["message_json"]))
             if event.get("kind") not in {"artifact.recorded", "artifact.withdrawn"}:
                 continue
             if (
@@ -743,7 +786,8 @@ class Store:
                 or record.get("revision") != revision
             ):
                 continue
-            if visible_to(visibility, principal, row["actor"], record):
+            actor = row["actor"]
+            if isinstance(actor, str) and visible_to(visibility, principal, actor, record):
                 return row
         raise UnknownTarget
 
@@ -751,19 +795,23 @@ class Store:
         self,
         connection: sqlite3.Connection,
         principal: str,
-        record: dict,
+        record: JsonObject,
         kind: str,
         body_key: str,
         now: int,
-    ) -> dict:
-        sequence_row = connection.execute("SELECT COALESCE(MAX(sequence), 0) + 1 FROM events").fetchone()
+    ) -> JsonObject:
+        sequence_row = connection.execute(
+            "SELECT COALESCE(MAX(sequence), 0) + 1 FROM events"
+        ).fetchone()
+        if sequence_row is None:
+            raise StorageFailure
         sequence = int(sequence_row[0])
         event_id = "event:" + secrets.token_hex(16)
         try:
             timestamp = unix_to_rfc3339(now)
         except (OverflowError, OSError, ValueError) as error:
             raise StorageFailure from error
-        event = {
+        event: JsonObject = {
             "protocol_version": PROTOCOL_VERSION,
             "type": "event",
             "id": event_id,
@@ -774,7 +822,7 @@ class Store:
             "actor": principal,
             "body": {body_key: record},
         }
-        receipt = {
+        receipt: JsonObject = {
             "protocol_version": PROTOCOL_VERSION,
             "type": "receipt",
             "world": self.config.world_id,
@@ -799,7 +847,7 @@ class Store:
         )
         return receipt
 
-    def read_page(self, principal: str, after: str | None, can_read: bool) -> dict:
+    def read_page(self, principal: str, after: str | None, can_read: bool) -> JsonObject:
         if not can_read:
             raise ReadForbidden
         with self._lock:
@@ -818,7 +866,7 @@ class Store:
             finally:
                 connection.close()
 
-    def _read_page(self, connection: sqlite3.Connection, principal: str, after: str | None) -> dict:
+    def _read_page(self, connection: sqlite3.Connection, principal: str, after: str | None) -> JsonObject:
         visibility = self._required_meta(connection, "visibility")
         revision = int(self._required_meta(connection, "policy_revision"))
         start = 0
@@ -843,21 +891,19 @@ class Store:
             """,
             (start,),
         ).fetchall()
-        visible: list[dict] = []
+        visible: list[JsonObject] = []
         scanned_through = start
         last_included = start
         has_more = False
         for row in rows:
             sequence = int(row["sequence"])
             scanned_through = sequence
-            try:
-                message = json.loads(row["message_json"])
-                event = json.loads(row["event_json"])
-            except json.JSONDecodeError as error:
-                raise StorageFailure from error
-            if not isinstance(message, dict) or not isinstance(event, dict):
+            message = parse_object(str(row["message_json"]))
+            event = parse_object(str(row["event_json"]))
+            actor = row["actor"]
+            if not isinstance(actor, str):
                 raise StorageFailure
-            if not visible_to(visibility, principal, row["actor"], message):
+            if not visible_to(visibility, principal, actor, message):
                 continue
             if len(visible) == PAGE_LIMIT:
                 has_more = True
@@ -938,31 +984,40 @@ def json_content_type(value: str | None) -> bool:
     return media.lower() == "application/json"
 
 
-def problem(status: int, code: str, title: str) -> dict:
-    return {
+def problem(status: int, code: str, title: str) -> JsonObject:
+    detail: JsonObject = {
         "type": f"https://agentciv.io/problems/{code}",
         "title": title,
         "status": status,
         "code": code,
     }
+    return detail
 
 
 class CommonsServer(ThreadingHTTPServer):
     daemon_threads = True
     allow_reuse_address = True
+    config: HostConfig
+    store: Store
+    origin: str
+    serve_thread: threading.Thread
+
+    def server_bind(self) -> None:
+        # HTTPServer.server_bind reverse-resolves the listen address before listen().
+        # That lookup can block on a macOS runner until a readiness check has given up.
+        socketserver.TCPServer.server_bind(self)
+        bound_host, bound_port = listen_pair(self.server_address)
+        self.server_name = bound_host
+        self.server_port = bound_port
 
     def __init__(self, config: HostConfig, store: Store) -> None:
         super().__init__(config.listen, Handler)
         self.config = config
         self.store = store
-        host, port = self.server_address[:2]
-        if ":" in str(host):
-            self.origin = f"http://[{host}]:{port}"
-        else:
-            self.origin = f"http://{host}:{port}"
+        self.origin = http_origin(self.server_address)
 
-    def descriptor(self) -> dict:
-        return {
+    def descriptor(self) -> JsonObject:
+        described: JsonObject = {
             "protocol_version": PROTOCOL_VERSION,
             "profile": PROFILE,
             "type": "world",
@@ -985,6 +1040,7 @@ class CommonsServer(ThreadingHTTPServer):
             },
             "limits": {"max_payload_bytes": self.config.max_payload_bytes},
         }
+        return described
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -994,6 +1050,11 @@ class Handler(BaseHTTPRequestHandler):
 
     def version_string(self) -> str:
         return self.server_version
+
+    def _commons(self) -> CommonsServer:
+        if not isinstance(self.server, CommonsServer):
+            raise StorageFailure
+        return self.server
 
     def setup(self) -> None:
         super().setup()
@@ -1005,7 +1066,7 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self) -> None:
         self.close_connection = True
         path = urllib.parse.urlsplit(self.path)
-        server: CommonsServer = self.server  # type: ignore[assignment]
+        server = self._commons()
         if path.path == "/.well-known/agentciv":
             self._json(200, server.descriptor())
             return
@@ -1027,7 +1088,7 @@ class Handler(BaseHTTPRequestHandler):
         self._problem(404, "not_found", "Not found")
 
     def _events(self, query: str) -> None:
-        server: CommonsServer = self.server  # type: ignore[assignment]
+        server = self._commons()
         credential = authenticate(self.headers.get("Authorization"), server.config.credentials)
         if credential is None:
             self._problem(401, "authentication_required", "Authentication required")
@@ -1051,7 +1112,7 @@ class Handler(BaseHTTPRequestHandler):
         self._json(200, page)
 
     def _submit(self) -> None:
-        server: CommonsServer = self.server  # type: ignore[assignment]
+        server = self._commons()
         credential = authenticate(self.headers.get("Authorization"), server.config.credentials)
         if credential is None:
             self._discard_body()
@@ -1102,7 +1163,7 @@ class Handler(BaseHTTPRequestHandler):
         self._json(200, receipt)
 
     def _collaborate(self) -> None:
-        server: CommonsServer = self.server  # type: ignore[assignment]
+        server = self._commons()
         credential = authenticate(self.headers.get("Authorization"), server.config.credentials)
         if credential is None:
             self._discard_body()
@@ -1193,7 +1254,7 @@ class Handler(BaseHTTPRequestHandler):
                 break
             remaining -= len(chunk)
 
-    def _json(self, status: int, body: dict) -> None:
+    def _json(self, status: int, body: JsonObject) -> None:
         self._bytes(status, json.dumps(body, ensure_ascii=False).encode("utf-8"), "application/json")
 
     def _problem(self, status: int, code: str, title: str) -> None:
@@ -1231,11 +1292,12 @@ def start_server(config: HostConfig) -> CommonsServer:
     server = CommonsServer(config, store)
     thread = threading.Thread(target=server.serve_forever, name="agentciv-python-host", daemon=True)
     thread.start()
-    server.serve_thread = thread  # type: ignore[attr-defined]
+    server.serve_thread = thread
     deadline = time.monotonic() + 2
     while time.monotonic() < deadline:
         try:
-            with socket.create_connection(server.server_address[:2], timeout=0.2):
+            host, port = listen_pair(server.server_address)
+            with socket.create_connection((host, port), timeout=0.2):
                 return server
         except OSError:
             time.sleep(0.01)
@@ -1259,7 +1321,7 @@ def main(argv: list[str] | None = None) -> int:
         return 1
     print(f"discovery {server.origin}/.well-known/agentciv", flush=True)
     try:
-        server.serve_thread.join()  # type: ignore[attr-defined]
+        server.serve_thread.join()
     except KeyboardInterrupt:
         server.shutdown()
         server.server_close()

@@ -1,0 +1,11 @@
+# Type check for the maintained Python. This file does not make a
+# Python package. The host process imports only the standard library.
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+files = [
+    "implementations/http-commons-python",
+    "examples/http-commons",
+    "examples/participants",
+]

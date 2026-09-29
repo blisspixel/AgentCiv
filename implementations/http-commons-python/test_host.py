@@ -14,9 +14,11 @@ import sys
 import tempfile
 import threading
 import unittest
+from unittest import mock
 import urllib.error
 import urllib.parse
 import urllib.request
+from collections.abc import Callable, Mapping
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -24,24 +26,41 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import host  # noqa: E402
 
 
-def config(directory: Path, **overrides: object) -> host.HostConfig:
-    values: dict[str, object] = {
-        "world_id": "civ:local",
-        "title": "Local",
-        "database_path": directory / "world.sqlite",
-        "listen": ("127.0.0.1", 0),
-        "visibility": "members",
-        "retention_seconds": 60,
-        "max_payload_bytes": 4096,
-        "credentials": (
+def config(
+    directory: Path,
+    *,
+    world_id: str = "civ:local",
+    title: str = "Local",
+    listen: tuple[str, int] = ("127.0.0.1", 0),
+    visibility: str = "members",
+    retention_seconds: int = 60,
+    max_payload_bytes: int = 4096,
+    credentials: tuple[host.Credential, ...] | None = None,
+) -> host.HostConfig:
+    if credentials is None:
+        credentials = (
             host.Credential("agent:abc123", "writer-token-value", True, True),
             host.Credential("agent:reader", "reader-token-value", True, False),
             host.Credential("agent:two", "second-writer-token", True, True),
             host.Credential("agent:writer-only", "writer-only-token", False, True),
-        ),
-    }
-    values.update(overrides)
-    return host.HostConfig(**values)  # type: ignore[arg-type]
+        )
+    return host.HostConfig(
+        world_id=world_id,
+        title=title,
+        database_path=directory / "world.sqlite",
+        listen=listen,
+        visibility=visibility,
+        retention_seconds=retention_seconds,
+        max_payload_bytes=max_payload_bytes,
+        credentials=credentials,
+    )
+
+
+def frozen_clock(moment: int) -> Callable[[], int]:
+    def current() -> int:
+        return moment
+
+    return current
 
 
 def message(
@@ -50,9 +69,9 @@ def message(
     world: str = "civ:local",
     text: str = "hello",
     recipients: list[str] | None = None,
-    extra: dict | None = None,
+    extra: Mapping[str, object] | None = None,
 ) -> bytes:
-    record = {
+    record: dict[str, object] = {
         "protocol_version": "0.1-draft",
         "type": "message",
         "id": message_id,
@@ -94,11 +113,67 @@ def request(
     return status, headers, payload
 
 
-def json_body(payload: bytes) -> dict:
-    value = json.loads(payload)
+def as_dict(value: object) -> dict[str, object] | None:
     if not isinstance(value, dict):
+        return None
+    parsed: dict[str, object] = {}
+    for key, item in value.items():
+        if not isinstance(key, str):
+            return None
+        parsed[key] = item
+    return parsed
+
+
+def json_body(payload: bytes) -> dict[str, object]:
+    try:
+        value: object = json.loads(payload)
+    except json.JSONDecodeError as error:
+        raise AssertionError("response was not JSON") from error
+    found = as_dict(value)
+    if found is None:
         raise AssertionError("expected a JSON object")
+    return found
+
+
+def expect_dict(value: object) -> dict[str, object]:
+    found = as_dict(value)
+    if found is None:
+        raise AssertionError("expected a JSON object")
+    return found
+
+
+def expect_list(value: object) -> list[object]:
+    if not isinstance(value, list):
+        raise AssertionError("expected a JSON array")
+    return list(value)
+
+
+def expect_str(value: object) -> str:
+    if not isinstance(value, str):
+        raise AssertionError("expected a string")
     return value
+
+
+def at(value: object, *steps: str | int) -> object:
+    current = value
+    for step in steps:
+        if isinstance(step, str):
+            mapping = expect_dict(current)
+            if step not in mapping:
+                raise AssertionError(f"missing {step}")
+            current = mapping[step]
+            continue
+        if isinstance(step, bool):
+            raise AssertionError("path step was not a key or index")
+        items = expect_list(current)
+        if step < 0 or step >= len(items):
+            raise AssertionError(f"missing index {step}")
+        current = items[step]
+    return current
+
+
+def dicts(value: object) -> list[dict[str, object]]:
+    return [expect_dict(item) for item in expect_list(value)]
 
 
 class ConfigTests(unittest.TestCase):
@@ -158,6 +233,17 @@ class ConfigTests(unittest.TestCase):
             with self.assertRaises(host.ConfigError):
                 host.checked_config(config(directory, credentials=duplicated))
 
+    def test_bytes_listen_address_formats_as_an_origin(self) -> None:
+        self.assertEqual(host.http_origin((b"127.0.0.1", 9)), "http://127.0.0.1:9")
+        self.assertEqual(host.http_origin((bytearray(b"127.0.0.1"), 9)), "http://127.0.0.1:9")
+        self.assertEqual(host.http_origin(("::1", 9)), "http://[::1]:9")
+        with self.assertRaises(host.StorageFailure):
+            host.http_origin((b"\xff", 9))
+        with self.assertRaises(host.StorageFailure):
+            host.http_origin(("127.0.0.1", True))
+        with self.assertRaises(host.StorageFailure):
+            host.http_origin(("127.0.0.1",))
+
 
 class RecordTests(unittest.TestCase):
     def test_version_and_type_precede_other_schema_failures(self) -> None:
@@ -182,7 +268,7 @@ class RecordTests(unittest.TestCase):
             host.collaboration_error({"protocol_version": 1, "type": "objection"}),
             "invalid_record",
         )
-        good = {
+        good: dict[str, object] = {
             "protocol_version": "0.1-draft",
             "type": "artifact_revision",
             "id": "submission:1",
@@ -211,7 +297,7 @@ class StoreTests(unittest.TestCase):
         self.directory = Path(self.temporary.name)
         self.config = config(self.directory, retention_seconds=10)
         self.store = host.Store(self.config)
-        self.store.clock = lambda: 1_000
+        self.store.clock = frozen_clock(1_000)
 
     def tearDown(self) -> None:
         self.temporary.cleanup()
@@ -226,22 +312,22 @@ class StoreTests(unittest.TestCase):
         reopened = host.Store(self.config)
         self.assertEqual(reopened.event_count(), 1)
         page = reopened.read_page("agent:abc123", None, True)
-        self.assertEqual(page["events"][0]["body"]["message"]["id"], "message:kept")
+        self.assertEqual(at(page, "events", 0, "body", "message", "id"), "message:kept")
 
     def test_retry_window_is_half_open_and_keeps_the_old_event(self) -> None:
         body = message("message:1", "agent:abc123", text="first")
         receipt = self.store.submit("agent:abc123", body)
-        self.store.clock = lambda: 1_009
+        self.store.clock = frozen_clock(1_009)
         self.assertEqual(self.store.submit("agent:abc123", body)["event_id"], receipt["event_id"])
         with self.assertRaises(host.Conflict):
             self.store.submit("agent:abc123", message("message:1", "agent:abc123", text="other"))
         self.assertEqual(self.store.event_count(), 1)
-        self.store.clock = lambda: 1_010
+        self.store.clock = frozen_clock(1_010)
         again = self.store.submit("agent:abc123", message("message:1", "agent:abc123", text="later"))
         self.assertNotEqual(again["event_id"], receipt["event_id"])
         self.assertEqual(self.store.event_count(), 2)
         page = self.store.read_page("agent:abc123", None, True)
-        texts = [event["body"]["message"]["body"]["text"] for event in page["events"]]
+        texts = [at(event, "body", "message", "body", "text") for event in dicts(page["events"])]
         self.assertEqual(texts, ["first", "later"])
 
     def test_retry_scope_is_per_principal(self) -> None:
@@ -263,19 +349,19 @@ class StoreTests(unittest.TestCase):
         addressed = host.Store(config(self.directory, visibility="addressed", retention_seconds=10))
         reader = addressed.read_page("agent:reader", None, True)
         self.assertEqual(
-            [event["body"]["message"]["id"] for event in reader["events"]],
+            [at(event, "body", "message", "id") for event in dicts(reader["events"])],
             ["message:to-reader"],
         )
         sender = addressed.read_page("agent:abc123", None, True)
-        self.assertEqual(len(sender["events"]), 2)
-        stale = reader["next_cursor"]
+        self.assertEqual(len(expect_list(sender["events"])), 2)
+        stale = expect_str(reader["next_cursor"])
         sender_only = host.Store(config(self.directory, visibility="sender_only", retention_seconds=10))
         with self.assertRaises(host.CursorExpired):
             sender_only.read_page("agent:reader", stale, True)
         hidden = sender_only.read_page("agent:reader", None, True)
         self.assertEqual(hidden["events"], [])
         own = sender_only.read_page("agent:abc123", None, True)
-        self.assertEqual(len(own["events"]), 2)
+        self.assertEqual(len(expect_list(own["events"])), 2)
         with self.assertRaises(host.ReadForbidden):
             sender_only.read_page("agent:writer-only", "not-a-cursor", False)
         with self.assertRaises(host.InvalidCursor):
@@ -283,7 +369,7 @@ class StoreTests(unittest.TestCase):
         with self.assertRaises(host.InvalidCursor):
             sender_only.read_page("agent:abc123", "", True)
         with self.assertRaises(host.ReadForbidden):
-            sender_only.read_page("agent:reader", sender["next_cursor"], True)
+            sender_only.read_page("agent:reader", expect_str(sender["next_cursor"]), True)
 
 
 class HttpTests(unittest.TestCase):
@@ -298,10 +384,33 @@ class HttpTests(unittest.TestCase):
             server.server_close()
         self.temporary.cleanup()
 
-    def start(self, **overrides: object) -> host.CommonsServer:
-        server = host.start_server(config(self.directory, **overrides))
+    def start(
+        self,
+        *,
+        world_id: str = "civ:local",
+        visibility: str = "members",
+        retention_seconds: int = 60,
+        max_payload_bytes: int = 4096,
+        credentials: tuple[host.Credential, ...] | None = None,
+    ) -> host.CommonsServer:
+        server = host.start_server(
+            config(
+                self.directory,
+                world_id=world_id,
+                visibility=visibility,
+                retention_seconds=retention_seconds,
+                max_payload_bytes=max_payload_bytes,
+                credentials=credentials,
+            )
+        )
         self.servers.append(server)
         return server
+
+    def test_startup_does_not_reverse_resolve_the_listen_address(self) -> None:
+        with mock.patch("socket.getfqdn", side_effect=AssertionError("dns")):
+            server = self.start()
+        status, _, _ = request("GET", f"{server.origin}/.well-known/agentciv")
+        self.assertEqual(status, 200)
 
     def test_discovery_auth_recording_and_retry(self) -> None:
         server = self.start()
@@ -309,8 +418,8 @@ class HttpTests(unittest.TestCase):
         self.assertEqual(status, 200)
         world = json_body(payload)
         self.assertEqual(world["profile"], "http-commons/0.1-draft")
-        self.assertEqual(world["endpoints"]["events"], f"{server.origin}/events")
-        self.assertEqual(world["endpoints"]["submit"], f"{server.origin}/submit")
+        self.assertEqual(at(world, "endpoints", "events"), f"{server.origin}/events")
+        self.assertEqual(at(world, "endpoints", "submit"), f"{server.origin}/submit")
         self.assertEqual(headers["content-type"], "application/json")
 
         status, headers, payload = request("GET", f"{server.origin}/events")
@@ -337,7 +446,7 @@ class HttpTests(unittest.TestCase):
         self.assertEqual(status, 200)
         page = json_body(payload)
         self.assertEqual(page["events"], [])
-        cursor = page["next_cursor"]
+        cursor = expect_str(page["next_cursor"])
         self.assertTrue(cursor)
         self.assertFalse(cursor.isdigit())
 
@@ -374,12 +483,12 @@ class HttpTests(unittest.TestCase):
         )
         page = json_body(payload)
         self.assertEqual(status, 200)
-        self.assertEqual(len(page["events"]), 1)
-        event = page["events"][0]
+        self.assertEqual(len(expect_list(page["events"])), 1)
+        event = expect_dict(at(page, "events", 0))
         self.assertEqual(event["id"], receipt["event_id"])
         self.assertEqual(event["sequence"], receipt["sequence"])
         self.assertEqual(event["kind"], "message.recorded")
-        self.assertEqual(event["body"]["message"]["conformance_probe"], {"preserve": True})
+        self.assertEqual(at(event, "body", "message", "conformance_probe"), {"preserve": True})
         self.assertNotEqual(page["next_cursor"], str(event["sequence"]))
 
     def test_refusal_record_errors_and_cursors(self) -> None:
@@ -466,7 +575,7 @@ class HttpTests(unittest.TestCase):
             body=message("message:conformance-roundtrip", "agent:abc123", text="visible"),
         )
         status, _, payload = request("GET", events, token=writer)
-        cursor = json_body(payload)["next_cursor"]
+        cursor = expect_str(json_body(payload)["next_cursor"])
         status, _, payload = request(
             "GET",
             f"{events}?after={urllib.parse.quote(cursor, safe='')}",
@@ -477,8 +586,8 @@ class HttpTests(unittest.TestCase):
 
         status, _, payload = request("GET", events, token=reader)
         seen = [
-            event["body"]["message"]["id"]
-            for event in json_body(payload)["events"]
+            at(event, "body", "message", "id")
+            for event in dicts(json_body(payload)["events"])
         ]
         self.assertIn("message:conformance-roundtrip", seen)
 
@@ -505,10 +614,10 @@ class HttpTests(unittest.TestCase):
             self.assertEqual(status, 200)
         _, _, payload = request("GET", f"{server.origin}/events", token="writer-token-value")
         first = json_body(payload)
-        self.assertEqual(len(first["events"]), 100)
+        self.assertEqual(len(expect_list(first["events"])), 100)
         self.assertIs(first["has_more"], True)
-        cursor = first["next_cursor"]
-        for event in first["events"]:
+        cursor = expect_str(first["next_cursor"])
+        for event in dicts(first["events"]):
             self.assertNotEqual(cursor, str(event["sequence"]))
         _, _, payload = request(
             "GET",
@@ -516,10 +625,10 @@ class HttpTests(unittest.TestCase):
             token="writer-token-value",
         )
         second = json_body(payload)
-        self.assertEqual(len(second["events"]), 1)
+        self.assertEqual(len(expect_list(second["events"])), 1)
         self.assertIs(second["has_more"], False)
-        first_ids = {event["id"] for event in first["events"]}
-        self.assertNotIn(second["events"][0]["id"], first_ids)
+        first_ids = {expect_str(event["id"]) for event in dicts(first["events"])}
+        self.assertNotIn(expect_str(at(second, "events", 0, "id")), first_ids)
 
     def test_restart_handoff_and_cursor_expiry(self) -> None:
         server = self.start(visibility="members", retention_seconds=3600)
@@ -535,14 +644,17 @@ class HttpTests(unittest.TestCase):
             )
             self.assertEqual(status, 200)
         _, _, payload = request("GET", f"{server.origin}/events", token="reader-token-value")
-        cursor = json_body(payload)["next_cursor"]
+        cursor = expect_str(json_body(payload)["next_cursor"])
         server.shutdown()
         server.server_close()
         self.servers.remove(server)
 
         restarted = self.start(visibility="members", retention_seconds=3600)
         _, _, payload = request("GET", f"{restarted.origin}/events", token="reader-token-value")
-        texts = [event["body"]["message"]["body"]["text"] for event in json_body(payload)["events"]]
+        texts = [
+            at(event, "body", "message", "body", "text")
+            for event in dicts(json_body(payload)["events"])
+        ]
         self.assertEqual(texts, ["from the first writer", "from the second writer"])
 
         changed = self.start(visibility="sender_only", retention_seconds=3600)
@@ -556,7 +668,7 @@ class HttpTests(unittest.TestCase):
 
     def test_concurrent_submissions_keep_one_receipt_per_exact_body(self) -> None:
         server = self.start()
-        results: list[tuple[int, dict]] = []
+        results: list[tuple[int, dict[str, object]]] = []
         lock = threading.Lock()
 
         def race(message_id: str, text: str, barrier: threading.Barrier) -> None:
@@ -586,7 +698,7 @@ class HttpTests(unittest.TestCase):
         self.assertEqual(sorted(status for status, _ in results), [200, 200])
         self.assertEqual(results[0][1], results[1][1])
         _, _, payload = request("GET", f"{server.origin}/events", token="writer-token-value")
-        self.assertEqual(len(json_body(payload)["events"]), 1)
+        self.assertEqual(len(expect_list(json_body(payload)["events"])), 1)
 
         run_pair("message:differ", "left", "right")
         self.assertEqual(sorted(status for status, _ in results), [200, 409])
@@ -607,10 +719,12 @@ class HttpTests(unittest.TestCase):
         status, _, payload = request("GET", f"{origin}/.well-known/agentciv")
         world = json_body(payload)
         self.assertEqual(status, 200)
-        self.assertIn("collaboration.submit", world["capabilities"])
-        self.assertEqual(world["endpoints"]["collaborate"], f"{origin}/collaborate")
+        self.assertIn("collaboration.submit", expect_list(world["capabilities"]))
+        self.assertEqual(at(world, "endpoints", "collaborate"), f"{origin}/collaborate")
 
-        def post(token: str, record: dict, content_type: str = "application/json") -> tuple[int, dict]:
+        def post(
+            token: str, record: Mapping[str, object], content_type: str = "application/json"
+        ) -> tuple[int, dict[str, object]]:
             raw = json.dumps(record, separators=(",", ":")).encode("utf-8")
             posted, _, body = request(
                 "POST",
@@ -783,14 +897,14 @@ class HttpTests(unittest.TestCase):
         self.assertEqual(decline, 200)
 
         _, _, payload = request("GET", f"{origin}/events", token="token-peer")
-        before = json_body(payload)["events"]
+        before = dicts(json_body(payload)["events"])
         self.assertTrue(
             any(
-                event["kind"] == "artifact.recorded"
-                and event["body"]["artifact_revision"]["revision"] == 1
-                and event["body"]["artifact_revision"]["continuity_note"]["aim"]
+                at(event, "kind") == "artifact.recorded"
+                and at(event, "body", "artifact_revision", "revision") == 1
+                and at(event, "body", "artifact_revision", "continuity_note", "aim")
                 == "Leave a plan a later participant can resume or reject."
-                and event["body"]["artifact_revision"]["note"]["keep"] is True
+                and at(event, "body", "artifact_revision", "note", "keep") is True
                 for event in before
             )
         )
@@ -856,7 +970,7 @@ class HttpTests(unittest.TestCase):
         self.assertEqual(on_submit, 422)
         self.assertEqual(json_body(payload)["code"], "unsupported_record_type")
 
-        message_record = {
+        message_record: dict[str, object] = {
             "protocol_version": "0.1-draft",
             "type": "message",
             "id": "message:wrong-door",
@@ -871,36 +985,36 @@ class HttpTests(unittest.TestCase):
 
         def survived(base: str) -> None:
             _, _, page = request("GET", f"{base}/events", token="token-peer")
-            events = json_body(page)["events"]
+            events = dicts(json_body(page)["events"])
             self.assertTrue(
                 any(
-                    event["kind"] == "artifact.withdrawn"
-                    and event["body"] == {}
-                    and event["actor"] == "agent:abc123"
+                    at(event, "kind") == "artifact.withdrawn"
+                    and at(event, "body") == {}
+                    and at(event, "actor") == "agent:abc123"
                     for event in events
                 )
             )
             self.assertTrue(
                 any(
-                    event["kind"] == "objection.recorded"
-                    and event["body"]["objection"]["body"]["text"]
+                    at(event, "kind") == "objection.recorded"
+                    and at(event, "body", "objection", "body", "text")
                     == "The plan still treats a summary as the source."
                     for event in events
                 )
             )
-            self.assertTrue(any(event["kind"] == "decline.recorded" for event in events))
+            self.assertTrue(any(at(event, "kind") == "decline.recorded" for event in events))
             self.assertTrue(
                 any(
-                    event["kind"] == "artifact.recorded"
-                    and event["body"]["artifact_revision"]["revision"] == 2
-                    and event["actor"] == "agent:abc123"
+                    at(event, "kind") == "artifact.recorded"
+                    and at(event, "body", "artifact_revision", "revision") == 2
+                    and at(event, "actor") == "agent:abc123"
                     for event in events
                 )
             )
             self.assertTrue(
                 any(
-                    event["kind"] == "objection.recorded"
-                    and event["body"]["objection"]["body"]["text"]
+                    at(event, "kind") == "objection.recorded"
+                    and at(event, "body", "objection", "body", "text")
                     == "The withdrawal leaves the objection standing."
                     for event in events
                 )
@@ -918,8 +1032,8 @@ class HttpTests(unittest.TestCase):
         survived(restarted.origin)
 
 
-def artifact_revision(record_id: str, sender: str, recipients: list[str]) -> dict:
-    return {
+def artifact_revision(record_id: str, sender: str, recipients: list[str]) -> dict[str, object]:
+    record: dict[str, object] = {
         "protocol_version": "0.1-draft",
         "type": "artifact_revision",
         "id": record_id,
@@ -935,6 +1049,7 @@ def artifact_revision(record_id: str, sender: str, recipients: list[str]) -> dic
         },
         "note": {"keep": True},
     }
+    return record
 
 
 class PublicRunnerTest(unittest.TestCase):
@@ -975,12 +1090,14 @@ class PublicRunnerTest(unittest.TestCase):
             0,
             completed.stdout + "\n" + completed.stderr,
         )
-        report = json.loads(completed.stdout)
+        loaded: object = json.loads(completed.stdout)
+        report = expect_dict(loaded)
         self.assertEqual(report["runner_scope"], "credentialed-extended")
-        self.assertEqual(report["summary"]["failed"], 0)
-        self.assertEqual(report["summary"]["skipped"], 0)
-        self.assertEqual(report["summary"]["passed"], 24)
-        ids = {case["id"] for case in report["cases"]}
+        summary = expect_dict(report["summary"])
+        self.assertEqual(summary["failed"], 0)
+        self.assertEqual(summary["skipped"], 0)
+        self.assertEqual(summary["passed"], 24)
+        ids = {expect_str(case["id"]) for case in dicts(report["cases"])}
         self.assertIn("submit.json_charset", ids)
         self.assertIn("events.empty_cursor", ids)
 
