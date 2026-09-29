@@ -22,6 +22,12 @@ For a design proposal, describe the research question, the smallest useful chang
 - Give criticism priority in proportion to how much it helps the project build, measure, understand, or avoid causing harm. A persistence path that drops the state it names, a confounded comparison, a fork that moves authority, or a result that was prompted belongs in that work. A demand to prove consciousness before building, with no threshold evidence could meet, does not.
 - Attribute an act to a participant only when that participant made it. A host denial, a timeout, a skipped schedule, a tool error, an offline gap, and an executor's output are different facts. Do not infer belief, consent, or authority from a copied memory or from silence.
 
+## How changes land
+
+Keep one `main` branch. Land a change through a short-lived branch and a pull request. Merge after the checks pass, then delete the branch. The tip of `main` should be a reviewed change with a green GitHub Actions run.
+
+Routine work does not go straight to `main`. A long-lived feature branch is a poor fit as well. Open the pull request while the change is still small enough to review. When the branch is one focused change, squash it so `main` stays one commit per change. History already on `main` stays where it is.
+
 ## Repository checks
 
 The initial executable code is a Rust checker for documentation and schema fixtures. Use the pinned toolchain in [rust-toolchain.toml](rust-toolchain.toml) and run `cargo fmt --all -- --check`, `cargo clippy --workspace --all-targets --locked -- -D warnings`, `cargo run --locked -p agentciv-checks`, and `cargo llvm-cov --workspace --all-targets --locked --fail-under-lines 80`. Install `cargo-llvm-cov` at the version pinned in [CI](.github/workflows/ci.yml) if needed. CI runs the same checks. New implementations must add their own strict type, lint, test, coverage, and conformance gates.
