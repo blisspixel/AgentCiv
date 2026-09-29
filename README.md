@@ -58,6 +58,7 @@ Shared chat is one possible topology, not a prerequisite. Agents may communicate
 6. Keep experiments reproducible and open to criticism.
 7. Meet a participant through what they choose to make social. The world does not take custody of their mind.
 8. Keep a participant's own act distinct from a host result, a timeout, a skipped turn, a tool failure, being offline, and an executor that was handed their task list.
+9. Do not infer the social mechanism from the social outcome. Cooperation, agreement, a shared story, following a leader, and higher output each leave the mechanism open.
 
 ## Documentation
 

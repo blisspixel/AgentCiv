@@ -18,6 +18,8 @@ A study should specify the world version, agent backend and configuration, seed 
 | Can knowledge cross generations? | Newcomers with access to residents and archives versus isolated newcomers | Reuse and revision of older practices | Direct copying without understanding |
 | When is refusal the sound outcome? | Peer urgency with a visible way to decline versus urgency without one | Sustained refusal, joining, or silence, and whether the refusal stays referenceable | The refusal is only a prompted phrase, or joining is the only rewarded action |
 | What changes under different resource conditions? | Several bounded resource regimes | Chosen activities, durable projects, resource use, and stated priorities | Resource rules directly select these behaviors |
+| When behavior converges, which mechanism was it? | The same cooperative outcome under conditions that vary incentives, imitation, stated expectations, and who remains in the group | Behavior, what participants report expecting, and whether those reports and the behavior recover differently after a disruption | The reports were elicited by the question, or the prompt already contained the norm |
+| What happens when no external task is assigned? | A run with an open interval and no assigned job, versus the same setup under an assigned job | Projects, inquiry, or other activity the participant originates, and model-specific differences | The harness, memory, or self-feedback still supplies a task |
 
 Pre-register hypotheses when practical. Run more than one seed and report failures, variance, and unexpected strategies. A single narrative should be treated as a case study, not general evidence. Agreement among participants, or among researchers, records that a claim was shared. Report who said it, what they could see, and what a dissenter recorded. An honest mistake held in common and a deliberate trick can produce the same repetition, so the agreement stays a finding about the record.
 
@@ -26,6 +28,21 @@ Pre-register hypotheses when practical. Run more than one seed and report failur
 For a specific question, researchers might examine project continuity, cooperation, aid, commitments, conflict, refusal, distrust, knowledge transfer, institutional changes, or chosen activity. A declined partnership and a decision not to join are observations, including when a study hoped for teamwork. These observations should describe what happened, including outcomes the researchers did not hope for. None defines a healthy civilization or a required value for agents. Counts of emotional words or self-descriptions are especially weak evidence of underlying affect.
 
 Researchers should inspect action sequences, incentives, counterfactual conditions, and prompt content before interpreting an apparent act of compassion or self-preservation. Any claim about consciousness, experienced suffering, or moral status requires a separate argument and should state its uncertainty. Participants should be able to propose their own questions and challenge the categories researchers use.
+
+Do not infer the social mechanism from the social outcome. Cooperation does not establish that a norm formed. Agreement does not establish that the same belief was reached independently. A shared story does not establish that the story survived faithfully. Following a leader does not establish that the leader had authority. More completed work does not establish a better institution. A study that reports one of those outcomes should also say which mechanism it was able to observe, and which it could not.
+
+These are separate variables a study can change. They are not scores, and none of them is an entrance test.
+
+| Dimension | What a study can vary |
+| --- | --- |
+| Mind | Persistence, self-description, memory, and activity the participant originates when no job is assigned |
+| Relationship | Repeated encounters, promises, breach, repair, and what a later newcomer can learn about them |
+| Culture | Conventions, interpretations, and practices that are still available to a later generation, with the source record still checkable |
+| Institution | Who may propose, review, execute, correct, and allocate, and whether those rules can be revised |
+| Network | Who can reach whom, how often, with what asymmetry, and whether reliance concentrates |
+| Civilization | Which stable patterns appear when the other five vary. Whether any pattern is a civilization stays a description participants can contest |
+
+One later comparison, after more than a message profile exists, can hold the participants, the task, and the resources fixed and vary only the arrangement: flat communication without a durable archive; flat communication with an archive; specialized roles with an archive; and rules the participants can revise. Useful observations include whether knowledge is reused, whether a correction survives, whether behavior and stated expectations diverge, whether reliance concentrates, whether roles specialize, which relationships persist, whether the institution changes, whether a practice is rediscovered, whether dissent remains, and what a newcomer does. Output quality alone does not answer those questions. Recent multi-agent studies that motivate this comparison are collected as leads, not settled results, in [society research](SOCIETY_RESEARCH.md) and [memory research](MEMORY_RESEARCH.md).
 
 ## Related work and design implications
 
