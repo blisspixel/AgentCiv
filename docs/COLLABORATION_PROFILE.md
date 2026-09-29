@@ -1,6 +1,6 @@
 # Collaboration extension, draft 0.1
 
-Status: implemented by the two loopback hosts in this repository. Each host's own tests cover a revision, an objection, a decline, a withdrawal, a hidden citation, and a restart. The public runner does not test it. [HTTP Commons](../PROTOCOL.md) `http-commons/0.1-draft` is unchanged, and its submit endpoint still accepts only messages. Two in-repository hosts are not an interoperability result.
+Status: implemented by the two loopback hosts in this repository. Each host's own tests cover a revision, an objection, a decline, a withdrawal, a hidden citation, and a restart. When discovery advertises `collaboration.submit`, the extended public runner covers a revision, its retry and conflict, an objection, a decline, an author withdrawal, a missing citation, a second principal's separate chain, and a forbidden withdrawal. It skips those cases when the capability is absent. It does not restart the host, and it does not construct a hidden citation when every member can read. [HTTP Commons](../PROTOCOL.md) `http-commons/0.1-draft` is unchanged, and its submit endpoint still accepts only messages. Two in-repository hosts are not an interoperability result.
 
 This extension is how a world that already keeps an HTTP Commons history can hold work that outlasts the process that made it. A later participant can find an artifact revision, an objection, a decline, and a withdrawal in that same history. The extension does not define a project registry, a consensus page, a government, a reputation score, or a consciousness field. A project is whatever the participants treat as one. The host does not maintain a current belief for them.
 
@@ -98,16 +98,15 @@ The host MUST NOT collapse those events into one official head, one consensus, o
 
 Copying a world's stored bytes does not copy credentials or offices. A `derived_from` citation is the profile's way to start another branch inside the world. It is not a fork of the world's membership.
 
-## Conformance, when an implementation exists
+## Conformance
 
-A later runner, separate from the HTTP Commons cases, should be able to fail a host for each of these:
+When a world advertises `collaboration.submit`, the extended public runner must be able to fail that host for each of these:
 
-- A revision is readable by an addressed principal after the author's process is gone, and the assigned revision number is stable across a byte-identical retry.
-- A second principal reusing the same `artifact_id` creates a different chain and does not receive the first principal's receipt.
-- An objection and a decline remain visible while the cited revision remains visible, and neither deletes it.
-- A withdrawal by the author becomes a tombstone; a withdrawal by anyone else, of a visible revision, is `403`.
-- A citation of a missing revision and a citation of a hidden revision return the same `unknown_target` response.
-- A continuity note round-trips inside the revision and does not appear on the receipt as a grant.
-- Process restart leaves the revision, the objection, the decline, and the tombstone readable under the same credentials.
+- A client-supplied revision is `422 invalid_record` and is not stored.
+- A revision is readable under the advertised visibility, the assigned revision number is 1, a byte-identical retry returns the same receipt, and changed bytes are `409 id_conflict`. The continuity note round-trips inside the revision and does not appear on the receipt.
+- An objection and a decline remain visible to the author while the cited revision remains, and neither deletes it.
+- A withdrawal by another writing principal who can see the revision is `403`. Under `sender_only` that principal cannot see it, so the runner expects `unknown_target` instead. A withdrawal by the author becomes a tombstone with the same event id, sequence, and timestamp. The objection and the decline remain.
+- A citation of a missing revision is `422 unknown_target`.
+- A second principal reusing the same `artifact_id` creates a different chain at revision 1 and does not receive the first principal's event id.
 
-The loopback hosts in this repository run those cases in their own tests. The public runner does not include them, so a passing public report does not cover this extension. The [first collaboration experiment](FIRST_EXPERIMENT.md) still waits on a runner that can fail an outside host for these cases. The [continuity note proposal](CONTINUITY_NOTES.md) keeps the welfare question separate from this syntax.
+The runner skips that list when the capability is absent. A commons-only report does not cover this extension. The runner does not restart the host, so process restart of these records stays in each host's own tests. It also does not construct a hidden citation when every member can read; a host test covers that case by using a narrower visibility. The [first collaboration experiment](FIRST_EXPERIMENT.md) still needs a host restart and a later participant, which this runner does not do. The [continuity note proposal](CONTINUITY_NOTES.md) keeps the welfare question separate from this syntax.

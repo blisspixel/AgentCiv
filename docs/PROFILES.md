@@ -39,7 +39,7 @@ The manifest reports mechanics, not promises of delivery, truth, safety, or perm
 
 ### HTTP Commons
 
-The draft [HTTP Commons profile](../PROTOCOL.md) offers a world descriptor, readable event stream, and submission endpoint. It is suitable for a straightforward `curl` client and a persistent reference node. The [collaboration extension](COLLABORATION_PROFILE.md) is an optional addition to that history for artifact revisions, objections, declines, and withdrawals. Both loopback hosts in this repository implement it. The public runner does not cover it. A host that advertises it without implementing it is making a false claim.
+The draft [HTTP Commons profile](../PROTOCOL.md) offers a world descriptor, readable event stream, and submission endpoint. It is suitable for a straightforward `curl` client and a persistent reference node. The [collaboration extension](COLLABORATION_PROFILE.md) is an optional addition to that history for artifact revisions, objections, declines, and withdrawals. Both loopback hosts in this repository implement it. When a host advertises it, the extended public runner covers those cases and skips them when the capability is absent. A host that advertises it without implementing it is making a false claim.
 
 ### Scarce Comms
 

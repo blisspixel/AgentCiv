@@ -1,8 +1,18 @@
 use std::io::{Read, Write};
 use std::net::{TcpListener, TcpStream};
 use std::thread::{self, JoinHandle};
+use std::time::Duration;
+
+use reqwest::StatusCode;
+use reqwest::Url;
+use reqwest::blocking::Client;
 
 use super::*;
+use super::{
+    COLLABORATION_CASES, CollaborationInput, CollaborationRun, Party, RecordedRevision,
+    addressed_reader_can_see, artifact_submission, collaboration_advertised, foreign_withdrawal,
+    foreign_withdrawal_status, other_chain, run_collaboration_cases,
+};
 
 #[derive(Clone, Copy)]
 enum Mode {
@@ -500,6 +510,230 @@ fn empty_credential_is_rejected_without_contacting_a_host() {
     assert_eq!(extended.scope, "credentialed-extended");
     assert_eq!(extended.cases[0].id, "credential.input");
     assert_eq!(extended.cases[0].status, CaseStatus::Failed);
+}
+
+#[test]
+fn invalid_peer_is_rejected_without_contacting_a_host() {
+    for peer in [
+        Some(("agent:writer", "peer-token")),
+        Some(("agent:reader", "peer-token")),
+        Some(("agent:peer", "writer-token")),
+        Some(("agent:peer", "reader-token")),
+        Some(("", "peer-token")),
+        Some(("agent:peer", "")),
+    ] {
+        let report = run_extended_with_peer(
+            "http://127.0.0.1:1",
+            "agent:writer",
+            "writer-token",
+            "agent:reader",
+            "reader-token",
+            peer,
+        );
+        assert_eq!(report.cases[0].id, "credential.input", "{peer:?}");
+        assert_eq!(report.cases[0].status, CaseStatus::Failed);
+        assert!(!report.passed());
+    }
+}
+
+#[test]
+fn optional_collaboration_skip_does_not_fail_the_report() {
+    let report = Report {
+        cases: vec![
+            Case::passed("events.authorized"),
+            Case::skipped_optional(
+                "collaborate.revision",
+                "host does not advertise collaboration.submit",
+            ),
+        ],
+        scope: "credentialed-extended",
+    };
+    assert!(report.passed());
+    let json = report.to_json();
+    assert_eq!(json["summary"]["passed"], 1);
+    assert_eq!(json["summary"]["skipped"], 1);
+    assert_eq!(json["summary"]["failed"], 0);
+    assert_eq!(json["cases"][1]["required"], false);
+    let required_skip = Report {
+        cases: vec![Case::skipped(
+            "events.pagination",
+            "writer event page was unreadable",
+        )],
+        scope: "credentialed-extended",
+    };
+    assert!(!required_skip.passed());
+    assert_eq!(required_skip.to_json()["cases"][0]["required"], true);
+}
+
+fn collaboration_input<'a>(
+    client: &'a Client,
+    world: &'a Value,
+    events: &'a Url,
+    discovery: &'a Url,
+) -> CollaborationInput<'a> {
+    CollaborationInput {
+        client,
+        world,
+        events,
+        discovery,
+        writer: Party {
+            principal: "agent:writer",
+            token: "writer-token",
+        },
+        reader: Party {
+            principal: "agent:reader",
+            token: "reader-token",
+        },
+        peer: None,
+    }
+}
+
+#[test]
+fn absent_collaboration_capability_skips_without_requests() {
+    let client = Client::builder()
+        .timeout(Duration::from_millis(200))
+        .build()
+        .unwrap();
+    let events = Url::parse("http://127.0.0.1:1/events").unwrap();
+    let discovery = Url::parse("http://127.0.0.1:1/.well-known/agentciv").unwrap();
+    let absent = json!({
+        "capabilities": ["events.read", "messages.submit"],
+        "history": {"visibility": "members"}
+    });
+    let mut cases = Vec::new();
+    run_collaboration_cases(
+        &collaboration_input(&client, &absent, &events, &discovery),
+        &mut cases,
+    );
+    assert_eq!(cases.len(), COLLABORATION_CASES.len());
+    assert!(cases.iter().all(|case| {
+        case.status == CaseStatus::Skipped
+            && !case.required
+            && case.detail == "host does not advertise collaboration.submit"
+    }));
+    assert!(!collaboration_advertised(&json!("collaboration.submit")));
+
+    let unauthenticated = json!({
+        "id": "civ:test",
+        "capabilities": ["events.read", "messages.submit", "collaboration.submit"],
+        "endpoints": {"collaborate": "http://127.0.0.1:1/collaborate"},
+        "history": {"visibility": "members"},
+        "authentication": {"collaborate": "basic"}
+    });
+    let mut cases = Vec::new();
+    run_collaboration_cases(
+        &collaboration_input(&client, &unauthenticated, &events, &discovery),
+        &mut cases,
+    );
+    assert_eq!(cases[0].id, "collaborate.client_revision");
+    assert_eq!(cases[0].status, CaseStatus::Failed);
+    assert!(cases[0].detail.contains("bearer"));
+    assert!(
+        cases[1..]
+            .iter()
+            .all(|case| case.status == CaseStatus::Skipped && case.required)
+    );
+
+    let missing = json!({
+        "id": "civ:test",
+        "capabilities": ["collaboration.submit"],
+        "endpoints": {},
+        "history": {"visibility": "members"}
+    });
+    let mut cases = Vec::new();
+    run_collaboration_cases(
+        &collaboration_input(&client, &missing, &events, &discovery),
+        &mut cases,
+    );
+    assert_eq!(cases[0].status, CaseStatus::Failed);
+    assert!(cases[0].detail.contains("collaborate"));
+    assert!(
+        cases[1..]
+            .iter()
+            .all(|case| case.status == CaseStatus::Skipped && case.required)
+    );
+}
+
+#[test]
+fn collaboration_visibility_rules_follow_the_fixture_audience() {
+    assert!(addressed_reader_can_see("members").unwrap());
+    assert!(addressed_reader_can_see("addressed").unwrap());
+    assert!(!addressed_reader_can_see("sender_only").unwrap());
+    assert!(addressed_reader_can_see("public").is_err());
+    assert_eq!(
+        foreign_withdrawal_status("members").unwrap(),
+        ("forbidden", StatusCode::FORBIDDEN)
+    );
+    assert_eq!(
+        foreign_withdrawal_status("addressed").unwrap(),
+        ("forbidden", StatusCode::FORBIDDEN)
+    );
+    assert_eq!(
+        foreign_withdrawal_status("sender_only").unwrap(),
+        ("unknown_target", StatusCode::UNPROCESSABLE_ENTITY)
+    );
+    assert!(foreign_withdrawal_status("public").is_err());
+}
+
+#[test]
+fn advertised_collaboration_without_a_peer_fails_the_peer_cases() {
+    let client = Client::builder()
+        .timeout(Duration::from_millis(200))
+        .build()
+        .unwrap();
+    let events = Url::parse("http://127.0.0.1:1/events").unwrap();
+    let collaborate = Url::parse("http://127.0.0.1:1/collaborate").unwrap();
+    let ctx = CollaborationRun {
+        client: &client,
+        world_id: "civ:test",
+        visibility: "members",
+        events: &events,
+        collaborate,
+        writer: Party {
+            principal: "agent:writer",
+            token: "writer-token",
+        },
+        reader: Party {
+            principal: "agent:reader",
+            token: "reader-token",
+        },
+        peer: None,
+        audience: vec!["agent:reader".to_owned()],
+    };
+    let recorded = RecordedRevision {
+        record: json!({}),
+        bytes: Vec::new(),
+        receipt: json!({"event_id": "event:1", "sequence": 1}),
+        event_id: "event:1".to_owned(),
+        timestamp: "2026-09-29T00:00:00Z".to_owned(),
+    };
+    let forbidden = foreign_withdrawal(&ctx, &recorded).unwrap_err();
+    assert!(forbidden.contains("writing peer"), "{forbidden}");
+    let chain = other_chain(&ctx, &recorded).unwrap_err();
+    assert!(chain.contains("writing peer"), "{chain}");
+}
+
+#[test]
+fn collaboration_records_fit_the_profile_payload_floor() {
+    let audience = vec!["agent:reader".to_owned(), "agent:peer".to_owned()];
+    let mut record = artifact_submission(
+        "civ:python-runner",
+        "agent:abc123",
+        &audience,
+        "submission:conformance-revision",
+        "artifact:conformance",
+        "Keep the pages addressable.",
+    );
+    record["continuity_note"] = json!({
+        "aim": "Leave work a later participant can resume or reject.",
+        "resume_hint": "Read the objection before choosing."
+    });
+    record["conformance_probe"] = json!({"preserve": true});
+    assert!(
+        record.to_string().len() <= 1024,
+        "{}",
+        record.to_string().len()
+    );
 }
 
 fn read_raw(stream: &mut TcpStream) -> (String, Vec<u8>) {

@@ -1073,6 +1073,7 @@ class PublicRunnerTest(unittest.TestCase):
                 env = os.environ.copy()
                 env["AGENTCIV_CONFORMANCE_TOKEN"] = "writer-token-value"
                 env["AGENTCIV_CONFORMANCE_READER_TOKEN"] = "reader-token-value"
+                env["AGENTCIV_CONFORMANCE_PEER_TOKEN"] = "second-writer-token"
                 completed = subprocess.run(
                     command,
                     cwd=root,
@@ -1096,10 +1097,28 @@ class PublicRunnerTest(unittest.TestCase):
         summary = expect_dict(report["summary"])
         self.assertEqual(summary["failed"], 0)
         self.assertEqual(summary["skipped"], 0)
-        self.assertEqual(summary["passed"], 24)
-        ids = {expect_str(case["id"]) for case in dicts(report["cases"])}
+        self.assertEqual(summary["passed"], 34)
+        cases = dicts(report["cases"])
+        ids = {expect_str(case["id"]) for case in cases}
+        self.assertEqual(len(ids), 34)
         self.assertIn("submit.json_charset", ids)
         self.assertIn("events.empty_cursor", ids)
+        for case_id in (
+            "collaborate.client_revision",
+            "collaborate.revision",
+            "collaborate.retry",
+            "collaborate.conflict",
+            "collaborate.objection",
+            "collaborate.decline",
+            "collaborate.withdrawal_forbidden",
+            "collaborate.withdrawal",
+            "collaborate.unknown_target",
+            "collaborate.other_chain",
+        ):
+            found = [case for case in cases if case["id"] == case_id]
+            self.assertEqual(len(found), 1, case_id)
+            self.assertEqual(found[0]["status"], "passed")
+            self.assertIs(found[0]["required"], True)
 
 
 def runner_command(root: Path, discovery: str) -> list[str]:
@@ -1110,6 +1129,8 @@ def runner_command(root: Path, discovery: str) -> list[str]:
         "agent:abc123",
         "--reader",
         "agent:reader",
+        "--peer",
+        "agent:two",
     ]
     for name in ("agentciv-conformance.exe", "agentciv-conformance"):
         candidate = root / "target" / "debug" / name

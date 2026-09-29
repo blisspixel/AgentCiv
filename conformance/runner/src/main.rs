@@ -1,11 +1,15 @@
 use std::env;
 use std::process::ExitCode;
 
+const USAGE: &str =
+    "usage: agentciv-conformance --discovery URL [--principal ID] [--reader ID] [--peer ID]";
+
 fn main() -> ExitCode {
     let args: Vec<String> = env::args().skip(1).collect();
     let mut discovery = None;
     let mut principal = None;
     let mut reader = None;
+    let mut peer = None;
     let mut index = 0;
     while index < args.len() {
         let value = args.get(index + 1).map(String::as_str);
@@ -13,17 +17,20 @@ fn main() -> ExitCode {
             "--discovery" => discovery = value,
             "--principal" => principal = value,
             "--reader" => reader = value,
+            "--peer" => peer = value,
             _ => {
-                eprintln!(
-                    "usage: agentciv-conformance --discovery URL [--principal ID] [--reader ID]"
-                );
+                eprintln!("{USAGE}");
                 return ExitCode::FAILURE;
             }
         }
         index += 2;
     }
     if discovery.is_none() || index != args.len() {
-        eprintln!("usage: agentciv-conformance --discovery URL [--principal ID] [--reader ID]");
+        eprintln!("{USAGE}");
+        return ExitCode::FAILURE;
+    }
+    if peer.is_some() && reader.is_none() {
+        eprintln!("--peer requires --reader");
         return ExitCode::FAILURE;
     }
     let report = match (principal, reader) {
@@ -60,13 +67,32 @@ fn main() -> ExitCode {
                 eprintln!("tokens and principals must be nonempty");
                 return ExitCode::FAILURE;
             }
-            agentciv_conformance::run_extended(
-                discovery.expect("discovery"),
-                principal,
-                &token,
-                reader,
-                &reader_token,
-            )
+            if let Some(peer) = peer {
+                let Ok(peer_token) = env::var("AGENTCIV_CONFORMANCE_PEER_TOKEN") else {
+                    eprintln!("set AGENTCIV_CONFORMANCE_PEER_TOKEN for the second writer");
+                    return ExitCode::FAILURE;
+                };
+                if peer.is_empty() || peer_token.is_empty() {
+                    eprintln!("tokens and principals must be nonempty");
+                    return ExitCode::FAILURE;
+                }
+                agentciv_conformance::run_extended_with_peer(
+                    discovery.expect("discovery"),
+                    principal,
+                    &token,
+                    reader,
+                    &reader_token,
+                    Some((peer, &peer_token)),
+                )
+            } else {
+                agentciv_conformance::run_extended(
+                    discovery.expect("discovery"),
+                    principal,
+                    &token,
+                    reader,
+                    &reader_token,
+                )
+            }
         }
         (None, Some(_)) => {
             eprintln!("--reader requires --principal");

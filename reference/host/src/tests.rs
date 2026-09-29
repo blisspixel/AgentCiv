@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use agentciv_conformance::{CaseStatus, run, run_extended};
+use agentciv_conformance::{CaseStatus, run, run_extended_with_peer};
 use reqwest::blocking::Client;
 use reqwest::header::{AUTHORIZATION, CONTENT_TYPE};
 use serde_json::json;
@@ -404,7 +404,13 @@ async fn reopening_for_another_world_fails_before_listen() {
 #[tokio::test]
 async fn public_http_covers_recording_refusal_and_restart() {
     let dir = tempdir().expect("temp");
-    let host_config = config(dir.path(), Visibility::Members);
+    let mut host_config = config(dir.path(), Visibility::Members);
+    host_config.credentials.push(Credential {
+        principal: "agent:peer".to_owned(),
+        token: "token-peer".to_owned(),
+        read: true,
+        write: true,
+    });
     let running = start_test_host(host_config.clone()).await.expect("start");
     let discovery = running.discovery.clone();
     let base = discovery
@@ -413,17 +419,19 @@ async fn public_http_covers_recording_refusal_and_restart() {
     let report = tokio::task::spawn_blocking({
         let discovery = discovery.clone();
         move || {
-            run_extended(
+            run_extended_with_peer(
                 &discovery,
                 "agent:abc123",
                 "token-writer",
                 "agent:reader",
                 "token-reader",
+                Some(("agent:peer", "token-peer")),
             )
         }
     })
     .await
     .expect("runner");
+    assert_eq!(report.cases.len(), 34, "{report:?}");
     assert!(
         report
             .cases
@@ -431,7 +439,20 @@ async fn public_http_covers_recording_refusal_and_restart() {
             .all(|case| case.status == CaseStatus::Passed),
         "{report:?}"
     );
-    for id in ["submit.json_charset", "events.empty_cursor"] {
+    for id in [
+        "submit.json_charset",
+        "events.empty_cursor",
+        "collaborate.client_revision",
+        "collaborate.revision",
+        "collaborate.retry",
+        "collaborate.conflict",
+        "collaborate.objection",
+        "collaborate.decline",
+        "collaborate.withdrawal_forbidden",
+        "collaborate.withdrawal",
+        "collaborate.unknown_target",
+        "collaborate.other_chain",
+    ] {
         assert!(
             report.cases.iter().any(|case| case.id == id),
             "{id} missing from {report:?}"
