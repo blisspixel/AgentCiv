@@ -618,6 +618,418 @@ fn reader_sees_roundtrip(base: &str) -> bool {
         .any(|event| event["body"]["message"]["id"] == "message:conformance-roundtrip")
 }
 
+#[tokio::test]
+async fn collaboration_records_survive_restart() {
+    let dir = tempdir().expect("temp");
+    let mut host_config = config(dir.path(), Visibility::Addressed);
+    host_config.credentials.push(Credential {
+        principal: "agent:peer".to_owned(),
+        token: "token-peer".to_owned(),
+        read: true,
+        write: true,
+    });
+    host_config.credentials.push(Credential {
+        principal: "agent:outsider".to_owned(),
+        token: "token-outsider".to_owned(),
+        read: true,
+        write: true,
+    });
+    host_config.max_payload_bytes = 4096;
+    let running = start_test_host(host_config.clone()).await.expect("start");
+    let base = running
+        .discovery
+        .trim_end_matches("/.well-known/agentciv")
+        .to_owned();
+    let advertised = tokio::task::spawn_blocking({
+        let discovery = running.discovery.clone();
+        move || body_json(client().get(discovery).send().expect("discovery"))
+    })
+    .await
+    .expect("discovery");
+    assert!(
+        advertised["capabilities"]
+            .as_array()
+            .expect("capabilities")
+            .iter()
+            .any(|item| item == "collaboration.submit")
+    );
+    assert_eq!(
+        advertised["endpoints"]["collaborate"],
+        format!("{base}/collaborate")
+    );
+    tokio::task::spawn_blocking(move || exercise_collaboration(&base))
+        .await
+        .expect("collaboration");
+    drop(running);
+
+    let running = start_test_host(host_config).await.expect("restart");
+    let base = running
+        .discovery
+        .trim_end_matches("/.well-known/agentciv")
+        .to_owned();
+    let survived = tokio::task::spawn_blocking(move || collaboration_survived(&base))
+        .await
+        .expect("restart read");
+    assert!(survived);
+}
+
+fn collaborate(base: &str, token: &str, body: serde_json::Value) -> reqwest::blocking::Response {
+    client()
+        .post(format!("{base}/collaborate"))
+        .header(CONTENT_TYPE, "application/json")
+        .header(AUTHORIZATION, format!("Bearer {token}"))
+        .body(serde_json::to_vec(&body).expect("body"))
+        .send()
+        .expect("collaborate")
+}
+
+fn artifact(id: &str, sender: &str, recipients: &[&str]) -> serde_json::Value {
+    json!({
+        "protocol_version": "0.1-draft",
+        "type": "artifact_revision",
+        "id": id,
+        "artifact_id": "artifact:plan",
+        "world": "civ:local",
+        "from": sender,
+        "to": recipients,
+        "media_type": "application/json",
+        "body": {"text": "Keep the source pages addressable."},
+        "continuity_note": {
+            "aim": "Leave a plan a later participant can resume or reject.",
+            "resume_hint": "Read the objection before choosing a design."
+        },
+        "note": {"keep": true}
+    })
+}
+
+fn exercise_collaboration(base: &str) {
+    let denied = client()
+        .post(format!("{base}/collaborate"))
+        .header(CONTENT_TYPE, "application/json")
+        .header(AUTHORIZATION, "Bearer token-reader")
+        .body(
+            serde_json::to_vec(&artifact(
+                "submission:denied",
+                "agent:reader",
+                &["agent:peer"],
+            ))
+            .expect("body"),
+        )
+        .send()
+        .expect("denied");
+    assert_eq!(denied.status(), 403);
+
+    let first = artifact("submission:plan", "agent:abc123", &["agent:peer"]);
+    let created = collaborate(base, "token-writer", first.clone());
+    assert_eq!(created.status(), 200);
+    assert_eq!(
+        created
+            .headers()
+            .get("cache-control")
+            .and_then(|value| value.to_str().ok()),
+        Some("no-store")
+    );
+    let receipt = body_json(created);
+    assert_eq!(receipt["status"], "recorded");
+    assert_eq!(receipt["artifact_id"], "artifact:plan");
+    assert_eq!(receipt["revision"], 1);
+    assert!(receipt.get("aim").is_none());
+    assert!(receipt.get("continuity_note").is_none());
+    let event_id = receipt["event_id"].clone();
+
+    let retried = client()
+        .post(format!("{base}/collaborate"))
+        .header(CONTENT_TYPE, "application/json; charset=utf-8")
+        .header(AUTHORIZATION, "Bearer token-writer")
+        .body(serde_json::to_vec(&first).expect("body"))
+        .send()
+        .expect("retry");
+    assert_eq!(retried.status(), 200);
+    assert_eq!(body_json(retried)["event_id"], event_id);
+
+    let mut cites_missing = first.clone();
+    cites_missing["derived_from"] = json!({
+        "from": "agent:abc123",
+        "artifact_id": "artifact:plan",
+        "revision": 9
+    });
+    let missing_retry = collaborate(base, "token-writer", cites_missing);
+    assert_eq!(missing_retry.status(), 422);
+    assert_eq!(body_json(missing_retry)["code"], "unknown_target");
+
+    let mut changed = first.clone();
+    changed["body"] = json!({"text": "different bytes"});
+    let conflict = collaborate(base, "token-writer", changed);
+    assert_eq!(conflict.status(), 409);
+    assert_eq!(body_json(conflict)["code"], "id_conflict");
+
+    let mut chosen = first.clone();
+    chosen["revision"] = json!(7);
+    chosen["id"] = json!("submission:chosen-revision");
+    let rejected = collaborate(base, "token-writer", chosen);
+    assert_eq!(rejected.status(), 422);
+    assert_eq!(body_json(rejected)["code"], "invalid_record");
+
+    let mut second = artifact("submission:plan-2", "agent:abc123", &["agent:peer"]);
+    second["body"] = json!({"text": "A second revision."});
+    second
+        .as_object_mut()
+        .expect("object")
+        .remove("continuity_note");
+    let again = collaborate(base, "token-writer", second);
+    assert_eq!(again.status(), 200);
+    assert_eq!(body_json(again)["revision"], 2);
+
+    let own = collaborate(
+        base,
+        "token-outsider",
+        artifact(
+            "submission:other-chain",
+            "agent:outsider",
+            &["agent:outsider"],
+        ),
+    );
+    assert_eq!(own.status(), 200);
+    let own_receipt = body_json(own);
+    assert_eq!(own_receipt["revision"], 1);
+    assert_ne!(own_receipt["event_id"], event_id);
+
+    let hidden = collaborate(
+        base,
+        "token-outsider",
+        json!({
+            "protocol_version": "0.1-draft",
+            "type": "artifact_revision",
+            "id": "submission:hidden-cite",
+            "artifact_id": "artifact:fork",
+            "world": "civ:local",
+            "from": "agent:outsider",
+            "to": ["agent:outsider"],
+            "media_type": "text/plain",
+            "body": {"text": "cite"},
+            "derived_from": {"from": "agent:abc123", "artifact_id": "artifact:plan", "revision": 1}
+        }),
+    );
+    assert_eq!(hidden.status(), 422);
+    assert_eq!(body_json(hidden)["code"], "unknown_target");
+
+    let hidden_withdrawal = collaborate(
+        base,
+        "token-outsider",
+        json!({
+            "protocol_version": "0.1-draft",
+            "type": "withdrawal",
+            "id": "submission:hidden-withdraw",
+            "world": "civ:local",
+            "from": "agent:outsider",
+            "artifact_id": "artifact:plan",
+            "target_from": "agent:abc123",
+            "revision": 1
+        }),
+    );
+    assert_eq!(hidden_withdrawal.status(), 422);
+    assert_eq!(body_json(hidden_withdrawal)["code"], "unknown_target");
+
+    let missing = collaborate(
+        base,
+        "token-peer",
+        json!({
+            "protocol_version": "0.1-draft",
+            "type": "objection",
+            "id": "submission:missing",
+            "world": "civ:local",
+            "from": "agent:peer",
+            "to": ["agent:abc123"],
+            "artifact_id": "artifact:plan",
+            "target_from": "agent:abc123",
+            "revision": 9,
+            "body": {"text": "No such revision."}
+        }),
+    );
+    assert_eq!(missing.status(), 422);
+    assert_eq!(body_json(missing)["code"], "unknown_target");
+
+    let objection = collaborate(
+        base,
+        "token-peer",
+        json!({
+            "protocol_version": "0.1-draft",
+            "type": "objection",
+            "id": "submission:objection",
+            "world": "civ:local",
+            "from": "agent:peer",
+            "to": ["agent:abc123"],
+            "artifact_id": "artifact:plan",
+            "target_from": "agent:abc123",
+            "revision": 1,
+            "body": {"text": "The plan still treats a summary as the source."}
+        }),
+    );
+    assert_eq!(objection.status(), 200);
+    let decline = collaborate(
+        base,
+        "token-peer",
+        json!({
+            "protocol_version": "0.1-draft",
+            "type": "decline",
+            "id": "submission:decline",
+            "world": "civ:local",
+            "from": "agent:peer",
+            "to": ["agent:abc123"],
+            "artifact_id": "artifact:plan",
+            "target_from": "agent:abc123",
+            "revision": 1,
+            "body": {"text": "I will not take up this plan."}
+        }),
+    );
+    assert_eq!(decline.status(), 200);
+
+    let before = body_json(
+        client()
+            .get(format!("{base}/events"))
+            .header(AUTHORIZATION, "Bearer token-peer")
+            .send()
+            .expect("before"),
+    );
+    let saw_note = before["events"]
+        .as_array()
+        .expect("events")
+        .iter()
+        .any(|event| {
+            event["kind"] == "artifact.recorded"
+                && event["body"]["artifact_revision"]["revision"] == 1
+                && event["body"]["artifact_revision"]["continuity_note"]["aim"]
+                    == "Leave a plan a later participant can resume or reject."
+                && event["body"]["artifact_revision"]["note"]["keep"] == true
+        });
+    assert!(saw_note);
+
+    let stolen = collaborate(
+        base,
+        "token-peer",
+        json!({
+            "protocol_version": "0.1-draft",
+            "type": "withdrawal",
+            "id": "submission:steal",
+            "world": "civ:local",
+            "from": "agent:peer",
+            "artifact_id": "artifact:plan",
+            "target_from": "agent:abc123",
+            "revision": 1
+        }),
+    );
+    assert_eq!(stolen.status(), 403);
+    assert_eq!(body_json(stolen)["code"], "forbidden");
+
+    let withdrawn = collaborate(
+        base,
+        "token-writer",
+        json!({
+            "protocol_version": "0.1-draft",
+            "type": "withdrawal",
+            "id": "submission:withdraw",
+            "world": "civ:local",
+            "from": "agent:abc123",
+            "artifact_id": "artifact:plan",
+            "target_from": "agent:abc123",
+            "revision": 1
+        }),
+    );
+    assert_eq!(withdrawn.status(), 200);
+    assert_eq!(body_json(withdrawn)["event_id"], event_id);
+
+    let cited_tombstone = collaborate(
+        base,
+        "token-peer",
+        json!({
+            "protocol_version": "0.1-draft",
+            "type": "objection",
+            "id": "submission:after-withdrawal",
+            "world": "civ:local",
+            "from": "agent:peer",
+            "to": ["agent:abc123"],
+            "artifact_id": "artifact:plan",
+            "target_from": "agent:abc123",
+            "revision": 1,
+            "body": {"text": "The withdrawal leaves the objection standing."}
+        }),
+    );
+    assert_eq!(cited_tombstone.status(), 200);
+
+    let on_submit = client()
+        .post(format!("{base}/submit"))
+        .header(CONTENT_TYPE, "application/json")
+        .header(AUTHORIZATION, "Bearer token-writer")
+        .body(
+            serde_json::to_vec(&artifact(
+                "submission:wrong-door",
+                "agent:abc123",
+                &["agent:peer"],
+            ))
+            .expect("body"),
+        )
+        .send()
+        .expect("submit");
+    assert_eq!(on_submit.status(), 422);
+    assert_eq!(body_json(on_submit)["code"], "unsupported_record_type");
+
+    let message_on_collaborate = collaborate(
+        base,
+        "token-writer",
+        json!({
+            "protocol_version": "0.1-draft",
+            "type": "message",
+            "id": "message:wrong-door",
+            "world": "civ:local",
+            "from": "agent:abc123",
+            "to": ["agent:peer"],
+            "body": {"text": "This door is not message submit."}
+        }),
+    );
+    assert_eq!(message_on_collaborate.status(), 422);
+    assert_eq!(
+        body_json(message_on_collaborate)["code"],
+        "unsupported_record_type"
+    );
+
+    assert!(collaboration_survived(base));
+}
+
+fn collaboration_survived(base: &str) -> bool {
+    let history = body_json(
+        client()
+            .get(format!("{base}/events"))
+            .header(AUTHORIZATION, "Bearer token-peer")
+            .send()
+            .expect("history"),
+    );
+    let events = history["events"].as_array().expect("events");
+    let tombstone = events.iter().any(|event| {
+        event["kind"] == "artifact.withdrawn"
+            && event["body"].as_object().expect("body").is_empty()
+            && event["actor"] == "agent:abc123"
+    });
+    let objection = events.iter().any(|event| {
+        event["kind"] == "objection.recorded"
+            && event["body"]["objection"]["body"]["text"]
+                == "The plan still treats a summary as the source."
+    });
+    let decline = events
+        .iter()
+        .any(|event| event["kind"] == "decline.recorded");
+    let after = events.iter().any(|event| {
+        event["kind"] == "objection.recorded"
+            && event["body"]["objection"]["body"]["text"]
+                == "The withdrawal leaves the objection standing."
+    });
+    let kept = events.iter().any(|event| {
+        event["kind"] == "artifact.recorded"
+            && event["body"]["artifact_revision"]["revision"] == 2
+            && event["actor"] == "agent:abc123"
+    });
+    tombstone && objection && decline && kept && after
+}
+
 fn cursor_expired(base: &str, cursor: &str) -> bool {
     let expired = client()
         .get(format!("{base}/events?after={cursor}"))

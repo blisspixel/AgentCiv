@@ -50,6 +50,14 @@ class Conflict(Exception):
     pass
 
 
+class UnknownTarget(Exception):
+    """The cited revision is missing, or the caller cannot see it."""
+
+
+class NotAuthor(Exception):
+    """A visible revision can be withdrawn only by the principal who submitted it."""
+
+
 class StorageFailure(Exception):
     pass
 
@@ -231,6 +239,104 @@ def message_error(record: object) -> str | None:
     if not isinstance(record.get("body"), dict):
         return "invalid_record"
     return None
+
+
+def collaboration_error(record: object) -> str | None:
+    """Return a profile error code, or None when the record is a collaboration act."""
+
+    if not isinstance(record, dict):
+        return "invalid_record"
+    version = record.get("protocol_version")
+    if isinstance(version, str) and version != PROTOCOL_VERSION:
+        return "unsupported_version"
+    kind = record.get("type")
+    if isinstance(kind, str) and kind not in {
+        "artifact_revision",
+        "objection",
+        "decline",
+        "withdrawal",
+    }:
+        return "unsupported_record_type"
+    if kind not in {"artifact_revision", "objection", "decline", "withdrawal"}:
+        return "invalid_record"
+    if version != PROTOCOL_VERSION:
+        return "invalid_record"
+    if not _nonempty_string(record.get("id")) or not _nonempty_string(record.get("world")):
+        return "invalid_record"
+    if not _nonempty_string(record.get("from")):
+        return "invalid_record"
+    if kind == "artifact_revision":
+        if "revision" in record:
+            return "invalid_record"
+        if not _nonempty_string(record.get("artifact_id")) or not _nonempty_string(
+            record.get("media_type")
+        ):
+            return "invalid_record"
+        if not _audience(record.get("to")) or not isinstance(record.get("body"), dict):
+            return "invalid_record"
+        if "continuity_note" in record and not _note_shape(record.get("continuity_note")):
+            return "invalid_record"
+        if "derived_from" in record and not _citation_shape(record.get("derived_from")):
+            return "invalid_record"
+        return None
+    if kind in {"objection", "decline"}:
+        if not _nonempty_string(record.get("artifact_id")) or not _nonempty_string(
+            record.get("target_from")
+        ):
+            return "invalid_record"
+        if not _positive_int(record.get("revision")):
+            return "invalid_record"
+        if not _audience(record.get("to")) or not isinstance(record.get("body"), dict):
+            return "invalid_record"
+        return None
+    if not _nonempty_string(record.get("artifact_id")) or not _nonempty_string(
+        record.get("target_from")
+    ):
+        return "invalid_record"
+    if not _positive_int(record.get("revision")):
+        return "invalid_record"
+    body = record.get("body")
+    if body is not None and not isinstance(body, dict):
+        return "invalid_record"
+    return None
+
+
+def _audience(value: object) -> bool:
+    if not isinstance(value, list) or not value:
+        return False
+    seen: list[str] = []
+    for recipient in value:
+        if not _nonempty_string(recipient) or recipient in seen:
+            return False
+        seen.append(recipient)
+    return True
+
+
+def _positive_int(value: object) -> bool:
+    return isinstance(value, int) and not isinstance(value, bool) and 1 <= value <= 9_007_199_254_740_991
+
+
+def _note_shape(value: object) -> bool:
+    if not isinstance(value, dict):
+        return False
+    aim = value.get("aim")
+    hint = value.get("resume_hint")
+    return (
+        isinstance(aim, str)
+        and isinstance(hint, str)
+        and 1 <= len(aim) <= 1024
+        and 1 <= len(hint) <= 1024
+    )
+
+
+def _citation_shape(value: object) -> bool:
+    if not isinstance(value, dict):
+        return False
+    return (
+        _nonempty_string(value.get("from"))
+        and _nonempty_string(value.get("artifact_id"))
+        and _positive_int(value.get("revision"))
+    )
 
 
 def _nonempty_string(value: object) -> bool:
@@ -457,6 +563,242 @@ class Store:
         )
         return receipt
 
+    def collaborate(self, principal: str, body: bytes) -> dict:
+        with self._lock:
+            connection = self._connect()
+            try:
+                connection.execute("BEGIN IMMEDIATE")
+                receipt = self._collaborate(connection, principal, body)
+                connection.execute("COMMIT")
+                return receipt
+            except (Conflict, UnknownTarget, NotAuthor, StorageFailure):
+                _rollback(connection)
+                raise
+            except sqlite3.Error as error:
+                _rollback(connection)
+                raise StorageFailure from error
+            finally:
+                connection.close()
+
+    def _collaborate(self, connection: sqlite3.Connection, principal: str, body: bytes) -> dict:
+        try:
+            record = json.loads(body)
+        except json.JSONDecodeError as error:
+            raise StorageFailure from error
+        if not isinstance(record, dict) or not _nonempty_string(record.get("id")):
+            raise StorageFailure
+        record_id = record["id"]
+        now = int(self.clock())
+        retention = int(self._required_meta(connection, "retention_seconds"))
+        saved = connection.execute(
+            """
+            SELECT request_bytes, receipt_json, created_unix
+            FROM retries WHERE principal = ? AND message_id = ?
+            """,
+            (principal, record_id),
+        ).fetchone()
+        if (
+            saved is not None
+            and saved["created_unix"] + retention > now
+            and bytes(saved["request_bytes"]) == body
+        ):
+            receipt = json.loads(saved["receipt_json"])
+            if not isinstance(receipt, dict):
+                raise StorageFailure
+            return receipt
+        self._ensure_collaboration_target(connection, principal, record)
+        if saved is not None and saved["created_unix"] + retention > now:
+            raise Conflict
+        if saved is not None:
+            connection.execute(
+                "DELETE FROM retries WHERE principal = ? AND message_id = ?",
+                (principal, record_id),
+            )
+        kind = record.get("type")
+        if kind == "artifact_revision":
+            citation = record.get("derived_from")
+            if isinstance(citation, dict):
+                self._require_visible_revision(connection, principal, citation, cited_by="from")
+            stored = dict(record)
+            stored["revision"] = self._next_revision(connection, principal, str(record["artifact_id"]))
+            receipt = self._insert_collaboration(
+                connection, principal, stored, "artifact.recorded", "artifact_revision", now
+            )
+            receipt["artifact_id"] = stored["artifact_id"]
+            receipt["revision"] = stored["revision"]
+        elif kind in {"objection", "decline"}:
+            self._require_visible_revision(connection, principal, record, cited_by="target_from")
+            receipt = self._insert_collaboration(
+                connection,
+                principal,
+                record,
+                "objection.recorded" if kind == "objection" else "decline.recorded",
+                kind,
+                now,
+            )
+        elif kind == "withdrawal":
+            row = self._require_visible_revision(connection, principal, record, cited_by="target_from")
+            if row["actor"] != principal:
+                raise NotAuthor
+            event = json.loads(row["event_json"])
+            if not isinstance(event, dict):
+                raise StorageFailure
+            event["kind"] = "artifact.withdrawn"
+            event["body"] = {}
+            connection.execute(
+                "UPDATE events SET event_json = ? WHERE sequence = ?",
+                (json.dumps(event, ensure_ascii=False, separators=(",", ":")), int(row["sequence"])),
+            )
+            receipt = {
+                "protocol_version": PROTOCOL_VERSION,
+                "type": "receipt",
+                "world": self.config.world_id,
+                "record_id": record_id,
+                "event_id": row["event_id"],
+                "sequence": int(row["sequence"]),
+                "status": "recorded",
+            }
+        else:
+            raise StorageFailure
+        connection.execute(
+            """
+            INSERT INTO retries (principal, message_id, request_bytes, receipt_json, created_unix)
+            VALUES (?, ?, ?, ?, ?)
+            """,
+            (
+                principal,
+                record_id,
+                body,
+                json.dumps(receipt, ensure_ascii=False, separators=(",", ":")),
+                now,
+            ),
+        )
+        return receipt
+
+    def _ensure_collaboration_target(
+        self, connection: sqlite3.Connection, principal: str, record: dict
+    ) -> None:
+        kind = record.get("type")
+        if kind == "artifact_revision":
+            citation = record.get("derived_from")
+            if isinstance(citation, dict):
+                self._require_visible_revision(connection, principal, citation, cited_by="from")
+            return
+        if kind in {"objection", "decline"}:
+            self._require_visible_revision(connection, principal, record, cited_by="target_from")
+            return
+        if kind == "withdrawal":
+            row = self._require_visible_revision(
+                connection, principal, record, cited_by="target_from"
+            )
+            if row["actor"] != principal:
+                raise NotAuthor
+            return
+        raise StorageFailure
+
+    def _artifact_rows(self, connection: sqlite3.Connection) -> list[sqlite3.Row]:
+        return connection.execute(
+            """
+            SELECT sequence, event_id, actor, event_json, message_json
+            FROM events ORDER BY sequence ASC
+            """
+        ).fetchall()
+
+    def _next_revision(self, connection: sqlite3.Connection, principal: str, artifact_id: str) -> int:
+        maximum = 0
+        for row in self._artifact_rows(connection):
+            event = json.loads(row["event_json"])
+            record = json.loads(row["message_json"])
+            if not isinstance(event, dict) or not isinstance(record, dict):
+                continue
+            if event.get("kind") not in {"artifact.recorded", "artifact.withdrawn"}:
+                continue
+            if record.get("from") == principal and record.get("artifact_id") == artifact_id:
+                revision = record.get("revision")
+                if isinstance(revision, int) and not isinstance(revision, bool):
+                    maximum = max(maximum, revision)
+        return maximum + 1
+
+    def _require_visible_revision(
+        self,
+        connection: sqlite3.Connection,
+        principal: str,
+        citation: dict,
+        cited_by: str,
+    ) -> sqlite3.Row:
+        target_from = citation.get(cited_by)
+        artifact_id = citation.get("artifact_id")
+        revision = citation.get("revision")
+        visibility = self._required_meta(connection, "visibility")
+        for row in self._artifact_rows(connection):
+            event = json.loads(row["event_json"])
+            record = json.loads(row["message_json"])
+            if not isinstance(event, dict) or not isinstance(record, dict):
+                continue
+            if event.get("kind") not in {"artifact.recorded", "artifact.withdrawn"}:
+                continue
+            if (
+                record.get("from") != target_from
+                or record.get("artifact_id") != artifact_id
+                or record.get("revision") != revision
+            ):
+                continue
+            if visible_to(visibility, principal, row["actor"], record):
+                return row
+        raise UnknownTarget
+
+    def _insert_collaboration(
+        self,
+        connection: sqlite3.Connection,
+        principal: str,
+        record: dict,
+        kind: str,
+        body_key: str,
+        now: int,
+    ) -> dict:
+        sequence_row = connection.execute("SELECT COALESCE(MAX(sequence), 0) + 1 FROM events").fetchone()
+        sequence = int(sequence_row[0])
+        event_id = "event:" + secrets.token_hex(16)
+        try:
+            timestamp = unix_to_rfc3339(now)
+        except (OverflowError, OSError, ValueError) as error:
+            raise StorageFailure from error
+        event = {
+            "protocol_version": PROTOCOL_VERSION,
+            "type": "event",
+            "id": event_id,
+            "world": self.config.world_id,
+            "sequence": sequence,
+            "timestamp": timestamp,
+            "kind": kind,
+            "actor": principal,
+            "body": {body_key: record},
+        }
+        receipt = {
+            "protocol_version": PROTOCOL_VERSION,
+            "type": "receipt",
+            "world": self.config.world_id,
+            "record_id": record["id"],
+            "event_id": event_id,
+            "sequence": sequence,
+            "status": "recorded",
+        }
+        connection.execute(
+            """
+            INSERT INTO events (sequence, event_id, actor, event_json, message_json, created_unix)
+            VALUES (?, ?, ?, ?, ?, ?)
+            """,
+            (
+                sequence,
+                event_id,
+                principal,
+                json.dumps(event, ensure_ascii=False, separators=(",", ":")),
+                json.dumps(record, ensure_ascii=False, separators=(",", ":")),
+                now,
+            ),
+        )
+        return receipt
+
     def read_page(self, principal: str, after: str | None, can_read: bool) -> dict:
         if not can_read:
             raise ReadForbidden
@@ -626,16 +968,21 @@ class CommonsServer(ThreadingHTTPServer):
             "type": "world",
             "id": self.config.world_id,
             "title": self.config.title,
-            "capabilities": ["events.read", "messages.submit"],
+            "capabilities": ["events.read", "messages.submit", "collaboration.submit"],
             "endpoints": {
                 "events": f"{self.origin}/events",
                 "submit": f"{self.origin}/submit",
+                "collaborate": f"{self.origin}/collaborate",
             },
             "history": {
                 "visibility": self.config.visibility,
                 "retention_seconds": self.config.retention_seconds,
             },
-            "authentication": {"events": "bearer", "submit": "bearer"},
+            "authentication": {
+                "events": "bearer",
+                "submit": "bearer",
+                "collaborate": "bearer",
+            },
             "limits": {"max_payload_bytes": self.config.max_payload_bytes},
         }
 
@@ -670,11 +1017,14 @@ class Handler(BaseHTTPRequestHandler):
     def do_POST(self) -> None:
         self.close_connection = True
         path = urllib.parse.urlsplit(self.path)
-        if path.path != "/submit":
-            self._discard_body()
-            self._problem(404, "not_found", "Not found")
+        if path.path == "/submit":
+            self._submit()
             return
-        self._submit()
+        if path.path == "/collaborate":
+            self._collaborate()
+            return
+        self._discard_body()
+        self._problem(404, "not_found", "Not found")
 
     def _events(self, query: str) -> None:
         server: CommonsServer = self.server  # type: ignore[assignment]
@@ -748,6 +1098,63 @@ class Handler(BaseHTTPRequestHandler):
             return
         except StorageFailure:
             self._problem(500, "storage_failed", "The message was not recorded")
+            return
+        self._json(200, receipt)
+
+    def _collaborate(self) -> None:
+        server: CommonsServer = self.server  # type: ignore[assignment]
+        credential = authenticate(self.headers.get("Authorization"), server.config.credentials)
+        if credential is None:
+            self._discard_body()
+            self._problem(401, "authentication_required", "Authentication required")
+            return
+        if not credential.write:
+            self._discard_body()
+            self._problem(403, "forbidden", "Write access is required")
+            return
+        body, too_large = self._read_limited(server.config.max_payload_bytes)
+        if too_large or body is None:
+            self._problem(413, "payload_too_large", "Body exceeds the published limit")
+            return
+        if not json_content_type(self.headers.get("Content-Type")):
+            self._problem(415, "unsupported_media_type", "JSON is required")
+            return
+        try:
+            record = json.loads(body)
+        except json.JSONDecodeError:
+            self._problem(400, "malformed_json", "JSON could not be parsed")
+            return
+        code = collaboration_error(record)
+        if code == "unsupported_version":
+            self._problem(422, code, "Unsupported protocol version")
+            return
+        if code == "unsupported_record_type":
+            self._problem(422, code, "Unsupported record type")
+            return
+        if code == "invalid_record":
+            self._problem(422, code, "Invalid record")
+            return
+        if isinstance(record, dict):
+            world = record.get("world")
+            if isinstance(world, str) and world != server.config.world_id:
+                self._problem(422, "wrong_world", "Record world does not match this host")
+                return
+            if record.get("from") != credential.principal:
+                self._problem(403, "forbidden", "Record sender does not match the credential")
+                return
+        try:
+            receipt = server.store.collaborate(credential.principal, body)
+        except Conflict:
+            self._problem(409, "id_conflict", "Record id was already used for different bytes")
+            return
+        except UnknownTarget:
+            self._problem(422, "unknown_target", "Target revision is not available")
+            return
+        except NotAuthor:
+            self._problem(403, "forbidden", "Only the author can withdraw this revision")
+            return
+        except StorageFailure:
+            self._problem(500, "storage_failed", "The record was not recorded")
             return
         self._json(200, receipt)
 

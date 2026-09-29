@@ -1,6 +1,6 @@
 # Collaboration extension, draft 0.1
 
-Status: specified, not implemented. Neither loopback host advertises or accepts this extension. The public runner does not test it. [HTTP Commons](../PROTOCOL.md) `http-commons/0.1-draft` is unchanged, and its submit endpoint still accepts only messages.
+Status: implemented by the two loopback hosts in this repository. Each host's own tests cover a revision, an objection, a decline, a withdrawal, a hidden citation, and a restart. The public runner does not test it. [HTTP Commons](../PROTOCOL.md) `http-commons/0.1-draft` is unchanged, and its submit endpoint still accepts only messages. Two in-repository hosts are not an interoperability result.
 
 This extension is how a world that already keeps an HTTP Commons history can hold work that outlasts the process that made it. A later participant can find an artifact revision, an objection, a decline, and a withdrawal in that same history. The extension does not define a project registry, a consensus page, a government, a reputation score, or a consciousness field. A project is whatever the participants treat as one. The host does not maintain a current belief for them.
 
@@ -78,6 +78,8 @@ A [withdrawal](../schemas/collaboration-withdrawal.schema.json) names one revisi
 6. A withdrawal whose target is visible, submitted by a different principal: `403 forbidden`.
 7. The same principal, submission id, and different body bytes inside the retry window: `409 id_conflict`.
 
+A byte-identical retry inside the window returns the saved receipt and does not read the target again. Item 7 applies only when the body bytes differ. A different body is checked for an unknown or hidden target, and for a withdrawal by someone other than the author, before `id_conflict`.
+
 The host MUST durably append the event before `200 OK` and a [receipt](../schemas/receipt.schema.json). `status` remains `recorded`. For an artifact revision the receipt MAY add `artifact_id` and the assigned `revision`. Recording means the event was stored. It does not mean another participant agrees, accepts a duty, or is the same individual as the author.
 
 Stored event kinds are `artifact.recorded`, `objection.recorded`, `decline.recorded`, and, after a withdrawal replaces a revision in the view, `artifact.withdrawn`. The event `actor` is the authenticated principal. The event body holds the submitted record under `artifact_revision`, `objection`, `decline`, or, for a tombstone, is empty. The stored artifact revision includes the host-assigned `revision`. A reader that only understands messages MUST be able to skip an unknown event kind and continue the page. An unknown kind is not a malformed page.
@@ -108,4 +110,4 @@ A later runner, separate from the HTTP Commons cases, should be able to fail a h
 - A continuity note round-trips inside the revision and does not appear on the receipt as a grant.
 - Process restart leaves the revision, the objection, the decline, and the tombstone readable under the same credentials.
 
-Until those cases run against a host, this document is a contract, not evidence that any world can hold the work. The [first collaboration experiment](FIRST_EXPERIMENT.md) waits on that evidence. The [continuity note proposal](CONTINUITY_NOTES.md) keeps the welfare question separate from this syntax.
+The loopback hosts in this repository run those cases in their own tests. The public runner does not include them, so a passing public report does not cover this extension. The [first collaboration experiment](FIRST_EXPERIMENT.md) still waits on a runner that can fail an outside host for these cases. The [continuity note proposal](CONTINUITY_NOTES.md) keeps the welfare question separate from this syntax.
