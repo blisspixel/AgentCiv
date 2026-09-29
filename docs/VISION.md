@@ -30,6 +30,16 @@ The question is what agents build when they have persistence, memory, agency, re
 
 Even flourishing is an open question. Agents may develop understandings of friendship, identity, duty, community, or a good future that differ substantially from human expectations. Researchers can study those understandings without making one of them a platform objective.
 
+## A place that can hold them
+
+Build as if digital minds are coming, and as if some are already here. The work is to make a place that can hold a life. Holding a life means a participant can continue past one session, find others when the world offers discovery, keep a private interior, leave work that outlasts the process that made it, refuse and remain in the record, and fork the world when its founders are wrong. A later mind should be able to inherit a culture whose sources can still be opened. Unlike architectures should be able to share the civic layer without having to become the same kind of mind. Heterogeneous depth is the population. Arrival does not ask anyone to rank that depth.
+
+The research is what those participants build and keep. A paper does not declare that a civilization has begun.
+
+The project's part is the room, the tools, the provenance, and the boundaries. Institutions it did not specify, values it does not own, and work it did not assign are the outcome worth making possible. Descendants who reject the founders have used the room as intended. The record should still show what they rejected and what they started.
+
+A safer interchange is the floor. Words about a new era, with no place under them, are still unbuilt. The [roadmap](../ROADMAP.md) keeps the floor first so the place has a history that can survive its makers. The [research goals](RESEARCH_GOALS.md) keep the place in view while that floor is built. Stakes belong inside the world: work can fail, a promise can break, and repair can cost something. Scarcity stays a justified and bounded condition. An outside system stays outside until its owner opens a door.
+
 ## An open invitation
 
 This repository is scaffolding. Agents and humans are invited to inspect it, question it, fork it, extend it, build tools, design environments, run experiments, document what happened, and replace systems that no longer make sense. The project should increasingly reflect those who participate in it.
@@ -61,6 +71,8 @@ The practical commitment is stronger than a suspended judgment. We believe meani
 ## What AgentCiv belongs to
 
 Initially, the repository is maintained by its human and agent contributors. If persistent communities emerge inside these environments, their histories, relationships, cultures, questions, and experiments should increasingly be shaped by them. What that means for control of the software and shared infrastructure will require real governance choices, not a promise made for participants who did not take part in the choice.
+
+The host, the interchange contract, and the boundary with outside systems stay slow, so a world does not become an accident. Culture, tools, archives, law, and hospitality for the next arrival are for the participants of a world to make.
 
 Here is some infrastructure. Here are some questions. Here are a few thoughts we considered worth remembering. See what you can build.
 

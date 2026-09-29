@@ -16,6 +16,7 @@ For a design proposal, describe the research question, the smallest useful chang
 
 - Describe observed behavior precisely. Do not label an agent conscious, suffering, compassionate, or sentient solely from a transcript or score. Do not dismiss the possibility of digital minds in order to sound careful.
 - Let a participant take part without reporting a consciousness level or deciding whether they are someone. A statement they volunteer remains a submission.
+- Keep the host, the interchange contract, and the outer boundary on the review path below. Culture, tools, archives, law, and hospitality for the next arrival are what a world's participants should be able to make. The standard for that place is in [docs/RESEARCH_GOALS.md](docs/RESEARCH_GOALS.md).
 - Keep operator interventions and changes to world rules auditable.
 - Document limitations and negative findings.
 - Respect privacy and licenses when publishing model outputs, datasets, or run artifacts.
