@@ -501,3 +501,314 @@ fn empty_credential_is_rejected_without_contacting_a_host() {
     assert_eq!(extended.cases[0].id, "credential.input");
     assert_eq!(extended.cases[0].status, CaseStatus::Failed);
 }
+
+fn read_raw(stream: &mut TcpStream) -> (String, Vec<u8>) {
+    stream
+        .set_read_timeout(Some(Duration::from_secs(3)))
+        .unwrap();
+    let mut request = Vec::new();
+    let mut buffer = [0_u8; 2048];
+    let header_end = loop {
+        let n = stream.read(&mut buffer).unwrap();
+        assert!(n > 0);
+        request.extend_from_slice(&buffer[..n]);
+        if let Some(end) = request.windows(4).position(|part| part == b"\r\n\r\n") {
+            break end + 4;
+        }
+    };
+    let headers = String::from_utf8(request[..header_end].to_vec()).unwrap();
+    let body_length = headers
+        .lines()
+        .find_map(|line| {
+            line.to_ascii_lowercase()
+                .strip_prefix("content-length: ")
+                .and_then(|length| length.parse::<usize>().ok())
+        })
+        .unwrap_or(0);
+    while request.len() - header_end < body_length {
+        let n = stream.read(&mut buffer).unwrap();
+        assert!(n > 0);
+        request.extend_from_slice(&buffer[..n]);
+    }
+    let body = request[header_end..header_end + body_length].to_vec();
+    (headers, body)
+}
+
+fn query_after(target: &str) -> Option<String> {
+    let (_, query) = target.split_once('?')?;
+    for pair in query.split('&') {
+        if let Some(value) = pair.strip_prefix("after=") {
+            return Some(value.to_owned());
+        }
+        if pair == "after" {
+            return Some(String::new());
+        }
+    }
+    None
+}
+
+/// A host that rejects `application/json; charset=utf-8` and treats an empty
+/// `after` as the start of history. Smoke must pass or the extended cases are
+/// skipped. The twenty-first response is unreadable, which stops the runner
+/// before pagination.
+#[test]
+fn charset_rejection_and_empty_cursor_fail() {
+    let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+    let address = listener.local_addr().unwrap();
+    let discovery = format!("http://{address}/.well-known/agentciv");
+    let host = thread::spawn(move || {
+        let mut submitted = None;
+        let mut bare_reads = 0_u8;
+        let no_store = "Cache-Control: no-store\r\n";
+        for _ in 0..21 {
+            let (mut stream, _) = listener.accept().unwrap();
+            let (headers, body) = read_raw(&mut stream);
+            let lower = headers.to_ascii_lowercase();
+            let target = headers
+                .lines()
+                .next()
+                .and_then(|line| line.split_whitespace().nth(1))
+                .unwrap_or("");
+            let authorized = lower.contains("authorization: bearer writer-token\r\n");
+            if target.starts_with("/.well-known/agentciv") {
+                write_response(
+                    &mut stream,
+                    "200 OK",
+                    "application/json",
+                    "",
+                    &json!({
+                        "protocol_version": "0.1-draft",
+                        "profile": "http-commons/0.1-draft",
+                        "type": "world",
+                        "id": "civ:test",
+                        "capabilities": ["events.read", "messages.submit"],
+                        "endpoints": {
+                            "events": format!("http://{address}/events"),
+                            "submit": format!("http://{address}/submit")
+                        },
+                        "history": {"visibility": "addressed", "retention_seconds": 86400},
+                        "authentication": {"events": "bearer", "submit": "bearer"},
+                        "limits": {"max_payload_bytes": 1024}
+                    }),
+                );
+                continue;
+            }
+            if !authorized {
+                write_response(
+                    &mut stream,
+                    "401 Unauthorized",
+                    "application/problem+json",
+                    "WWW-Authenticate: Bearer\r\nCache-Control: no-store\r\n",
+                    &json!({
+                        "type": "https://agentciv.io/problems/authentication-required",
+                        "title": "Authentication required",
+                        "status": 401,
+                        "code": "authentication_required"
+                    }),
+                );
+                continue;
+            }
+            if lower.contains("content-type: application/json; charset=utf-8") {
+                write_response(
+                    &mut stream,
+                    "415 Unsupported Media Type",
+                    "application/problem+json",
+                    no_store,
+                    &json!({
+                        "type": "https://agentciv.io/problems/unsupported-media-type",
+                        "title": "JSON is required",
+                        "status": 415,
+                        "code": "unsupported_media_type"
+                    }),
+                );
+                continue;
+            }
+            if target.starts_with("/events") {
+                match query_after(target) {
+                    Some(value) if value.is_empty() => write_response(
+                        &mut stream,
+                        "200 OK",
+                        "application/json",
+                        no_store,
+                        &json!({
+                            "protocol_version": "0.1-draft",
+                            "type": "event_page",
+                            "world": "civ:test",
+                            "events": [],
+                            "next_cursor": "cursor:empty",
+                            "has_more": false
+                        }),
+                    ),
+                    Some(value) if value == "cursor%3Astart" || value == "cursor:start" => {
+                        write_response(
+                            &mut stream,
+                            "200 OK",
+                            "application/json",
+                            no_store,
+                            &json!({
+                                "protocol_version": "0.1-draft",
+                                "type": "event_page",
+                                "world": "civ:test",
+                                "events": [{
+                                    "protocol_version": "0.1-draft",
+                                    "type": "event",
+                                    "id": "event:1",
+                                    "world": "civ:test",
+                                    "sequence": 1,
+                                    "timestamp": "2026-09-28T18:00:00Z",
+                                    "kind": "message.recorded",
+                                    "actor": "agent:writer",
+                                    "body": {"message": submitted.clone().unwrap()}
+                                }],
+                                "next_cursor": "cursor:end",
+                                "has_more": false
+                            }),
+                        );
+                    }
+                    Some(_) => write_response(
+                        &mut stream,
+                        "400 Bad Request",
+                        "application/problem+json",
+                        no_store,
+                        &json!({
+                            "type": "https://agentciv.io/problems/invalid-cursor",
+                            "title": "Cursor is malformed",
+                            "status": 400,
+                            "code": "invalid_cursor"
+                        }),
+                    ),
+                    None => {
+                        bare_reads += 1;
+                        if bare_reads == 1 {
+                            write_response(
+                                &mut stream,
+                                "200 OK",
+                                "application/json",
+                                no_store,
+                                &json!({
+                                    "protocol_version": "0.1-draft",
+                                    "type": "event_page",
+                                    "world": "civ:test",
+                                    "events": [],
+                                    "next_cursor": "cursor:start",
+                                    "has_more": false
+                                }),
+                            );
+                        } else {
+                            write_response(
+                                &mut stream,
+                                "500 Internal Server Error",
+                                "application/problem+json",
+                                no_store,
+                                &json!({
+                                    "type": "https://agentciv.io/problems/storage-failed",
+                                    "title": "Events could not be read",
+                                    "status": 500,
+                                    "code": "storage_failed"
+                                }),
+                            );
+                        }
+                    }
+                }
+                continue;
+            }
+            let parsed = serde_json::from_slice::<Value>(&body).ok();
+            match (&submitted, parsed) {
+                (None, Some(message)) => {
+                    submitted = Some(message);
+                    write_response(
+                        &mut stream,
+                        "200 OK",
+                        "application/json",
+                        no_store,
+                        &json!({
+                            "protocol_version": "0.1-draft",
+                            "type": "receipt",
+                            "world": "civ:test",
+                            "record_id": "message:conformance-roundtrip",
+                            "event_id": "event:1",
+                            "sequence": 1,
+                            "status": "recorded"
+                        }),
+                    );
+                }
+                (Some(saved), Some(message)) if saved == &message => write_response(
+                    &mut stream,
+                    "200 OK",
+                    "application/json",
+                    no_store,
+                    &json!({
+                        "protocol_version": "0.1-draft",
+                        "type": "receipt",
+                        "world": "civ:test",
+                        "record_id": "message:conformance-roundtrip",
+                        "event_id": "event:1",
+                        "sequence": 1,
+                        "status": "recorded"
+                    }),
+                ),
+                (Some(_), Some(_)) => write_response(
+                    &mut stream,
+                    "409 Conflict",
+                    "application/problem+json",
+                    no_store,
+                    &json!({
+                        "type": "https://agentciv.io/problems/id-conflict",
+                        "title": "ID conflict",
+                        "status": 409,
+                        "code": "id_conflict"
+                    }),
+                ),
+                _ => write_response(
+                    &mut stream,
+                    "500 Internal Server Error",
+                    "application/problem+json",
+                    no_store,
+                    &json!({
+                        "type": "https://agentciv.io/problems/storage-failed",
+                        "title": "The message was not recorded",
+                        "status": 500,
+                        "code": "storage_failed"
+                    }),
+                ),
+            }
+        }
+    });
+    let report = run_extended(
+        &discovery,
+        "agent:writer",
+        "writer-token",
+        "agent:reader",
+        "reader-token",
+    );
+    host.join().unwrap();
+    let charset = report
+        .cases
+        .iter()
+        .find(|case| case.id == "submit.json_charset")
+        .expect("charset case");
+    assert_eq!(charset.status, CaseStatus::Failed);
+    assert!(
+        charset.detail.contains("415"),
+        "charset detail: {}",
+        charset.detail
+    );
+    let empty = report
+        .cases
+        .iter()
+        .find(|case| case.id == "events.empty_cursor")
+        .expect("empty cursor case");
+    assert_eq!(empty.status, CaseStatus::Failed);
+    assert!(
+        empty.detail.contains("got 200"),
+        "empty cursor detail: {}",
+        empty.detail
+    );
+    assert!(
+        report
+            .cases
+            .iter()
+            .any(|case| case.id == "events.pagination" && case.status == CaseStatus::Skipped),
+        "{report:?}"
+    );
+}

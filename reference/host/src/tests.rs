@@ -431,6 +431,12 @@ async fn public_http_covers_recording_refusal_and_restart() {
             .all(|case| case.status == CaseStatus::Passed),
         "{report:?}"
     );
+    for id in ["submit.json_charset", "events.empty_cursor"] {
+        assert!(
+            report.cases.iter().any(|case| case.id == id),
+            "{id} missing from {report:?}"
+        );
+    }
     let unauthenticated = tokio::task::spawn_blocking({
         let discovery = discovery.clone();
         move || run(&discovery)

@@ -21,7 +21,7 @@ const AUTHORIZED_CASES: [&str; 5] = [
     "submit.conflict",
     "events.recorded",
 ];
-const EXTENDED_CASES: [&str; 12] = [
+const EXTENDED_CASES: [&str; 14] = [
     "submit.forbidden",
     "submit.unsupported_version",
     "submit.malformed_json",
@@ -30,7 +30,9 @@ const EXTENDED_CASES: [&str; 12] = [
     "submit.unsupported_record_type",
     "submit.unsupported_media_type",
     "submit.payload_too_large",
+    "submit.json_charset",
     "events.invalid_cursor",
+    "events.empty_cursor",
     "events.foreign_cursor",
     "events.visibility",
     "events.pagination",
@@ -320,6 +322,19 @@ fn result_case(id: &'static str, result: Result<(), String>) -> Case {
     }
 }
 
+fn roundtrip_message(world_id: &str, principal: &str) -> Value {
+    json!({
+        "protocol_version": "0.1-draft",
+        "type": "message",
+        "id": "message:conformance-roundtrip",
+        "world": world_id,
+        "from": principal,
+        "to": [principal],
+        "body": {"text": "conformance roundtrip"},
+        "conformance_probe": {"preserve": true}
+    })
+}
+
 fn run_authorized_cases(
     client: &Client,
     world: &Value,
@@ -363,16 +378,7 @@ fn run_authorized_cases(
         }
     };
 
-    let message = json!({
-        "protocol_version": "0.1-draft",
-        "type": "message",
-        "id": "message:conformance-roundtrip",
-        "world": world_id,
-        "from": principal,
-        "to": [principal],
-        "body": {"text": "conformance roundtrip"},
-        "conformance_probe": {"preserve": true}
-    });
+    let message = roundtrip_message(world_id, principal);
     let bytes = message.to_string().into_bytes();
     let post = |body: Vec<u8>| {
         client
@@ -722,6 +728,21 @@ fn run_extended_cases(
             })
         }),
     ));
+    let charset_message = roundtrip_message(world_id, writer);
+    cases.push(result_case(
+        "submit.json_charset",
+        post(
+            writer_token,
+            "application/json; charset=utf-8",
+            charset_message.to_string().into_bytes(),
+        )
+        .and_then(|response| check_receipt(response, world_id, "message:conformance-roundtrip"))
+        .and_then(|receipt| {
+            let page =
+                check_page_value(read_events(client, events, writer_token, None)?, world_id)?;
+            confirm_charset_retry(&page, &receipt, &charset_message)
+        }),
+    ));
     let mut unknown = events.clone();
     unknown
         .query_pairs_mut()
@@ -734,6 +755,20 @@ fn run_extended_cases(
             .bearer_auth(writer_token)
             .send()
             .map_err(|error| format!("cursor request failed: {error}"))
+            .and_then(|response| {
+                expect_problem(response, StatusCode::BAD_REQUEST, "invalid_cursor")
+            }),
+    ));
+    let mut empty_cursor = events.clone();
+    empty_cursor.query_pairs_mut().append_pair("after", "");
+    cases.push(result_case(
+        "events.empty_cursor",
+        client
+            .get(empty_cursor)
+            .header(ACCEPT, "application/json")
+            .bearer_auth(writer_token)
+            .send()
+            .map_err(|error| format!("empty cursor request failed: {error}"))
             .and_then(|response| {
                 expect_problem(response, StatusCode::BAD_REQUEST, "invalid_cursor")
             }),
@@ -831,6 +866,31 @@ fn read_events(
         .bearer_auth(token)
         .send()
         .map_err(|error| format!("event request failed: {error}"))
+}
+
+fn confirm_charset_retry(page: &Value, receipt: &Value, message: &Value) -> Result<(), String> {
+    let events = page["events"].as_array().expect("validated events");
+    let mut found = None;
+    let mut count = 0_usize;
+    for event in events {
+        if event["body"]["message"]["id"] == "message:conformance-roundtrip" {
+            count += 1;
+            found = Some(event);
+        }
+    }
+    if count != 1 {
+        return Err(format!(
+            "charset retry left {count} recorded roundtrip events"
+        ));
+    }
+    let event = found.expect("one roundtrip event");
+    if event["id"] != receipt["event_id"]
+        || event["sequence"] != receipt["sequence"]
+        || event["body"]["message"] != *message
+    {
+        return Err("charset retry receipt does not match the recorded message".to_owned());
+    }
+    Ok(())
 }
 
 fn check_page_value(response: Response, world_id: &str) -> Result<Value, String> {

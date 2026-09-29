@@ -601,7 +601,10 @@ class PublicRunnerTest(unittest.TestCase):
         self.assertEqual(report["runner_scope"], "credentialed-extended")
         self.assertEqual(report["summary"]["failed"], 0)
         self.assertEqual(report["summary"]["skipped"], 0)
-        self.assertGreaterEqual(report["summary"]["passed"], 17)
+        self.assertEqual(report["summary"]["passed"], 24)
+        ids = {case["id"] for case in report["cases"]}
+        self.assertIn("submit.json_charset", ids)
+        self.assertIn("events.empty_cursor", ids)
 
 
 def runner_command(root: Path, discovery: str) -> list[str]:
