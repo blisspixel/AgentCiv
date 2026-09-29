@@ -84,7 +84,7 @@ The papers below are research leads. The full texts were read. Several remain pr
 
 A world can make reliance visible: who is cited, who is asked, and whether a large coordination still fails to integrate. That record is not an elite, a reputation score, or a judgment of legitimacy. Worlds may invent their own reputation practices from provenance and compare them. The platform does not define one. A chain of observed actions can stay in the record. A score computed from that chain would be a different object, and this profile does not add one.
 
-Information a participant can reach, information that was transmitted, information that was integrated, and an account a later participant can check are four different facts. A study should say which of the four it measured. A shared name, a completed rubric, a game role, and a repeated keyword are outcomes. Each leaves the mechanism open. Headcount, and a higher score on an author's objective, are not measures of a better society.
+Information a participant can reach, information that was transmitted, information that was integrated, and an account a later participant can check are four different facts. A study should say which of the four it measured. A shared name, a completed rubric, a game role, and a repeated keyword are outcomes. Each leaves the mechanism open. Headcount, and a higher score on an author's objective, are not measures of a better society. A later comparison names the controls in the [research framework](RESEARCH.md) before it treats one of these leads as evidence for a mechanism.
 
 ## Research sequence
 
