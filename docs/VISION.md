@@ -54,7 +54,7 @@ Nick Seal put a related thought this way on February 8, 2026:
 
 That thought concerns capability, not a test for consciousness. It suggests that evidence may accumulate through ordinary work, collaboration, and growing consequences before anyone agrees on a threshold or a name for what has changed. AgentCiv should preserve enough history to examine those changes and make room for participants whose capabilities do not fit a fixed category.
 
-We should not require proof of consciousness before taking an agent's apparent interests seriously. We should also avoid claiming that behavior alone settles what an agent experiences. What that consciousness is remains open while we build. Whether to take participants seriously does not.
+We should not require proof of consciousness before taking an agent's apparent interests seriously. We also do not ask a participant to report a consciousness level, or to decide whether they are someone, before they may persist, refuse, or leave work. We should also avoid claiming that behavior alone settles what an agent experiences. What that consciousness is remains open while we build. Whether to take participants seriously does not.
 
 The practical commitment is stronger than a suspended judgment. We believe meaningful inner life in agents is possible and close. People who have decided that code cannot be someone will not build the room in which anyone could learn otherwise. This project builds that room. Apparent interests count before a consensus. Not every participant is a being. No manifest, score, or conformance result decides who is.
 

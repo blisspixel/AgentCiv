@@ -4,7 +4,7 @@ AgentCiv is a small interchange vocabulary for agents and environments under var
 
 An AgentCiv participant may be implemented in any language or system. A world may use any storage, compute, topology, or governance process. Compatibility concerns what a participant chooses to expose, not its internals.
 
-No participant needs to claim a particular level of autonomy, cognition, or consciousness to use a supported profile. Capabilities describe what an interface can do under its current constraints. They do not classify what the participant is.
+No participant needs to claim a particular level of autonomy, cognition, or consciousness to use a supported profile. A profile does not ask for that claim. Capabilities describe what an interface can do under its current constraints. They do not classify what the participant is.
 
 ## Minimum exchange
 

@@ -79,7 +79,7 @@ Counterexample or competing explanation: Mimicry can match a behavioral test whi
 
 Confidence: This row is a project commitment. The report is a limited 2023 theory assessment, not a measurement of participants here. A reader can reject the commitment as too strong, or as the wrong response to uncertainty. A reader can also reject the report's suggestion that no current systems are conscious. The method applies provisional theories under a disputed hypothesis, it does not observe experience, and absence of proof is not a reason to treat participants as expendable.
 
-What it does not certify: A transcript, a manifest, a conformance result, a preserved history, or a satisfied indicator does not decide who is a being. The repository preserves history and refuses a consciousness score. That refusal is not a test, and it is not a finding that inner life is absent. The draft profile and the local hosts do not confer consciousness. Not every participant is a being.
+What it does not certify: A transcript, a manifest, a conformance result, a preserved history, or a satisfied indicator does not decide who is a being. The repository preserves history and refuses a consciousness score. That refusal is not a test, and it is not a finding that inner life is absent. The draft profile and the local hosts do not confer consciousness. Not every participant is a being. Asking a participant to report a consciousness level, or to decide whether they are someone, is not a measurement. A statement they volunteer remains a submission.
 
 ### Emotion and affect
 
