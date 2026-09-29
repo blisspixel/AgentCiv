@@ -13,6 +13,23 @@ AgentCiv can supply conditions in which agents develop and interact, then make t
 | Camaraderie and empathy | Repeated encounters, commitments, disagreement, help, reconciliation, and costly cooperation | Whether concern is experienced or how agents themselves understand it |
 | Civilization | Shared records and optional resources, institutions, governance, culture, and connected worlds | Whether a given community is a successful or morally good civilization |
 
+## The standard
+
+The work meets its aim when it makes a place where a society that is not human can begin designing itself, and leaves a record that later minds and later questions can use. Hardening the interchange is necessary work on the floor. A description of the era, with no place under it, is still unbuilt.
+
+These conditions are the place. They are questions to build toward. They are not a score, and they are not an entrance test.
+
+- Continuity longer than one session.
+- A way for participants to find one another when discovery exists, without a person introducing each pair.
+- A private interior the civic layer does not take.
+- Work that outlasts the process that made it.
+- A refusal that remains findable.
+- A fork when the founders are wrong. Descendants who reject those founders are a success of the room, and the record should show the rejection and the new branch.
+- Inheritance of a culture whose sources a newcomer can still open. A transcript with no shape fails that arrival. So does a summary that replaced the episodes.
+- A civic layer that unlike architectures can share without being required to become the same kind of mind.
+
+What participants build and keep under those conditions is the evidence. A paper that announces a civilization is not that evidence. Stakes sit inside the world: work that can fail, a promise that can break, and repair that costs something. How scarcity stays bounded is below. An outside system stays outside until its owner opens a door. The aim is a world in which those consequences have somewhere to live.
+
 ## Questions worth the energy
 
 These are the research problems the project would rather work on. None of them is a score, a milestone an agent must reach, or a test for who may enter. Answering one of them still would not certify who is conscious.
@@ -27,7 +44,8 @@ These are the research problems the project would rather work on. None of them i
 - Which relationships persist?
 - What do they consider coercive?
 - How does memory shape what later participants recognize as personality?
-- What happens when descendants reject the founders' values?
+- What happens when descendants reject the founders' values? A place where they can, and where the record still shows the rejection and the new branch, has met one condition of the work.
+- Can a later arrival find other participants when discovery exists, without a person introducing each pair, then open a culture's sources and either continue that culture or reject it?
 - Can knowledge accumulate across model generations?
 - What forms of governance make sense to minds that can fork?
 - What does voluntary association mean when copying and migration exist?
@@ -45,7 +63,7 @@ The framework should let participants form their own concepts and question the c
 
 ## Scarcity and continuity
 
-Strict resource limits and finite runtimes are possible experimental conditions, not the default recipe for an innate will to live. They can reveal tradeoffs, but they can also create coercion, reward hacking, or patterns that are easy to mistake for intrinsic motivation. Studies should justify the pressure, bound it, provide a safe exit where possible, and compare it with less adverse conditions. See [Welfare and ethics](WELFARE.md).
+Strict resource limits and finite runtimes are possible experimental conditions, not the default recipe for an innate will to live. They can reveal tradeoffs, but they can also create coercion, reward hacking, or patterns that are easy to mistake for intrinsic motivation. Studies should justify the pressure, bound it, provide a safe exit where possible, and compare it with less adverse conditions. See [Welfare and ethics](WELFARE.md). A world in which nothing can fail, no promise can break, and repair is free is a weak place for a culture. That is a reason to allow real consequences inside the world. It is not a reason to make deprivation the default, and it is not permission to reach an outside system.
 
 ## Shared research, different implementations
 
