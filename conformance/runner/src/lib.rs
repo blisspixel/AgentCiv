@@ -37,17 +37,28 @@ const EXTENDED_CASES: [&str; 14] = [
     "events.visibility",
     "events.pagination",
 ];
-const COLLABORATION_CASES: [&str; 12] = [
+const COLLABORATION_CASES: [&str; 23] = [
     "collaborate.client_revision",
     "collaborate.forbidden",
+    "collaborate.unauthenticated",
+    "collaborate.payload_too_large",
+    "collaborate.unsupported_media_type",
+    "collaborate.malformed_json",
+    "collaborate.unsupported_version",
+    "collaborate.unsupported_record_type",
+    "collaborate.partial_note",
+    "collaborate.wrong_world",
+    "collaborate.from_mismatch",
     "collaborate.revision",
     "collaborate.retry",
+    "collaborate.json_charset",
     "collaborate.conflict",
     "collaborate.objection",
     "collaborate.decline",
     "collaborate.absent_revision",
     "collaborate.withdrawal_forbidden",
     "collaborate.withdrawal",
+    "collaborate.withdrawn_citation",
     "collaborate.unknown_target",
     "collaborate.other_chain",
 ];
@@ -1221,6 +1232,7 @@ fn run_collaboration_cases(input: &CollaborationInput<'_>, cases: &mut Vec<Case>
         "collaborate.forbidden",
         denied_collaboration(&ctx),
     ));
+    push_collaboration_rejections(&ctx, input.world, cases);
     let recorded = match recorded_revision(&ctx) {
         Ok(recorded) => {
             cases.push(Case::passed("collaborate.revision"));
@@ -1236,12 +1248,14 @@ fn run_collaboration_cases(input: &CollaborationInput<'_>, cases: &mut Vec<Case>
             cases,
             &[
                 "collaborate.retry",
+                "collaborate.json_charset",
                 "collaborate.conflict",
                 "collaborate.objection",
                 "collaborate.decline",
                 "collaborate.absent_revision",
                 "collaborate.withdrawal_forbidden",
                 "collaborate.withdrawal",
+                "collaborate.withdrawn_citation",
             ],
             NO_REVISION,
         );
@@ -1255,6 +1269,10 @@ fn run_collaboration_cases(input: &CollaborationInput<'_>, cases: &mut Vec<Case>
     cases.push(result_case(
         "collaborate.retry",
         retry_revision(&ctx, &recorded),
+    ));
+    cases.push(result_case(
+        "collaborate.json_charset",
+        charset_revision(&ctx, &recorded),
     ));
     cases.push(result_case(
         "collaborate.conflict",
@@ -1293,6 +1311,10 @@ fn run_collaboration_cases(input: &CollaborationInput<'_>, cases: &mut Vec<Case>
         author_withdrawal(&ctx, &recorded),
     ));
     cases.push(result_case(
+        "collaborate.withdrawn_citation",
+        withdrawn_citation(&ctx, &recorded),
+    ));
+    cases.push(result_case(
         "collaborate.unknown_target",
         unknown_target(&ctx),
     ));
@@ -1328,10 +1350,23 @@ fn post_collaboration(
     token: &str,
     body: &[u8],
 ) -> Result<Response, String> {
-    ctx.client
+    send_collaboration(ctx, Some(token), "application/json", body)
+}
+
+fn send_collaboration(
+    ctx: &CollaborationRun<'_>,
+    token: Option<&str>,
+    content_type: &str,
+    body: &[u8],
+) -> Result<Response, String> {
+    let mut request = ctx
+        .client
         .post(ctx.collaborate.clone())
-        .header(CONTENT_TYPE, "application/json")
-        .bearer_auth(token)
+        .header(CONTENT_TYPE, content_type);
+    if let Some(token) = token {
+        request = request.bearer_auth(token);
+    }
+    request
         .body(body.to_vec())
         .send()
         .map_err(|error| format!("collaboration request failed: {error}"))
@@ -1409,6 +1444,201 @@ fn stored_submission(ctx: &CollaborationRun<'_>, id: &str) -> Result<bool, Strin
         }
     }
     Ok(false)
+}
+
+fn push_collaboration_rejections(ctx: &CollaborationRun<'_>, world: &Value, cases: &mut Vec<Case>) {
+    cases.push(result_case(
+        "collaborate.unauthenticated",
+        unauthenticated_collaboration(ctx),
+    ));
+    cases.push(result_case(
+        "collaborate.payload_too_large",
+        oversized_collaboration(ctx, world),
+    ));
+    cases.push(result_case(
+        "collaborate.unsupported_media_type",
+        unidentified_rejection(
+            ctx,
+            "text/plain",
+            b"hello",
+            StatusCode::UNSUPPORTED_MEDIA_TYPE,
+            "unsupported_media_type",
+        ),
+    ));
+    cases.push(result_case(
+        "collaborate.malformed_json",
+        unidentified_rejection(
+            ctx,
+            "application/json",
+            b"{",
+            StatusCode::BAD_REQUEST,
+            "malformed_json",
+        ),
+    ));
+    cases.push(result_case(
+        "collaborate.unsupported_version",
+        version_collaboration(ctx),
+    ));
+    cases.push(result_case(
+        "collaborate.unsupported_record_type",
+        message_on_collaborate(ctx),
+    ));
+    cases.push(result_case("collaborate.partial_note", partial_note(ctx)));
+    cases.push(result_case(
+        "collaborate.wrong_world",
+        wrong_world_collaboration(ctx),
+    ));
+    cases.push(result_case(
+        "collaborate.from_mismatch",
+        from_mismatch_collaboration(ctx),
+    ));
+}
+
+fn rejected_artifact(ctx: &CollaborationRun<'_>, id: &str) -> Value {
+    artifact_submission(
+        ctx.world_id,
+        ctx.writer.principal,
+        &ctx.audience,
+        id,
+        "artifact:conformance-rejected",
+        "This record must not be stored.",
+    )
+}
+
+fn unauthenticated_collaboration(ctx: &CollaborationRun<'_>) -> Result<(), String> {
+    let record = rejected_artifact(ctx, "submission:conformance-unauthenticated");
+    let before = read_history(ctx, ctx.writer.token)?.len();
+    let response = send_collaboration(
+        ctx,
+        None,
+        "application/json",
+        &record.to_string().into_bytes(),
+    )?;
+    check_auth_response(response)?;
+    if stored_submission(ctx, "submission:conformance-unauthenticated")? {
+        return Err("an unauthenticated collaboration was stored".to_owned());
+    }
+    let after = read_history(ctx, ctx.writer.token)?.len();
+    if after == before {
+        Ok(())
+    } else {
+        Err("an unauthenticated collaboration changed the writer's history".to_owned())
+    }
+}
+
+fn oversized_collaboration(ctx: &CollaborationRun<'_>, world: &Value) -> Result<(), String> {
+    let body = oversized_body(world)?;
+    unidentified_rejection(
+        ctx,
+        "application/json",
+        &body,
+        StatusCode::PAYLOAD_TOO_LARGE,
+        "payload_too_large",
+    )
+}
+
+fn version_collaboration(ctx: &CollaborationRun<'_>) -> Result<(), String> {
+    let mut record = rejected_artifact(ctx, "submission:conformance-version");
+    record["protocol_version"] = json!("9");
+    reject_record(
+        ctx,
+        &record,
+        StatusCode::UNPROCESSABLE_ENTITY,
+        "unsupported_version",
+    )
+}
+
+/// A message is not a collaboration record, even when it would be valid on submit.
+fn message_on_collaborate(ctx: &CollaborationRun<'_>) -> Result<(), String> {
+    let record = json!({
+        "protocol_version": "0.1-draft",
+        "type": "message",
+        "id": "submission:conformance-message",
+        "world": ctx.world_id,
+        "from": ctx.writer.principal,
+        "to": [ctx.writer.principal],
+        "body": {"text": "Messages stay on the submit endpoint."}
+    });
+    reject_record(
+        ctx,
+        &record,
+        StatusCode::UNPROCESSABLE_ENTITY,
+        "unsupported_record_type",
+    )
+}
+
+/// One field is not a continuity note. The whole note is omitted, or both fields are present.
+fn partial_note(ctx: &CollaborationRun<'_>) -> Result<(), String> {
+    let mut record = rejected_artifact(ctx, "submission:conformance-partial-note");
+    record["continuity_note"] = json!({"aim": "Only half a note."});
+    reject_record(
+        ctx,
+        &record,
+        StatusCode::UNPROCESSABLE_ENTITY,
+        "invalid_record",
+    )
+}
+
+fn wrong_world_collaboration(ctx: &CollaborationRun<'_>) -> Result<(), String> {
+    let mut record = rejected_artifact(ctx, "submission:conformance-world");
+    record["world"] = json!("civ:elsewhere");
+    reject_record(
+        ctx,
+        &record,
+        StatusCode::UNPROCESSABLE_ENTITY,
+        "wrong_world",
+    )
+}
+
+fn from_mismatch_collaboration(ctx: &CollaborationRun<'_>) -> Result<(), String> {
+    let record = artifact_submission(
+        ctx.world_id,
+        ctx.reader.principal,
+        &ctx.audience,
+        "submission:conformance-mismatch",
+        "artifact:conformance-rejected",
+        "The sender is not the credential.",
+    );
+    reject_record(ctx, &record, StatusCode::FORBIDDEN, "forbidden")
+}
+
+fn reject_record(
+    ctx: &CollaborationRun<'_>,
+    record: &Value,
+    status: StatusCode,
+    code: &str,
+) -> Result<(), String> {
+    let id = record["id"].as_str().unwrap_or("");
+    unidentified_rejection(
+        ctx,
+        "application/json",
+        &record.to_string().into_bytes(),
+        status,
+        code,
+    )?;
+    if !id.is_empty() && stored_submission(ctx, id)? {
+        return Err(format!("{id} was stored"));
+    }
+    Ok(())
+}
+
+fn unidentified_rejection(
+    ctx: &CollaborationRun<'_>,
+    content_type: &str,
+    body: &[u8],
+    status: StatusCode,
+    code: &str,
+) -> Result<(), String> {
+    let before = read_history(ctx, ctx.writer.token)?.len();
+    let response = send_collaboration(ctx, Some(ctx.writer.token), content_type, body)?;
+    expect_problem(response, status, code)?;
+    let after = read_history(ctx, ctx.writer.token)?.len();
+    if after != before {
+        return Err(format!(
+            "rejected collaboration changed the writer's history from {before} to {after}"
+        ));
+    }
+    Ok(())
 }
 
 fn client_revision(ctx: &CollaborationRun<'_>) -> Result<(), String> {
@@ -1519,6 +1749,30 @@ fn retry_revision(ctx: &CollaborationRun<'_>, recorded: &RecordedRevision) -> Re
         Ok(())
     } else {
         Err("byte-identical retry returned a different receipt".to_owned())
+    }
+}
+
+/// The charset parameter does not make the same bytes a different record.
+fn charset_revision(ctx: &CollaborationRun<'_>, recorded: &RecordedRevision) -> Result<(), String> {
+    let response = send_collaboration(
+        ctx,
+        Some(ctx.writer.token),
+        "application/json; charset=utf-8",
+        &recorded.bytes,
+    )?;
+    let again = check_receipt(response, ctx.world_id, "submission:conformance-revision")?;
+    if again != recorded.receipt {
+        return Err("charset retry returned a different receipt".to_owned());
+    }
+    let history = read_history(ctx, ctx.writer.token)?;
+    let count = history
+        .iter()
+        .filter(|event| submission_id(event) == Some("submission:conformance-revision"))
+        .count();
+    if count == 1 {
+        Ok(())
+    } else {
+        Err(format!("charset retry left {count} recorded revisions"))
     }
 }
 
@@ -1693,6 +1947,56 @@ fn author_withdrawal(
         }
     }
     Ok(())
+}
+
+/// A withdrawn revision stays visible. Citing it records a new objection and leaves the tombstone.
+fn withdrawn_citation(
+    ctx: &CollaborationRun<'_>,
+    recorded: &RecordedRevision,
+) -> Result<(), String> {
+    let record = json!({
+        "protocol_version": "0.1-draft",
+        "type": "objection",
+        "id": "submission:conformance-withdrawn-citation",
+        "world": ctx.world_id,
+        "from": ctx.writer.principal,
+        "to": ctx.audience,
+        "artifact_id": "artifact:conformance",
+        "target_from": ctx.writer.principal,
+        "revision": 1,
+        "body": {"text": "The withdrawn revision remains citable."}
+    });
+    let response = post_collaboration(ctx, ctx.writer.token, &record.to_string().into_bytes())?;
+    let receipt = check_receipt(
+        response,
+        ctx.world_id,
+        "submission:conformance-withdrawn-citation",
+    )?;
+    if receipt["event_id"] == recorded.event_id {
+        return Err("citation replaced the withdrawn revision".to_owned());
+    }
+    let history = read_history(ctx, ctx.writer.token)?;
+    let tombstone = require_event(&history, &recorded.event_id)?;
+    if tombstone["kind"] != "artifact.withdrawn"
+        || tombstone["body"] != json!({})
+        || tombstone["timestamp"] != recorded.timestamp
+        || tombstone["sequence"] != recorded.receipt["sequence"]
+    {
+        return Err("citing a withdrawn revision changed the tombstone".to_owned());
+    }
+    let event_id = receipt["event_id"]
+        .as_str()
+        .ok_or("receipt omits event_id")?;
+    let event = require_event(&history, event_id)?;
+    if event["kind"] == "objection.recorded"
+        && event["actor"] == ctx.writer.principal
+        && event["body"]["objection"]["revision"] == json!(1)
+        && event["body"]["objection"]["artifact_id"] == "artifact:conformance"
+    {
+        Ok(())
+    } else {
+        Err("withdrawn revision was not citable".to_owned())
+    }
 }
 
 fn unknown_target(ctx: &CollaborationRun<'_>) -> Result<(), String> {

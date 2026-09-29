@@ -431,7 +431,7 @@ async fn public_http_covers_recording_refusal_and_restart() {
     })
     .await
     .expect("runner");
-    assert_eq!(report.cases.len(), 36, "{report:?}");
+    assert_eq!(report.cases.len(), 47, "{report:?}");
     assert!(
         report
             .cases
@@ -444,14 +444,25 @@ async fn public_http_covers_recording_refusal_and_restart() {
         "events.empty_cursor",
         "collaborate.client_revision",
         "collaborate.forbidden",
+        "collaborate.unauthenticated",
+        "collaborate.payload_too_large",
+        "collaborate.unsupported_media_type",
+        "collaborate.malformed_json",
+        "collaborate.unsupported_version",
+        "collaborate.unsupported_record_type",
+        "collaborate.partial_note",
+        "collaborate.wrong_world",
+        "collaborate.from_mismatch",
         "collaborate.revision",
         "collaborate.retry",
+        "collaborate.json_charset",
         "collaborate.conflict",
         "collaborate.objection",
         "collaborate.decline",
         "collaborate.absent_revision",
         "collaborate.withdrawal_forbidden",
         "collaborate.withdrawal",
+        "collaborate.withdrawn_citation",
         "collaborate.unknown_target",
         "collaborate.other_chain",
     ] {
