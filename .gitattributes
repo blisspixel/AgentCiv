@@ -1,4 +1,2 @@
 # Use stable published line endings for archived JSON reports.
 /conformance/evidence/**/*.json text eol=lf
-# Preserve exact bytes for this archive and its recorded SHA-256 values.
-/conformance/evidence/offline-inheritance-2026-09-30/** -text !eol
