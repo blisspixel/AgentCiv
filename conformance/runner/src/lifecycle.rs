@@ -403,7 +403,7 @@ fn record(
 fn verify_seed(history: &Value, records: &[Value], parties: &[(&str, &str)]) -> Result<(), String> {
     let mut expected_events = Vec::new();
     let mut event_ids = std::collections::HashSet::new();
-    let mut last_sequence = 0;
+    let mut last_sequence = None;
     for (index, record) in records.iter().enumerate() {
         let event = &record["event_at_recording"];
         if index == 5 {
@@ -419,10 +419,12 @@ fn verify_seed(history: &Value, records: &[Value], parties: &[(&str, &str)]) -> 
             let sequence = event["sequence"]
                 .as_u64()
                 .ok_or("seed event sequence missing")?;
-            if sequence <= last_sequence || !event_ids.insert(event["id"].to_string()) {
+            if last_sequence.is_some_and(|previous| sequence <= previous)
+                || !event_ids.insert(event["id"].to_string())
+            {
                 return Err("lifecycle seed events repeat identity or sequence".to_owned());
             }
-            last_sequence = sequence;
+            last_sequence = Some(sequence);
             expected_events.push(event.clone());
         }
     }

@@ -1,0 +1,2 @@
+# Use stable published line endings for archived JSON reports.
+/conformance/evidence/**/*.json text eol=lf

@@ -279,3 +279,39 @@ fn echoed_credentials_are_rejected_before_checkpoint_creation() {
     let encoded = serde_json::to_vec(&json!({"host_echo":token})).unwrap();
     assert!(ensure_no_credentials(&encoded, &[("agent:writer", token)]).is_err());
 }
+
+#[test]
+fn lifecycle_seed_accepts_sequence_zero_and_rejects_non_increasing_sequences() {
+    let mut saved = checkpoint();
+    for record in saved["records"].as_array_mut().unwrap() {
+        for field in ["receipt", "event_at_recording"] {
+            let value = record[field]["sequence"].as_u64().unwrap();
+            record[field]["sequence"] = json!(value - 1);
+        }
+    }
+    for events in saved["history"].as_object_mut().unwrap().values_mut() {
+        for event in events.as_array_mut().unwrap() {
+            let value = event["sequence"].as_u64().unwrap();
+            event["sequence"] = json!(value - 1);
+        }
+    }
+    validate_checkpoint(&saved).unwrap();
+    for next in [0, 2] {
+        let mut changed = saved.clone();
+        let index = if next == 0 { 1 } else { 0 };
+        changed["records"][index]["event_at_recording"]["sequence"] = json!(next);
+        changed["records"][index]["receipt"]["sequence"] = json!(next);
+        for events in changed["history"].as_object_mut().unwrap().values_mut() {
+            events[index]["sequence"] = json!(next);
+        }
+        assert!(
+            verify_seed(
+                &changed["history"],
+                changed["records"].as_array().unwrap(),
+                &parties()
+            )
+            .unwrap_err()
+            .contains("repeat identity or sequence")
+        );
+    }
+}

@@ -206,12 +206,9 @@ pub(super) fn run_hidden_cases(ctx: &CollaborationRun<'_>, cases: &mut Vec<Case>
         "artifact:hidden-source",
         "Private source content.",
     );
-    let setup = (|| {
+    let setup: Result<_, String> = (|| {
         let response = post_collaboration(ctx, ctx.writer.token, &source.to_string().into_bytes())?;
         let receipt = check_receipt(response, ctx.world_id, "submission:hidden-source")?;
-        if receipt["revision"] != 1 || receipt["artifact_id"] != "artifact:hidden-source" {
-            return Err("hidden source did not receive revision 1".to_owned());
-        }
         let writer_history = read_history(ctx, ctx.writer.token)?;
         let source_event = require_event(
             &writer_history,
@@ -219,9 +216,7 @@ pub(super) fn run_hidden_cases(ctx: &CollaborationRun<'_>, cases: &mut Vec<Case>
                 .as_str()
                 .ok_or("hidden source receipt omits event id")?,
         )?;
-        if source_event["body"]["artifact_revision"]["artifact_id"] != "artifact:hidden-source" {
-            return Err("hidden source was not stored for its author".to_owned());
-        }
+        validate_hidden_source(&source, &receipt, source_event, ctx.writer.principal)?;
         let peer_history = read_history(ctx, peer.token)?;
         ensure_hidden(&peer_history, &receipt)?;
         Ok((receipt, writer_history, peer_history))
@@ -255,6 +250,37 @@ pub(super) fn run_hidden_cases(ctx: &CollaborationRun<'_>, cases: &mut Vec<Case>
         })();
         cases.push(result_case(id, result));
     }
+}
+
+fn validate_hidden_source(
+    source: &Value,
+    receipt: &Value,
+    event: &Value,
+    writer: &str,
+) -> Result<(), String> {
+    let mut expected = source.clone();
+    expected["revision"] = json!(1);
+    if receipt["revision"] != 1
+        || receipt["artifact_id"] != source["artifact_id"]
+        || receipt["record_id"] != source["id"]
+        || receipt["world"] != source["world"]
+    {
+        return Err(
+            "hidden source receipt does not identify its assigned first revision".to_owned(),
+        );
+    }
+    if event["id"] != receipt["event_id"]
+        || event["sequence"] != receipt["sequence"]
+        || event["world"] != source["world"]
+        || event["actor"] != writer
+        || event["kind"] != "artifact.recorded"
+        || event["body"]["artifact_revision"] != expected
+    {
+        return Err(
+            "hidden source event does not match its submitted record and receipt".to_owned(),
+        );
+    }
+    Ok(())
 }
 
 fn ensure_hidden(history: &[Value], receipt: &Value) -> Result<(), String> {

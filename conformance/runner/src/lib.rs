@@ -1418,7 +1418,7 @@ fn read_complete_history(
     let mut seen_cursors = Vec::new();
     let mut collected = Vec::new();
     let mut event_ids = std::collections::HashSet::new();
-    let mut last_sequence = 0;
+    let mut last_sequence = None;
     for _ in 0..8 {
         let page = check_page_value(
             read_events(client, events, token, after.as_deref())?,
@@ -1427,12 +1427,14 @@ fn read_complete_history(
         let batch = page["events"].as_array().expect("validated events");
         for event in batch {
             let sequence = event["sequence"].as_u64().ok_or("event sequence missing")?;
-            if sequence <= last_sequence || !event_ids.insert(event["id"].to_string()) {
+            if last_sequence.is_some_and(|previous| sequence <= previous)
+                || !event_ids.insert(event["id"].to_string())
+            {
                 return Err(
                     "event history repeats an id or does not increase in sequence".to_owned(),
                 );
             }
-            last_sequence = sequence;
+            last_sequence = Some(sequence);
         }
         collected.extend(batch.iter().cloned());
         if page["has_more"] != true {

@@ -1091,3 +1091,44 @@ fn charset_rejection_and_empty_cursor_fail() {
         "{report:?}"
     );
 }
+
+#[test]
+fn complete_history_accepts_zero_start_and_rejects_cross_page_repeats_and_decreases() {
+    for (first_sequence, second_sequence, duplicate_id, expected_error) in [
+        (0, 1, false, false),
+        (0, 0, false, true),
+        (2, 1, false, true),
+        (0, 1, true, true),
+    ] {
+        let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+        let address = listener.local_addr().unwrap();
+        let worker = thread::spawn(move || {
+            for (index, sequence) in [first_sequence, second_sequence].into_iter().enumerate() {
+                let (mut stream, _) = listener.accept().unwrap();
+                let (headers, _) = read_raw(&mut stream);
+                assert!(headers.starts_with("GET /events"));
+                let id = if index == 0 || duplicate_id {
+                    "event:first"
+                } else {
+                    "event:second"
+                };
+                let page = json!({"protocol_version":"0.1-draft","type":"event_page","world":"civ:test","events":[{"protocol_version":"0.1-draft","type":"event","id":id,"world":"civ:test","sequence":sequence,"timestamp":"2026-09-30T00:00:00Z","kind":"example.recorded","body":{}}],"next_cursor":format!("cursor:{index}"),"has_more":index==0});
+                write_response(
+                    &mut stream,
+                    "200 OK",
+                    "application/json",
+                    "Cache-Control: no-store\r\n",
+                    &page,
+                );
+            }
+        });
+        let events = Url::parse(&format!("http://{address}/events")).unwrap();
+        let result = read_complete_history(&Client::new(), &events, "civ:test", "writer-token");
+        worker.join().unwrap();
+        assert_eq!(result.is_err(), expected_error, "{result:?}");
+        if let Ok(events) = result {
+            assert_eq!(events[0]["sequence"], 0);
+            assert_eq!(events.len(), 2);
+        }
+    }
+}

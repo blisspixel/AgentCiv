@@ -187,3 +187,94 @@ fn hidden_requests_are_valid_records_and_do_not_address_the_source_to_the_peer()
     assert!(ensure_hidden(&[json!({"id":"event:hidden", "body":{}})], &receipt).is_err());
     assert!(ensure_hidden(&[json!({"id":"event:other", "body":{"artifact_revision":{"artifact_id":"artifact:hidden-source"}}})], &receipt).is_err());
 }
+
+#[test]
+fn hidden_source_requires_exact_first_revision_and_correlated_receipt() {
+    let source = artifact_submission(
+        "civ:test",
+        "agent:writer",
+        &["agent:writer".to_owned()],
+        "submission:hidden-source",
+        "artifact:hidden-source",
+        "Private source content.",
+    );
+    let receipt = json!({"world":"civ:test","record_id":"submission:hidden-source","artifact_id":"artifact:hidden-source","revision":1,"event_id":"event:source","sequence":0});
+    let mut stored = source.clone();
+    stored["revision"] = json!(1);
+    let event = json!({"id":"event:source","sequence":0,"world":"civ:test","actor":"agent:writer","kind":"artifact.recorded","body":{"artifact_revision":stored}});
+    validate_hidden_source(&source, &receipt, &event, "agent:writer").unwrap();
+    for mutation in 0..10 {
+        let mut changed_event = event.clone();
+        let mut changed_receipt = receipt.clone();
+        match mutation {
+            0 => changed_event["body"]["artifact_revision"]["revision"] = json!(2),
+            1 => changed_event["body"]["artifact_revision"]["body"] = json!({"text":"different"}),
+            2 => changed_event["sequence"] = json!(1),
+            3 => changed_event["actor"] = json!("agent:peer"),
+            4 => changed_event["kind"] = json!("artifact.withdrawn"),
+            5 => changed_event["world"] = json!("civ:other"),
+            6 => changed_event["id"] = json!("event:other"),
+            7 => changed_receipt["revision"] = json!(2),
+            8 => changed_receipt["record_id"] = json!("submission:other"),
+            _ => changed_event["body"]["artifact_revision"]["to"] = json!(["agent:peer"]),
+        }
+        assert!(
+            validate_hidden_source(&source, &changed_receipt, &changed_event, "agent:writer")
+                .is_err(),
+            "{mutation}"
+        );
+    }
+}
+
+#[test]
+fn wrong_hidden_source_revision_stops_before_privacy_requests() {
+    use std::net::TcpListener;
+    let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+    let address = listener.local_addr().unwrap();
+    let worker = std::thread::spawn(move || {
+        let mut saved = Value::Null;
+        for index in 0..2 {
+            let (mut stream, _) = listener.accept().unwrap();
+            let (headers, bytes) = crate::tests::read_raw(&mut stream);
+            assert!(headers.contains("Bearer writer-token"));
+            let body = if index == 0 {
+                assert!(headers.starts_with("POST /collaborate "));
+                saved = serde_json::from_slice(&bytes).unwrap();
+                json!({"protocol_version":"0.1-draft","type":"receipt","world":"civ:test","record_id":"submission:hidden-source","artifact_id":"artifact:hidden-source","revision":1,"event_id":"event:source","sequence":0,"status":"recorded"})
+            } else {
+                assert!(headers.starts_with("GET /events "));
+                saved["revision"] = json!(2);
+                json!({"protocol_version":"0.1-draft","type":"event_page","world":"civ:test","events":[{"protocol_version":"0.1-draft","type":"event","id":"event:source","sequence":0,"world":"civ:test","timestamp":"2026-09-30T00:00:00Z","actor":"agent:writer","kind":"artifact.recorded","body":{"artifact_revision":saved}}],"next_cursor":"cursor:end","has_more":false})
+            };
+            crate::tests::write_response(
+                &mut stream,
+                "200 OK",
+                "application/json",
+                "Cache-Control: no-store\r\n",
+                &body,
+            );
+        }
+    });
+    let client = Client::new();
+    let events = Url::parse(&format!("http://{address}/events")).unwrap();
+    let mut ctx = context("addressed", &client, &events);
+    ctx.collaborate = Url::parse(&format!("http://{address}/collaborate")).unwrap();
+    ctx.peer = Some(Party {
+        principal: "agent:peer",
+        token: "peer-token",
+    });
+    let mut cases = Vec::new();
+    run_hidden_cases(&ctx, &mut cases);
+    worker.join().unwrap();
+    assert_eq!(cases[0].status, CaseStatus::Failed);
+    assert!(
+        cases[0]
+            .detail
+            .contains("hidden source event does not match")
+    );
+    assert!(
+        cases[1..]
+            .iter()
+            .all(|case| case.required && case.status == CaseStatus::Skipped)
+    );
+}
