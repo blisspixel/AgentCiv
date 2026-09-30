@@ -36,6 +36,8 @@ Add `--decision-attempts 3` to allow bounded local validation feedback. Attempts
 
 ## Purpose
 
+The [local offline inheritance record](docs/OFFLINE_INHERITANCE_VALIDATION_2026_09_30.md) preserves a Qwen task pass and a Ministral source-reference failure over the same bundle. The check covers a bounded data-only reader plan, with the wider collaboration milestone still open.
+
 To inspect selected records without a running host, use the optional [offline archive utility](docs/ARCHIVE_BUNDLE.md):
 
 ```sh

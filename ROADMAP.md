@@ -12,6 +12,8 @@ The vision, draft record vocabulary, JSON schemas, positive and negative fixture
 
 ## What comes next
 
+The [offline inheritance record](docs/OFFLINE_INHERITANCE_VALIDATION_2026_09_30.md) retains two local-model decisions over the same exported bundle. Qwen passed the fixed reader-plan and exact source-support checks; Ministral's mistyped source references failed. This is the first passing bounded data-only successor in this path. Scripted original contributions, constrained choices, local result files, and no live HTTP reader keep the wider useful-collaboration milestone open. The next acceptance work is actual paginated reader reuse and participant-directed original contributions, with the archive utility usable independently now.
+
 The optional [offline archive utility](docs/ARCHIVE_BUNDLE.md) now supplies a separately usable Rust library and CLI for explicit selection, exact record copies, validation, and a rebuilt source/target view. The [inheritance exercise](examples/inheritance/) adds a disclosed defective reader, corrected source, objection, and decline, with independent data-plan acceptance checks. Its host-backed source path revokes original grants after restart and provisions a fresh read-only reader; the successor receives only a file bundle. This advances the local path without requiring a permanent server. It does not complete project discovery, a general claim inspector, live raw-reader reuse, participant-driven authorship, or independent interoperability.
 
 Two tracks proceed together. Neither one is a substitute for the other.

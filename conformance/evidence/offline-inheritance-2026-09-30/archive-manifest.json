@@ -1,0 +1,106 @@
+{
+  "format": "agentciv-public-evidence-files/0.1",
+  "exact_original_file_bytes": true,
+  "git_attributes": "scoped -text avoids newline conversion",
+  "files": [
+    {
+      "path": "observations.json",
+      "sha256": "2ee75283c49456ea50f04853c4833eb50620593ffdbbbb309f6e383d12fd6932",
+      "bytes": 20195
+    },
+    {
+      "path": "source/history.json",
+      "sha256": "2ba4f1508ba6776af9e9908c6131536c90b0b0364eda865f8bec98b2c79e565d",
+      "bytes": 8057
+    },
+    {
+      "path": "source/before-check.json",
+      "sha256": "9d58c80749450d3cb4e56b440b0d1777ed48f83dac1915e66e1771c6475bfe3e",
+      "bytes": 1552
+    },
+    {
+      "path": "source/scripted-after-check.json",
+      "sha256": "cbfd19d1b6b6b94c6bbeb4242164bea9d5e2dc8316b93906744a3e32a17fde2a",
+      "bytes": 1783
+    },
+    {
+      "path": "source/snapshot.json",
+      "sha256": "991892bc005b3a39a2adafdca9dc166a8518b64152e4f93a61150061e98ff370",
+      "bytes": 5958
+    },
+    {
+      "path": "source/selection.json",
+      "sha256": "66d43412fd0fb7aaca033b4462e5d41f3c664fa4fe91334c1eb0be8489271c61",
+      "bytes": 392
+    },
+    {
+      "path": "source/bundle.json",
+      "sha256": "2ef99e0eb30471004ee90951820c4fd84e639ea82c9fe5d93490958a7acfde61",
+      "bytes": 7247
+    },
+    {
+      "path": "source/inspection.json",
+      "sha256": "1eeccf95cbaddfdc3facff1833f606bf46429ea03e37b4b14100f0c42dc4b1c6",
+      "bytes": 2993
+    },
+    {
+      "path": "source/decision.json",
+      "sha256": "6323dbc338540143260f9e907e22b8c79bd59ea7200a3b003ea0d7bcdb642ecb",
+      "bytes": 1421
+    },
+    {
+      "path": "source/report.json",
+      "sha256": "14a654316167508f4e1fb1b3e7c6f56772a43072cc7ecfff4b46eef4013adc8d",
+      "bytes": 12594
+    },
+    {
+      "path": "qwen/report.json",
+      "sha256": "3b0e0288a112e891261d03873561313678777161f101934015083f80407d1040",
+      "bytes": 4121
+    },
+    {
+      "path": "qwen/attempts.json",
+      "sha256": "9bce79813fff6e4be7b5dfc8405981a6f40fce5d70f2a7aabcab0baa5d008b69",
+      "bytes": 947
+    },
+    {
+      "path": "qwen/decision.json",
+      "sha256": "56b04267f5b242877c378d5c3bc10cacf42687a7a51f5ccb9a56e7404d1a7d35",
+      "bytes": 1674
+    },
+    {
+      "path": "qwen/independent-check.json",
+      "sha256": "cbfd19d1b6b6b94c6bbeb4242164bea9d5e2dc8316b93906744a3e32a17fde2a",
+      "bytes": 1783
+    },
+    {
+      "path": "ministral/report.json",
+      "sha256": "7360c75c4ac0eb08f9d0dbc7c8cf1fb57961e9373e8274fff7a5dfc9f7e791c5",
+      "bytes": 4275
+    },
+    {
+      "path": "ministral/attempts.json",
+      "sha256": "9717f9add31a8d27d69563e6734f2c95920245609eb129223716f586746f216c",
+      "bytes": 947
+    },
+    {
+      "path": "ministral/decision.json",
+      "sha256": "b3909146a1a8906f8bc329566ad97a8a01a0ee0bfeb95553e2384247f295c81a",
+      "bytes": 1795
+    },
+    {
+      "path": "ministral/independent-check.json",
+      "sha256": "2ee684c178a1561c31f2d179052afa8819da40d96db618270798a6c70666fc87",
+      "bytes": 1812
+    },
+    {
+      "path": "local-validation.json",
+      "sha256": "cf862943e0287469345fa4b49626b13a8f1be39bb6fb2ae1995c5cadd7cab534",
+      "bytes": 71644
+    }
+  ],
+  "private_material_included": false,
+  "native_private_traces_recorded": false,
+  "source_commit": "b9f9269a3fa63da0709baffab6e4cf08d6b2c448",
+  "external_spend_usd": 0
+}

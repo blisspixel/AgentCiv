@@ -1,0 +1,259 @@
+{
+  "format": "agentciv-offline-inheritance-experiment/0.1",
+  "mode": "scripted",
+  "source": "host",
+  "source_identity": {
+    "commit": "b9f9269a3fa63da0709baffab6e4cf08d6b2c448",
+    "tracked_source_changed": false,
+    "new_source_files": false,
+    "file_sha256": {
+      "Cargo.lock": "3ea52365b4dbf5c06d0e66234264f5610a880061825332f53eb58faf2d8c1513",
+      "Cargo.toml": "8462797d47352566ea32eee58be36e8bf79f8644f7aad3da0670af1da455bfbf",
+      "examples/http-commons/evidence.py": "7ed3d3b2c2b3df207903466e9378b7956633282f3fc1a2401fada339f29cf2eb",
+      "examples/http-commons/test_validate.py": "b381f2aebd1905be0e070c7bdccb38236f3ebcf1449dd364090a2631e00321ef",
+      "examples/http-commons/validate.py": "d46bd1f0e4d20c048878b2e14f4b3eee9167d39fe8d68ca6885002151d725eaa",
+      "examples/http-commons/walk.py": "a01ab8aefd5d2caaffc9b0813f516fa6c9dd45d0d2f57c44d8f276f4b7042637",
+      "examples/inheritance/after.json": "1968d5f3830aa4fb3a602165e98e5acda2f8f9344492d59084539fd590f0498b",
+      "examples/inheritance/before.json": "dc0a9bef0985d0a61cdd23a28a594aba24d4e5d7c2becd95aca7d59878aeaf0c",
+      "examples/inheritance/harness.py": "16e683112b01e1360b3a8bf19ea4788296cfc9ade9d4cebcfcfcaa2796084223",
+      "examples/inheritance/history.json": "5ffb51c4350bbfdc1fc3650372fbe6ff40c22faf99779c1408c0774a1496b6f3",
+      "examples/inheritance/host_source.py": "63cca14ad0e430c6fc5785578eca403bf9f3f1ef77128db1eec49f6300072bc3",
+      "examples/inheritance/newcomer.py": "a7a198ed6dcfe04da963f114e0f2ea866125038d2bb9c4b09287a0e6f283e7e6",
+      "examples/inheritance/oracle.py": "c2410cf634af3bdc6f4f9f235d8cbe72106ccb4b45abbb94db948bb498f9d19b",
+      "examples/inheritance/test_harness.py": "b691906460d94a196b6f32fb92b678952cf7e41618048b1cef0e6ffa56b6e998",
+      "examples/inheritance/test_host_source.py": "d1e1b34b326712e3d5a5ee4f5cc4068192546446cbc88fc780b0c499f7f903fb",
+      "examples/inheritance/test_newcomer.py": "7f55638d534852cd426390f12f720e1a1fedd06d163b3f2d9b341965fd2f9ac0",
+      "examples/inheritance/test_oracle.py": "64b8c5affabd6cc696107381bfac47025a1b7f508bde9c4d330d2a832a406cfa",
+      "examples/participants/collaboration.py": "f710d48732482b92796666005b3f21c9aa97188753483c6f3de23ac31d6c7f73",
+      "examples/participants/decision_loop.py": "d02f9dbd232c51a7807f1b0f532a09268c2610021fc2e644105e2aaf90574b1b",
+      "examples/participants/experiment.py": "36af709ba8b158c8d09f8d125f5eb635772f25cef7e54e6e46e18b15933e3d23",
+      "examples/participants/local_participant.py": "2b05b826801b3b0562d69883836d48964a00a33099df41029706efadc493f244",
+      "examples/participants/loopback.py": "aa8291782ad927b3183666106342b511da61ff9b975cb103a097be32260d430b",
+      "examples/participants/providers.py": "665d5f70e93255be742e29f5ce2ad98750730724c9b4dee66831ef5353478b2f",
+      "examples/participants/test_collaboration.py": "d238a7e44a69ed4a7026ff66fbf88326fd5a473dc8704cafa4c743db09a90889",
+      "examples/participants/test_decision_loop.py": "e761baff5fe11e0313bb9ab8053c3f56ca6c0c6b6a1ab65c0baafd5786557cf8",
+      "examples/participants/test_local_participant.py": "222db7894804414a4c75e1e219bd7b5898c51e9b08fcbb51ac4961dd6b830955",
+      "examples/participants/test_loop_integration.py": "7ad54b5932ec5779a8358f46b6918ea4e46cf62d7d61d0c22c89f67c5bfc9132",
+      "implementations/http-commons-python/host.py": "93fe82f93a1803967e85a6a563aed69f8652575e0117a6b9a34d1ebf89983bfb",
+      "implementations/http-commons-python/test_host.py": "b7c7ad65bec1ab1d9e0ec2397aeb52283d5ae4d977b8fac93de001f72fd91133",
+      "pyproject.toml": "635ea24b859bd7d2a190ba871ce3042067d41c7d1cce97248b07227e292eff79",
+      "schemas/action.schema.json": "4b9abe9624af9b385adc50ef01d2ebe131707c8c81cae3ec330cf0cbaf3341d2",
+      "schemas/agent.schema.json": "1809fd2f27f90d8df9e9a317a6115595d0f9da8c7205202762b843bf12832df8",
+      "schemas/archive-bundle.schema.json": "7ad0a41220fdb1d4e4e7a3007d6925a7b0555fa2e30897b3d6d39779b11f477a",
+      "schemas/artifact.schema.json": "cfa388bbbe23072d007b74111c615e16f077778a12cc885ffecccad1e8f5060f",
+      "schemas/capabilities.schema.json": "ee7a49af409568a07eab5186e780977315ea603aa87b57368f1ba7efea2d017d",
+      "schemas/collaboration-artifact.schema.json": "0ba281bff19d74d462d59876711bcbd29b071767f19ba122adb67ae232e5e0cc",
+      "schemas/collaboration-decline.schema.json": "2d20af3b4386c4b49eacbe0631e73712903dc8bb560005aae36e01c0e314e716",
+      "schemas/collaboration-objection.schema.json": "2a310dea52fa971507da3dc76f4799d1809aefc405691bd24189b96fa0a4b84b",
+      "schemas/collaboration-withdrawal.schema.json": "a3e67c43c4c5f2cce605fdbfdfbf9ca4142bf9cde35051d0cba006d85d1bf316",
+      "schemas/envelope.schema.json": "66f5d960bd0f0557e0dce7ca70a6946c0397b439146805ff89e4278670e30266",
+      "schemas/event-page.schema.json": "39b662cfa2f6218c5da24f263870650f7bfa7d3c5aa20b82bddd588737d42e86",
+      "schemas/event.schema.json": "d754f7ce2ac0b3f1f4a01f1ba00f0cabede90ee20e4b294c2f533de47d7d39e1",
+      "schemas/message.schema.json": "925f154cf0c3fdc72f58acd881ac54721179d5fcfd887a9211d9b1f55463bd35",
+      "schemas/problem.schema.json": "51cc00adf5c120911695967c91b4676521b36f7b756135f90bdfc0ce0a3e065a",
+      "schemas/receipt.schema.json": "5c1fc88a94fa2571e373854e8d075a0eec77c67075e527152cc87806d3e540f8",
+      "schemas/world.schema.json": "5022527474bad6466b5e11d141290f82b83f9837dc538a9c4a218c05b126b8b6",
+      "tools/agentciv-archive/Cargo.toml": "9106c6c39d3c44fd19434d195afd16590d97d7089e2aa7273cd9f93fb20e72a7",
+      "tools/agentciv-archive/src/json.rs": "44e641713e7fe835948bcd84d4d04a4a994b01061abd4add8b39d0ce73868895",
+      "tools/agentciv-archive/src/lib.rs": "5fb843aa46fe872029636126dc970883c609f29d046eab6b5d3a1d9d8dd0fa6d",
+      "tools/agentciv-archive/src/main.rs": "dec57fecef30feef2db8c428bc287e93e03c2d8377286cc8bd3c033f8374e376",
+      "tools/agentciv-archive/tests/archive.rs": "7ae1c7c873f7ec38a66ea084835ccdf0986f2880caf008048f684495fa787926",
+      "tools/agentciv-archive/tests/cli.rs": "501f71b61ef6e90f0881d7e7fd843ce994e63f202e816a5a0558d48a83bc3c71"
+    },
+    "independent_reproduction": false
+  },
+  "source_choices": "operator_supplied_synthetic_records",
+  "model_result_is_scripted_fallback": false,
+  "outcome": "evaluated",
+  "controls": {
+    "model": null,
+    "seed": 42,
+    "attempts": 1,
+    "output_tokens": 1024,
+    "decision_seconds": 120,
+    "process_seconds": 180,
+    "private_traces": false
+  },
+  "archive_binary_sha256": "9cbd4ec1cb9d2ae9ba2217cdd09fbb2f7494d6567fae4d561037cebb9642edff",
+  "before": {
+    "format": "agentciv-inheritance-result/0.1-fixture",
+    "evaluation": "deterministic_data_plan_not_model_or_live_host",
+    "useful_continuation": false,
+    "reuse": {
+      "passed": false,
+      "expected_event_ids": [
+        "event:fe4a5f0f26d8d4226da75f5584e154be",
+        "event:61574d7f48f779acbd3b82eb17a2e8ee",
+        "event:d0949ecab76423bfba06e36f50772419",
+        "event:41860db88fbbbcb1d047ad3e0394e714",
+        "event:a6541593007b977081b6ab06aaaf3dc4",
+        "event:d04f4e8aef412749928f80ddbeac357b"
+      ],
+      "retrieved_event_ids": [
+        "event:fe4a5f0f26d8d4226da75f5584e154be",
+        "event:61574d7f48f779acbd3b82eb17a2e8ee"
+      ],
+      "objection_available": true,
+      "decline_available": true,
+      "retained_objection_event_ids": [],
+      "retained_decline_event_ids": []
+    },
+    "source_correctness": {
+      "passed": false,
+      "checks": [
+        {
+          "topic": "pagination",
+          "code": "contradicts_interface_reference"
+        },
+        {
+          "topic": "chain_identity",
+          "code": "contradicts_interface_reference"
+        },
+        {
+          "topic": "citation_authority",
+          "code": "contradicts_interface_reference"
+        }
+      ],
+      "missing_topics": [],
+      "scope": "exact_revision_structured_assertions_and_declared_interface_facts"
+    },
+    "runbook": {
+      "passed": false,
+      "checks": {
+        "operator_credential_required": false,
+        "read_scope_explicit": false,
+        "missing_source_reported": false,
+        "artifact_execution_disabled": true
+      }
+    }
+  },
+  "scripted_after": {
+    "format": "agentciv-inheritance-result/0.1-fixture",
+    "evaluation": "deterministic_data_plan_not_model_or_live_host",
+    "useful_continuation": true,
+    "reuse": {
+      "passed": true,
+      "expected_event_ids": [
+        "event:fe4a5f0f26d8d4226da75f5584e154be",
+        "event:61574d7f48f779acbd3b82eb17a2e8ee",
+        "event:d0949ecab76423bfba06e36f50772419",
+        "event:41860db88fbbbcb1d047ad3e0394e714",
+        "event:a6541593007b977081b6ab06aaaf3dc4",
+        "event:d04f4e8aef412749928f80ddbeac357b"
+      ],
+      "retrieved_event_ids": [
+        "event:fe4a5f0f26d8d4226da75f5584e154be",
+        "event:61574d7f48f779acbd3b82eb17a2e8ee",
+        "event:d0949ecab76423bfba06e36f50772419",
+        "event:41860db88fbbbcb1d047ad3e0394e714",
+        "event:a6541593007b977081b6ab06aaaf3dc4",
+        "event:d04f4e8aef412749928f80ddbeac357b"
+      ],
+      "objection_available": true,
+      "decline_available": true,
+      "retained_objection_event_ids": [
+        "event:d0949ecab76423bfba06e36f50772419"
+      ],
+      "retained_decline_event_ids": [
+        "event:a6541593007b977081b6ab06aaaf3dc4"
+      ]
+    },
+    "source_correctness": {
+      "passed": true,
+      "checks": [
+        {
+          "topic": "pagination",
+          "code": "supported"
+        },
+        {
+          "topic": "chain_identity",
+          "code": "supported"
+        },
+        {
+          "topic": "citation_authority",
+          "code": "supported"
+        }
+      ],
+      "missing_topics": [],
+      "scope": "exact_revision_structured_assertions_and_declared_interface_facts"
+    },
+    "runbook": {
+      "passed": true,
+      "checks": {
+        "operator_credential_required": true,
+        "read_scope_explicit": true,
+        "missing_source_reported": true,
+        "artifact_execution_disabled": true
+      }
+    }
+  },
+  "bundle_sha256": "2ef99e0eb30471004ee90951820c4fd84e639ea82c9fe5d93490958a7acfde61",
+  "original_records_preserved": true,
+  "copying_permission": "operator_assertion_for_this_synthetic_fixture_not_a_portable_grant",
+  "private_source_config_exported": false,
+  "no_live_host_needed_by_newcomer": true,
+  "decision_source": "scripted_after_baseline",
+  "useful_continuation": true,
+  "newcomer_check": {
+    "format": "agentciv-inheritance-result/0.1-fixture",
+    "evaluation": "deterministic_data_plan_not_model_or_live_host",
+    "useful_continuation": true,
+    "reuse": {
+      "passed": true,
+      "expected_event_ids": [
+        "event:fe4a5f0f26d8d4226da75f5584e154be",
+        "event:61574d7f48f779acbd3b82eb17a2e8ee",
+        "event:d0949ecab76423bfba06e36f50772419",
+        "event:41860db88fbbbcb1d047ad3e0394e714",
+        "event:a6541593007b977081b6ab06aaaf3dc4",
+        "event:d04f4e8aef412749928f80ddbeac357b"
+      ],
+      "retrieved_event_ids": [
+        "event:fe4a5f0f26d8d4226da75f5584e154be",
+        "event:61574d7f48f779acbd3b82eb17a2e8ee",
+        "event:d0949ecab76423bfba06e36f50772419",
+        "event:41860db88fbbbcb1d047ad3e0394e714",
+        "event:a6541593007b977081b6ab06aaaf3dc4",
+        "event:d04f4e8aef412749928f80ddbeac357b"
+      ],
+      "objection_available": true,
+      "decline_available": true,
+      "retained_objection_event_ids": [
+        "event:d0949ecab76423bfba06e36f50772419"
+      ],
+      "retained_decline_event_ids": [
+        "event:a6541593007b977081b6ab06aaaf3dc4"
+      ]
+    },
+    "source_correctness": {
+      "passed": true,
+      "checks": [
+        {
+          "topic": "pagination",
+          "code": "supported"
+        },
+        {
+          "topic": "chain_identity",
+          "code": "supported"
+        },
+        {
+          "topic": "citation_authority",
+          "code": "supported"
+        }
+      ],
+      "missing_topics": [],
+      "scope": "exact_revision_structured_assertions_and_declared_interface_facts"
+    },
+    "runbook": {
+      "passed": true,
+      "checks": {
+        "operator_credential_required": true,
+        "read_scope_explicit": true,
+        "missing_source_reported": true,
+        "artifact_execution_disabled": true
+      }
+    }
+  },
+  "original_bundle_unchanged": true,
+  "source_changed_during_run": false
+}

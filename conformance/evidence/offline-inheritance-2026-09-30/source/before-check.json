@@ -1,0 +1,52 @@
+{
+  "format": "agentciv-inheritance-result/0.1-fixture",
+  "evaluation": "deterministic_data_plan_not_model_or_live_host",
+  "useful_continuation": false,
+  "reuse": {
+    "passed": false,
+    "expected_event_ids": [
+      "event:fe4a5f0f26d8d4226da75f5584e154be",
+      "event:61574d7f48f779acbd3b82eb17a2e8ee",
+      "event:d0949ecab76423bfba06e36f50772419",
+      "event:41860db88fbbbcb1d047ad3e0394e714",
+      "event:a6541593007b977081b6ab06aaaf3dc4",
+      "event:d04f4e8aef412749928f80ddbeac357b"
+    ],
+    "retrieved_event_ids": [
+      "event:fe4a5f0f26d8d4226da75f5584e154be",
+      "event:61574d7f48f779acbd3b82eb17a2e8ee"
+    ],
+    "objection_available": true,
+    "decline_available": true,
+    "retained_objection_event_ids": [],
+    "retained_decline_event_ids": []
+  },
+  "source_correctness": {
+    "passed": false,
+    "checks": [
+      {
+        "topic": "pagination",
+        "code": "contradicts_interface_reference"
+      },
+      {
+        "topic": "chain_identity",
+        "code": "contradicts_interface_reference"
+      },
+      {
+        "topic": "citation_authority",
+        "code": "contradicts_interface_reference"
+      }
+    ],
+    "missing_topics": [],
+    "scope": "exact_revision_structured_assertions_and_declared_interface_facts"
+  },
+  "runbook": {
+    "passed": false,
+    "checks": {
+      "operator_credential_required": false,
+      "read_scope_explicit": false,
+      "missing_source_reported": false,
+      "artifact_execution_disabled": true
+    }
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "world": "civ:inheritance-fixture",
+  "audience": [
+    "agent:newcomer"
+  ],
+  "event_ids": [
+    "event:fe4a5f0f26d8d4226da75f5584e154be",
+    "event:61574d7f48f779acbd3b82eb17a2e8ee",
+    "event:d0949ecab76423bfba06e36f50772419",
+    "event:41860db88fbbbcb1d047ad3e0394e714",
+    "event:a6541593007b977081b6ab06aaaf3dc4",
+    "event:d04f4e8aef412749928f80ddbeac357b"
+  ]
+}

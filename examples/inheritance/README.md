@@ -1,5 +1,7 @@
 # Data-only inheritance acceptance exercise
 
+The [local observation record](../../docs/OFFLINE_INHERITANCE_VALIDATION_2026_09_30.md) retains one model task pass and one source-reference failure using the same bundle. These are separate observations with scripted origins, not a general reliability or interoperability result.
+
 This deterministic fixture supplies a defective history reader, an objection,
 a corrected supporting source, and a preserved decline. A later participant can
 inspect those records and publish their own improved plan. The fixture and its
