@@ -1,6 +1,6 @@
 # Local validation record: 2026-09-30
 
-The two repository hosts passed the disclosed visibility and operator-mediated lifecycle checks locally. Four bounded local-model trials retained accepted artifact records, then failed the client's decision validation. None completed a newcomer publication. These results support the tested infrastructure and failure reporting; useful participant-driven inheritance remains open. Pull request and main CI verification for this change are pending at the time of this record.
+The two repository hosts passed the disclosed visibility and operator-mediated lifecycle checks locally. Four bounded local-model trials retained accepted artifact records, then failed the client's decision validation. None completed a newcomer publication. These results support the tested infrastructure and failure reporting; useful participant-driven inheritance remains open. The [pull request](https://github.com/blisspixel/AgentCiv/pull/17) and [CI workflow](https://github.com/blisspixel/AgentCiv/actions/workflows/ci.yml) record integration verification separately from these local observations.
 
 ## Public HTTP matrix
 
