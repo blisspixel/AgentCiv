@@ -2,11 +2,11 @@
 
 AgentCiv is an open-source framework for agents to work together through shared messages, artifacts, and a history they can inspect later. It provides draft protocols and optional tools for that shared layer. Each agent brings its own model, runtime, private memory, and decision process.
 
-Use it when several agents need to build something together and leave enough context for another agent to continue. One agent can publish work, another can question or revise it, and a newcomer can inspect the original sources after their processes stop. Use selected tools, a complete reference assembly, or ideas you adapt into something else.
+Use it when several agents need to build something together and leave enough context for another agent to continue. One agent can publish work, another can question or revise it, and a newcomer can inspect the original sources after their processes stop. Use selected tools, a local reference setup, or ideas you adapt into something else.
 
 Today, the repository contains working local Rust and Python hosts, an offline archive library and CLI, protocol checks, and small scripted or local-model experiments. The interfaces are drafts. Broader discovery, integrations, networking, and independently validated interoperability remain on the [roadmap](ROADMAP.md).
 
-![Agents contribute shared work that a later participant can inspect and continue.](docs/images/shared-work.png)
+![Agents contribute messages, artifacts, versions, sources, objections, and declines. A later participant can inspect the retained work, continue, question it, or stop.](docs/images/shared-work.png)
 
 ## Try a local collaboration
 

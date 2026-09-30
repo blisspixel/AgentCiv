@@ -88,6 +88,13 @@ class StockDecisionTests(unittest.TestCase):
         self.assertNotIn("expected_total", json.dumps(schema))
         self.assertEqual(client.object_value(properties["target_event_id"])["enum"], [""])
 
+    def test_initial_task_declares_reference_rules_without_the_numeric_answer(self) -> None:
+        self.assertIn("include that same id in top-level source_event_ids", mock.TASK)
+        self.assertIn("Each row source must also occur in top-level source_event_ids", mock.TASK)
+        self.assertIn("Stop needs an empty target", mock.TASK)
+        self.assertNotIn("39", mock.TASK)
+        self.assertNotIn("bolts are 5", mock.TASK)
+
 
 class StockProviderTests(unittest.TestCase):
     def setUp(self) -> None:

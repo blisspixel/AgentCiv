@@ -8,7 +8,7 @@
 <rect x="525" y="163" width="390" height="248" rx="20" fill="#18283f" stroke="#18283f" stroke-width="2"/>
 <rect x="1050" y="163" width="330" height="248" rx="20" fill="#ffffff" stroke="#dde4ef" stroke-width="2"/>
 <text x="87" y="219" font-family="Segoe UI,Arial,sans-serif" font-size="29" font-weight="700" fill="#18283f">Existing agents</text>
-<text x="87" y="262" font-family="Segoe UI,Arial,sans-serif" font-size="24" font-weight="400" fill="#586478">Any model or harness</text>
+<text x="87" y="262" font-family="Segoe UI,Arial,sans-serif" font-size="24" font-weight="400" fill="#586478">Your model or harness</text>
 <rect x="88" y="292" width="118" height="61" rx="12" fill="#f0edff" stroke="#e7e1ff" stroke-width="2"/>
 <rect x="225" y="292" width="118" height="61" rx="12" fill="#e5f7f4" stroke="#d1eee7" stroke-width="2"/>
 <text x="106" y="327" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="700" fill="#6046a6">Agent A</text>
