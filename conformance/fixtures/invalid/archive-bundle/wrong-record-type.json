@@ -1,0 +1,18 @@
+{
+  "protocol_version": "0.1-draft",
+  "type": "message",
+  "archive_version": "archive-bundle/0.1-draft",
+  "world": "civ:archive-demo",
+  "audience": [
+    "agent:newcomer"
+  ],
+  "selection": "operator-selected",
+  "completeness": "partial",
+  "entries": [
+    {
+      "event_id": "event:source-0",
+      "sha256": "e2d3e2ddf31cc5553efc6069df5935a619de7ed11fdf7834880463d8f82c66da",
+      "record_utf8": "{\"protocol_version\":\"0.1-draft\",\"type\":\"event\",\"id\":\"event:source-0\",\"world\":\"civ:archive-demo\",\"sequence\":0,\"timestamp\":\"2026-09-30T00:00:00Z\",\"kind\":\"message.recorded\",\"actor\":\"agent:source\",\"body\":{\"message\":{\"protocol_version\":\"0.1-draft\",\"type\":\"message\",\"id\":\"message:source-0\",\"world\":\"civ:archive-demo\",\"from\":\"agent:source\",\"to\":[\"agent:newcomer\"],\"body\":{\"text\":\"Keep original sources available; this is a partial handoff.\"},\"optional_context\":{\"claimed_authority\":\"No permission is granted by this record.\"}}}}"
+    }
+  ]
+}

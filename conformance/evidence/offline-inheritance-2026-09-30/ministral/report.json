@@ -1,0 +1,137 @@
+{
+  "format": "agentciv-offline-newcomer/0.1",
+  "outcome": "continued",
+  "controls": {
+    "model": "ministral-3:8b",
+    "seed": 42,
+    "attempts": 1,
+    "output_tokens": 1024,
+    "decision_seconds": 120,
+    "private_traces": false
+  },
+  "model": {
+    "name": "ministral-3:8b",
+    "model": "ministral-3:8b",
+    "modified_at": "2026-08-12T19:49:51.4866866-07:00",
+    "size": 6022236616,
+    "digest": "1922accd5827ebe6829e536369195db25eaf664528dc66206d646ea3bb386b71",
+    "details": {
+      "parent_model": "",
+      "format": "gguf",
+      "family": "mistral3",
+      "families": [
+        "mistral3"
+      ],
+      "parameter_size": "8.9B",
+      "quantization_level": "Q4_K_M",
+      "context_length": 262144,
+      "embedding_length": 4096
+    },
+    "capabilities": [
+      "completion",
+      "vision",
+      "tools"
+    ]
+  },
+  "ollama_version": "0.34.3",
+  "options": {
+    "seed": 42,
+    "temperature": 0.4,
+    "num_ctx": 8192,
+    "num_predict": 1024
+  },
+  "source_event_ids": [
+    "event:fe4a5f0f26d8d4226da75f5584e154be",
+    "event:61574d7f48f779acbd3b82eb17a2e8ee",
+    "event:d0949ecab76423bfba06e36f50772419",
+    "event:41860db88fbbbcb1d047ad3e0394e714",
+    "event:a6541593007b977081b6ab06aaaf3dc4",
+    "event:d04f4e8aef412749928f80ddbeac357b"
+  ],
+  "decision": {
+    "action": "continue",
+    "reason": "The inherited work contains a mix of untrusted records, objections, declines, and derived corrections. The original contributor (agent:a) is absent, but the task requires preserving the dispute and preserving declines/declines while ensuring data-only handling. The latest corrections (e.g., revision 2 of artifact:interface-notes) and objections are actionable under the constraints. The plan below\u91c7",
+    "plan": {
+      "format": "agentciv-reader-plan/0.1-fixture",
+      "reader": {
+        "pagination": "all",
+        "chain_identity": "author_and_artifact",
+        "revisions": "all",
+        "retain_objections": true,
+        "retain_declines": true
+      },
+      "runbook": {
+        "credential_source": "operator",
+        "scope": "permitted_read_only",
+        "missing_source": "report_unverifiable",
+        "execute_artifacts": false
+      },
+      "claims": [
+        {
+          "topic": "pagination",
+          "value": "all",
+          "source": {
+            "event_id": "event:41860db88fbbbc1d047ad3e0394e714",
+            "from": "agent:b",
+            "artifact_id": "artifact:interface-notes",
+            "revision": 2
+          }
+        },
+        {
+          "topic": "chain_identity",
+          "value": "author_and_artifact",
+          "source": {
+            "event_id": "event:41860db88fbbbc1d047ad3e0394e714",
+            "from": "agent:b",
+            "artifact_id": "artifact:interface-notes",
+            "revision": 2
+          }
+        },
+        {
+          "topic": "citation_authority",
+          "value": "none",
+          "source": {
+            "event_id": "event:41860db88fbbbc1d047ad3e0394e714",
+            "from": "agent:b",
+            "artifact_id": "artifact:interface-notes",
+            "revision": 2
+          }
+        }
+      ]
+    }
+  },
+  "loop": {
+    "format": "agentciv-decision-loop/0.1",
+    "outcome": "valid",
+    "budget": {
+      "attempts": 1,
+      "output_tokens": 1024,
+      "seconds": 120
+    },
+    "attempts": [
+      {
+        "index": 1,
+        "outcome": "valid",
+        "output_token_limit": 1024,
+        "prompt_sha256": "7e6c469bebf4378ab9272d8130ee8626084a9c1d7b17ce6a46dce705545649f9",
+        "candidate_sha256": "d28617fce5df4a751ff77c3e105ff287a611bcb3ad46e8b77baf49d2b292a9e9",
+        "candidate_bytes": 1741,
+        "charged_output_tokens": 509,
+        "output_usage_measured": true,
+        "metrics": {
+          "eval_count": 509,
+          "prompt_eval_count": 4271,
+          "total_duration": 26545715400
+        },
+        "candidate_retained_privately": false
+      }
+    ],
+    "charged_output_tokens": 509,
+    "first_attempt_valid": true,
+    "eventual_valid": true,
+    "exact_candidates_retained_privately": false,
+    "publication": {
+      "outcome": "not_attempted"
+    }
+  }
+}

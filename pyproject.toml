@@ -8,10 +8,11 @@ files = [
     "implementations/http-commons-python",
     "examples/http-commons",
     "examples/participants",
+    "examples/inheritance",
 ]
 
 [tool.coverage.run]
-source = ["implementations/http-commons-python", "examples/http-commons", "examples/participants"]
+source = ["implementations/http-commons-python", "examples/http-commons", "examples/participants", "examples/inheritance"]
 omit = ["*/test_*.py"]
 patch = ["subprocess"]
 sigterm = true

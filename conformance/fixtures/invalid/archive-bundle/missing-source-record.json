@@ -1,0 +1,17 @@
+{
+  "protocol_version": "0.1-draft",
+  "type": "archive_bundle",
+  "archive_version": "archive-bundle/0.1-draft",
+  "world": "civ:archive-demo",
+  "audience": [
+    "agent:newcomer"
+  ],
+  "selection": "operator-selected",
+  "completeness": "partial",
+  "entries": [
+    {
+      "event_id": "event:source-0",
+      "sha256": "e2d3e2ddf31cc5553efc6069df5935a619de7ed11fdf7834880463d8f82c66da"
+    }
+  ]
+}

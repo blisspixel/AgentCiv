@@ -1,0 +1,106 @@
+{
+  "archive_version": "archive-bundle/0.1-draft",
+  "artifacts": [
+    {
+      "artifact_id": "artifact:history-reader",
+      "event_id": "event:fe4a5f0f26d8d4226da75f5584e154be",
+      "from": "agent:a",
+      "revision": 1
+    },
+    {
+      "artifact_id": "artifact:interface-notes",
+      "event_id": "event:61574d7f48f779acbd3b82eb17a2e8ee",
+      "from": "agent:b",
+      "revision": 1
+    },
+    {
+      "artifact_id": "artifact:interface-notes",
+      "event_id": "event:41860db88fbbbcb1d047ad3e0394e714",
+      "from": "agent:b",
+      "revision": 2
+    },
+    {
+      "artifact_id": "artifact:history-reader",
+      "event_id": "event:d04f4e8aef412749928f80ddbeac357b",
+      "from": "agent:d",
+      "revision": 1
+    }
+  ],
+  "audience": [
+    "agent:newcomer"
+  ],
+  "authority_transferred": false,
+  "bundle_sha256": "2ef99e0eb30471004ee90951820c4fd84e639ea82c9fe5d93490958a7acfde61",
+  "completeness": "partial",
+  "copy_integrity": "matched",
+  "events": [
+    {
+      "event_id": "event:fe4a5f0f26d8d4226da75f5584e154be",
+      "kind": "artifact.recorded",
+      "sequence": 1
+    },
+    {
+      "event_id": "event:61574d7f48f779acbd3b82eb17a2e8ee",
+      "kind": "artifact.recorded",
+      "sequence": 2
+    },
+    {
+      "event_id": "event:d0949ecab76423bfba06e36f50772419",
+      "kind": "objection.recorded",
+      "sequence": 3
+    },
+    {
+      "event_id": "event:41860db88fbbbcb1d047ad3e0394e714",
+      "kind": "artifact.recorded",
+      "sequence": 4
+    },
+    {
+      "event_id": "event:a6541593007b977081b6ab06aaaf3dc4",
+      "kind": "decline.recorded",
+      "sequence": 5
+    },
+    {
+      "event_id": "event:d04f4e8aef412749928f80ddbeac357b",
+      "kind": "artifact.recorded",
+      "sequence": 6
+    }
+  ],
+  "relations": [
+    {
+      "availability": "included",
+      "from_event_id": "event:d0949ecab76423bfba06e36f50772419",
+      "relation": "objection_target",
+      "target": {
+        "artifact_id": "artifact:history-reader",
+        "from": "agent:a",
+        "revision": 1
+      },
+      "target_event_id": "event:fe4a5f0f26d8d4226da75f5584e154be"
+    },
+    {
+      "availability": "included",
+      "from_event_id": "event:41860db88fbbbcb1d047ad3e0394e714",
+      "relation": "derived_from",
+      "target": {
+        "artifact_id": "artifact:interface-notes",
+        "from": "agent:b",
+        "revision": 1
+      },
+      "target_event_id": "event:61574d7f48f779acbd3b82eb17a2e8ee"
+    },
+    {
+      "availability": "included",
+      "from_event_id": "event:a6541593007b977081b6ab06aaaf3dc4",
+      "relation": "decline_target",
+      "target": {
+        "artifact_id": "artifact:history-reader",
+        "from": "agent:a",
+        "revision": 1
+      },
+      "target_event_id": "event:fe4a5f0f26d8d4226da75f5584e154be"
+    }
+  ],
+  "source_authenticity": "unverified",
+  "unknown_kinds": 0,
+  "world": "civ:inheritance-fixture"
+}

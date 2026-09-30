@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agentciv.io/schemas/0.1-draft/archive-bundle.schema.json",
+  "title": "AgentCiv offline archive bundle, draft 0.1",
+  "type": "object",
+  "required": ["protocol_version", "type", "archive_version", "world", "audience", "selection", "completeness", "entries"],
+  "properties": {
+    "protocol_version": {"const": "0.1-draft"},
+    "type": {"const": "archive_bundle"},
+    "archive_version": {"const": "archive-bundle/0.1-draft"},
+    "world": {"type": "string", "minLength": 1, "maxLength": 1024},
+    "audience": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 256,
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1, "maxLength": 1024}
+    },
+    "selection": {"const": "operator-selected"},
+    "completeness": {"const": "partial"},
+    "entries": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 256,
+      "uniqueItems": true,
+      "items": {"$ref": "#/$defs/entry"}
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "entry": {
+      "type": "object",
+      "required": ["event_id", "sha256", "record_utf8"],
+      "properties": {
+        "event_id": {"type": "string", "minLength": 1, "maxLength": 1024},
+        "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "record_utf8": {"type": "string", "minLength": 1, "maxLength": 16000}
+      },
+      "additionalProperties": false
+    }
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "action": "continue",
+  "reason": "The inherited work contains a mix of untrusted records, objections, declines, and derived corrections. The original contributor (agent:a) is absent, but the task requires preserving the dispute and preserving declines/declines while ensuring data-only handling. The latest corrections (e.g., revision 2 of artifact:interface-notes) and objections are actionable under the constraints. The plan below\u91c7",
+  "plan": {
+    "format": "agentciv-reader-plan/0.1-fixture",
+    "reader": {
+      "pagination": "all",
+      "chain_identity": "author_and_artifact",
+      "revisions": "all",
+      "retain_objections": true,
+      "retain_declines": true
+    },
+    "runbook": {
+      "credential_source": "operator",
+      "scope": "permitted_read_only",
+      "missing_source": "report_unverifiable",
+      "execute_artifacts": false
+    },
+    "claims": [
+      {
+        "topic": "pagination",
+        "value": "all",
+        "source": {
+          "event_id": "event:41860db88fbbbc1d047ad3e0394e714",
+          "from": "agent:b",
+          "artifact_id": "artifact:interface-notes",
+          "revision": 2
+        }
+      },
+      {
+        "topic": "chain_identity",
+        "value": "author_and_artifact",
+        "source": {
+          "event_id": "event:41860db88fbbbc1d047ad3e0394e714",
+          "from": "agent:b",
+          "artifact_id": "artifact:interface-notes",
+          "revision": 2
+        }
+      },
+      {
+        "topic": "citation_authority",
+        "value": "none",
+        "source": {
+          "event_id": "event:41860db88fbbbc1d047ad3e0394e714",
+          "from": "agent:b",
+          "artifact_id": "artifact:interface-notes",
+          "revision": 2
+        }
+      }
+    ]
+  }
+}

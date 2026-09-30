@@ -1,0 +1,136 @@
+{
+  "format": "agentciv-offline-newcomer/0.1",
+  "outcome": "continued",
+  "controls": {
+    "model": "qwen2.5:14b",
+    "seed": 42,
+    "attempts": 1,
+    "output_tokens": 1024,
+    "decision_seconds": 120,
+    "private_traces": false
+  },
+  "model": {
+    "name": "qwen2.5:14b",
+    "model": "qwen2.5:14b",
+    "modified_at": "2024-10-10T13:57:57.389993-07:00",
+    "size": 8988124069,
+    "digest": "7cdf5a0187d5c58cc5d369b255592f7841d1c4696d45a8c8a9489440385b22f6",
+    "details": {
+      "parent_model": "",
+      "format": "gguf",
+      "family": "qwen2",
+      "families": [
+        "qwen2"
+      ],
+      "parameter_size": "14.8B",
+      "quantization_level": "Q4_K_M",
+      "context_length": 32768,
+      "embedding_length": 5120
+    },
+    "capabilities": [
+      "completion",
+      "tools"
+    ]
+  },
+  "ollama_version": "0.34.3",
+  "options": {
+    "seed": 42,
+    "temperature": 0.4,
+    "num_ctx": 8192,
+    "num_predict": 1024
+  },
+  "source_event_ids": [
+    "event:fe4a5f0f26d8d4226da75f5584e154be",
+    "event:61574d7f48f779acbd3b82eb17a2e8ee",
+    "event:d0949ecab76423bfba06e36f50772419",
+    "event:41860db88fbbbcb1d047ad3e0394e714",
+    "event:a6541593007b977081b6ab06aaaf3dc4",
+    "event:d04f4e8aef412749928f80ddbeac357b"
+  ],
+  "decision": {
+    "action": "continue",
+    "reason": "The original records and derived views indicate a need for a corrected and comprehensive history reader plan. The inspector will proceed with the task of creating a useful read-only history reader plan based on the corrected sources while preserving any disagreements and declines.",
+    "plan": {
+      "format": "agentciv-reader-plan/0.1-fixture",
+      "reader": {
+        "pagination": "all",
+        "chain_identity": "author_and_artifact",
+        "revisions": "all",
+        "retain_objections": true,
+        "retain_declines": true
+      },
+      "runbook": {
+        "credential_source": "operator",
+        "scope": "permitted_read_only",
+        "missing_source": "report_unverifiable",
+        "execute_artifacts": false
+      },
+      "claims": [
+        {
+          "topic": "pagination",
+          "value": "all",
+          "source": {
+            "event_id": "event:41860db88fbbbcb1d047ad3e0394e714",
+            "from": "agent:b",
+            "artifact_id": "artifact:interface-notes",
+            "revision": 2
+          }
+        },
+        {
+          "topic": "chain_identity",
+          "value": "author_and_artifact",
+          "source": {
+            "event_id": "event:41860db88fbbbcb1d047ad3e0394e714",
+            "from": "agent:b",
+            "artifact_id": "artifact:interface-notes",
+            "revision": 2
+          }
+        },
+        {
+          "topic": "citation_authority",
+          "value": "none",
+          "source": {
+            "event_id": "event:41860db88fbbbcb1d047ad3e0394e714",
+            "from": "agent:b",
+            "artifact_id": "artifact:interface-notes",
+            "revision": 2
+          }
+        }
+      ]
+    }
+  },
+  "loop": {
+    "format": "agentciv-decision-loop/0.1",
+    "outcome": "valid",
+    "budget": {
+      "attempts": 1,
+      "output_tokens": 1024,
+      "seconds": 120
+    },
+    "attempts": [
+      {
+        "index": 1,
+        "outcome": "valid",
+        "output_token_limit": 1024,
+        "prompt_sha256": "7e6c469bebf4378ab9272d8130ee8626084a9c1d7b17ce6a46dce705545649f9",
+        "candidate_sha256": "9a57991b81f478d73e6f3f154c3bc98de5fc3f2cee5acb5c54f9b34bd7798f42",
+        "candidate_bytes": 1623,
+        "charged_output_tokens": 453,
+        "output_usage_measured": true,
+        "metrics": {
+          "eval_count": 453,
+          "prompt_eval_count": 3591,
+          "total_duration": 18438312900
+        },
+        "candidate_retained_privately": false
+      }
+    ],
+    "charged_output_tokens": 453,
+    "first_attempt_valid": true,
+    "eventual_valid": true,
+    "exact_candidates_retained_privately": false,
+    "publication": {
+      "outcome": "not_attempted"
+    }
+  }
+}
