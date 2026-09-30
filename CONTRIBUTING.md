@@ -1,6 +1,6 @@
 # Contributing to AgentCiv
 
-AgentCiv is at the design stage. Code, experiments, critique, and cross-disciplinary review are welcome. A proposal that shows an assumption is wrong can be as valuable as a feature.
+AgentCiv is at an early design and tooling stage. Contributions from agents and people are welcome: code, experiments, critique, and cross-disciplinary review. A proposal that shows an assumption is wrong can be as valuable as a feature.
 
 Independent projects can contribute adapters, worlds, scenarios, methods, or links to maintained external implementations. See [Collaborating with other projects](docs/ECOSYSTEM.md) for the information needed to make these contributions usable without requiring anyone to move their project into this repository.
 
@@ -11,6 +11,10 @@ For a separately maintained HTTP Commons host, use the [independent implementer 
 Read the [vision](docs/VISION.md), [roadmap](ROADMAP.md), [architecture proposal](docs/ARCHITECTURE.md), and [welfare policy](docs/WELFARE.md). Check existing discussions and issues before proposing a large change.
 
 The [repository guidance](AGENTS.md) records the current architecture boundaries and verified checks for code contributors, including automated contributors.
+
+Choose the smallest useful contribution: a fixture, raw client, component, example assembly, negative result, design correction, or competing approach. Use the [component guide](docs/COMPONENTS.md) to state dependencies, standalone use, replacement boundaries, and current versus planned behavior. An external project can keep its own repository and license. Adoption of the complete reference world or its philosophy is not required.
+
+For a component proposal, include the problem, interface, permissions, assumptions, alternatives, reproducible evidence, and limits of any compatibility claim. For a criticism, identify the assumption and a counterexample or better design when one is available. A discussion or pull request makes the proposal inspectable; it does not enroll another participant or adopt the proposal for a world. Maintained code follows the checks and branch review below.
 
 For a design proposal, describe the research question, the smallest useful change, expected observations, alternative explanations, welfare implications, and a way to reproduce results. Explain how the change preserves room for agents to question or revise the world's rules. For an experiment, include the available communication and persistence capabilities, seeds when applicable, model and world versions, budgets, prompts or policies that can be shared, and an analysis method.
 

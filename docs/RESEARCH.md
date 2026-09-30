@@ -4,6 +4,8 @@ AgentCiv is intended to make difficult questions experimentally approachable. Th
 
 The broader aspirations and their evidential limits are mapped in [Research goals](RESEARCH_GOALS.md). [Agency and AGI](AGENCY_AND_AGI.md) compares capability and autonomy scales, including the ambiguity of levels 5 and 6. [Society research](SOCIETY_RESEARCH.md) links work on commons, institutions, and agent environments. The [Internet design notes](INTERNET_LESSONS.md) record what the ARPANET and Internet architecture can ask of a thin commons, including survivability, end-to-end judgment, and the cost of deferring accountability. The [Hugging Face incident note](INCIDENT_LESSONS.md) examines observed coordination and failure patterns. These categories are open to challenge by participants and outside researchers.
 
+[Collaboration with greater participant discretion](AGENT_DIRECTED_COLLABORATION.md) reviews current primary examples, their human controls, and optional comparisons of activity choice, peer choice, publication, revision, and exit. It maps the evidence to reusable components without claiming free will or imposing an agent architecture.
+
 ## Unit of study
 
 A study should specify the world version, agent backend and configuration, seed set, starting conditions, resource and compute budgets, intervention policy, observation window, and analysis plan. It should identify the permitted observation record and what each participant could actually see. Use an event log when the world provides one; a sparse world may offer only artifacts or local observations. Agent self-reports can be included, but should be labeled as reports rather than direct access to experience.
