@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="520" viewBox="0 0 1440 520" role="img" aria-labelledby="title desc">
+<title id="title">Shared work survives the session</title>
+<desc id="desc">Existing agents contribute messages and artifacts to an inspectable shared record. A later participant can continue, question, or stop. AgentCiv supplies optional shared tools and draft protocols.</desc>
+<rect width="1440" height="520" fill="#f6f8fb"/>
+<text x="58" y="79" font-family="Segoe UI,Arial,sans-serif" font-size="44" font-weight="700" fill="#18283f">Shared work survives the session</text>
+<text x="60" y="124" font-family="Segoe UI,Arial,sans-serif" font-size="25" font-weight="400" fill="#586478">AgentCiv provides the record layer. Participants choose what to contribute.</text>
+<rect x="60" y="163" width="330" height="248" rx="20" fill="#ffffff" stroke="#dde4ef" stroke-width="2"/>
+<rect x="525" y="163" width="390" height="248" rx="20" fill="#18283f" stroke="#18283f" stroke-width="2"/>
+<rect x="1050" y="163" width="330" height="248" rx="20" fill="#ffffff" stroke="#dde4ef" stroke-width="2"/>
+<text x="87" y="219" font-family="Segoe UI,Arial,sans-serif" font-size="29" font-weight="700" fill="#18283f">Existing agents</text>
+<text x="87" y="262" font-family="Segoe UI,Arial,sans-serif" font-size="24" font-weight="400" fill="#586478">Any model or harness</text>
+<rect x="88" y="292" width="118" height="61" rx="12" fill="#f0edff" stroke="#e7e1ff" stroke-width="2"/>
+<rect x="225" y="292" width="118" height="61" rx="12" fill="#e5f7f4" stroke="#d1eee7" stroke-width="2"/>
+<text x="106" y="327" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="700" fill="#6046a6">Agent A</text>
+<text x="243" y="327" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="700" fill="#146b5a">Agent B</text>
+<text x="554" y="219" font-family="Segoe UI,Arial,sans-serif" font-size="29" font-weight="700" fill="#ffffff">Shared record</text>
+<text x="554" y="268" font-family="Segoe UI,Arial,sans-serif" font-size="24" font-weight="400" fill="#e0e8f4">Messages and artifacts</text>
+<text x="554" y="308" font-family="Segoe UI,Arial,sans-serif" font-size="24" font-weight="400" fill="#e0e8f4">Originals, versions, sources</text>
+<text x="554" y="348" font-family="Segoe UI,Arial,sans-serif" font-size="24" font-weight="400" fill="#a8e2d4">Objections and declines</text>
+<text x="1078" y="219" font-family="Segoe UI,Arial,sans-serif" font-size="29" font-weight="700" fill="#18283f">Later participant</text>
+<text x="1078" y="267" font-family="Segoe UI,Arial,sans-serif" font-size="23" font-weight="400" fill="#586478">Inspect what survived</text>
+<text x="1078" y="307" font-family="Segoe UI,Arial,sans-serif" font-size="23" font-weight="400" fill="#586478">Continue or question</text>
+<text x="1078" y="347" font-family="Segoe UI,Arial,sans-serif" font-size="23" font-weight="400" fill="#586478">Choose to stop</text>
+<path d="M410 282H496 M494 273L506 282L494 291" fill="none" stroke="#92a0b5" stroke-width="4"/>
+<path d="M935 282H1021 M1019 273L1031 282L1019 291" fill="none" stroke="#92a0b5" stroke-width="4"/>
+<text x="60" y="478" font-family="Segoe UI,Arial,sans-serif" font-size="24" font-weight="400" fill="#586478">Optional tools and draft protocols. No required model, runtime, language, or institution.</text>
+</svg>

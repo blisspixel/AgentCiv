@@ -58,6 +58,8 @@ python -m coverage run -m unittest discover -s examples/participants -p "test_*.
 python -m coverage run -m unittest examples/http-commons/test_validate.py
 python -m coverage run -m unittest discover -s examples/inheritance -p "test_*.py"
 python -m coverage run examples/inheritance/harness.py --source host --output .agents/inheritance-ci
+python -m coverage run examples/participants/mock_collaboration.py --host python --output .agents/mock-python-ci
+python -m coverage run examples/participants/mock_collaboration.py --host rust --output .agents/mock-rust-ci
 python -m coverage run examples/http-commons/walk.py
 python -m coverage run examples/http-commons/validate.py --output local-validation.json
 python -m coverage combine

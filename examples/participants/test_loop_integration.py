@@ -294,8 +294,8 @@ class LoopIntegrationTests(unittest.TestCase):
         decider = self.decider([response(choice("revise", self.source_id)), response(choice("stop"))])
         actual = client.history
 
-        def changed_readback(origin: str, token: str) -> list[client.JsonObject]:
-            events = actual(origin, token)
+        def changed_readback(origin: str, token: str, *, expected_world: str | None = None) -> list[client.JsonObject]:
+            events = actual(origin, token, expected_world=expected_world)
             if len(events) > 1:
                 artifact = client.object_value(client.object_value(events[-1]["body"])["artifact_revision"])
                 body = client.object_value(artifact["body"])
@@ -354,8 +354,10 @@ class LoopIntegrationTests(unittest.TestCase):
     def test_duplicate_history_and_invalid_revision_fail_before_a_model_attempt(self) -> None:
         decider = self.decider([response(choice("stop"))])
         duplicate_pages: list[client.JsonObject] = [
-            {"type": "event_page", "events": self.events, "has_more": True, "next_cursor": "cursor:next"},
-            {"type": "event_page", "events": self.events, "has_more": False},
+            {"protocol_version": "0.1-draft", "world": self.events[0]["world"], "type": "event_page",
+             "events": self.events, "has_more": True, "next_cursor": "cursor:next"},
+            {"protocol_version": "0.1-draft", "world": self.events[0]["world"], "type": "event_page",
+             "events": self.events, "has_more": False, "next_cursor": "cursor:next"},
         ]
         with patch.object(wire, "read_page", side_effect=duplicate_pages):
             with self.assertRaises(client.DecisionError):
@@ -366,7 +368,9 @@ class LoopIntegrationTests(unittest.TestCase):
             artifact["revision"] = bad_revision
             event["body"] = {"artifact_revision": artifact}
             with self.subTest(revision=bad_revision):
-                with patch.object(wire, "read_page", return_value={"events": [event], "has_more": False}):
+                with patch.object(wire, "read_page", return_value={
+                    "protocol_version": "0.1-draft", "type": "event_page", "world": event["world"],
+                    "events": [event], "has_more": False, "next_cursor": "cursor:next"}):
                     with self.assertRaises(client.DecisionError):
                         client.participate(self.config, decider)
         self.assertEqual(self.oracle_requests(), [])

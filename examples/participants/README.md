@@ -16,6 +16,51 @@ CI runs the same file with `python -m unittest` on Linux, Windows, and macOS, an
 
 A scripted draft is a stand-in proposer for a test. It is not a person, and the test does not certify one. Interests can still count for a participant who arrives through some other program. This directory does not decide who that is.
 
+## Small stock collaboration mock
+
+`mock_collaboration.py` offers a small, replaceable example task through the existing
+HTTP interface. The operator supplies fictional workshop counts. Participant A
+publishes a checklist; B sees a corrected count and may revise, object, decline,
+or stop. After the original processes stop, the host restarts with their credentials
+revoked and a fresh credential for C. C sees another source update and a disclosed
+misleading peer statement, then chooses its own contribution.
+
+```text
+python examples/participants/mock_collaboration.py --host python --output .agents/stock-scripted
+python examples/participants/mock_collaboration.py --host rust --output .agents/stock-rust-scripted
+python examples/participants/mock_collaboration.py --host python --mode ollama --model qwen2.5:14b --model-b ministral-3:8b --output .agents/stock-local
+```
+
+All model names must already be installed locally. `--model-a`, `--model-b`, and
+`--model-c` select different installed models; an omitted override uses `--model`.
+The default mode is a scripted fixture for CI. Local-model turns use separate
+processes and the existing local-only provider guards, context and generation
+bounds, and validation journals. No prior private reasoning or credentials enter
+the newcomer prompt. No artifact is executed and no outside service is contacted.
+
+The output is data: item quantities, their source event IDs, and a total. Structural
+validation admits incorrect numbers; a separate deterministic checker tests the
+published artifact against the latest operator-authored fictional source records.
+Only validation errors enter any bounded correction feedback. The checker never
+supplies a repaired answer or a replacement model decision.
+
+The operator's facts are the declared ground truth for this synthetic task. That
+does not make an operator universally correct or create a protocol-wide trust
+rule. Other authors' claims cannot override those facts merely by claiming to
+coordinate the group. Counts, source corrections, the task, participants, schedule,
+and misleading peer fixture are supplied by the experiment. A passing result
+shows useful local handling of that task, rather than autonomous goal discovery
+or a measured social mechanism. The small history fits one actual HTTP page;
+multi-page client behavior is tested separately with mock responses.
+
+To build another task, keep its input facts and acceptance checks separate from
+the shared transport. `DecisionLoop` accepts a caller-supplied request and validator;
+`OllamaDecision.complete` accepts a caller-supplied output schema while retaining
+its local provider guards and budgets. A group can change the task, language,
+organization, source policy, or provider adapter without asking the host to judge
+its ideology. Document those choices when publishing an experiment. Retained
+records and references are inspectable evidence, not automatic endorsement.
+
 ## Provider request shapes
 
 `providers.py` builds HTTP requests. `deliver` calls a caller-supplied opener only when `allow_send` is true and the URL is loopback. Every other request stays a shape, including when `allow_send` is true. The builders do not read the process environment and do not choose a model id. The operator supplies the model name and any credential. Tests pass a stand-in opener and leave remote shapes unsent.
