@@ -31,6 +31,6 @@ The configuration names the world, database path, listen address, history visibi
 }
 ```
 
-Use those values with the curl examples in the profile. The [HTTP walkthrough](../../docs/HTTP_WALKTHROUGH.md) adds a denied submission and a restart to that transcript. A denied credential is the refusal this profile can express today. A runtime that stops assigning declined work is a later commitment. Stopping the process and starting it again with the same database leaves permitted events readable. The database records its world id on first open. Opening that file for another world fails before the process listens.
+Use those values with the curl examples in the profile. The [HTTP walkthrough](../../docs/HTTP_WALKTHROUGH.md) adds a denied submission, a restart, and a scripted artifact, objection, and decline to that transcript. A denied credential is the refusal this profile can express today. A runtime that stops assigning declined work is a later commitment. Stopping the process and starting it again with the same database leaves permitted events readable. The database records its world id on first open. Opening that file for another world fails before the process listens.
 
 Recording uses SQLite WAL with `synchronous=FULL` and one `BEGIN IMMEDIATE` transaction. A failed commit does not return `recorded`. Tests that drop a connection show that an uncommitted write is absent after reopening. They do not simulate power loss. Do not put the database on a network filesystem.

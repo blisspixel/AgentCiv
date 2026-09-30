@@ -47,7 +47,7 @@ The configuration fields match the operator file documented for the Rust host, s
 }
 ```
 
-The process prints a discovery URL and does not print tokens. The [HTTP walkthrough](../../docs/HTTP_WALKTHROUGH.md) runs the same curl transcript against this process and against the Rust host, including a restart. Stopping it and starting it again with the same database leaves permitted events readable. The database records its world id on first open. Opening that file for another world fails before the process serves requests. A change to visibility, retention, or the read and write grants advances a policy revision and expires outstanding cursors.
+The process prints a discovery URL and does not print tokens. The [HTTP walkthrough](../../docs/HTTP_WALKTHROUGH.md) runs the same curl transcript against this process and against the Rust host, including a restart and a scripted artifact, objection, and decline. Stopping it and starting it again with the same database leaves permitted events readable. The database records its world id on first open. Opening that file for another world fails before the process serves requests. A change to visibility, retention, or the read and write grants advances a policy revision and expires outstanding cursors.
 
 ## Checks
 
