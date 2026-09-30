@@ -9,6 +9,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import oracle  # noqa: E402
@@ -25,6 +26,22 @@ def candidate(name: str = "after") -> oracle.JsonObject:
 
 
 class AcceptanceTests(unittest.TestCase):
+    def test_ambiguous_nonstandard_and_resource_exhausted_json_are_invalid_inputs(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            path = Path(temporary) / "input.json"
+            for content in ('{"reader":{},"reader":{}}', '{"body":{"field":1,"field":2}}',
+                            '{"field":NaN}', '{"field":Infinity}'):
+                path.write_text(content, encoding="utf-8")
+                with self.assertRaises(oracle.OracleError):
+                    oracle.load_json(path)
+            path.write_text("{}", encoding="utf-8")
+            with patch.object(json, "loads", side_effect=RecursionError("parser depth exhausted")):
+                with self.assertRaisesRegex(oracle.OracleError, "invalid_json_data"):
+                    oracle.load_json(path)
+            with patch.object(json, "dumps", side_effect=RecursionError("serializer depth exhausted")):
+                with self.assertRaisesRegex(oracle.OracleError, "invalid_json_data"):
+                    oracle.bounded({})
+
     def test_disclosed_before_fails_and_independent_after_passes_without_mutation(self) -> None:
         events = history()
         original = copy.deepcopy(events)

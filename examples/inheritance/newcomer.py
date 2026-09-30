@@ -96,7 +96,7 @@ def validate_decision(content: str) -> JsonObject:
     try:
         value = collaboration.object_value(json.loads(content,
             object_pairs_hook=unique, parse_constant=invalid_constant))
-    except (ValueError, UnicodeDecodeError, collaboration.DecisionError) as error:
+    except (ValueError, UnicodeDecodeError, RecursionError, collaboration.DecisionError) as error:
         raise decision_loop.InvalidDecision("invalid_json") from error
     if set(value) != {"action", "reason", "plan"}:
         raise decision_loop.InvalidDecision("invalid_fields")

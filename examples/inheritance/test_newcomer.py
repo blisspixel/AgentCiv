@@ -342,6 +342,18 @@ class NativeModelProcessTests(unittest.TestCase):
         self.assertEqual(journal["publication"], {"outcome": "not_attempted"})
         self.assertNotIn("source_correctness", report)
 
+    def test_deep_model_json_can_be_rejected_then_corrected_within_shared_budget(self) -> None:
+        invalid: JsonObject = {"done": True, "done_reason": "stop",
+            "message": {"content": "[" * 2000 + "null" + "]" * 2000}, "eval_count": 64}
+        completed, report, requests = self.run_model([invalid, response(stop(), tokens=16)])
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        self.assertEqual(report["outcome"], "stopped")
+        self.assertEqual(len(requests), 2)
+        self.assertEqual(oracle.object_value(requests[1]["options"])["num_predict"], 960)
+        journal = self.journal()
+        self.assertEqual(objects(journal["attempts"])[0]["feedback_code"], "invalid_json")
+        self.assertEqual(journal["publication"], {"outcome": "not_attempted"})
+
     def test_provider_failure_never_uses_after_plan_as_fallback(self) -> None:
         completed, report, requests = self.run_model([None, response(decision())])
         self.assertEqual(completed.returncode, 1)

@@ -87,7 +87,7 @@ def string(value: object) -> str:
 def bounded(value: object) -> None:
     try:
         payload = json.dumps(value, ensure_ascii=False, allow_nan=False).encode("utf-8")
-    except (TypeError, ValueError, UnicodeEncodeError) as error:
+    except (TypeError, ValueError, UnicodeEncodeError, RecursionError) as error:
         raise OracleError("invalid_json_data") from error
     if len(payload) > MAX_BYTES:
         raise OracleError("input_too_large")
@@ -292,13 +292,24 @@ def evaluate(events: list[JsonObject], candidate: JsonObject) -> JsonObject:
 
 
 def load_json(path: Path) -> object:
+    def unique(pairs: list[tuple[str, object]]) -> JsonObject:
+        found: JsonObject = {}
+        for key, value in pairs:
+            if key in found:
+                raise ValueError("duplicate_member")
+            found[key] = value
+        return found
+
+    def invalid_constant(value: str) -> object:
+        raise ValueError("nonstandard_constant")
+
     with path.open("rb") as stream:
         payload = stream.read(MAX_BYTES + 1)
     if len(payload) > MAX_BYTES:
         raise OracleError("input_too_large")
     try:
-        value: object = json.loads(payload)
-    except (UnicodeDecodeError, json.JSONDecodeError) as error:
+        value: object = json.loads(payload, object_pairs_hook=unique, parse_constant=invalid_constant)
+    except (UnicodeDecodeError, ValueError, RecursionError) as error:
         raise OracleError("invalid_json_data") from error
     return value
 
