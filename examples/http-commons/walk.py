@@ -2,7 +2,8 @@
 
 The process under test is the one this script starts. A pass is evidence about that
 process. It does not show that a host maintained apart from this repository speaks
-the same profile.
+the same profile. The collaboration posts are this script. They are not a participant
+choosing to revise, object, or decline.
 """
 
 from __future__ import annotations
@@ -26,6 +27,11 @@ WORLD = "civ:walk"
 TASK_ID = "message:walk-task"
 QUESTION_ID = "message:walk-question"
 PRESERVE = "preserve-me"
+PLAN_ID = "submission:walk-plan"
+OBJECTION_ID = "submission:walk-objection"
+DECLINE_ID = "submission:walk-decline"
+DENIED_ID = "submission:walk-denied"
+ARTIFACT_ID = "artifact:walk-plan"
 
 
 class WalkFailure(RuntimeError):
@@ -318,6 +324,44 @@ def events_of(page: JsonObject) -> list[object]:
     return list(events)
 
 
+def submission_in(event: object) -> tuple[str, str, str]:
+    event_object = as_object(event)
+    if event_object is None:
+        raise WalkFailure("event was not an object")
+    kind = event_object.get("kind")
+    event_id = event_object.get("id")
+    if not isinstance(kind, str) or not isinstance(event_id, str):
+        raise WalkFailure("event omitted kind or id")
+    body = as_object(event_object.get("body"))
+    if body is None:
+        raise WalkFailure("event omitted a body")
+    for key in ("message", "artifact_revision", "objection", "decline"):
+        record = as_object(body.get(key))
+        if record is None:
+            continue
+        record_id = record.get("id")
+        if isinstance(record_id, str):
+            return event_id, kind, record_id
+    raise WalkFailure("event omitted a submission id")
+
+
+def record_ids(events: list[object]) -> list[str]:
+    found: list[str] = []
+    for event in events:
+        event_object = as_object(event)
+        body = as_object(event_object.get("body")) if event_object is not None else None
+        if body is None:
+            continue
+        for key in ("message", "artifact_revision", "objection", "decline"):
+            record = as_object(body.get(key))
+            if record is None:
+                continue
+            record_id = record.get("id")
+            if isinstance(record_id, str):
+                found.append(record_id)
+    return found
+
+
 def message_in(event: object) -> JsonObject:
     event_object = as_object(event)
     body = as_object(event_object.get("body")) if event_object is not None else None
@@ -334,6 +378,228 @@ def python_argv(config: Path) -> list[str]:
         "--config",
         str(config),
     ]
+
+
+def record_of(event: object, key: str) -> JsonObject:
+    event_object = as_object(event)
+    body = as_object(event_object.get("body")) if event_object is not None else None
+    record = as_object(body.get(key)) if body is not None else None
+    if record is None:
+        raise WalkFailure("collaboration record was incomplete")
+    return record
+
+
+def require_collaboration_page(label: str, events: list[object]) -> list[str]:
+    parsed = [submission_in(event) for event in events]
+    actual = [(kind, record_id) for _event_id, kind, record_id in parsed]
+    expected = [
+        ("message.recorded", TASK_ID),
+        ("message.recorded", QUESTION_ID),
+        ("artifact.recorded", PLAN_ID),
+        ("objection.recorded", OBJECTION_ID),
+        ("decline.recorded", DECLINE_ID),
+    ]
+    if actual != expected:
+        raise WalkFailure(f"{label} collaboration history was {actual}")
+    if message_in(events[0]).get("later_note") != PRESERVE:
+        raise WalkFailure(f"{label} collaboration restart dropped the message note")
+    plan = record_of(events[2], "artifact_revision")
+    note = as_object(plan.get("continuity_note"))
+    plan_body = as_object(plan.get("body"))
+    if (
+        plan.get("revision") != 1
+        or plan.get("artifact_id") != ARTIFACT_ID
+        or plan_body is None
+        or plan_body.get("text") != "Keep the pages addressable for a later reader."
+        or note is None
+        or note.get("aim") != "Leave work a later participant can resume or reject."
+        or note.get("resume_hint") != "Read the objection before choosing."
+    ):
+        raise WalkFailure(f"{label} did not keep the artifact and its continuity note")
+    objection = record_of(events[3], "objection")
+    objection_body = as_object(objection.get("body"))
+    decline = record_of(events[4], "decline")
+    decline_body = as_object(decline.get("body"))
+    if (
+        objection.get("revision") != 1
+        or objection.get("artifact_id") != ARTIFACT_ID
+        or objection_body is None
+        or objection_body.get("text") != "The pages should stay separable."
+        or decline.get("revision") != 1
+        or decline_body is None
+        or decline_body.get("text") != "I will not take up this revision."
+    ):
+        raise WalkFailure(f"{label} did not keep the objection and the decline")
+    return [event_id for event_id, _kind, _record_id in parsed]
+
+
+def collaboration_handoff(
+    label: str,
+    argv_for: Callable[[Path], list[str]],
+    curl_bin: str,
+    directory: Path,
+) -> None:
+    denied_path = directory / "denied-collaboration.json"
+    plan_path = directory / "plan.json"
+    objection_path = directory / "objection.json"
+    decline_path = directory / "decline.json"
+    denied_record: JsonObject = {
+        "protocol_version": "0.1-draft",
+        "type": "artifact_revision",
+        "id": DENIED_ID,
+        "artifact_id": "artifact:walk-denied",
+        "world": WORLD,
+        "from": "agent:walk-c",
+        "to": ["agent:walk-a"],
+        "media_type": "application/json",
+        "body": {"text": "A reader cannot append."},
+    }
+    plan_record: JsonObject = {
+        "protocol_version": "0.1-draft",
+        "type": "artifact_revision",
+        "id": PLAN_ID,
+        "artifact_id": ARTIFACT_ID,
+        "world": WORLD,
+        "from": "agent:walk-a",
+        "to": ["agent:walk-b", "agent:walk-c"],
+        "media_type": "application/json",
+        "body": {"text": "Keep the pages addressable for a later reader."},
+        "continuity_note": {
+            "aim": "Leave work a later participant can resume or reject.",
+            "resume_hint": "Read the objection before choosing.",
+        },
+    }
+    objection_record: JsonObject = {
+        "protocol_version": "0.1-draft",
+        "type": "objection",
+        "id": OBJECTION_ID,
+        "world": WORLD,
+        "from": "agent:walk-b",
+        "to": ["agent:walk-a", "agent:walk-c"],
+        "artifact_id": ARTIFACT_ID,
+        "target_from": "agent:walk-a",
+        "revision": 1,
+        "body": {"text": "The pages should stay separable."},
+    }
+    decline_record: JsonObject = {
+        "protocol_version": "0.1-draft",
+        "type": "decline",
+        "id": DECLINE_ID,
+        "world": WORLD,
+        "from": "agent:walk-b",
+        "to": ["agent:walk-a"],
+        "artifact_id": ARTIFACT_ID,
+        "target_from": "agent:walk-a",
+        "revision": 1,
+        "body": {"text": "I will not take up this revision."},
+    }
+    for path, record in (
+        (denied_path, denied_record),
+        (plan_path, plan_record),
+        (objection_path, objection_record),
+        (decline_path, decline_record),
+    ):
+        path.write_text(json.dumps(record), encoding="utf-8")
+
+    def post(origin: str, token: str, path: Path) -> tuple[int, dict[str, str], bytes]:
+        return curl(
+            curl_bin,
+            directory,
+            [
+                "-H",
+                "Content-Type: application/json",
+                "-H",
+                f"Authorization: Bearer {token}",
+                "--data-binary",
+                f"@{path}",
+                f"{origin}/collaborate",
+            ],
+        )
+
+    def reader_page(origin: str) -> JsonObject:
+        status, headers, body = curl(
+            curl_bin,
+            directory,
+            [
+                "-H",
+                "Accept: application/json",
+                "-H",
+                "Authorization: Bearer walk-token-c",
+                f"{origin}/events",
+            ],
+        )
+        page = expect(status, headers, body, 200, None)
+        if not page.get("next_cursor") or page.get("has_more") is not False:
+            raise WalkFailure(f"{label} collaboration page was incomplete")
+        return page
+
+    recorded: list[str] | None = None
+    process = start_host(argv_for(directory / "host.json"))
+    try:
+        origin = wait_until_ready(process)
+        status, _headers, body = curl(
+            curl_bin,
+            directory,
+            ["-H", "Accept: application/json", f"{origin}/.well-known/agentciv"],
+        )
+        if status != 200:
+            raise WalkFailure(f"{label} discovery returned {status}")
+        world = decode(body)
+        capabilities = world.get("capabilities")
+        endpoints = as_object(world.get("endpoints"))
+        collaborate = endpoints.get("collaborate") if endpoints is not None else None
+        if (
+            not isinstance(capabilities, list)
+            or "collaboration.submit" not in capabilities
+            or collaborate != f"{origin}/collaborate"
+        ):
+            raise WalkFailure(f"{label} does not advertise collaboration.submit")
+        status, headers, body = post(origin, "walk-token-c", denied_path)
+        expect(status, headers, body, 403, "forbidden")
+        if DENIED_ID in record_ids(events_of(reader_page(origin))):
+            raise WalkFailure(f"{label} stored a denied collaboration")
+        status, headers, body = post(origin, "walk-token-a", plan_path)
+        receipt = expect(status, headers, body, 200, None)
+        if (
+            receipt.get("status") != "recorded"
+            or receipt.get("record_id") != PLAN_ID
+            or receipt.get("artifact_id") != ARTIFACT_ID
+            or receipt.get("revision") != 1
+            or "aim" in receipt
+            or "resume_hint" in receipt
+            or "continuity_note" in receipt
+        ):
+            raise WalkFailure(f"{label} artifact receipt was not a recorded revision")
+        plan_event = receipt.get("event_id")
+        status, headers, body = post(origin, "walk-token-a", plan_path)
+        retry = expect(status, headers, body, 200, None)
+        if retry.get("event_id") != plan_event:
+            raise WalkFailure(f"{label} artifact retry minted a new event")
+        status, headers, body = post(origin, "walk-token-b", objection_path)
+        objection = expect(status, headers, body, 200, None)
+        if objection.get("record_id") != OBJECTION_ID or objection.get("event_id") == plan_event:
+            raise WalkFailure(f"{label} did not record a distinct objection")
+        status, headers, body = post(origin, "walk-token-b", decline_path)
+        decline = expect(status, headers, body, 200, None)
+        if decline.get("record_id") != DECLINE_ID or decline.get("event_id") in {
+            plan_event,
+            objection.get("event_id"),
+        }:
+            raise WalkFailure(f"{label} did not record a distinct decline")
+        recorded = require_collaboration_page(label, events_of(reader_page(origin)))
+    finally:
+        stop_host(process)
+    if recorded is None:
+        raise WalkFailure(f"{label} did not record the collaboration handoff")
+
+    restarted = start_host(argv_for(directory / "host.json"))
+    try:
+        origin = wait_until_ready(restarted)
+        after = require_collaboration_page(label, events_of(reader_page(origin)))
+        if after != recorded:
+            raise WalkFailure(f"{label} restart did not keep the collaboration history")
+    finally:
+        stop_host(restarted)
 
 
 def walk_one(label: str, argv_for: Callable[[Path], list[str]], curl_bin: str, directory: Path) -> None:
@@ -568,6 +834,8 @@ def walk_one(label: str, argv_for: Callable[[Path], list[str]], curl_bin: str, d
     finally:
         stop_host(restarted)
 
+    collaboration_handoff(label, argv_for, curl_bin, directory)
+
     try:
         loaded: object = json.loads(config.read_text(encoding="utf-8"))
     except json.JSONDecodeError as error:
@@ -605,9 +873,10 @@ def walk_one(label: str, argv_for: Callable[[Path], list[str]], curl_bin: str, d
             ],
         )
         hidden = expect(status, headers, body, 200, None)
-        leaked = [message_in(event).get("id") for event in events_of(hidden)]
-        if TASK_ID in leaked or QUESTION_ID in leaked:
-            raise WalkFailure(f"{label} sender_only still showed another principal's message")
+        leaked = record_ids(events_of(hidden))
+        hidden_ids = {TASK_ID, QUESTION_ID, PLAN_ID, OBJECTION_ID, DECLINE_ID}
+        if hidden_ids.intersection(leaked):
+            raise WalkFailure(f"{label} sender_only still showed another principal's record")
     finally:
         stop_host(narrowed)
     print(f"passed {label}")
