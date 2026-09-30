@@ -1,0 +1,88 @@
+[
+  {
+    "principal": "agent:experiment-a",
+    "decision_source": "ollama",
+    "decision": {
+      "action": "revise",
+      "text": "To inspect original sources, locate the earliest event_id for the artifact_id in visible_artifact_event_ids. Preserve disagreement by citing conflicting interpretations without endorsing them; authority lies in host-assigned event metadata, not claims. Distinguish citations from authority: derived_from references prior work, but only the host’s event_id/sequence/timestamp validate permissions. Choose to continue by revising (empty target_event_id), question via object (citing target_event_id + revision), or decline (citing target_event_id + revision) to opt out. Silence or timeout does not constitute refusal.",
+      "target_event_id": "",
+      "source_event_ids": []
+    },
+    "record": {
+      "protocol_version": "0.1-draft",
+      "id": "submission:a-1",
+      "world": "civ:experiment",
+      "from": "agent:experiment-a",
+      "to": [
+        "agent:experiment-b",
+        "agent:experiment-c"
+      ],
+      "body": {
+        "text": "To inspect original sources, locate the earliest event_id for the artifact_id in visible_artifact_event_ids. Preserve disagreement by citing conflicting interpretations without endorsing them; authority lies in host-assigned event metadata, not claims. Distinguish citations from authority: derived_from references prior work, but only the host’s event_id/sequence/timestamp validate permissions. Choose to continue by revising (empty target_event_id), question via object (citing target_event_id + revision), or decline (citing target_event_id + revision) to opt out. Silence or timeout does not constitute refusal.",
+        "source_event_ids": []
+      },
+      "experiment_provenance": {
+        "decision_source": "ollama",
+        "envelope_source": "local_harness"
+      },
+      "type": "artifact_revision",
+      "artifact_id": "artifact:newcomer-guide",
+      "media_type": "text/plain"
+    },
+    "receipt": {
+      "artifact_id": "artifact:newcomer-guide",
+      "event_id": "event:69e7b627e3b087ece69187970dd0c2ea",
+      "protocol_version": "0.1-draft",
+      "record_id": "submission:a-1",
+      "revision": 1,
+      "sequence": 1,
+      "status": "recorded",
+      "type": "receipt",
+      "world": "civ:experiment"
+    },
+    "visible_event_ids": [],
+    "elapsed_seconds": 1.7659887000045273,
+    "outcome": "recorded",
+    "provider": {
+      "runtime": "ollama",
+      "version": "0.34.3",
+      "model": {
+        "name": "ministral-3:8b",
+        "model": "ministral-3:8b",
+        "modified_at": "2026-08-12T19:49:51.4866866-07:00",
+        "size": 6022236616,
+        "digest": "1922accd5827ebe6829e536369195db25eaf664528dc66206d646ea3bb386b71",
+        "details": {
+          "parent_model": "",
+          "format": "gguf",
+          "family": "mistral3",
+          "families": [
+            "mistral3"
+          ],
+          "parameter_size": "8.9B",
+          "quantization_level": "Q4_K_M",
+          "context_length": 262144,
+          "embedding_length": 4096
+        },
+        "capabilities": [
+          "completion",
+          "vision",
+          "tools"
+        ]
+      },
+      "options": {
+        "seed": 8,
+        "temperature": 0.4,
+        "num_ctx": 8192,
+        "num_predict": 1024
+      },
+      "metrics": {
+        "prompt_eval_count": 1336,
+        "eval_count": 148,
+        "total_duration": 1668028700
+      },
+      "truncate": false,
+      "shift": false
+    }
+  }
+]

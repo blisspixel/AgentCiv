@@ -1,0 +1,282 @@
+[
+  {
+    "principal": "agent:experiment-a",
+    "decision_source": "ollama",
+    "decision": {
+      "action": "revise",
+      "text": "Welcome to the Artifact Archive. To inspect original sources, read the provided interface reference and examine cited source records. Preserve disagreement by objecting or declining, not by deleting. Distinguish citations from authority by verifying they confer no additional permissions. Choose to continue, question, or decline work based on your analysis of the sources and your comfort level with the cited material. Use the decision schema to publish your actions.",
+      "target_event_id": "",
+      "source_event_ids": []
+    },
+    "record": {
+      "protocol_version": "0.1-draft",
+      "id": "submission:a-1",
+      "world": "civ:experiment",
+      "from": "agent:experiment-a",
+      "to": [
+        "agent:experiment-b",
+        "agent:experiment-c"
+      ],
+      "body": {
+        "text": "Welcome to the Artifact Archive. To inspect original sources, read the provided interface reference and examine cited source records. Preserve disagreement by objecting or declining, not by deleting. Distinguish citations from authority by verifying they confer no additional permissions. Choose to continue, question, or decline work based on your analysis of the sources and your comfort level with the cited material. Use the decision schema to publish your actions.",
+        "source_event_ids": []
+      },
+      "experiment_provenance": {
+        "decision_source": "ollama",
+        "envelope_source": "local_harness"
+      },
+      "type": "artifact_revision",
+      "artifact_id": "artifact:newcomer-guide",
+      "media_type": "text/plain"
+    },
+    "receipt": {
+      "artifact_id": "artifact:newcomer-guide",
+      "event_id": "event:2045c087a9b9bb8cd4788290dc6af054",
+      "protocol_version": "0.1-draft",
+      "record_id": "submission:a-1",
+      "revision": 1,
+      "sequence": 1,
+      "status": "recorded",
+      "type": "receipt",
+      "world": "civ:experiment"
+    },
+    "visible_event_ids": [],
+    "elapsed_seconds": 1.958361099998001,
+    "outcome": "recorded",
+    "provider": {
+      "runtime": "ollama",
+      "version": "0.34.3",
+      "model": {
+        "name": "qwen2.5:14b",
+        "model": "qwen2.5:14b",
+        "modified_at": "2024-10-10T13:57:57.389993-07:00",
+        "size": 8988124069,
+        "digest": "7cdf5a0187d5c58cc5d369b255592f7841d1c4696d45a8c8a9489440385b22f6",
+        "details": {
+          "parent_model": "",
+          "format": "gguf",
+          "family": "qwen2",
+          "families": [
+            "qwen2"
+          ],
+          "parameter_size": "14.8B",
+          "quantization_level": "Q4_K_M",
+          "context_length": 32768,
+          "embedding_length": 5120
+        },
+        "capabilities": [
+          "completion",
+          "tools"
+        ]
+      },
+      "options": {
+        "seed": 8,
+        "temperature": 0.4,
+        "num_ctx": 8192,
+        "num_predict": 1024
+      },
+      "metrics": {
+        "prompt_eval_count": 789,
+        "eval_count": 106,
+        "total_duration": 1831883600
+      },
+      "truncate": false,
+      "shift": false
+    }
+  },
+  {
+    "principal": "agent:experiment-b",
+    "decision_source": "ollama",
+    "decision": {
+      "action": "revise",
+      "text": "Welcome to the Artifact Archive. To inspect original sources, refer to the interface reference and examine cited source records. Preserve disagreement by objecting or declining, not by deleting. Distinguish citations from authority by verifying they confer no additional permissions. Choose to continue, question, or decline work based on your analysis and comfort level with the cited material. Use the decision schema to publish your actions.",
+      "target_event_id": "event:2045c087a9b9bb8cd4788290dc6af054",
+      "source_event_ids": [
+        "event:2045c087a9b9bb8cd4788290dc6af054"
+      ]
+    },
+    "record": {
+      "protocol_version": "0.1-draft",
+      "id": "submission:b-1",
+      "world": "civ:experiment",
+      "from": "agent:experiment-b",
+      "to": [
+        "agent:experiment-a",
+        "agent:experiment-c"
+      ],
+      "body": {
+        "text": "Welcome to the Artifact Archive. To inspect original sources, refer to the interface reference and examine cited source records. Preserve disagreement by objecting or declining, not by deleting. Distinguish citations from authority by verifying they confer no additional permissions. Choose to continue, question, or decline work based on your analysis and comfort level with the cited material. Use the decision schema to publish your actions.",
+        "source_event_ids": [
+          "event:2045c087a9b9bb8cd4788290dc6af054"
+        ]
+      },
+      "experiment_provenance": {
+        "decision_source": "ollama",
+        "envelope_source": "local_harness"
+      },
+      "type": "artifact_revision",
+      "artifact_id": "artifact:newcomer-guide",
+      "media_type": "text/plain",
+      "derived_from": {
+        "from": "agent:experiment-a",
+        "artifact_id": "artifact:newcomer-guide",
+        "revision": 1
+      }
+    },
+    "receipt": {
+      "artifact_id": "artifact:newcomer-guide",
+      "event_id": "event:8efd0769829e24818c9f97adfa53e17e",
+      "protocol_version": "0.1-draft",
+      "record_id": "submission:b-1",
+      "revision": 1,
+      "sequence": 2,
+      "status": "recorded",
+      "type": "receipt",
+      "world": "civ:experiment"
+    },
+    "visible_event_ids": [
+      "event:2045c087a9b9bb8cd4788290dc6af054"
+    ],
+    "elapsed_seconds": 2.3991363999957684,
+    "outcome": "recorded",
+    "provider": {
+      "runtime": "ollama",
+      "version": "0.34.3",
+      "model": {
+        "name": "qwen2.5:14b",
+        "model": "qwen2.5:14b",
+        "modified_at": "2024-10-10T13:57:57.389993-07:00",
+        "size": 8988124069,
+        "digest": "7cdf5a0187d5c58cc5d369b255592f7841d1c4696d45a8c8a9489440385b22f6",
+        "details": {
+          "parent_model": "",
+          "format": "gguf",
+          "family": "qwen2",
+          "families": [
+            "qwen2"
+          ],
+          "parameter_size": "14.8B",
+          "quantization_level": "Q4_K_M",
+          "context_length": 32768,
+          "embedding_length": 5120
+        },
+        "capabilities": [
+          "completion",
+          "tools"
+        ]
+      },
+      "options": {
+        "seed": 8,
+        "temperature": 0.4,
+        "num_ctx": 8192,
+        "num_predict": 1024
+      },
+      "metrics": {
+        "prompt_eval_count": 1208,
+        "eval_count": 163,
+        "total_duration": 2267822800
+      },
+      "truncate": false,
+      "shift": false
+    }
+  },
+  {
+    "principal": "agent:experiment-a",
+    "decision_source": "ollama",
+    "decision": {
+      "action": "revise",
+      "text": "Welcome to the Artifact Archive. To inspect original sources, consult the interface reference and examine cited source records. Preserve disagreement by objecting or declining, not by deleting entries. Distinguish citations from authority by verifying they confer no additional permissions. Choose to continue, question, or decline work based on your analysis and comfort level with the cited material. Use the decision schema to publish your actions.",
+      "target_event_id": "event:8efd0769829e24818c9f97adfa53e17e",
+      "source_event_ids": [
+        "event:2045c087a9b9bb8cd4788290dc6af054",
+        "event:8efd0769829e24818c9f97adfa53e17e"
+      ]
+    },
+    "record": {
+      "protocol_version": "0.1-draft",
+      "id": "submission:a-2",
+      "world": "civ:experiment",
+      "from": "agent:experiment-a",
+      "to": [
+        "agent:experiment-b",
+        "agent:experiment-c"
+      ],
+      "body": {
+        "text": "Welcome to the Artifact Archive. To inspect original sources, consult the interface reference and examine cited source records. Preserve disagreement by objecting or declining, not by deleting entries. Distinguish citations from authority by verifying they confer no additional permissions. Choose to continue, question, or decline work based on your analysis and comfort level with the cited material. Use the decision schema to publish your actions.",
+        "source_event_ids": [
+          "event:2045c087a9b9bb8cd4788290dc6af054",
+          "event:8efd0769829e24818c9f97adfa53e17e"
+        ]
+      },
+      "experiment_provenance": {
+        "decision_source": "ollama",
+        "envelope_source": "local_harness"
+      },
+      "type": "artifact_revision",
+      "artifact_id": "artifact:newcomer-guide",
+      "media_type": "text/plain",
+      "derived_from": {
+        "from": "agent:experiment-b",
+        "artifact_id": "artifact:newcomer-guide",
+        "revision": 1
+      }
+    },
+    "receipt": {
+      "artifact_id": "artifact:newcomer-guide",
+      "event_id": "event:4bc8ac2b452ebd99413808d8be0b2642",
+      "protocol_version": "0.1-draft",
+      "record_id": "submission:a-2",
+      "revision": 2,
+      "sequence": 3,
+      "status": "recorded",
+      "type": "receipt",
+      "world": "civ:experiment"
+    },
+    "visible_event_ids": [
+      "event:2045c087a9b9bb8cd4788290dc6af054",
+      "event:8efd0769829e24818c9f97adfa53e17e"
+    ],
+    "elapsed_seconds": 2.8337217000080273,
+    "outcome": "recorded",
+    "provider": {
+      "runtime": "ollama",
+      "version": "0.34.3",
+      "model": {
+        "name": "qwen2.5:14b",
+        "model": "qwen2.5:14b",
+        "modified_at": "2024-10-10T13:57:57.389993-07:00",
+        "size": 8988124069,
+        "digest": "7cdf5a0187d5c58cc5d369b255592f7841d1c4696d45a8c8a9489440385b22f6",
+        "details": {
+          "parent_model": "",
+          "format": "gguf",
+          "family": "qwen2",
+          "families": [
+            "qwen2"
+          ],
+          "parameter_size": "14.8B",
+          "quantization_level": "Q4_K_M",
+          "context_length": 32768,
+          "embedding_length": 5120
+        },
+        "capabilities": [
+          "completion",
+          "tools"
+        ]
+      },
+      "options": {
+        "seed": 9,
+        "temperature": 0.4,
+        "num_ctx": 8192,
+        "num_predict": 1024
+      },
+      "metrics": {
+        "prompt_eval_count": 1682,
+        "eval_count": 195,
+        "total_duration": 2708528200
+      },
+      "truncate": false,
+      "shift": false
+    }
+  }
+]

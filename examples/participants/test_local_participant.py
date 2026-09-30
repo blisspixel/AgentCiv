@@ -16,6 +16,7 @@ import unittest
 import urllib.parse
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
@@ -241,6 +242,38 @@ class ParticipantTests(unittest.TestCase):
 
 
 class ClientBoundaryTests(unittest.TestCase):
+    def test_response_bytes_are_bounded_before_decoding(self) -> None:
+        for status in (200, 403):
+            class Handler(BaseHTTPRequestHandler):
+                def do_GET(self) -> None:
+                    body = b"x" * 129
+                    self.send_response(status)
+                    self.send_header("Content-Length", str(len(body)))
+                    self.end_headers()
+                    self.wfile.write(body)
+
+                def log_message(self, fmt: str, *args: object) -> None:
+                    return
+
+            server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+            thread = threading.Thread(target=server.serve_forever, daemon=True)
+            thread.start()
+            try:
+                origin = str(HOST.http_origin(server.server_address))
+                with patch.object(local_participant, "MAX_RESPONSE_BYTES", 128):
+                    with self.assertRaises(local_participant.ParticipantError) as caught:
+                        local_participant.exchange("GET", origin)
+                    self.assertEqual(caught.exception.code, "response_too_large")
+            finally:
+                server.shutdown()
+                server.server_close()
+                thread.join(timeout=2)
+        with self.assertRaises(local_participant.ParticipantError) as unreadable:
+            local_participant._object(b"\xff", 200)
+        self.assertEqual(unreadable.exception.code, "unreadable")
+        with self.assertRaises(local_participant.ParticipantError):
+            local_participant._fail(403, b"\xff")
+
     def test_non_loopback_and_userinfo_never_become_a_request(self) -> None:
         with self.assertRaises(ValueError):
             local_participant.discover("http://example.com")

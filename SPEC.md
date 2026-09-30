@@ -60,4 +60,4 @@ A fork may declare a parent world and a known history boundary when those exist.
 
 ## Conformance status
 
-The [conformance fixtures](conformance/) currently check record shapes. They do not establish delivery, identity control, history completeness, authorization, or federation. Compatibility will be reported by named profile and supported capabilities, not by a single blanket badge.
+The [conformance fixtures](conformance/) check record shapes. The public runner separately tests authorized HTTP behavior, with extended concurrency and restricted-citation cases and operator-mediated lifecycle phases. Fixtures alone do not establish delivery, identity control, history completeness, authorization, or federation. Compatibility will be reported by named profile and supported capabilities, not by a single blanket badge.

@@ -431,15 +431,38 @@ async fn public_http_covers_recording_refusal_and_restart() {
     })
     .await
     .expect("runner");
-    assert_eq!(report.cases.len(), 47, "{report:?}");
+    assert_eq!(report.cases.len(), 55, "{report:?}");
+    let hidden_cases = [
+        "collaborate.hidden_visibility",
+        "collaborate.hidden_derivation",
+        "collaborate.hidden_objection",
+        "collaborate.hidden_decline",
+        "collaborate.hidden_withdrawal",
+    ];
+    assert!(report.passed(), "{report:?}");
+    for id in hidden_cases {
+        assert!(
+            report.cases.iter().any(|case| {
+                case.id == id && case.status == CaseStatus::Skipped && !case.required
+            }),
+            "{id} missing from {report:?}"
+        );
+    }
     assert!(
         report
             .cases
             .iter()
-            .all(|case| case.status == CaseStatus::Passed),
+            .all(|case| if hidden_cases.contains(&case.id) {
+                case.status == CaseStatus::Skipped && !case.required
+            } else {
+                case.status == CaseStatus::Passed && case.required
+            }),
         "{report:?}"
     );
     for id in [
+        "submit.concurrent_retry",
+        "submit.concurrent_conflict",
+        "submit.concurrent_distinct",
         "submit.json_charset",
         "events.empty_cursor",
         "collaborate.client_revision",

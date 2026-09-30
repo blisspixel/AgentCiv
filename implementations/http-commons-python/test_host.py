@@ -1096,14 +1096,30 @@ class PublicRunnerTest(unittest.TestCase):
         self.assertEqual(report["runner_scope"], "credentialed-extended")
         summary = expect_dict(report["summary"])
         self.assertEqual(summary["failed"], 0)
-        self.assertEqual(summary["skipped"], 0)
-        self.assertEqual(summary["passed"], 47)
+        self.assertEqual(summary["skipped"], 5)
+        self.assertEqual(summary["passed"], 50)
         cases = dicts(report["cases"])
         ids = {expect_str(case["id"]) for case in cases}
-        self.assertEqual(len(ids), 47)
+        self.assertEqual(len(ids), 55)
         self.assertIn("submit.json_charset", ids)
         self.assertIn("events.empty_cursor", ids)
+        hidden_ids = {
+            "collaborate.hidden_visibility",
+            "collaborate.hidden_derivation",
+            "collaborate.hidden_objection",
+            "collaborate.hidden_decline",
+            "collaborate.hidden_withdrawal",
+        }
+        self.assertEqual(
+            {case["id"] for case in cases if case["status"] == "skipped"},
+            hidden_ids,
+        )
+        for case in cases:
+            self.assertIs(case["required"], case["id"] not in hidden_ids)
         for case_id in (
+            "submit.concurrent_retry",
+            "submit.concurrent_conflict",
+            "submit.concurrent_distinct",
             "collaborate.client_revision",
             "collaborate.forbidden",
             "collaborate.unauthenticated",

@@ -9,3 +9,15 @@ files = [
     "examples/http-commons",
     "examples/participants",
 ]
+
+[tool.coverage.run]
+source = ["implementations/http-commons-python", "examples/http-commons", "examples/participants"]
+omit = ["*/test_*.py"]
+patch = ["subprocess"]
+sigterm = true
+relative_files = true
+
+[tool.coverage.report]
+fail_under = 80
+precision = 2
+show_missing = true

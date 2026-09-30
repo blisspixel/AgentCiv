@@ -19,6 +19,13 @@ from loopback import loopback_origin, require_loopback
 
 PROTOCOL_VERSION = "0.1-draft"
 PROFILE = "http-commons/0.1-draft"
+PUBLIC_PROBLEM_CODES = frozenset({
+    "malformed_json", "invalid_cursor", "authentication_required", "forbidden", "id_conflict",
+    "cursor_expired", "payload_too_large", "unsupported_media_type", "invalid_record",
+    "unsupported_version", "unsupported_record_type", "wrong_world", "unknown_target",
+    "not_found", "storage_failed",
+})
+MAX_RESPONSE_BYTES = 1_048_576
 
 
 class ParticipantError(RuntimeError):
@@ -166,7 +173,10 @@ def read_page(origin: str, token: str, *, after: str | None = None) -> JsonObjec
     _submit, events = world_endpoints(origin, discovery)
     url = events
     if after is not None:
-        url = events + "?after=" + urllib.parse.quote(after, safe="")
+        parts = urllib.parse.urlsplit(events)
+        query = urllib.parse.parse_qsl(parts.query, keep_blank_values=True)
+        query.append(("after", after))
+        url = urllib.parse.urlunsplit(parts._replace(query=urllib.parse.urlencode(query)))
     status, payload = exchange("GET", url, token=token)
     if status != 200:
         _fail(status, payload)
@@ -209,19 +219,25 @@ def exchange(
         request.add_header("Authorization", f"Bearer {token}")
     if body is not None:
         request.add_header("Content-Type", "application/json")
-    opener = urllib.request.build_opener(_RefuseRedirect)
+    opener = urllib.request.build_opener(urllib.request.ProxyHandler({}), _RefuseRedirect)
     try:
         with opener.open(request, timeout=5) as response:
-            return int(response.status), response.read()
+            return int(response.status), _limited_body(response.read(MAX_RESPONSE_BYTES + 1))
     except ParticipantError:
         raise
     except urllib.error.HTTPError as error:
         try:
-            return int(error.code), error.read()
+            return int(error.code), _limited_body(error.read(MAX_RESPONSE_BYTES + 1))
         finally:
             error.close()
     except urllib.error.URLError as error:
         raise ParticipantError(0, "unreachable") from error
+
+
+def _limited_body(body: bytes) -> bytes:
+    if len(body) > MAX_RESPONSE_BYTES:
+        raise ParticipantError(0, "response_too_large")
+    return body
 
 
 def _require_advertised(url: str) -> None:
@@ -251,7 +267,7 @@ def _as_object(value: object) -> JsonObject | None:
 def _object(payload: bytes, status: int) -> JsonObject:
     try:
         value: object = json.loads(payload)
-    except json.JSONDecodeError as error:
+    except (json.JSONDecodeError, UnicodeDecodeError) as error:
         raise ParticipantError(status, "unreadable") from error
     found = _as_object(value)
     if found is None:
@@ -263,8 +279,10 @@ def _fail(status: int, payload: bytes) -> None:
     code = "unreadable"
     try:
         value = json.loads(payload)
-    except json.JSONDecodeError:
+    except (json.JSONDecodeError, UnicodeDecodeError):
         value = None
     if isinstance(value, dict) and isinstance(value.get("code"), str) and value["code"]:
-        code = value["code"]
+        # A hostile problem response may reflect the bearer credential. Preserve
+        # documented codes, but never export arbitrary host-authored text.
+        code = value["code"] if value["code"] in PUBLIC_PROBLEM_CODES else "host_error"
     raise ParticipantError(status, code)

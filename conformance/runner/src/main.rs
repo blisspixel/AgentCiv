@@ -1,8 +1,7 @@
 use std::env;
 use std::process::ExitCode;
 
-const USAGE: &str =
-    "usage: agentciv-conformance --discovery URL [--principal ID] [--reader ID] [--peer ID]";
+const USAGE: &str = "usage: agentciv-conformance --discovery URL [--principal ID] [--reader ID] [--peer ID] [--lifecycle prepare|verify|policy --checkpoint PATH]";
 
 fn main() -> ExitCode {
     let args: Vec<String> = env::args().skip(1).collect();
@@ -10,6 +9,8 @@ fn main() -> ExitCode {
     let mut principal = None;
     let mut reader = None;
     let mut peer = None;
+    let mut lifecycle = None;
+    let mut checkpoint = None;
     let mut index = 0;
     while index < args.len() {
         let value = args.get(index + 1).map(String::as_str);
@@ -18,6 +19,8 @@ fn main() -> ExitCode {
             "--principal" => principal = value,
             "--reader" => reader = value,
             "--peer" => peer = value,
+            "--lifecycle" => lifecycle = value,
+            "--checkpoint" => checkpoint = value,
             _ => {
                 eprintln!("{USAGE}");
                 return ExitCode::FAILURE;
@@ -32,6 +35,45 @@ fn main() -> ExitCode {
     if peer.is_some() && reader.is_none() {
         eprintln!("--peer requires --reader");
         return ExitCode::FAILURE;
+    }
+    if lifecycle.is_some() || checkpoint.is_some() {
+        let (Some(phase), Some(path), Some(writer), Some(reader)) =
+            (lifecycle, checkpoint, principal, reader)
+        else {
+            eprintln!("lifecycle requires --checkpoint, --principal, and --reader");
+            return ExitCode::FAILURE;
+        };
+        let credentials = [
+            "AGENTCIV_CONFORMANCE_TOKEN",
+            "AGENTCIV_CONFORMANCE_READER_TOKEN",
+        ]
+        .map(env::var);
+        let [Ok(writer_token), Ok(reader_token)] = credentials else {
+            eprintln!(
+                "set writer and reader conformance credential environment variables for lifecycle testing"
+            );
+            return ExitCode::FAILURE;
+        };
+        let peer_token = if peer.is_some() {
+            match env::var("AGENTCIV_CONFORMANCE_PEER_TOKEN") {
+                Ok(token) => Some(token),
+                Err(_) => {
+                    eprintln!("set AGENTCIV_CONFORMANCE_PEER_TOKEN for the writing peer");
+                    return ExitCode::FAILURE;
+                }
+            }
+        } else {
+            None
+        };
+        let report = agentciv_conformance::run_lifecycle(
+            discovery.expect("discovery"),
+            (writer, &writer_token),
+            (reader, &reader_token),
+            peer.zip(peer_token.as_deref()),
+            phase,
+            std::path::Path::new(path),
+        );
+        return emit_report(&report);
     }
     let report = match (principal, reader) {
         (None, None) => agentciv_conformance::run(discovery.expect("discovery")),
@@ -99,6 +141,10 @@ fn main() -> ExitCode {
             return ExitCode::FAILURE;
         }
     };
+    emit_report(&report)
+}
+
+fn emit_report(report: &agentciv_conformance::Report) -> ExitCode {
     println!("{}", report.to_json());
     if report.passed() {
         ExitCode::SUCCESS
