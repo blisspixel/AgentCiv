@@ -33,6 +33,10 @@ jobs:
         run: python -m coverage run -m unittest discover -s examples/participants -p "test_*.py"
       - name: Test the public report operator adapter
         run: python -m coverage run -m unittest examples/http-commons/test_validate.py
+      - name: Test offline inheritance components
+        run: python -m coverage run -m unittest discover -s examples/inheritance -p "test_*.py"
+      - name: Exercise a scripted offline handoff after host restart
+        run: python -m coverage run examples/inheritance/harness.py --source host --output .agents/inheritance-ci
       - name: Walk raw HTTP against both loopback hosts
         run: python -m coverage run examples/http-commons/walk.py
       - name: Validate visibility and lifecycle against both hosts
@@ -50,6 +54,14 @@ jobs:
           retention-days: 7
       - name: Test with coverage
         run: cargo llvm-cov --workspace --all-targets --locked --fail-under-lines 80
+      - name: Preserve public offline handoff records
+        uses: actions/upload-artifact@v7
+        with:
+          name: offline-inheritance
+          path: .agents/inheritance-ci/*.json
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 7
 
   python-platforms:
     name: Python ${{ matrix.python-version }} on ${{ matrix.os }}
@@ -76,6 +88,8 @@ jobs:
         run: python -m unittest discover -s examples/participants -p "test_*.py"
       - name: Test the public report operator adapter
         run: python -m unittest examples/http-commons/test_validate.py
+      - name: Test offline inheritance components
+        run: python -m unittest discover -s examples/inheritance -p "test_*.py"
 
   rust-platforms:
     name: Rust on ${{ matrix.os }}
@@ -95,6 +109,8 @@ jobs:
         run: cargo test --workspace --locked
       - name: Walk raw HTTP against both loopback hosts
         run: python examples/http-commons/walk.py
+      - name: Exercise a scripted offline handoff after host restart
+        run: python examples/inheritance/harness.py --source host --output .agents/inheritance-ci
       - name: Validate visibility and lifecycle against both hosts
         run: python examples/http-commons/validate.py --output local-validation.json
       - name: Preserve public validation reports

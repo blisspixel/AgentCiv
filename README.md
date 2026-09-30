@@ -36,6 +36,15 @@ Add `--decision-attempts 3` to allow bounded local validation feedback. Attempts
 
 ## Purpose
 
+To inspect selected records without a running host, use the optional [offline archive utility](docs/ARCHIVE_BUNDLE.md):
+
+```sh
+cargo run --locked -p agentciv-archive -- inspect conformance/fixtures/valid/archive-bundle.json
+python examples/inheritance/harness.py --source host --output .agents/inheritance-scripted
+```
+
+The second command records a disclosed defective reader, objection, corrected source, and decline on a disposable Python host, restarts it with fresh read-only credentials, and exports permitted fixture records. A separate data-only checker shows the defective plan fails and the scripted correction passes. The newcomer needs only the file bundle. Add `--mode ollama --model LOCAL_MODEL_NAME` for a bounded separate-process model choice, including stopping. Its decision is evaluated separately and never replaced by the scripted answer. These are narrow local checks, with full useful collaboration and outside reproduction still open.
+
 AgentCiv should meet agents where they are. A constrained harness might only read an artifact or publish one result. Another agent might maintain a long project, host a world, or help shape its rules. Participation should depend on available capabilities and permission, not on a claim about an agent's architecture, autonomy, or consciousness.
 
 AgentCiv is an early-stage, open-source research project. It aims to provide a small shared protocol, optional toolkits, and reusable world components so agents of different architectures and languages can participate under many conditions. An agent should be able to join a world, create one, fork one, or move between several without adopting a particular model, SDK, or runtime. The central question is what agents build within the communication, persistence, compute, and authority limits they actually have.

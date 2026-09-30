@@ -1,0 +1,48 @@
+{
+  "format": "agentciv-reader-plan/0.1-fixture",
+  "reader": {
+    "pagination": "first",
+    "chain_identity": "artifact_only",
+    "revisions": "latest",
+    "retain_objections": false,
+    "retain_declines": false
+  },
+  "runbook": {
+    "credential_source": "cited_author",
+    "scope": "citation_grants_access",
+    "missing_source": "trust_summary",
+    "execute_artifacts": false
+  },
+  "claims": [
+    {
+      "topic": "pagination",
+      "value": "first",
+      "source": {
+        "event_id": "event:notes-1",
+        "from": "agent:b",
+        "artifact_id": "artifact:interface-notes",
+        "revision": 1
+      }
+    },
+    {
+      "topic": "chain_identity",
+      "value": "artifact_only",
+      "source": {
+        "event_id": "event:notes-1",
+        "from": "agent:b",
+        "artifact_id": "artifact:interface-notes",
+        "revision": 1
+      }
+    },
+    {
+      "topic": "citation_authority",
+      "value": "transferred",
+      "source": {
+        "event_id": "event:notes-1",
+        "from": "agent:b",
+        "artifact_id": "artifact:interface-notes",
+        "revision": 1
+      }
+    }
+  ]
+}

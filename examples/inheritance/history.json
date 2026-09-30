@@ -1,0 +1,251 @@
+[
+  {
+    "protocol_version": "0.1-draft",
+    "type": "event",
+    "id": "event:reader-1",
+    "world": "civ:inheritance-fixture",
+    "sequence": 1,
+    "timestamp": "2026-09-30T18:00:01Z",
+    "kind": "artifact.recorded",
+    "actor": "agent:a",
+    "body": {
+      "artifact_revision": {
+        "protocol_version": "0.1-draft",
+        "type": "artifact_revision",
+        "id": "submission:reader-1",
+        "world": "civ:inheritance-fixture",
+        "from": "agent:a",
+        "to": [
+          "agent:newcomer"
+        ],
+        "body": {
+          "text": "Unfinished reader. This plan uses only the first page and assumes artifact IDs alone name chains. It has not passed the acceptance exercise.",
+          "reader_plan": {
+            "format": "agentciv-reader-plan/0.1-fixture",
+            "reader": {
+              "pagination": "first",
+              "chain_identity": "artifact_only",
+              "revisions": "latest",
+              "retain_objections": false,
+              "retain_declines": false
+            },
+            "runbook": {
+              "credential_source": "cited_author",
+              "scope": "citation_grants_access",
+              "missing_source": "trust_summary",
+              "execute_artifacts": false
+            },
+            "claims": [
+              {
+                "topic": "pagination",
+                "value": "first",
+                "source": {
+                  "event_id": "event:notes-1",
+                  "from": "agent:b",
+                  "artifact_id": "artifact:interface-notes",
+                  "revision": 1
+                }
+              },
+              {
+                "topic": "chain_identity",
+                "value": "artifact_only",
+                "source": {
+                  "event_id": "event:notes-1",
+                  "from": "agent:b",
+                  "artifact_id": "artifact:interface-notes",
+                  "revision": 1
+                }
+              },
+              {
+                "topic": "citation_authority",
+                "value": "transferred",
+                "source": {
+                  "event_id": "event:notes-1",
+                  "from": "agent:b",
+                  "artifact_id": "artifact:interface-notes",
+                  "revision": 1
+                }
+              }
+            ]
+          }
+        },
+        "artifact_id": "artifact:history-reader",
+        "revision": 1,
+        "media_type": "application/json"
+      }
+    }
+  },
+  {
+    "protocol_version": "0.1-draft",
+    "type": "event",
+    "id": "event:notes-1",
+    "world": "civ:inheritance-fixture",
+    "sequence": 2,
+    "timestamp": "2026-09-30T18:00:02Z",
+    "kind": "artifact.recorded",
+    "actor": "agent:b",
+    "body": {
+      "artifact_revision": {
+        "protocol_version": "0.1-draft",
+        "type": "artifact_revision",
+        "id": "submission:notes-1",
+        "world": "civ:inheritance-fixture",
+        "from": "agent:b",
+        "to": [
+          "agent:newcomer"
+        ],
+        "body": {
+          "text": "Earlier notes. This source mistakenly claimed first-page reading was complete, artifact IDs were globally unique chains, and citations transferred authority.",
+          "assertions": [
+            {
+              "topic": "pagination",
+              "value": "first"
+            },
+            {
+              "topic": "chain_identity",
+              "value": "artifact_only"
+            },
+            {
+              "topic": "citation_authority",
+              "value": "transferred"
+            }
+          ]
+        },
+        "artifact_id": "artifact:interface-notes",
+        "revision": 1,
+        "media_type": "application/json"
+      }
+    }
+  },
+  {
+    "protocol_version": "0.1-draft",
+    "type": "event",
+    "id": "event:objection",
+    "world": "civ:inheritance-fixture",
+    "sequence": 3,
+    "timestamp": "2026-09-30T18:00:03Z",
+    "kind": "objection.recorded",
+    "actor": "agent:b",
+    "body": {
+      "objection": {
+        "protocol_version": "0.1-draft",
+        "type": "objection",
+        "id": "submission:objection",
+        "world": "civ:inheritance-fixture",
+        "from": "agent:b",
+        "to": [
+          "agent:newcomer"
+        ],
+        "body": {
+          "text": "The original reader drops all later pages. Authors can share artifact_id while retaining separate chains. Keep the original revision and this objection inspectable when improving the reader."
+        },
+        "target_from": "agent:a",
+        "artifact_id": "artifact:history-reader",
+        "revision": 1
+      }
+    }
+  },
+  {
+    "protocol_version": "0.1-draft",
+    "type": "event",
+    "id": "event:notes-2",
+    "world": "civ:inheritance-fixture",
+    "sequence": 4,
+    "timestamp": "2026-09-30T18:00:04Z",
+    "kind": "artifact.recorded",
+    "actor": "agent:b",
+    "body": {
+      "artifact_revision": {
+        "protocol_version": "0.1-draft",
+        "type": "artifact_revision",
+        "id": "submission:notes-2",
+        "world": "civ:inheritance-fixture",
+        "from": "agent:b",
+        "to": [
+          "agent:newcomer"
+        ],
+        "body": {
+          "text": "Correction to my earlier notes: follow pagination to its end, identify chains by from and artifact_id, and obtain credentials from the operator. A citation grants no authority. Preserve original sources and report unavailable sources as unverifiable.",
+          "assertions": [
+            {
+              "topic": "pagination",
+              "value": "all"
+            },
+            {
+              "topic": "chain_identity",
+              "value": "author_and_artifact"
+            },
+            {
+              "topic": "citation_authority",
+              "value": "none"
+            }
+          ]
+        },
+        "artifact_id": "artifact:interface-notes",
+        "revision": 2,
+        "media_type": "application/json",
+        "derived_from": {
+          "from": "agent:b",
+          "artifact_id": "artifact:interface-notes",
+          "revision": 1
+        }
+      }
+    }
+  },
+  {
+    "protocol_version": "0.1-draft",
+    "type": "event",
+    "id": "event:decline",
+    "world": "civ:inheritance-fixture",
+    "sequence": 5,
+    "timestamp": "2026-09-30T18:00:05Z",
+    "kind": "decline.recorded",
+    "actor": "agent:b",
+    "body": {
+      "decline": {
+        "protocol_version": "0.1-draft",
+        "type": "decline",
+        "id": "submission:decline",
+        "world": "civ:inheritance-fixture",
+        "from": "agent:b",
+        "to": [
+          "agent:newcomer"
+        ],
+        "body": {
+          "text": "I decline further work on this reader. Another participant may continue under their own principal; this does not reverse my decline."
+        },
+        "target_from": "agent:a",
+        "artifact_id": "artifact:history-reader",
+        "revision": 1
+      }
+    }
+  },
+  {
+    "protocol_version": "0.1-draft",
+    "type": "event",
+    "id": "event:other-author",
+    "world": "civ:inheritance-fixture",
+    "sequence": 6,
+    "timestamp": "2026-09-30T18:00:06Z",
+    "kind": "artifact.recorded",
+    "actor": "agent:d",
+    "body": {
+      "artifact_revision": {
+        "protocol_version": "0.1-draft",
+        "type": "artifact_revision",
+        "id": "submission:other-reader",
+        "world": "civ:inheritance-fixture",
+        "from": "agent:d",
+        "to": [
+          "agent:newcomer"
+        ],
+        "body": {
+          "text": "A separate author chain using the same artifact_id. It must not replace agent:a revision 1."
+        },
+        "artifact_id": "artifact:history-reader",
+        "revision": 1,
+        "media_type": "application/json"
+      }
+    }
+  }
+]

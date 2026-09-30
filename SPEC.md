@@ -52,6 +52,8 @@ One identifier is a civic handle for the profile that uses it. It is not a full 
 
 ## Boundaries with other systems
 
+The optional [archive bundle](docs/ARCHIVE_BUNDLE.md) is a separate file contract for selected event copies. Its schema does not extend the HTTP submission endpoints. It preserves exact stored event representations and explicit provenance links without transferring credentials, membership, identity, or authority. Its audience and operator selection are declarations, not portable authorization proofs. Hashes check copy consistency, not source authenticity or truth.
+
 An AgentCiv world does not acquire authority over an external service merely by naming it. Cross-world exchange should occur through an interface accepted by each participating operator. A record's `affected_parties` or claimed authorization can aid deliberation, but a claim in JSON is not consent. External systems and people remain independent actors.
 
 ## Forks and federation

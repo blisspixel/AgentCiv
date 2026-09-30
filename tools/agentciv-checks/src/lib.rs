@@ -287,6 +287,79 @@ mod tests {
     }
 
     #[test]
+    fn archive_bundle_does_not_expand_http_submission_types() {
+        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+        let names = [
+            "archive-bundle",
+            "envelope",
+            "message",
+            "collaboration-artifact",
+            "collaboration-objection",
+            "collaboration-decline",
+            "collaboration-withdrawal",
+        ];
+        let paths = names
+            .iter()
+            .map(|name| root.join(format!("schemas/{name}.schema.json")))
+            .collect::<Vec<_>>();
+        let registry = schema_registry(&paths).unwrap();
+        let record =
+            read_json(&root.join("conformance/fixtures/valid/archive-bundle.json")).unwrap();
+        for (index, name) in names.iter().enumerate() {
+            let schema = read_json(&paths[index]).unwrap();
+            let result = validate_with_registry(&schema, &record, &registry);
+            if matches!(*name, "archive-bundle" | "envelope") {
+                assert!(result.is_ok(), "{name}: {result:?}");
+            } else {
+                assert!(result.is_err(), "bundle accepted as {name}");
+            }
+        }
+    }
+
+    #[test]
+    fn archive_fixture_check_reports_missing_positive_and_accepted_negative() {
+        let source = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+        let directory = tempfile::tempdir().unwrap();
+        let root = directory.path();
+        let schemas = root.join("schemas");
+        let positives = root.join("conformance/fixtures/valid");
+        let negatives = root.join("conformance/fixtures/invalid/archive-bundle");
+        for path in [&schemas, &positives, &negatives] {
+            fs::create_dir_all(path).unwrap();
+        }
+        for name in ["archive-bundle", "envelope"] {
+            fs::copy(
+                source.join(format!("schemas/{name}.schema.json")),
+                schemas.join(format!("{name}.schema.json")),
+            )
+            .unwrap();
+            fs::copy(
+                source.join(format!("conformance/fixtures/valid/{name}.json")),
+                positives.join(format!("{name}.json")),
+            )
+            .unwrap();
+        }
+        let positive = positives.join("archive-bundle.json");
+        let record = read_json(&positive).unwrap();
+        let mut unsupported = record.clone();
+        unsupported["archive_version"] = Value::from("unsupported");
+        let negative = negatives.join("unsupported-version.json");
+        fs::write(&negative, serde_json::to_vec(&unsupported).unwrap()).unwrap();
+        assert!(check_schemas(root).unwrap().is_empty());
+
+        fs::write(&negative, serde_json::to_vec(&record).unwrap()).unwrap();
+        let issues = check_schemas(root).unwrap();
+        assert_eq!(issues.len(), 1, "{issues:?}");
+        assert!(issues[0].contains("invalid fixture was accepted"));
+
+        fs::write(&negative, serde_json::to_vec(&unsupported).unwrap()).unwrap();
+        fs::remove_file(positive).unwrap();
+        let issues = check_schemas(root).unwrap();
+        assert_eq!(issues.len(), 1, "{issues:?}");
+        assert!(issues[0].contains("archive-bundle.schema.json"));
+    }
+
+    #[test]
     fn invalid_version_and_missing_required_fields_are_rejected() {
         let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
         let schemas = root.join("schemas");

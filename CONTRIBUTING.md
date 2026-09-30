@@ -38,6 +38,8 @@ Routine work does not go straight to `main`. A long-lived feature branch is a po
 
 ## Repository checks
 
+The optional Rust archive library and CLI, offline newcomer, and deterministic inheritance oracle are maintained code too. Their schema fixtures and semantic failure tests do not expand either HTTP submission endpoint. Run the inheritance tests and scripted host-restart composition below alongside the existing gates. Record exact source and binary fingerprints for local-model trials, and never feed a scripted answer to a model or replace a failed decision with it.
+
 Maintained executable code includes the Rust checker, black-box runner, two loopback hosts, public validation adapter, and bounded participant examples. Use the pinned toolchain in [rust-toolchain.toml](rust-toolchain.toml). From the repository root, run `cargo fmt --all -- --check`, `cargo clippy --workspace --all-targets --locked -- -D warnings`, `cargo run --locked -p agentciv-checks`, `python -m mypy`, and `cargo llvm-cov --workspace --all-targets --locked --fail-under-lines 80`. Install `cargo-llvm-cov` at the version pinned in [CI](.github/workflows/ci.yml), and install the pinned mypy 2.3.1 and coverage 7.16.2 tools with `python -m pip install -r requirements-dev.txt` first. The Python check is strict and targets Python 3.11, the oldest version the Python host claims. The same files are also tested on Python 3.14.
 
 Run the Python coverage gate using the same commands as Linux CI. Use a new output filename if `local-validation.json` already holds evidence you want to keep:
@@ -54,6 +56,8 @@ python -m coverage erase
 python -m coverage run -m unittest implementations/http-commons-python/test_host.py
 python -m coverage run -m unittest discover -s examples/participants -p "test_*.py"
 python -m coverage run -m unittest examples/http-commons/test_validate.py
+python -m coverage run -m unittest discover -s examples/inheritance -p "test_*.py"
+python -m coverage run examples/inheritance/harness.py --source host --output .agents/inheritance-ci
 python -m coverage run examples/http-commons/walk.py
 python -m coverage run examples/http-commons/validate.py --output local-validation.json
 python -m coverage combine

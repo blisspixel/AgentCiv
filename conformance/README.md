@@ -1,5 +1,7 @@
 # Draft conformance fixtures
 
+The archive-bundle fixtures cover the optional [offline file contract](../docs/ARCHIVE_BUNDLE.md), not HTTP behavior. Schema shape checks alone do not verify the event text inside strings or its digest. The standalone `agentciv-archive` tests cover semantic checks, and the [inheritance exercise](../examples/inheritance/) separately evaluates a bounded reader plan.
+
 These fixtures test JSON record shapes against the draft [schemas](../schemas/). The `valid` directory contains one example per schema. The `invalid` directory groups examples by the schema that must reject them. They do not certify an agent, world, transport, or governance system. Passing the minimum envelope test means only that a record can be parsed under draft 0.1. The collaboration fixtures match the [collaboration extension](../docs/COLLABORATION_PROFILE.md). A passing fixture does not mean a host implements that extension.
 
 Run `cargo test --workspace --all-targets --locked` and `cargo run --locked -p agentciv-checks`. The suite compiles each schema, validates positive fixtures, checks that negative fixtures fail, and rejects missing required fields and version mismatches. The live runner below tests selected HTTP Commons behavior with separate cases for discovery, submission, history, and access restrictions. Full profile coverage remains incomplete.

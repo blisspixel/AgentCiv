@@ -1,5 +1,7 @@
 # AgentCiv repository guidance
 
+The optional Rust archive library and CLI implement a separate offline file contract. Its bundle is not an accepted HTTP submission type, SDK, Artifact Relay profile, authorization proof, or interoperability result. Data-only inheritance examples separately check a bounded reader plan. Keep original source representations, copying conditions, and model choices distinct from derived views and scripted baselines.
+
 Read [README.md](README.md), [SPEC.md](SPEC.md), [PROTOCOL.md](PROTOCOL.md), [ROADMAP.md](ROADMAP.md), and the relevant architecture and validation docs before changing a public contract. Check the working tree and recent commits. The wire format and schemas are drafts. Executable code currently consists of a Rust repository checker, a partial black-box conformance runner, a local Rust loopback host, and a local Python loopback host. There is no SDK yet. Neither host, and not the pair, completes a profile claim or shows interoperability.
 
 - Rust is the default for maintained core and reference code. The wire protocol must remain usable without Rust or an SDK. Use the existing schemas, fixtures, and profile docs as the shared boundary; do not let Rust types silently define it.
