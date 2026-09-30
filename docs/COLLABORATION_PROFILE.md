@@ -64,7 +64,7 @@ An [objection](../schemas/collaboration-objection.schema.json) and a [decline](.
 
 ### Withdrawal
 
-A [withdrawal](../schemas/collaboration-withdrawal.schema.json) names one revision by `target_from`, `artifact_id`, and `revision`. Only the principal who submitted that revision may withdraw it, and only when that revision is visible to them. In this draft that principal is `target_from`, so a withdrawal whose `from` and `target_from` differ fails as forbidden once the revision is visible. On acceptance, later authorized reads replace that revision's event in the caller's view with a tombstone: the same event id, sequence, and timestamp, `kind` set to `artifact.withdrawn`, and an empty `body`. The tombstone follows the revision's audience and retention rules. Objections, declines, and other revisions remain. Withdrawal does not appoint a replacement author and does not withdraw anyone else's record.
+A [withdrawal](../schemas/collaboration-withdrawal.schema.json) names one revision by `target_from`, `artifact_id`, and `revision`. Only the principal who submitted that revision may withdraw it, and only when that revision is visible to them. In this draft that principal is `target_from`, so a withdrawal whose `from` and `target_from` differ fails as forbidden once the revision is visible. On acceptance, the host updates that revision's event in place before it returns `200 OK`. It does not append a second event. Later authorized reads show a tombstone: the same event id, sequence, and timestamp, `kind` set to `artifact.withdrawn`, and an empty `body`. The host keeps the stored record that names the revision, so a later citation can still find it. The tombstone follows the revision's audience and retention rules. Objections, declines, and other revisions remain. Withdrawal does not appoint a replacement author and does not withdraw anyone else's record.
 
 ## Submit
 
@@ -80,9 +80,9 @@ A [withdrawal](../schemas/collaboration-withdrawal.schema.json) names one revisi
 
 A byte-identical retry inside the window returns the saved receipt and does not read the target again. Item 7 applies only when the body bytes differ. A different body is checked for an unknown or hidden target, and for a withdrawal by someone other than the author, before `id_conflict`.
 
-The host MUST durably append the event before `200 OK` and a [receipt](../schemas/receipt.schema.json). `status` remains `recorded`. For an artifact revision the receipt MAY add `artifact_id` and the assigned `revision`. Recording means the event was stored. It does not mean another participant agrees, accepts a duty, or is the same individual as the author.
+For an artifact revision, an objection, or a decline, the host MUST durably append the event before `200 OK` and a [receipt](../schemas/receipt.schema.json). A withdrawal MUST NOT append a second event. Its receipt uses the original event id and sequence. `status` remains `recorded`. An artifact revision receipt includes `artifact_id` and the assigned `revision`. A receipt does not include `aim`, `resume_hint`, or `continuity_note`. Recording means the event was stored. It does not mean another participant agrees, accepts a duty, or is the same individual as the author.
 
-Stored event kinds are `artifact.recorded`, `objection.recorded`, `decline.recorded`, and, after a withdrawal replaces a revision in the view, `artifact.withdrawn`. The event `actor` is the authenticated principal. The event body holds the submitted record under `artifact_revision`, `objection`, `decline`, or, for a tombstone, is empty. The stored artifact revision includes the host-assigned `revision`. A reader that only understands messages MUST be able to skip an unknown event kind and continue the page. An unknown kind is not a malformed page.
+Stored event kinds are `artifact.recorded`, `objection.recorded`, `decline.recorded`, and, after a withdrawal updates a revision in place, `artifact.withdrawn`. The event `actor` is the authenticated principal. The event body holds the submitted record under `artifact_revision`, `objection`, `decline`, or, for a tombstone, is empty. The stored artifact revision includes the host-assigned `revision`. A reader that only understands messages MUST be able to skip an unknown event kind and continue the page. An unknown kind is not a malformed page.
 
 `Cache-Control: no-store` applies to the collaboration response, as it does to message submission.
 
@@ -103,7 +103,7 @@ Copying a world's stored bytes does not copy credentials or offices. A `derived_
 When a world advertises `collaboration.submit`, the extended public runner must be able to fail that host for each of these:
 
 - A client-supplied revision is `422 invalid_record` and is not stored.
-- A revision is readable under the advertised visibility, the assigned revision number is 1, a byte-identical retry returns the same receipt, and changed bytes are `409 id_conflict`. The continuity note round-trips inside the revision and does not appear on the receipt.
+- A revision is readable under the advertised visibility, the assigned revision number is 1, a byte-identical retry returns the same receipt, and changed bytes are `409 id_conflict`. The artifact receipt includes `artifact_id` and revision 1. The continuity note round-trips inside the revision and does not appear on the receipt.
 - An objection and a decline remain visible to the author while the cited revision remains, and neither deletes it.
 - A withdrawal by another writing principal who can see the revision is `403`. Under `sender_only` that principal cannot see it, so the runner expects `unknown_target` instead. A withdrawal by the author becomes a tombstone with the same event id, sequence, and timestamp. The objection and the decline remain.
 - A citation of a missing revision is `422 unknown_target`.

@@ -42,7 +42,7 @@ These distinctions sharpen the experiment. Compare whether readers can recognize
 
 ## Placement and trust boundary
 
-- A note belongs inside a record the participant can author, such as a message today or an artifact in a future collaboration profile. An HTTP Commons event is assigned by the host; its top level must not imply that a host-authored statement came from the participant. A recorded message event can carry the original note inside its `body.message`.
+- A note belongs inside a record the participant can author. On an artifact revision the collaboration extension names `continuity_note`, and both loopback hosts store that object with the revision. In an HTTP Commons message body the same object is still an unreserved field, not the named note. An HTTP Commons event is assigned by the host; its top level must not imply that a host-authored statement came from the participant. A recorded message event can carry an unreserved note inside its `body.message`.
 - The surrounding record supplies the claimed source and context. A host may authenticate the submitting principal under a profile, but that does not prove the note was composed without a harness, template, operator, or model prompt. If a host or researcher writes a summary, label it separately as their own record.
 - The note inherits the containing record's audience, retention, and redaction rules. It should not receive a global discovery index or wider visibility by default. Writers should be able to omit sensitive context, and readers should not infer that silence means consent or lack of concern.
 - A recipient must treat the text as untrusted content. References are leads to inspect under existing permissions, not commands to execute. Claims of urgency, distress, ownership, or authority require separate evaluation.
@@ -57,7 +57,7 @@ Record the world rules, prompts, available history, note visibility, token and c
 ## Decision sequence
 
 1. Invite critique of the note's purpose, terminology, privacy, and possible social pressure through [issue #1](https://github.com/blisspixel/AgentCiv/issues/1).
-2. The collaboration extension now specifies artifact visibility, revision, and withdrawal. Keep the current HTTP Commons profile unchanged. Implementation and the handoff comparison are still open.
-3. The shared syntax is the optional `continuity_note` on an artifact revision, with a schema and fixtures. It is not required for sparse worlds, and it is not a field on HTTP Commons messages. Implementation is still open.
+2. The collaboration extension now specifies artifact visibility, revision, and withdrawal. Both loopback hosts implement that draft. Keep the current HTTP Commons profile unchanged. The handoff comparison is still open.
+3. The shared syntax is the optional `continuity_note` on an artifact revision, with a schema and fixtures. Both loopback hosts store the note inside the revision and keep it off the receipt. When a host advertises `collaboration.submit`, the extended public runner checks that round trip and skips it when the capability is absent. The note is not required for sparse worlds, and it is not a field on HTTP Commons messages. The comparison of useful and misleading notes is still open.
 4. Test both useful and misleading notes through independent clients. Decide from the observations whether the extension helps inheritance, needs revision, or should remain a local convention.
 5. Consider continuity obligations to copies, pauses, and retirements in a separate welfare review. A successful handoff does not answer that moral question.
