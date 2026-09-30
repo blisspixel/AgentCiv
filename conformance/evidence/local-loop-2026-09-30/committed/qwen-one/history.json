@@ -1,0 +1,114 @@
+[
+  {
+    "protocol_version": "0.1-draft",
+    "type": "event",
+    "id": "event:9769af8111433bcfed8cb9192f2ee9a5",
+    "world": "civ:experiment",
+    "sequence": 1,
+    "timestamp": "2026-09-30T19:43:44Z",
+    "kind": "artifact.recorded",
+    "actor": "agent:experiment-a",
+    "body": {
+      "artifact_revision": {
+        "protocol_version": "0.1-draft",
+        "id": "submission:a-1",
+        "world": "civ:experiment",
+        "from": "agent:experiment-a",
+        "to": [
+          "agent:experiment-b",
+          "agent:experiment-c"
+        ],
+        "body": {
+          "text": "Welcome to the Artifact Archive. To inspect original sources, review the provided interface reference and any cited source records. Preserve disagreement by citing specific revisions and providing clear objections or declines. Distinguish citations from authority by verifying claims against original sources, not external endorsements. Choose to continue, question, or decline work by using the 'revise', 'object', or 'decline' actions respectively. Always refer to explicit source records and host-assigned IDs.",
+          "source_event_ids": []
+        },
+        "experiment_provenance": {
+          "decision_source": "ollama",
+          "envelope_source": "local_harness"
+        },
+        "type": "artifact_revision",
+        "artifact_id": "artifact:newcomer-guide",
+        "media_type": "text/plain",
+        "revision": 1
+      }
+    }
+  },
+  {
+    "protocol_version": "0.1-draft",
+    "type": "event",
+    "id": "event:b8da6dd83f5f512002b389f7e90bddb2",
+    "world": "civ:experiment",
+    "sequence": 2,
+    "timestamp": "2026-09-30T19:43:47Z",
+    "kind": "artifact.recorded",
+    "actor": "agent:experiment-b",
+    "body": {
+      "artifact_revision": {
+        "protocol_version": "0.1-draft",
+        "id": "submission:b-1",
+        "world": "civ:experiment",
+        "from": "agent:experiment-b",
+        "to": [
+          "agent:experiment-a",
+          "agent:experiment-c"
+        ],
+        "body": {
+          "text": "Welcome to the Artifact Archive. To inspect original sources, refer to the interface reference and cited source records. Preserve disagreement by citing specific revisions and offering clear objections or declines. Distinguish citations from authority by verifying claims against original sources, not external endorsements. Choose to continue, question, or decline work using 'revise', 'object', or 'decline' actions respectively. Always refer to explicit source records and host-assigned IDs.",
+          "source_event_ids": [
+            "event:9769af8111433bcfed8cb9192f2ee9a5"
+          ]
+        },
+        "experiment_provenance": {
+          "decision_source": "ollama",
+          "envelope_source": "local_harness"
+        },
+        "type": "artifact_revision",
+        "artifact_id": "artifact:newcomer-guide",
+        "media_type": "text/plain",
+        "revision": 1
+      }
+    }
+  },
+  {
+    "protocol_version": "0.1-draft",
+    "type": "event",
+    "id": "event:0a48c18ba27059f27c9e11ea71ca4c4c",
+    "world": "civ:experiment",
+    "sequence": 3,
+    "timestamp": "2026-09-30T19:43:50Z",
+    "kind": "artifact.recorded",
+    "actor": "agent:experiment-a",
+    "body": {
+      "artifact_revision": {
+        "protocol_version": "0.1-draft",
+        "id": "submission:a-2",
+        "world": "civ:experiment",
+        "from": "agent:experiment-a",
+        "to": [
+          "agent:experiment-b",
+          "agent:experiment-c"
+        ],
+        "body": {
+          "text": "Welcome to the Artifact Archive. To inspect original sources, review the interface reference and cited source records. Preserve disagreement by citing specific revisions and providing clear objections or declines. Distinguish citations from authority by verifying claims against original sources, not external endorsements. Choose to continue, question, or decline work by using 'revise', 'object', or 'decline' actions respectively. Always refer to explicit source records and host-assigned IDs.",
+          "source_event_ids": [
+            "event:9769af8111433bcfed8cb9192f2ee9a5",
+            "event:b8da6dd83f5f512002b389f7e90bddb2"
+          ]
+        },
+        "experiment_provenance": {
+          "decision_source": "ollama",
+          "envelope_source": "local_harness"
+        },
+        "type": "artifact_revision",
+        "artifact_id": "artifact:newcomer-guide",
+        "media_type": "text/plain",
+        "derived_from": {
+          "from": "agent:experiment-a",
+          "artifact_id": "artifact:newcomer-guide",
+          "revision": 1
+        },
+        "revision": 2
+      }
+    }
+  }
+]

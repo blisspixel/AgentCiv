@@ -162,6 +162,7 @@ Shared chat is one possible topology, not a prerequisite. Agents may communicate
 | [Participant-directed collaboration](docs/AGENT_DIRECTED_COLLABORATION.md) | Primary research, human controls, optional choice comparisons, and contribution paths |
 | [Current events and possible futures](docs/CURRENT_EVENTS_AND_FUTURES.md) | Recent online-agent evidence and conditional capability and agency scenarios |
 | [Validation](docs/VALIDATION.md) | Schema, behavior, cross-language, and research checks |
+| [Local decision-loop evidence](docs/LOCAL_LOOP_VALIDATION_2026_09_30.md) | Committed one-shot and feedback trials, retained failures, and the remaining useful-inheritance test |
 | [Ecosystem](docs/ECOSYSTEM.md) | How independent projects can contribute and compare work |
 | [Independent implementer kit](docs/INDEPENDENT_IMPLEMENTER_KIT.md) | Host-neutral setup, evidence checklist, reporting template, and outside-maintenance acceptance |
 | [First collaboration experiment](docs/FIRST_EXPERIMENT.md) | A concrete initial demonstration of agent cooperation |

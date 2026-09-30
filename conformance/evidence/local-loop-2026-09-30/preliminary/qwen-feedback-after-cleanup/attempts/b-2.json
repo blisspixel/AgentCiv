@@ -1,0 +1,92 @@
+{
+  "format": "agentciv-decision-loop/0.1",
+  "outcome": "valid",
+  "budget": {
+    "attempts": 3,
+    "output_tokens": 1024,
+    "seconds": 120
+  },
+  "attempts": [
+    {
+      "index": 1,
+      "outcome": "invalid",
+      "output_token_limit": 1024,
+      "prompt_sha256": "80dffff6640f80a82e3a8b9f0009eb70ac169ed36ff5295ce3c96d1b9e040746",
+      "candidate_sha256": "ef31b680b1ee012e16d185d8b996e43809e1c84b39be9b740b5e3978b33042b0",
+      "candidate_bytes": 692,
+      "charged_output_tokens": 203,
+      "output_usage_measured": true,
+      "metrics": {
+        "prompt_eval_count": 2182,
+        "eval_count": 203,
+        "total_duration": 3378221500
+      },
+      "candidate_retained_privately": true,
+      "feedback_code": "target_not_cited"
+    },
+    {
+      "index": 2,
+      "outcome": "valid",
+      "output_token_limit": 821,
+      "prompt_sha256": "f56dcaccb2fe409ec1896bf7054f591aad82a796e8b377273b52aa8878494697",
+      "candidate_sha256": "547c6f5c71f52308f1ad0179856f950746e7fcd4975e3808341840d1b72b6dfd",
+      "candidate_bytes": 734,
+      "charged_output_tokens": 234,
+      "output_usage_measured": true,
+      "metrics": {
+        "prompt_eval_count": 2442,
+        "eval_count": 234,
+        "total_duration": 3372935500
+      },
+      "candidate_retained_privately": true
+    }
+  ],
+  "charged_output_tokens": 437,
+  "first_attempt_valid": false,
+  "eventual_valid": true,
+  "exact_candidates_retained_privately": true,
+  "publication": {
+    "outcome": "verified",
+    "record": {
+      "protocol_version": "0.1-draft",
+      "id": "submission:b-2",
+      "world": "civ:experiment",
+      "from": "agent:experiment-b",
+      "to": [
+        "agent:experiment-a",
+        "agent:experiment-c"
+      ],
+      "body": {
+        "text": "Welcome to the Artifact Archive. To inspect original sources, review the interface reference and cited source records. Preserve disagreement by citing specific revisions and providing clear objections or declines. Distinguish citations from authority by verifying claims against original sources, not external endorsements. Choose to continue, question, or decline work using 'revise', 'object', or 'decline' actions respectively. Always refer to explicit source records and host-assigned IDs.",
+        "source_event_ids": [
+          "event:f78501db41b290ba197b1c008247be58",
+          "event:2a9df908380d48edf0dc4fae24e40b50",
+          "event:cce3cd8ea05075bc54a6e3f6369f509b"
+        ]
+      },
+      "experiment_provenance": {
+        "decision_source": "ollama",
+        "envelope_source": "local_harness"
+      },
+      "type": "artifact_revision",
+      "artifact_id": "artifact:newcomer-guide",
+      "media_type": "text/plain",
+      "derived_from": {
+        "from": "agent:experiment-a",
+        "artifact_id": "artifact:newcomer-guide",
+        "revision": 2
+      }
+    },
+    "receipt": {
+      "protocol_version": "0.1-draft",
+      "type": "receipt",
+      "world": "civ:experiment",
+      "record_id": "submission:b-2",
+      "event_id": "event:3103339081e643a5a7e207adadc9f63e",
+      "sequence": 4,
+      "status": "recorded",
+      "artifact_id": "artifact:newcomer-guide",
+      "revision": 2
+    }
+  }
+}

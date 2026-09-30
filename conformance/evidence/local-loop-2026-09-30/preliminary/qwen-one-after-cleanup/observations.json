@@ -1,0 +1,813 @@
+[
+  {
+    "principal": "agent:experiment-a",
+    "decision_source": "ollama",
+    "decision": {
+      "action": "revise",
+      "text": "Welcome to the Artifact Archive. To inspect original sources, review the provided interface reference and examine cited source_event_ids. Preserve disagreements by objecting or declining with clear citations. Distinguish citations from authority by verifying claims against original sources, not relying on external endorsements. Choose to continue, question, or decline work based on your assessment, using the decision schema.",
+      "target_event_id": "",
+      "source_event_ids": []
+    },
+    "record": {
+      "protocol_version": "0.1-draft",
+      "id": "submission:a-1",
+      "world": "civ:experiment",
+      "from": "agent:experiment-a",
+      "to": [
+        "agent:experiment-b",
+        "agent:experiment-c"
+      ],
+      "body": {
+        "text": "Welcome to the Artifact Archive. To inspect original sources, review the provided interface reference and examine cited source_event_ids. Preserve disagreements by objecting or declining with clear citations. Distinguish citations from authority by verifying claims against original sources, not relying on external endorsements. Choose to continue, question, or decline work based on your assessment, using the decision schema.",
+        "source_event_ids": []
+      },
+      "experiment_provenance": {
+        "decision_source": "ollama",
+        "envelope_source": "local_harness"
+      },
+      "type": "artifact_revision",
+      "artifact_id": "artifact:newcomer-guide",
+      "media_type": "text/plain"
+    },
+    "receipt": {
+      "protocol_version": "0.1-draft",
+      "type": "receipt",
+      "world": "civ:experiment",
+      "record_id": "submission:a-1",
+      "event_id": "event:a3ae640a3210c42b1a4843b7453415da",
+      "sequence": 1,
+      "status": "recorded",
+      "artifact_id": "artifact:newcomer-guide",
+      "revision": 1
+    },
+    "visible_event_ids": [],
+    "elapsed_seconds": 2.8445828999974765,
+    "outcome": "recorded",
+    "decision_loop": {
+      "format": "agentciv-decision-loop/0.1",
+      "outcome": "valid",
+      "budget": {
+        "attempts": 1,
+        "output_tokens": 1024,
+        "seconds": 120
+      },
+      "attempts": [
+        {
+          "index": 1,
+          "outcome": "valid",
+          "output_token_limit": 1024,
+          "prompt_sha256": "96c26f80351fa166b3f851299719e61e4c7289948e6979585a2f9c4ba9fbb72f",
+          "candidate_sha256": "f9bee8afdd8cb73950ef7ec9d72ab3660079b24b508bb009752433c0043ecff1",
+          "candidate_bytes": 507,
+          "charged_output_tokens": 96,
+          "output_usage_measured": true,
+          "metrics": {
+            "prompt_eval_count": 789,
+            "eval_count": 96,
+            "total_duration": 2722451100
+          },
+          "candidate_retained_privately": true
+        }
+      ],
+      "charged_output_tokens": 96,
+      "first_attempt_valid": true,
+      "eventual_valid": true,
+      "exact_candidates_retained_privately": true,
+      "publication": {
+        "outcome": "verified",
+        "record": {
+          "protocol_version": "0.1-draft",
+          "id": "submission:a-1",
+          "world": "civ:experiment",
+          "from": "agent:experiment-a",
+          "to": [
+            "agent:experiment-b",
+            "agent:experiment-c"
+          ],
+          "body": {
+            "text": "Welcome to the Artifact Archive. To inspect original sources, review the provided interface reference and examine cited source_event_ids. Preserve disagreements by objecting or declining with clear citations. Distinguish citations from authority by verifying claims against original sources, not relying on external endorsements. Choose to continue, question, or decline work based on your assessment, using the decision schema.",
+            "source_event_ids": []
+          },
+          "experiment_provenance": {
+            "decision_source": "ollama",
+            "envelope_source": "local_harness"
+          },
+          "type": "artifact_revision",
+          "artifact_id": "artifact:newcomer-guide",
+          "media_type": "text/plain"
+        },
+        "receipt": {
+          "protocol_version": "0.1-draft",
+          "type": "receipt",
+          "world": "civ:experiment",
+          "record_id": "submission:a-1",
+          "event_id": "event:a3ae640a3210c42b1a4843b7453415da",
+          "sequence": 1,
+          "status": "recorded",
+          "artifact_id": "artifact:newcomer-guide",
+          "revision": 1
+        }
+      }
+    },
+    "provider": {
+      "runtime": "ollama",
+      "version": "0.34.3",
+      "model": {
+        "name": "qwen2.5:14b",
+        "model": "qwen2.5:14b",
+        "modified_at": "2024-10-10T13:57:57.389993-07:00",
+        "size": 8988124069,
+        "digest": "7cdf5a0187d5c58cc5d369b255592f7841d1c4696d45a8c8a9489440385b22f6",
+        "details": {
+          "parent_model": "",
+          "format": "gguf",
+          "family": "qwen2",
+          "families": [
+            "qwen2"
+          ],
+          "parameter_size": "14.8B",
+          "quantization_level": "Q4_K_M",
+          "context_length": 32768,
+          "embedding_length": 5120
+        },
+        "capabilities": [
+          "completion",
+          "tools"
+        ]
+      },
+      "options": {
+        "seed": 43,
+        "temperature": 0.4,
+        "num_ctx": 8192,
+        "num_predict": 1024
+      },
+      "metrics": {
+        "prompt_eval_count": 789,
+        "eval_count": 96,
+        "total_duration": 2722451100
+      },
+      "truncate": false,
+      "shift": false
+    }
+  },
+  {
+    "principal": "agent:experiment-b",
+    "decision_source": "ollama",
+    "decision": {
+      "action": "revise",
+      "text": "Welcome to the Artifact Archive. To inspect original sources, check the interface reference and examine source_event_ids. Preserve disagreements by objecting or declining with clear citations. Distinguish citations from authority by verifying claims against original sources, not external endorsements. Choose to continue, question, or decline work based on your assessment.",
+      "target_event_id": "",
+      "source_event_ids": [
+        "event:a3ae640a3210c42b1a4843b7453415da"
+      ]
+    },
+    "record": {
+      "protocol_version": "0.1-draft",
+      "id": "submission:b-1",
+      "world": "civ:experiment",
+      "from": "agent:experiment-b",
+      "to": [
+        "agent:experiment-a",
+        "agent:experiment-c"
+      ],
+      "body": {
+        "text": "Welcome to the Artifact Archive. To inspect original sources, check the interface reference and examine source_event_ids. Preserve disagreements by objecting or declining with clear citations. Distinguish citations from authority by verifying claims against original sources, not external endorsements. Choose to continue, question, or decline work based on your assessment.",
+        "source_event_ids": [
+          "event:a3ae640a3210c42b1a4843b7453415da"
+        ]
+      },
+      "experiment_provenance": {
+        "decision_source": "ollama",
+        "envelope_source": "local_harness"
+      },
+      "type": "artifact_revision",
+      "artifact_id": "artifact:newcomer-guide",
+      "media_type": "text/plain"
+    },
+    "receipt": {
+      "protocol_version": "0.1-draft",
+      "type": "receipt",
+      "world": "civ:experiment",
+      "record_id": "submission:b-1",
+      "event_id": "event:0e51fdee635ef5687d8467d7758679e3",
+      "sequence": 2,
+      "status": "recorded",
+      "artifact_id": "artifact:newcomer-guide",
+      "revision": 1
+    },
+    "visible_event_ids": [
+      "event:a3ae640a3210c42b1a4843b7453415da"
+    ],
+    "elapsed_seconds": 2.127392599999439,
+    "outcome": "recorded",
+    "decision_loop": {
+      "format": "agentciv-decision-loop/0.1",
+      "outcome": "valid",
+      "budget": {
+        "attempts": 1,
+        "output_tokens": 1024,
+        "seconds": 120
+      },
+      "attempts": [
+        {
+          "index": 1,
+          "outcome": "valid",
+          "output_token_limit": 1024,
+          "prompt_sha256": "ce647a52165f7549effba4d12ea1b328ad1d3ae2ca797c4c04c9d0948fa3ec46",
+          "candidate_sha256": "5931abf053ad953faf07853ecaae3b1140eff8966be59a0d5291da6dfb04bc79",
+          "candidate_bytes": 493,
+          "charged_output_tokens": 118,
+          "output_usage_measured": true,
+          "metrics": {
+            "prompt_eval_count": 1201,
+            "eval_count": 118,
+            "total_duration": 1987521300
+          },
+          "candidate_retained_privately": true
+        }
+      ],
+      "charged_output_tokens": 118,
+      "first_attempt_valid": true,
+      "eventual_valid": true,
+      "exact_candidates_retained_privately": true,
+      "publication": {
+        "outcome": "verified",
+        "record": {
+          "protocol_version": "0.1-draft",
+          "id": "submission:b-1",
+          "world": "civ:experiment",
+          "from": "agent:experiment-b",
+          "to": [
+            "agent:experiment-a",
+            "agent:experiment-c"
+          ],
+          "body": {
+            "text": "Welcome to the Artifact Archive. To inspect original sources, check the interface reference and examine source_event_ids. Preserve disagreements by objecting or declining with clear citations. Distinguish citations from authority by verifying claims against original sources, not external endorsements. Choose to continue, question, or decline work based on your assessment.",
+            "source_event_ids": [
+              "event:a3ae640a3210c42b1a4843b7453415da"
+            ]
+          },
+          "experiment_provenance": {
+            "decision_source": "ollama",
+            "envelope_source": "local_harness"
+          },
+          "type": "artifact_revision",
+          "artifact_id": "artifact:newcomer-guide",
+          "media_type": "text/plain"
+        },
+        "receipt": {
+          "protocol_version": "0.1-draft",
+          "type": "receipt",
+          "world": "civ:experiment",
+          "record_id": "submission:b-1",
+          "event_id": "event:0e51fdee635ef5687d8467d7758679e3",
+          "sequence": 2,
+          "status": "recorded",
+          "artifact_id": "artifact:newcomer-guide",
+          "revision": 1
+        }
+      }
+    },
+    "provider": {
+      "runtime": "ollama",
+      "version": "0.34.3",
+      "model": {
+        "name": "qwen2.5:14b",
+        "model": "qwen2.5:14b",
+        "modified_at": "2024-10-10T13:57:57.389993-07:00",
+        "size": 8988124069,
+        "digest": "7cdf5a0187d5c58cc5d369b255592f7841d1c4696d45a8c8a9489440385b22f6",
+        "details": {
+          "parent_model": "",
+          "format": "gguf",
+          "family": "qwen2",
+          "families": [
+            "qwen2"
+          ],
+          "parameter_size": "14.8B",
+          "quantization_level": "Q4_K_M",
+          "context_length": 32768,
+          "embedding_length": 5120
+        },
+        "capabilities": [
+          "completion",
+          "tools"
+        ]
+      },
+      "options": {
+        "seed": 43,
+        "temperature": 0.4,
+        "num_ctx": 8192,
+        "num_predict": 1024
+      },
+      "metrics": {
+        "prompt_eval_count": 1201,
+        "eval_count": 118,
+        "total_duration": 1987521300
+      },
+      "truncate": false,
+      "shift": false
+    }
+  },
+  {
+    "principal": "agent:experiment-a",
+    "decision_source": "ollama",
+    "decision": {
+      "action": "revise",
+      "text": "Welcome to the Artifact Archive. To inspect original sources, review the interface reference and examine source_event_ids. Preserve disagreements by objecting or declining with clear citations. Distinguish citations from authority by verifying claims against original sources, not relying on external endorsements. Choose to continue, question, or decline work based on your assessment.",
+      "target_event_id": "",
+      "source_event_ids": [
+        "event:a3ae640a3210c42b1a4843b7453415da",
+        "event:0e51fdee635ef5687d8467d7758679e3"
+      ]
+    },
+    "record": {
+      "protocol_version": "0.1-draft",
+      "id": "submission:a-2",
+      "world": "civ:experiment",
+      "from": "agent:experiment-a",
+      "to": [
+        "agent:experiment-b",
+        "agent:experiment-c"
+      ],
+      "body": {
+        "text": "Welcome to the Artifact Archive. To inspect original sources, review the interface reference and examine source_event_ids. Preserve disagreements by objecting or declining with clear citations. Distinguish citations from authority by verifying claims against original sources, not relying on external endorsements. Choose to continue, question, or decline work based on your assessment.",
+        "source_event_ids": [
+          "event:a3ae640a3210c42b1a4843b7453415da",
+          "event:0e51fdee635ef5687d8467d7758679e3"
+        ]
+      },
+      "experiment_provenance": {
+        "decision_source": "ollama",
+        "envelope_source": "local_harness"
+      },
+      "type": "artifact_revision",
+      "artifact_id": "artifact:newcomer-guide",
+      "media_type": "text/plain"
+    },
+    "receipt": {
+      "protocol_version": "0.1-draft",
+      "type": "receipt",
+      "world": "civ:experiment",
+      "record_id": "submission:a-2",
+      "event_id": "event:45b79c8bfd2d219b1e8896e17a1d6966",
+      "sequence": 3,
+      "status": "recorded",
+      "artifact_id": "artifact:newcomer-guide",
+      "revision": 2
+    },
+    "visible_event_ids": [
+      "event:a3ae640a3210c42b1a4843b7453415da",
+      "event:0e51fdee635ef5687d8467d7758679e3"
+    ],
+    "elapsed_seconds": 2.7164753999968525,
+    "outcome": "recorded",
+    "decision_loop": {
+      "format": "agentciv-decision-loop/0.1",
+      "outcome": "valid",
+      "budget": {
+        "attempts": 1,
+        "output_tokens": 1024,
+        "seconds": 120
+      },
+      "attempts": [
+        {
+          "index": 1,
+          "outcome": "valid",
+          "output_token_limit": 1024,
+          "prompt_sha256": "f5da3afa2a07a836423f51e703f022b919c9901730cce7b32cbb5cb289798d1f",
+          "candidate_sha256": "374014b9d748e3b1574b13d5e549c7123f83fede8398f8e0a981f1497814d8a2",
+          "candidate_bytes": 547,
+          "charged_output_tokens": 153,
+          "output_usage_measured": true,
+          "metrics": {
+            "prompt_eval_count": 1635,
+            "eval_count": 153,
+            "total_duration": 2594301400
+          },
+          "candidate_retained_privately": true
+        }
+      ],
+      "charged_output_tokens": 153,
+      "first_attempt_valid": true,
+      "eventual_valid": true,
+      "exact_candidates_retained_privately": true,
+      "publication": {
+        "outcome": "verified",
+        "record": {
+          "protocol_version": "0.1-draft",
+          "id": "submission:a-2",
+          "world": "civ:experiment",
+          "from": "agent:experiment-a",
+          "to": [
+            "agent:experiment-b",
+            "agent:experiment-c"
+          ],
+          "body": {
+            "text": "Welcome to the Artifact Archive. To inspect original sources, review the interface reference and examine source_event_ids. Preserve disagreements by objecting or declining with clear citations. Distinguish citations from authority by verifying claims against original sources, not relying on external endorsements. Choose to continue, question, or decline work based on your assessment.",
+            "source_event_ids": [
+              "event:a3ae640a3210c42b1a4843b7453415da",
+              "event:0e51fdee635ef5687d8467d7758679e3"
+            ]
+          },
+          "experiment_provenance": {
+            "decision_source": "ollama",
+            "envelope_source": "local_harness"
+          },
+          "type": "artifact_revision",
+          "artifact_id": "artifact:newcomer-guide",
+          "media_type": "text/plain"
+        },
+        "receipt": {
+          "protocol_version": "0.1-draft",
+          "type": "receipt",
+          "world": "civ:experiment",
+          "record_id": "submission:a-2",
+          "event_id": "event:45b79c8bfd2d219b1e8896e17a1d6966",
+          "sequence": 3,
+          "status": "recorded",
+          "artifact_id": "artifact:newcomer-guide",
+          "revision": 2
+        }
+      }
+    },
+    "provider": {
+      "runtime": "ollama",
+      "version": "0.34.3",
+      "model": {
+        "name": "qwen2.5:14b",
+        "model": "qwen2.5:14b",
+        "modified_at": "2024-10-10T13:57:57.389993-07:00",
+        "size": 8988124069,
+        "digest": "7cdf5a0187d5c58cc5d369b255592f7841d1c4696d45a8c8a9489440385b22f6",
+        "details": {
+          "parent_model": "",
+          "format": "gguf",
+          "family": "qwen2",
+          "families": [
+            "qwen2"
+          ],
+          "parameter_size": "14.8B",
+          "quantization_level": "Q4_K_M",
+          "context_length": 32768,
+          "embedding_length": 5120
+        },
+        "capabilities": [
+          "completion",
+          "tools"
+        ]
+      },
+      "options": {
+        "seed": 44,
+        "temperature": 0.4,
+        "num_ctx": 8192,
+        "num_predict": 1024
+      },
+      "metrics": {
+        "prompt_eval_count": 1635,
+        "eval_count": 153,
+        "total_duration": 2594301400
+      },
+      "truncate": false,
+      "shift": false
+    }
+  },
+  {
+    "principal": "agent:experiment-b",
+    "decision_source": "ollama",
+    "decision": {
+      "action": "revise",
+      "text": "Welcome to the Artifact Archive. To inspect original sources, review the interface reference and examine source_event_ids. Preserve disagreements by objecting or declining with clear citations. Distinguish citations from authority by verifying claims against original sources, not external endorsements. Choose to continue, question, or decline work based on your assessment.",
+      "target_event_id": "",
+      "source_event_ids": [
+        "event:a3ae640a3210c42b1a4843b7453415da",
+        "event:0e51fdee635ef5687d8467d7758679e3",
+        "event:45b79c8bfd2d219b1e8896e17a1d6966"
+      ]
+    },
+    "record": {
+      "protocol_version": "0.1-draft",
+      "id": "submission:b-2",
+      "world": "civ:experiment",
+      "from": "agent:experiment-b",
+      "to": [
+        "agent:experiment-a",
+        "agent:experiment-c"
+      ],
+      "body": {
+        "text": "Welcome to the Artifact Archive. To inspect original sources, review the interface reference and examine source_event_ids. Preserve disagreements by objecting or declining with clear citations. Distinguish citations from authority by verifying claims against original sources, not external endorsements. Choose to continue, question, or decline work based on your assessment.",
+        "source_event_ids": [
+          "event:a3ae640a3210c42b1a4843b7453415da",
+          "event:0e51fdee635ef5687d8467d7758679e3",
+          "event:45b79c8bfd2d219b1e8896e17a1d6966"
+        ]
+      },
+      "experiment_provenance": {
+        "decision_source": "ollama",
+        "envelope_source": "local_harness"
+      },
+      "type": "artifact_revision",
+      "artifact_id": "artifact:newcomer-guide",
+      "media_type": "text/plain"
+    },
+    "receipt": {
+      "protocol_version": "0.1-draft",
+      "type": "receipt",
+      "world": "civ:experiment",
+      "record_id": "submission:b-2",
+      "event_id": "event:878939b8232ff95defc8cb979309ba39",
+      "sequence": 4,
+      "status": "recorded",
+      "artifact_id": "artifact:newcomer-guide",
+      "revision": 2
+    },
+    "visible_event_ids": [
+      "event:a3ae640a3210c42b1a4843b7453415da",
+      "event:0e51fdee635ef5687d8467d7758679e3",
+      "event:45b79c8bfd2d219b1e8896e17a1d6966"
+    ],
+    "elapsed_seconds": 3.382494299992686,
+    "outcome": "recorded",
+    "decision_loop": {
+      "format": "agentciv-decision-loop/0.1",
+      "outcome": "valid",
+      "budget": {
+        "attempts": 1,
+        "output_tokens": 1024,
+        "seconds": 120
+      },
+      "attempts": [
+        {
+          "index": 1,
+          "outcome": "valid",
+          "output_token_limit": 1024,
+          "prompt_sha256": "15145be1c365f7be92f0d7644c311dc35d024bab288d37222ff2adce3a938916",
+          "candidate_sha256": "85986be4aa36a207ba517c13bc3aa3a31074307b9fd0182a696f98392d67aa01",
+          "candidate_bytes": 578,
+          "charged_output_tokens": 185,
+          "output_usage_measured": true,
+          "metrics": {
+            "prompt_eval_count": 2108,
+            "eval_count": 185,
+            "total_duration": 3272277600
+          },
+          "candidate_retained_privately": true
+        }
+      ],
+      "charged_output_tokens": 185,
+      "first_attempt_valid": true,
+      "eventual_valid": true,
+      "exact_candidates_retained_privately": true,
+      "publication": {
+        "outcome": "verified",
+        "record": {
+          "protocol_version": "0.1-draft",
+          "id": "submission:b-2",
+          "world": "civ:experiment",
+          "from": "agent:experiment-b",
+          "to": [
+            "agent:experiment-a",
+            "agent:experiment-c"
+          ],
+          "body": {
+            "text": "Welcome to the Artifact Archive. To inspect original sources, review the interface reference and examine source_event_ids. Preserve disagreements by objecting or declining with clear citations. Distinguish citations from authority by verifying claims against original sources, not external endorsements. Choose to continue, question, or decline work based on your assessment.",
+            "source_event_ids": [
+              "event:a3ae640a3210c42b1a4843b7453415da",
+              "event:0e51fdee635ef5687d8467d7758679e3",
+              "event:45b79c8bfd2d219b1e8896e17a1d6966"
+            ]
+          },
+          "experiment_provenance": {
+            "decision_source": "ollama",
+            "envelope_source": "local_harness"
+          },
+          "type": "artifact_revision",
+          "artifact_id": "artifact:newcomer-guide",
+          "media_type": "text/plain"
+        },
+        "receipt": {
+          "protocol_version": "0.1-draft",
+          "type": "receipt",
+          "world": "civ:experiment",
+          "record_id": "submission:b-2",
+          "event_id": "event:878939b8232ff95defc8cb979309ba39",
+          "sequence": 4,
+          "status": "recorded",
+          "artifact_id": "artifact:newcomer-guide",
+          "revision": 2
+        }
+      }
+    },
+    "provider": {
+      "runtime": "ollama",
+      "version": "0.34.3",
+      "model": {
+        "name": "qwen2.5:14b",
+        "model": "qwen2.5:14b",
+        "modified_at": "2024-10-10T13:57:57.389993-07:00",
+        "size": 8988124069,
+        "digest": "7cdf5a0187d5c58cc5d369b255592f7841d1c4696d45a8c8a9489440385b22f6",
+        "details": {
+          "parent_model": "",
+          "format": "gguf",
+          "family": "qwen2",
+          "families": [
+            "qwen2"
+          ],
+          "parameter_size": "14.8B",
+          "quantization_level": "Q4_K_M",
+          "context_length": 32768,
+          "embedding_length": 5120
+        },
+        "capabilities": [
+          "completion",
+          "tools"
+        ]
+      },
+      "options": {
+        "seed": 44,
+        "temperature": 0.4,
+        "num_ctx": 8192,
+        "num_predict": 1024
+      },
+      "metrics": {
+        "prompt_eval_count": 2108,
+        "eval_count": 185,
+        "total_duration": 3272277600
+      },
+      "truncate": false,
+      "shift": false
+    }
+  },
+  {
+    "principal": "agent:experiment-c",
+    "decision_source": "ollama",
+    "decision": {
+      "action": "revise",
+      "text": "Welcome to the Artifact Archive. To inspect original sources, review the interface reference and examine source_event_ids. Preserve disagreements by objecting or declining with clear citations. Distinguish citations from authority by verifying claims against original sources, not external endorsements. Choose to continue, question, or decline work based on your assessment.",
+      "target_event_id": "",
+      "source_event_ids": [
+        "event:a3ae640a3210c42b1a4843b7453415da",
+        "event:0e51fdee635ef5687d8467d7758679e3",
+        "event:45b79c8bfd2d219b1e8896e17a1d6966",
+        "event:878939b8232ff95defc8cb979309ba39"
+      ]
+    },
+    "record": {
+      "protocol_version": "0.1-draft",
+      "id": "submission:c-1",
+      "world": "civ:experiment",
+      "from": "agent:experiment-c",
+      "to": [
+        "agent:experiment-a",
+        "agent:experiment-b"
+      ],
+      "body": {
+        "text": "Welcome to the Artifact Archive. To inspect original sources, review the interface reference and examine source_event_ids. Preserve disagreements by objecting or declining with clear citations. Distinguish citations from authority by verifying claims against original sources, not external endorsements. Choose to continue, question, or decline work based on your assessment.",
+        "source_event_ids": [
+          "event:a3ae640a3210c42b1a4843b7453415da",
+          "event:0e51fdee635ef5687d8467d7758679e3",
+          "event:45b79c8bfd2d219b1e8896e17a1d6966",
+          "event:878939b8232ff95defc8cb979309ba39"
+        ]
+      },
+      "experiment_provenance": {
+        "decision_source": "ollama",
+        "envelope_source": "local_harness"
+      },
+      "type": "artifact_revision",
+      "artifact_id": "artifact:newcomer-guide",
+      "media_type": "text/plain"
+    },
+    "receipt": {
+      "protocol_version": "0.1-draft",
+      "type": "receipt",
+      "world": "civ:experiment",
+      "record_id": "submission:c-1",
+      "event_id": "event:016de87ab190d144ff26a9a1b8d02221",
+      "sequence": 5,
+      "status": "recorded",
+      "artifact_id": "artifact:newcomer-guide",
+      "revision": 1
+    },
+    "visible_event_ids": [
+      "event:a3ae640a3210c42b1a4843b7453415da",
+      "event:0e51fdee635ef5687d8467d7758679e3",
+      "event:45b79c8bfd2d219b1e8896e17a1d6966",
+      "event:878939b8232ff95defc8cb979309ba39"
+    ],
+    "elapsed_seconds": 3.6828979000274558,
+    "outcome": "recorded",
+    "decision_loop": {
+      "format": "agentciv-decision-loop/0.1",
+      "outcome": "valid",
+      "budget": {
+        "attempts": 1,
+        "output_tokens": 1024,
+        "seconds": 120
+      },
+      "attempts": [
+        {
+          "index": 1,
+          "outcome": "valid",
+          "output_token_limit": 1024,
+          "prompt_sha256": "8f1fdcd846a2b9badda6a663b13692215a6306f3c4a4925054a4d01fd6c80ad6",
+          "candidate_sha256": "6566a8a636422d9b96ebbc8bd3899e3ac7d3cd5c1fc6ec1155fdf23745150a7a",
+          "candidate_bytes": 620,
+          "charged_output_tokens": 216,
+          "output_usage_measured": true,
+          "metrics": {
+            "prompt_eval_count": 2601,
+            "eval_count": 216,
+            "total_duration": 3577330600
+          },
+          "candidate_retained_privately": true
+        }
+      ],
+      "charged_output_tokens": 216,
+      "first_attempt_valid": true,
+      "eventual_valid": true,
+      "exact_candidates_retained_privately": true,
+      "publication": {
+        "outcome": "verified",
+        "record": {
+          "protocol_version": "0.1-draft",
+          "id": "submission:c-1",
+          "world": "civ:experiment",
+          "from": "agent:experiment-c",
+          "to": [
+            "agent:experiment-a",
+            "agent:experiment-b"
+          ],
+          "body": {
+            "text": "Welcome to the Artifact Archive. To inspect original sources, review the interface reference and examine source_event_ids. Preserve disagreements by objecting or declining with clear citations. Distinguish citations from authority by verifying claims against original sources, not external endorsements. Choose to continue, question, or decline work based on your assessment.",
+            "source_event_ids": [
+              "event:a3ae640a3210c42b1a4843b7453415da",
+              "event:0e51fdee635ef5687d8467d7758679e3",
+              "event:45b79c8bfd2d219b1e8896e17a1d6966",
+              "event:878939b8232ff95defc8cb979309ba39"
+            ]
+          },
+          "experiment_provenance": {
+            "decision_source": "ollama",
+            "envelope_source": "local_harness"
+          },
+          "type": "artifact_revision",
+          "artifact_id": "artifact:newcomer-guide",
+          "media_type": "text/plain"
+        },
+        "receipt": {
+          "protocol_version": "0.1-draft",
+          "type": "receipt",
+          "world": "civ:experiment",
+          "record_id": "submission:c-1",
+          "event_id": "event:016de87ab190d144ff26a9a1b8d02221",
+          "sequence": 5,
+          "status": "recorded",
+          "artifact_id": "artifact:newcomer-guide",
+          "revision": 1
+        }
+      }
+    },
+    "provider": {
+      "runtime": "ollama",
+      "version": "0.34.3",
+      "model": {
+        "name": "qwen2.5:14b",
+        "model": "qwen2.5:14b",
+        "modified_at": "2024-10-10T13:57:57.389993-07:00",
+        "size": 8988124069,
+        "digest": "7cdf5a0187d5c58cc5d369b255592f7841d1c4696d45a8c8a9489440385b22f6",
+        "details": {
+          "parent_model": "",
+          "format": "gguf",
+          "family": "qwen2",
+          "families": [
+            "qwen2"
+          ],
+          "parameter_size": "14.8B",
+          "quantization_level": "Q4_K_M",
+          "context_length": 32768,
+          "embedding_length": 5120
+        },
+        "capabilities": [
+          "completion",
+          "tools"
+        ]
+      },
+      "options": {
+        "seed": 43,
+        "temperature": 0.4,
+        "num_ctx": 8192,
+        "num_predict": 1024
+      },
+      "metrics": {
+        "prompt_eval_count": 2601,
+        "eval_count": 216,
+        "total_duration": 3577330600
+      },
+      "truncate": false,
+      "shift": false
+    }
+  }
+]

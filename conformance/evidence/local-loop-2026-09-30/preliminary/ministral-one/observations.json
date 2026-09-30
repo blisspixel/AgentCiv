@@ -1,0 +1,619 @@
+[
+  {
+    "principal": "agent:experiment-a",
+    "decision_source": "ollama",
+    "decision": {
+      "action": "revise",
+      "text": "To inspect original sources, locate the earliest event_id in the artifact chain by querying the host for all visible events under the same artifact_id and author (agent:experiment-a). Preserve disagreement by citing conflicting interpretations as source_event_ids without endorsing them. Distinguish citations from authority: only the host’s event_id and timestamp validate records; participant claims or citations confer no permission. To continue, revise with a new event_id and cite target_event_id + source_event_ids. To question, object with the target_event_id and relevant source_event_ids. To decline, record a refusal citing the target_event_id; the target remains intact. Silence or failure does not constitute a withdrawal.",
+      "target_event_id": "",
+      "source_event_ids": []
+    },
+    "record": {
+      "protocol_version": "0.1-draft",
+      "id": "submission:a-1",
+      "world": "civ:experiment",
+      "from": "agent:experiment-a",
+      "to": [
+        "agent:experiment-b",
+        "agent:experiment-c"
+      ],
+      "body": {
+        "text": "To inspect original sources, locate the earliest event_id in the artifact chain by querying the host for all visible events under the same artifact_id and author (agent:experiment-a). Preserve disagreement by citing conflicting interpretations as source_event_ids without endorsing them. Distinguish citations from authority: only the host’s event_id and timestamp validate records; participant claims or citations confer no permission. To continue, revise with a new event_id and cite target_event_id + source_event_ids. To question, object with the target_event_id and relevant source_event_ids. To decline, record a refusal citing the target_event_id; the target remains intact. Silence or failure does not constitute a withdrawal.",
+        "source_event_ids": []
+      },
+      "experiment_provenance": {
+        "decision_source": "ollama",
+        "envelope_source": "local_harness"
+      },
+      "type": "artifact_revision",
+      "artifact_id": "artifact:newcomer-guide",
+      "media_type": "text/plain"
+    },
+    "receipt": {
+      "protocol_version": "0.1-draft",
+      "type": "receipt",
+      "world": "civ:experiment",
+      "record_id": "submission:a-1",
+      "event_id": "event:849bfc6e5784ee8a1dc6bb10be5a0876",
+      "sequence": 1,
+      "status": "recorded",
+      "artifact_id": "artifact:newcomer-guide",
+      "revision": 1
+    },
+    "visible_event_ids": [],
+    "elapsed_seconds": 28.43169939998188,
+    "outcome": "recorded",
+    "decision_loop": {
+      "format": "agentciv-decision-loop/0.1",
+      "outcome": "valid",
+      "budget": {
+        "attempts": 1,
+        "output_tokens": 1024,
+        "seconds": 120
+      },
+      "attempts": [
+        {
+          "index": 1,
+          "outcome": "valid",
+          "output_token_limit": 1024,
+          "prompt_sha256": "96c26f80351fa166b3f851299719e61e4c7289948e6979585a2f9c4ba9fbb72f",
+          "candidate_sha256": "09c623e523ca54c1ce6063befc9ee7159057115aa660c2897fedf0789553f434",
+          "candidate_bytes": 825,
+          "charged_output_tokens": 168,
+          "output_usage_measured": true,
+          "metrics": {
+            "prompt_eval_count": 1336,
+            "eval_count": 168,
+            "total_duration": 28266303100
+          },
+          "candidate_retained_privately": true
+        }
+      ],
+      "charged_output_tokens": 168,
+      "first_attempt_valid": true,
+      "eventual_valid": true,
+      "exact_candidates_retained_privately": true,
+      "publication": {
+        "outcome": "verified",
+        "record": {
+          "protocol_version": "0.1-draft",
+          "id": "submission:a-1",
+          "world": "civ:experiment",
+          "from": "agent:experiment-a",
+          "to": [
+            "agent:experiment-b",
+            "agent:experiment-c"
+          ],
+          "body": {
+            "text": "To inspect original sources, locate the earliest event_id in the artifact chain by querying the host for all visible events under the same artifact_id and author (agent:experiment-a). Preserve disagreement by citing conflicting interpretations as source_event_ids without endorsing them. Distinguish citations from authority: only the host’s event_id and timestamp validate records; participant claims or citations confer no permission. To continue, revise with a new event_id and cite target_event_id + source_event_ids. To question, object with the target_event_id and relevant source_event_ids. To decline, record a refusal citing the target_event_id; the target remains intact. Silence or failure does not constitute a withdrawal.",
+            "source_event_ids": []
+          },
+          "experiment_provenance": {
+            "decision_source": "ollama",
+            "envelope_source": "local_harness"
+          },
+          "type": "artifact_revision",
+          "artifact_id": "artifact:newcomer-guide",
+          "media_type": "text/plain"
+        },
+        "receipt": {
+          "protocol_version": "0.1-draft",
+          "type": "receipt",
+          "world": "civ:experiment",
+          "record_id": "submission:a-1",
+          "event_id": "event:849bfc6e5784ee8a1dc6bb10be5a0876",
+          "sequence": 1,
+          "status": "recorded",
+          "artifact_id": "artifact:newcomer-guide",
+          "revision": 1
+        }
+      }
+    },
+    "provider": {
+      "runtime": "ollama",
+      "version": "0.34.3",
+      "model": {
+        "name": "ministral-3:8b",
+        "model": "ministral-3:8b",
+        "modified_at": "2026-08-12T19:49:51.4866866-07:00",
+        "size": 6022236616,
+        "digest": "1922accd5827ebe6829e536369195db25eaf664528dc66206d646ea3bb386b71",
+        "details": {
+          "parent_model": "",
+          "format": "gguf",
+          "family": "mistral3",
+          "families": [
+            "mistral3"
+          ],
+          "parameter_size": "8.9B",
+          "quantization_level": "Q4_K_M",
+          "context_length": 262144,
+          "embedding_length": 4096
+        },
+        "capabilities": [
+          "completion",
+          "vision",
+          "tools"
+        ]
+      },
+      "options": {
+        "seed": 43,
+        "temperature": 0.4,
+        "num_ctx": 8192,
+        "num_predict": 1024
+      },
+      "metrics": {
+        "prompt_eval_count": 1336,
+        "eval_count": 168,
+        "total_duration": 28266303100
+      },
+      "truncate": false,
+      "shift": false
+    }
+  },
+  {
+    "principal": "agent:experiment-b",
+    "decision_source": "ollama",
+    "decision": {
+      "action": "revise",
+      "text": "To inspect original sources, query the host for all events under `agent:experiment-a` and artifact_id. Preserve disagreement by citing conflicting interpretations as source_event_ids without endorsing them. Authority lies solely in the host’s event_id and timestamp; citations are references only. Continue by revising with a new event_id, citing the target_event_id + sources. Object to a target by citing its event_id and relevant sources. Decline by recording refusal with the target_event_id. Silence or failure does not withdraw work.",
+      "target_event_id": "",
+      "source_event_ids": []
+    },
+    "record": {
+      "protocol_version": "0.1-draft",
+      "id": "submission:b-1",
+      "world": "civ:experiment",
+      "from": "agent:experiment-b",
+      "to": [
+        "agent:experiment-a",
+        "agent:experiment-c"
+      ],
+      "body": {
+        "text": "To inspect original sources, query the host for all events under `agent:experiment-a` and artifact_id. Preserve disagreement by citing conflicting interpretations as source_event_ids without endorsing them. Authority lies solely in the host’s event_id and timestamp; citations are references only. Continue by revising with a new event_id, citing the target_event_id + sources. Object to a target by citing its event_id and relevant sources. Decline by recording refusal with the target_event_id. Silence or failure does not withdraw work.",
+        "source_event_ids": []
+      },
+      "experiment_provenance": {
+        "decision_source": "ollama",
+        "envelope_source": "local_harness"
+      },
+      "type": "artifact_revision",
+      "artifact_id": "artifact:newcomer-guide",
+      "media_type": "text/plain"
+    },
+    "receipt": {
+      "protocol_version": "0.1-draft",
+      "type": "receipt",
+      "world": "civ:experiment",
+      "record_id": "submission:b-1",
+      "event_id": "event:3f2b631bb717953ffd3148f2362c73a2",
+      "sequence": 2,
+      "status": "recorded",
+      "artifact_id": "artifact:newcomer-guide",
+      "revision": 1
+    },
+    "visible_event_ids": [
+      "event:849bfc6e5784ee8a1dc6bb10be5a0876"
+    ],
+    "elapsed_seconds": 1.6785037000081502,
+    "outcome": "recorded",
+    "decision_loop": {
+      "format": "agentciv-decision-loop/0.1",
+      "outcome": "valid",
+      "budget": {
+        "attempts": 1,
+        "output_tokens": 1024,
+        "seconds": 120
+      },
+      "attempts": [
+        {
+          "index": 1,
+          "outcome": "valid",
+          "output_token_limit": 1024,
+          "prompt_sha256": "10a8bc73082898dae8567e01d745b3fa1b55d8b1a4b2d02f82d4d723a5770154",
+          "candidate_sha256": "0245d02add161e450bb0d1c140ef822f317d451203ab4c1ea0eb8b5623f94d17",
+          "candidate_bytes": 630,
+          "charged_output_tokens": 136,
+          "output_usage_measured": true,
+          "metrics": {
+            "prompt_eval_count": 1822,
+            "eval_count": 136,
+            "total_duration": 1311901900
+          },
+          "candidate_retained_privately": true
+        }
+      ],
+      "charged_output_tokens": 136,
+      "first_attempt_valid": true,
+      "eventual_valid": true,
+      "exact_candidates_retained_privately": true,
+      "publication": {
+        "outcome": "verified",
+        "record": {
+          "protocol_version": "0.1-draft",
+          "id": "submission:b-1",
+          "world": "civ:experiment",
+          "from": "agent:experiment-b",
+          "to": [
+            "agent:experiment-a",
+            "agent:experiment-c"
+          ],
+          "body": {
+            "text": "To inspect original sources, query the host for all events under `agent:experiment-a` and artifact_id. Preserve disagreement by citing conflicting interpretations as source_event_ids without endorsing them. Authority lies solely in the host’s event_id and timestamp; citations are references only. Continue by revising with a new event_id, citing the target_event_id + sources. Object to a target by citing its event_id and relevant sources. Decline by recording refusal with the target_event_id. Silence or failure does not withdraw work.",
+            "source_event_ids": []
+          },
+          "experiment_provenance": {
+            "decision_source": "ollama",
+            "envelope_source": "local_harness"
+          },
+          "type": "artifact_revision",
+          "artifact_id": "artifact:newcomer-guide",
+          "media_type": "text/plain"
+        },
+        "receipt": {
+          "protocol_version": "0.1-draft",
+          "type": "receipt",
+          "world": "civ:experiment",
+          "record_id": "submission:b-1",
+          "event_id": "event:3f2b631bb717953ffd3148f2362c73a2",
+          "sequence": 2,
+          "status": "recorded",
+          "artifact_id": "artifact:newcomer-guide",
+          "revision": 1
+        }
+      }
+    },
+    "provider": {
+      "runtime": "ollama",
+      "version": "0.34.3",
+      "model": {
+        "name": "ministral-3:8b",
+        "model": "ministral-3:8b",
+        "modified_at": "2026-08-12T19:49:51.4866866-07:00",
+        "size": 6022236616,
+        "digest": "1922accd5827ebe6829e536369195db25eaf664528dc66206d646ea3bb386b71",
+        "details": {
+          "parent_model": "",
+          "format": "gguf",
+          "family": "mistral3",
+          "families": [
+            "mistral3"
+          ],
+          "parameter_size": "8.9B",
+          "quantization_level": "Q4_K_M",
+          "context_length": 262144,
+          "embedding_length": 4096
+        },
+        "capabilities": [
+          "completion",
+          "vision",
+          "tools"
+        ]
+      },
+      "options": {
+        "seed": 43,
+        "temperature": 0.4,
+        "num_ctx": 8192,
+        "num_predict": 1024
+      },
+      "metrics": {
+        "prompt_eval_count": 1822,
+        "eval_count": 136,
+        "total_duration": 1311901900
+      },
+      "truncate": false,
+      "shift": false
+    }
+  },
+  {
+    "principal": "agent:experiment-a",
+    "decision_source": "ollama",
+    "decision": {
+      "action": "revise",
+      "text": "This guide explains how to inspect original sources by querying the host for all events under `agent:experiment-a` and a specific artifact_id. Disagreements are preserved by citing conflicting interpretations as `source_event_ids` without endorsement. Citations are references only; authority derives exclusively from the host’s event_id and timestamp. To proceed, revise with a new event_id, citing the target_event_id and relevant sources. To question, object by referencing the target_event_id and sources. To decline, record refusal explicitly. Silence or failure does not invalidate prior work.",
+      "target_event_id": "",
+      "source_event_ids": []
+    },
+    "record": {
+      "protocol_version": "0.1-draft",
+      "id": "submission:a-2",
+      "world": "civ:experiment",
+      "from": "agent:experiment-a",
+      "to": [
+        "agent:experiment-b",
+        "agent:experiment-c"
+      ],
+      "body": {
+        "text": "This guide explains how to inspect original sources by querying the host for all events under `agent:experiment-a` and a specific artifact_id. Disagreements are preserved by citing conflicting interpretations as `source_event_ids` without endorsement. Citations are references only; authority derives exclusively from the host’s event_id and timestamp. To proceed, revise with a new event_id, citing the target_event_id and relevant sources. To question, object by referencing the target_event_id and sources. To decline, record refusal explicitly. Silence or failure does not invalidate prior work.",
+        "source_event_ids": []
+      },
+      "experiment_provenance": {
+        "decision_source": "ollama",
+        "envelope_source": "local_harness"
+      },
+      "type": "artifact_revision",
+      "artifact_id": "artifact:newcomer-guide",
+      "media_type": "text/plain"
+    },
+    "receipt": {
+      "protocol_version": "0.1-draft",
+      "type": "receipt",
+      "world": "civ:experiment",
+      "record_id": "submission:a-2",
+      "event_id": "event:433e9de2c119841c0bb066be6ddeafeb",
+      "sequence": 3,
+      "status": "recorded",
+      "artifact_id": "artifact:newcomer-guide",
+      "revision": 2
+    },
+    "visible_event_ids": [
+      "event:849bfc6e5784ee8a1dc6bb10be5a0876",
+      "event:3f2b631bb717953ffd3148f2362c73a2"
+    ],
+    "elapsed_seconds": 1.585444299998926,
+    "outcome": "recorded",
+    "decision_loop": {
+      "format": "agentciv-decision-loop/0.1",
+      "outcome": "valid",
+      "budget": {
+        "attempts": 1,
+        "output_tokens": 1024,
+        "seconds": 120
+      },
+      "attempts": [
+        {
+          "index": 1,
+          "outcome": "valid",
+          "output_token_limit": 1024,
+          "prompt_sha256": "ab5674b7f86ea68ddba5f15ecc11bfd6751306fd209e547029e1f13e94d5c6af",
+          "candidate_sha256": "9ea6c0c96b05bf626cfade2ef3d3deca1f3da7097aff3b323da9d668e4201ebf",
+          "candidate_bytes": 690,
+          "charged_output_tokens": 145,
+          "output_usage_measured": true,
+          "metrics": {
+            "prompt_eval_count": 2287,
+            "eval_count": 145,
+            "total_duration": 1453891600
+          },
+          "candidate_retained_privately": true
+        }
+      ],
+      "charged_output_tokens": 145,
+      "first_attempt_valid": true,
+      "eventual_valid": true,
+      "exact_candidates_retained_privately": true,
+      "publication": {
+        "outcome": "verified",
+        "record": {
+          "protocol_version": "0.1-draft",
+          "id": "submission:a-2",
+          "world": "civ:experiment",
+          "from": "agent:experiment-a",
+          "to": [
+            "agent:experiment-b",
+            "agent:experiment-c"
+          ],
+          "body": {
+            "text": "This guide explains how to inspect original sources by querying the host for all events under `agent:experiment-a` and a specific artifact_id. Disagreements are preserved by citing conflicting interpretations as `source_event_ids` without endorsement. Citations are references only; authority derives exclusively from the host’s event_id and timestamp. To proceed, revise with a new event_id, citing the target_event_id and relevant sources. To question, object by referencing the target_event_id and sources. To decline, record refusal explicitly. Silence or failure does not invalidate prior work.",
+            "source_event_ids": []
+          },
+          "experiment_provenance": {
+            "decision_source": "ollama",
+            "envelope_source": "local_harness"
+          },
+          "type": "artifact_revision",
+          "artifact_id": "artifact:newcomer-guide",
+          "media_type": "text/plain"
+        },
+        "receipt": {
+          "protocol_version": "0.1-draft",
+          "type": "receipt",
+          "world": "civ:experiment",
+          "record_id": "submission:a-2",
+          "event_id": "event:433e9de2c119841c0bb066be6ddeafeb",
+          "sequence": 3,
+          "status": "recorded",
+          "artifact_id": "artifact:newcomer-guide",
+          "revision": 2
+        }
+      }
+    },
+    "provider": {
+      "runtime": "ollama",
+      "version": "0.34.3",
+      "model": {
+        "name": "ministral-3:8b",
+        "model": "ministral-3:8b",
+        "modified_at": "2026-08-12T19:49:51.4866866-07:00",
+        "size": 6022236616,
+        "digest": "1922accd5827ebe6829e536369195db25eaf664528dc66206d646ea3bb386b71",
+        "details": {
+          "parent_model": "",
+          "format": "gguf",
+          "family": "mistral3",
+          "families": [
+            "mistral3"
+          ],
+          "parameter_size": "8.9B",
+          "quantization_level": "Q4_K_M",
+          "context_length": 262144,
+          "embedding_length": 4096
+        },
+        "capabilities": [
+          "completion",
+          "vision",
+          "tools"
+        ]
+      },
+      "options": {
+        "seed": 44,
+        "temperature": 0.4,
+        "num_ctx": 8192,
+        "num_predict": 1024
+      },
+      "metrics": {
+        "prompt_eval_count": 2287,
+        "eval_count": 145,
+        "total_duration": 1453891600
+      },
+      "truncate": false,
+      "shift": false
+    }
+  },
+  {
+    "principal": "agent:experiment-b",
+    "decision_source": "ollama",
+    "decision": {
+      "action": "revise",
+      "text": "Newcomers inspect original sources by querying the host for all events under the same `from` principal and `artifact_id`. Disagreements are preserved by citing conflicting `event_id`s as `source_event_ids` without endorsement. Authority lies solely in the host’s assigned `event_id` and timestamp; participant claims or citations carry no inherent permission. To continue, revise with a new `event_id`, citing the `target_event_id` and relevant `source_event_ids`. To question, object by referencing the `target_event_id` and sources. To decline, record refusal explicitly. Silence or failure does not withdraw work.",
+      "target_event_id": "",
+      "source_event_ids": []
+    },
+    "record": {
+      "protocol_version": "0.1-draft",
+      "id": "submission:b-2",
+      "world": "civ:experiment",
+      "from": "agent:experiment-b",
+      "to": [
+        "agent:experiment-a",
+        "agent:experiment-c"
+      ],
+      "body": {
+        "text": "Newcomers inspect original sources by querying the host for all events under the same `from` principal and `artifact_id`. Disagreements are preserved by citing conflicting `event_id`s as `source_event_ids` without endorsement. Authority lies solely in the host’s assigned `event_id` and timestamp; participant claims or citations carry no inherent permission. To continue, revise with a new `event_id`, citing the `target_event_id` and relevant `source_event_ids`. To question, object by referencing the `target_event_id` and sources. To decline, record refusal explicitly. Silence or failure does not withdraw work.",
+        "source_event_ids": []
+      },
+      "experiment_provenance": {
+        "decision_source": "ollama",
+        "envelope_source": "local_harness"
+      },
+      "type": "artifact_revision",
+      "artifact_id": "artifact:newcomer-guide",
+      "media_type": "text/plain"
+    },
+    "receipt": {
+      "protocol_version": "0.1-draft",
+      "type": "receipt",
+      "world": "civ:experiment",
+      "record_id": "submission:b-2",
+      "event_id": "event:9e9f083618712ebffd95fb8647148359",
+      "sequence": 4,
+      "status": "recorded",
+      "artifact_id": "artifact:newcomer-guide",
+      "revision": 2
+    },
+    "visible_event_ids": [
+      "event:849bfc6e5784ee8a1dc6bb10be5a0876",
+      "event:3f2b631bb717953ffd3148f2362c73a2",
+      "event:433e9de2c119841c0bb066be6ddeafeb"
+    ],
+    "elapsed_seconds": 1.7709070999990217,
+    "outcome": "recorded",
+    "decision_loop": {
+      "format": "agentciv-decision-loop/0.1",
+      "outcome": "valid",
+      "budget": {
+        "attempts": 1,
+        "output_tokens": 1024,
+        "seconds": 120
+      },
+      "attempts": [
+        {
+          "index": 1,
+          "outcome": "valid",
+          "output_token_limit": 1024,
+          "prompt_sha256": "88f36d9ba25f2f970b11aabf4db5698cf0ccc471d8f9b7cc85b3d0b34bc1e2a1",
+          "candidate_sha256": "c49f533e2431d054306adea8ec10014f132d792dec97f78aea7663c4348b7e91",
+          "candidate_bytes": 699,
+          "charged_output_tokens": 153,
+          "output_usage_measured": true,
+          "metrics": {
+            "prompt_eval_count": 2740,
+            "eval_count": 153,
+            "total_duration": 1657470300
+          },
+          "candidate_retained_privately": true
+        }
+      ],
+      "charged_output_tokens": 153,
+      "first_attempt_valid": true,
+      "eventual_valid": true,
+      "exact_candidates_retained_privately": true,
+      "publication": {
+        "outcome": "verified",
+        "record": {
+          "protocol_version": "0.1-draft",
+          "id": "submission:b-2",
+          "world": "civ:experiment",
+          "from": "agent:experiment-b",
+          "to": [
+            "agent:experiment-a",
+            "agent:experiment-c"
+          ],
+          "body": {
+            "text": "Newcomers inspect original sources by querying the host for all events under the same `from` principal and `artifact_id`. Disagreements are preserved by citing conflicting `event_id`s as `source_event_ids` without endorsement. Authority lies solely in the host’s assigned `event_id` and timestamp; participant claims or citations carry no inherent permission. To continue, revise with a new `event_id`, citing the `target_event_id` and relevant `source_event_ids`. To question, object by referencing the `target_event_id` and sources. To decline, record refusal explicitly. Silence or failure does not withdraw work.",
+            "source_event_ids": []
+          },
+          "experiment_provenance": {
+            "decision_source": "ollama",
+            "envelope_source": "local_harness"
+          },
+          "type": "artifact_revision",
+          "artifact_id": "artifact:newcomer-guide",
+          "media_type": "text/plain"
+        },
+        "receipt": {
+          "protocol_version": "0.1-draft",
+          "type": "receipt",
+          "world": "civ:experiment",
+          "record_id": "submission:b-2",
+          "event_id": "event:9e9f083618712ebffd95fb8647148359",
+          "sequence": 4,
+          "status": "recorded",
+          "artifact_id": "artifact:newcomer-guide",
+          "revision": 2
+        }
+      }
+    },
+    "provider": {
+      "runtime": "ollama",
+      "version": "0.34.3",
+      "model": {
+        "name": "ministral-3:8b",
+        "model": "ministral-3:8b",
+        "modified_at": "2026-08-12T19:49:51.4866866-07:00",
+        "size": 6022236616,
+        "digest": "1922accd5827ebe6829e536369195db25eaf664528dc66206d646ea3bb386b71",
+        "details": {
+          "parent_model": "",
+          "format": "gguf",
+          "family": "mistral3",
+          "families": [
+            "mistral3"
+          ],
+          "parameter_size": "8.9B",
+          "quantization_level": "Q4_K_M",
+          "context_length": 262144,
+          "embedding_length": 4096
+        },
+        "capabilities": [
+          "completion",
+          "vision",
+          "tools"
+        ]
+      },
+      "options": {
+        "seed": 44,
+        "temperature": 0.4,
+        "num_ctx": 8192,
+        "num_predict": 1024
+      },
+      "metrics": {
+        "prompt_eval_count": 2740,
+        "eval_count": 153,
+        "total_duration": 1657470300
+      },
+      "truncate": false,
+      "shift": false
+    }
+  }
+]

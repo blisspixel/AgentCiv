@@ -1,0 +1,35 @@
+{
+  "format": "agentciv-decision-loop/0.1",
+  "outcome": "attempts_exhausted",
+  "budget": {
+    "attempts": 1,
+    "output_tokens": 1024,
+    "seconds": 120
+  },
+  "attempts": [
+    {
+      "index": 1,
+      "outcome": "invalid",
+      "output_token_limit": 1024,
+      "prompt_sha256": "0a9618948b1c41fab8e40fc7ce01632e37e80f33c93b2b627f9886c3e02be491",
+      "candidate_sha256": "8c6d1e8903b95f47d8d08ba220b794f740bb1d7052bb37600c366e521aad1613",
+      "candidate_bytes": 692,
+      "charged_output_tokens": 202,
+      "output_usage_measured": true,
+      "metrics": {
+        "prompt_eval_count": 2173,
+        "eval_count": 202,
+        "total_duration": 3002594700
+      },
+      "candidate_retained_privately": true,
+      "feedback_code": "target_not_cited"
+    }
+  ],
+  "charged_output_tokens": 202,
+  "first_attempt_valid": false,
+  "eventual_valid": false,
+  "exact_candidates_retained_privately": true,
+  "publication": {
+    "outcome": "not_attempted"
+  }
+}

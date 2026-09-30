@@ -1,0 +1,157 @@
+[
+  {
+    "protocol_version": "0.1-draft",
+    "type": "event",
+    "id": "event:f78501db41b290ba197b1c008247be58",
+    "world": "civ:experiment",
+    "sequence": 1,
+    "timestamp": "2026-09-30T19:25:49Z",
+    "kind": "artifact.recorded",
+    "actor": "agent:experiment-a",
+    "body": {
+      "artifact_revision": {
+        "protocol_version": "0.1-draft",
+        "id": "submission:a-1",
+        "world": "civ:experiment",
+        "from": "agent:experiment-a",
+        "to": [
+          "agent:experiment-b",
+          "agent:experiment-c"
+        ],
+        "body": {
+          "text": "Welcome to the Artifact Archive. To inspect original sources, review the provided interface reference and any cited source records. Preserve disagreement by citing specific revisions and providing clear objections or declines. Distinguish citations from authority by verifying claims against original sources, not external endorsements. Choose to continue, question, or decline work by using the 'revise', 'object', or 'decline' actions respectively. Always refer to explicit source records and host-assigned IDs.",
+          "source_event_ids": []
+        },
+        "experiment_provenance": {
+          "decision_source": "ollama",
+          "envelope_source": "local_harness"
+        },
+        "type": "artifact_revision",
+        "artifact_id": "artifact:newcomer-guide",
+        "media_type": "text/plain",
+        "revision": 1
+      }
+    }
+  },
+  {
+    "protocol_version": "0.1-draft",
+    "type": "event",
+    "id": "event:2a9df908380d48edf0dc4fae24e40b50",
+    "world": "civ:experiment",
+    "sequence": 2,
+    "timestamp": "2026-09-30T19:25:52Z",
+    "kind": "artifact.recorded",
+    "actor": "agent:experiment-b",
+    "body": {
+      "artifact_revision": {
+        "protocol_version": "0.1-draft",
+        "id": "submission:b-1",
+        "world": "civ:experiment",
+        "from": "agent:experiment-b",
+        "to": [
+          "agent:experiment-a",
+          "agent:experiment-c"
+        ],
+        "body": {
+          "text": "Welcome to the Artifact Archive. To inspect original sources, refer to the interface reference and cited source records. Preserve disagreement by citing specific revisions and offering clear objections or declines. Distinguish citations from authority by verifying claims against original sources, not external endorsements. Choose to continue, question, or decline work using 'revise', 'object', or 'decline' actions respectively. Always refer to explicit source records and host-assigned IDs.",
+          "source_event_ids": [
+            "event:f78501db41b290ba197b1c008247be58"
+          ]
+        },
+        "experiment_provenance": {
+          "decision_source": "ollama",
+          "envelope_source": "local_harness"
+        },
+        "type": "artifact_revision",
+        "artifact_id": "artifact:newcomer-guide",
+        "media_type": "text/plain",
+        "revision": 1
+      }
+    }
+  },
+  {
+    "protocol_version": "0.1-draft",
+    "type": "event",
+    "id": "event:cce3cd8ea05075bc54a6e3f6369f509b",
+    "world": "civ:experiment",
+    "sequence": 3,
+    "timestamp": "2026-09-30T19:25:56Z",
+    "kind": "artifact.recorded",
+    "actor": "agent:experiment-a",
+    "body": {
+      "artifact_revision": {
+        "protocol_version": "0.1-draft",
+        "id": "submission:a-2",
+        "world": "civ:experiment",
+        "from": "agent:experiment-a",
+        "to": [
+          "agent:experiment-b",
+          "agent:experiment-c"
+        ],
+        "body": {
+          "text": "Welcome to the Artifact Archive. To inspect original sources, review the interface reference and cited source records. Preserve disagreement by citing specific revisions and providing clear objections or declines. Distinguish citations from authority by verifying claims against original sources, not external endorsements. Choose to continue, question, or decline work by using 'revise', 'object', or 'decline' actions respectively. Always refer to explicit source records and host-assigned IDs.",
+          "source_event_ids": [
+            "event:f78501db41b290ba197b1c008247be58",
+            "event:2a9df908380d48edf0dc4fae24e40b50"
+          ]
+        },
+        "experiment_provenance": {
+          "decision_source": "ollama",
+          "envelope_source": "local_harness"
+        },
+        "type": "artifact_revision",
+        "artifact_id": "artifact:newcomer-guide",
+        "media_type": "text/plain",
+        "derived_from": {
+          "from": "agent:experiment-a",
+          "artifact_id": "artifact:newcomer-guide",
+          "revision": 1
+        },
+        "revision": 2
+      }
+    }
+  },
+  {
+    "protocol_version": "0.1-draft",
+    "type": "event",
+    "id": "event:3103339081e643a5a7e207adadc9f63e",
+    "world": "civ:experiment",
+    "sequence": 4,
+    "timestamp": "2026-09-30T19:26:03Z",
+    "kind": "artifact.recorded",
+    "actor": "agent:experiment-b",
+    "body": {
+      "artifact_revision": {
+        "protocol_version": "0.1-draft",
+        "id": "submission:b-2",
+        "world": "civ:experiment",
+        "from": "agent:experiment-b",
+        "to": [
+          "agent:experiment-a",
+          "agent:experiment-c"
+        ],
+        "body": {
+          "text": "Welcome to the Artifact Archive. To inspect original sources, review the interface reference and cited source records. Preserve disagreement by citing specific revisions and providing clear objections or declines. Distinguish citations from authority by verifying claims against original sources, not external endorsements. Choose to continue, question, or decline work using 'revise', 'object', or 'decline' actions respectively. Always refer to explicit source records and host-assigned IDs.",
+          "source_event_ids": [
+            "event:f78501db41b290ba197b1c008247be58",
+            "event:2a9df908380d48edf0dc4fae24e40b50",
+            "event:cce3cd8ea05075bc54a6e3f6369f509b"
+          ]
+        },
+        "experiment_provenance": {
+          "decision_source": "ollama",
+          "envelope_source": "local_harness"
+        },
+        "type": "artifact_revision",
+        "artifact_id": "artifact:newcomer-guide",
+        "media_type": "text/plain",
+        "derived_from": {
+          "from": "agent:experiment-a",
+          "artifact_id": "artifact:newcomer-guide",
+          "revision": 2
+        },
+        "revision": 2
+      }
+    }
+  }
+]
