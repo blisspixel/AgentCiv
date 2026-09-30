@@ -60,24 +60,39 @@ def curl_binary() -> str:
     raise WalkFailure("curl is not on PATH")
 
 
-def rust_binary() -> Path:
-    for folder in ("debug", "release"):
-        for name in ("agentciv-host.exe", "agentciv-host"):
-            path = ROOT / "target" / folder / name
-            if path.is_file():
-                return path
+def build_rust_binaries(*names: str) -> dict[str, Path]:
+    """Use Cargo's actual artifacts, including a configured external build directory."""
+    packages = [argument for name in names for argument in ("-p", name)]
     build = subprocess.run(
-        ["cargo", "build", "--locked", "-p", "agentciv-host"],
-        cwd=ROOT,
-        check=False,
+        ["cargo", "build", "--locked", "--message-format=json", *packages],
+        cwd=ROOT, capture_output=True, text=True, check=False,
     )
     if build.returncode != 0:
-        raise WalkFailure("cargo build of agentciv-host failed")
-    for name in ("agentciv-host.exe", "agentciv-host"):
-        path = ROOT / "target" / "debug" / name
-        if path.is_file():
-            return path
-    raise WalkFailure("agentciv-host binary was not produced")
+        raise WalkFailure("cargo build of local binaries failed")
+    found: dict[str, Path] = {}
+    try:
+        for line in build.stdout.splitlines():
+            artifact = as_object(json.loads(line))
+            if artifact is None or artifact.get("reason") != "compiler-artifact":
+                continue
+            target = as_object(artifact.get("target"))
+            executable = artifact.get("executable")
+            if target is None or target.get("kind") != ["bin"] or not isinstance(executable, str):
+                continue
+            name = target.get("name")
+            if isinstance(name, str) and name in names:
+                if name in found or not Path(executable).is_file():
+                    raise WalkFailure("cargo reported an ambiguous or missing executable")
+                found[name] = Path(executable)
+    except json.JSONDecodeError as error:
+        raise WalkFailure("cargo build output was not machine-readable") from error
+    if set(found) != set(names):
+        raise WalkFailure("cargo did not report every requested executable")
+    return found
+
+
+def rust_binary() -> Path:
+    return build_rust_binaries("agentciv-host")["agentciv-host"]
 
 
 def message(

@@ -94,10 +94,57 @@ That installed reference is disclosed in full in the report's controls and
 distinguished from the untrusted participant records. Useful correctness still
 requires inspecting the model's guide against those documents. The runtime
 supplies the authenticated envelope and verifies each cited event was in
-that participant's permitted history. Invalid output and provider failures stop
+that participant's permitted history. One-shot invalid output and provider failures stop
 the run; the client never substitutes a scripted revision or decline. Decline
 and stop remove the participant's remaining scheduled turns in this run. This is
 not a persistent refusal policy across a replaced coordinator.
+
+### Optional local validation feedback
+
+Add `--decision-attempts 3` to enable up to three model attempts in a turn. The
+default remains one attempt. The first prompt, source snapshot, decision schema,
+sampling settings, and available actions are the same. An invalid local decision
+receives a fixed validation code, its rule, and the preceding candidate as
+untrusted data. The participant may choose another action or stop. The client
+does not repair text, invent a reference, replace the decision with a script,
+or submit an invalid candidate. This is a validation feedback loop, not a
+general tool-use runtime or a semantic correctness judge.
+
+`validate_decision()` checks the decision structure, UTF-8 text bounds, and
+permitted references. Unicode punctuation and emoji are not wire violations.
+The separate `validate_publication_text()` enforces this repository example's
+declared writing policy before publication. That policy remains disclosed in
+the prompt and controls, and its failures receive `invalid_text` feedback.
+It is not an HTTP Commons or collaboration-profile requirement. Another
+participant can use a different publication policy with the same host.
+
+All attempts share 1024 generated output tokens and a 120-second decision
+deadline. Each request receives only the remaining allowance. Missing or invalid
+usage charges the entire requested allowance, preventing another request; a
+reported integer usage above the allowance fails explicitly. Incomplete responses,
+provider errors, oversized candidates, and unexpected validator errors are fatal.
+No response is accepted after the decision deadline. Host startup, inventory,
+publication, and receipt verification are outside that deadline; the 180-second
+participant process bound remains the enclosing limit.
+
+`attempts/` contains a journal per started turn, including prompt and candidate
+hashes, usage, fixed validation codes, first-attempt validity, eventual validity,
+and publication state. An entry saved before the request survives a terminated
+process as an unresolved attempt. Exact candidates are kept only when
+`--private-traces` is selected, in separate numbered files. Candidates above the
+16000-byte bound retain only a hash and byte count in that journal. The generic
+engine in [decision_loop.py](decision_loop.py) can be used with another bounded
+request function and validator without an Ollama SDK or a world host.
+
+The caller publishes at most one validated act. It saves the chosen envelope
+before publication and the receipt before verification. A failed request or
+readback can leave publication uncertain; it never starts a new model attempt
+or retries the write automatically. The journal is evidence, not crash recovery
+or an authorization mechanism. In a comparison, use fresh output directories,
+retain failed attempts, and report first-attempt and eventual validity separately
+from source correctness. Input tokens and latency are not equalized, and later
+shared histories may diverge. Matched starting settings alone do not establish a
+causal improvement from feedback.
 
 Limits are five participant processes, one act per process, 1200 characters of
 published text, 1024 generated tokens
@@ -119,7 +166,7 @@ against its references. `condition.json` records the configured model, seed, sou
 are saved after each completed turn. A failed run retains `failure.json` and the
 completed observations. Failure is not refusal, consent, or abstention.
 
-`--private-traces` separately keeps exact prompts and raw model responses in
+`--private-traces` separately keeps exact prompts, bounded candidates, and raw model responses in
 `private/`, including invalid responses. Those may contain private reasoning
 output. They are operator-side evidence, are never supplied to the newcomer,
 and are not automatically published. Credentials stay in temporary process

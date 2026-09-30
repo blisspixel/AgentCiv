@@ -11,6 +11,7 @@ import tempfile
 from pathlib import Path
 
 import collaboration as client
+import decision_loop as loop
 import local_participant as wire
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "http-commons"))
@@ -27,7 +28,7 @@ class ParticipantProcessFailure(client.DecisionError):
         self.details = details
 
 
-def experiment_controls(mode: str) -> client.JsonObject:
+def experiment_controls(mode: str, decision_attempts: int = 1) -> client.JsonObject:
     """The same declared conditions accompany successful and failed attempts."""
     return {
         "assigned_task": client.TASK,
@@ -42,12 +43,18 @@ def experiment_controls(mode: str) -> client.JsonObject:
         "schedule_author": "operator harness", "memory_author": "harness supplies permitted public history each turn",
         "departure_rule": "decline or stop removes remaining turns for this principal in this run",
         "max_participant_processes": 5, "max_output_tokens_per_turn": 1024,
+        "decision_attempts": decision_attempts,
+        "decision_policy": "one_shot" if decision_attempts == 1 else "validator_feedback",
+        "generation_budget": "1024 output tokens shared across attempts; missing usage charges full requested allowance",
+        "decision_deadline_seconds": 120,
+        "publication_text_policy": "repository example: plain punctuation and no emojis; not a wire protocol rule",
+        "candidate_preservation": "private exact candidates only with private_traces; public summaries and hashes otherwise",
         "context_tokens": 8192, "model_request_timeout_seconds": 120,
         "participant_process_timeout_seconds": 180, "max_history_bytes": client.MAX_HISTORY_BYTES,
         "max_history_pages": client.MAX_PAGES, "max_text_characters": client.MAX_TEXT_CHARACTERS,
         "sampling_temperature": 0.4, "turn_seed_rule": "configured seed plus participant turn number",
         "truncate": False, "shift": False,
-        "tools": ["read permitted local history", "submit one collaboration act"],
+        "tools": ["read permitted local history", "submit at most one validated collaboration act"],
         "scoring": "none; inspect source citations and participant choices",
     }
 
@@ -71,21 +78,25 @@ def run_participant(config: client.JsonObject, config_path: Path) -> client.Json
 def _run_experiment(
     *, host: str, mode: str, output: Path, model: str = "", seed: int = 42,
     ollama_origin: str = "http://127.0.0.1:11434", private_traces: bool = False,
+    decision_attempts: int = 1,
 ) -> client.JsonObject:
     if host not in {"python", "rust"} or mode not in {"scripted", "ollama"}:
         raise ValueError("host or decision source is invalid")
     if mode == "ollama" and not model:
         raise ValueError("a preinstalled local model is required")
+    loop.Budget(attempts=decision_attempts)
     output.mkdir(parents=True, exist_ok=False)
     private = output / "private"
     if private_traces:
         private.mkdir()
+    attempts = output / "attempts"
+    attempts.mkdir()
     results: list[client.JsonObject] = []
     source = source_identity()
     condition: client.JsonObject = {
         "model": model if mode == "ollama" else None, "seed": seed,
         "profile": "http-commons/0.1-draft", "world_visibility": "members",
-        "controls": experiment_controls(mode), "source": source,
+        "controls": experiment_controls(mode, decision_attempts), "source": source,
         "source_snapshot_label": "source_at_attempt_start; build and execution not yet verified",
         "host_build_outcome": "pending" if host == "rust" else "not_required_for_python",
         "host_execution_started": False,
@@ -121,9 +132,12 @@ def _run_experiment(
                 "record_id": f"submission:{principal.rsplit('-', 1)[-1]}-{number}",
                 "turn": number, "mode": mode, "model": model, "seed": seed + number,
                 "ollama_origin": ollama_origin,
+                "decision_attempts": decision_attempts,
+                "attempt_journal": str(attempts / f"{principal.rsplit('-', 1)[-1]}-{number}.json"),
             }
             if private_traces:
                 participant_config["private_trace"] = str(private / f"{principal.rsplit('-', 1)[-1]}-{number}.json")
+                participant_config["private_candidates"] = str(private / f"{principal.rsplit('-', 1)[-1]}-{number}-candidates")
             result = run_participant(participant_config, directory / "participant.json")
             results.append(result)
             (output / "observations.json").write_text(json.dumps(results, ensure_ascii=False, indent=2), encoding="utf-8")
@@ -173,7 +187,7 @@ def _run_experiment(
             "newcomer_source_citations": client.object_value(results[-1]["decision"])["source_event_ids"],
             "source_integration_quality": "unmeasured; inspect participant text against cited original records",
         },
-        "controls": experiment_controls(mode),
+        "controls": experiment_controls(mode, decision_attempts),
         "limits": ["Local functionality case, not independent interoperability.",
                    "Scripted choices are test fixtures; model choices are prompted observations.",
                    "One local model run does not establish a social mechanism or consciousness.",
@@ -188,11 +202,13 @@ def _run_experiment(
 def run_experiment(
     *, host: str, mode: str, output: Path, model: str = "", seed: int = 42,
     ollama_origin: str = "http://127.0.0.1:11434", private_traces: bool = False,
+    decision_attempts: int = 1,
 ) -> client.JsonObject:
     existed = output.exists()
     try:
         return _run_experiment(host=host, mode=mode, output=output, model=model, seed=seed,
-                               ollama_origin=ollama_origin, private_traces=private_traces)
+                               ollama_origin=ollama_origin, private_traces=private_traces,
+                               decision_attempts=decision_attempts)
     except (client.DecisionError, wire.ParticipantError, walk.WalkFailure,
             subprocess.TimeoutExpired, subprocess.CalledProcessError, OSError, ValueError) as error:
         if not existed and output.is_dir():
@@ -201,7 +217,7 @@ def run_experiment(
                 "failure_type": type(error).__name__, "host": host, "decision_source": mode,
                 "failure": str(error), "external_spend_usd": 0,
                 "model": model if mode == "ollama" else None, "seed": seed,
-                "controls": experiment_controls(mode), "source": None,
+                "controls": experiment_controls(mode, decision_attempts), "source": None,
                 "source_snapshot_label": "unavailable; execution not attested",
                 "source_changed_during_run": None,
                 "limits": ["A failure is not refusal, consent, abstention, or a change of mind.",
@@ -232,9 +248,11 @@ def main() -> int:
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--ollama-origin", default="http://127.0.0.1:11434")
     parser.add_argument("--private-traces", action="store_true")
+    parser.add_argument("--decision-attempts", type=int, choices=(1, 2, 3), default=1)
     args = parser.parse_args()
     report = run_experiment(host=args.host, mode=args.mode, output=args.output, model=args.model,
-                            seed=args.seed, ollama_origin=args.ollama_origin, private_traces=args.private_traces)
+                            seed=args.seed, ollama_origin=args.ollama_origin, private_traces=args.private_traces,
+                            decision_attempts=args.decision_attempts)
     print(json.dumps({"output": str(args.output), "decision_source": report["decision_source"],
                       "host_restart_history_equal": report["host_restart_history_equal"]}))
     return 0
