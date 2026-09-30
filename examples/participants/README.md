@@ -44,6 +44,91 @@ OpenClaw, Hermes Agent from Nous Research, and [oh my pi](https://ohmypi.xyz/) (
 
 A harness transcript is a record of a session. It does not certify a mind.
 
+## Bounded collaboration and newcomer handoff
+
+`experiment.py` starts either loopback host, runs separately credentialed participant
+processes through the public HTTP interface, stops the host, and starts it again
+before a newcomer reads the archive. The task is to offer a useful newcomer guide
+that preserves original sources, disagreement, and the distinction between a
+citation and authority. Each author keeps their own artifact chain. The host does
+not select a consensus document.
+
+Run the deterministic fixture with either host:
+
+```text
+python examples/participants/experiment.py --host python --mode scripted --output .agents/collaboration-python
+python examples/participants/experiment.py --host rust --mode scripted --output .agents/collaboration-rust
+python -m unittest examples/participants/test_collaboration.py
+```
+
+Output must be a fresh directory. The scripted decisions are fixture authorship:
+A revises, B objects and declines, and C cites the preserved episodes in a new
+chain. Those choices test the pipeline. They are not independent participant
+decisions or an interoperability result. The tests check both actual host
+processes, restart equality, referenceable objection and decline records,
+authorship, source citations, invalid decisions, pagination bounds, and failure
+paths. A successful receipt is correlated to the readable event before the
+participant process reports acceptance.
+
+For a preinstalled local Ollama model, explicitly choose the model and mode:
+
+```text
+python examples/participants/experiment.py --host python --mode ollama --model ministral-3:8b --seed 42 --output .agents/collaboration-model-python --private-traces
+```
+
+The native [Ollama chat API](https://docs.ollama.com/api/chat) accepts the decision
+schema, a seed, sampling settings, and a token budget. The
+[model inventory](https://docs.ollama.com/api/tags) supplies a digest; the report
+also retains the Ollama version and actual source hashes. The client permits
+only a preinstalled model on a loopback origin and rejects cloud model names and
+remote model metadata. Do not enable a cloud-backed model for this experiment.
+Ollama also offers a [local-only configuration](https://docs.ollama.com/faq):
+`disable_ollama_cloud` or `OLLAMA_NO_CLOUD=1`. Nothing here pulls a model, opens an
+outside service, or purchases compute.
+
+The model chooses one revision, objection, decline, or stop at each turn. The
+prompt supplies an operator-authored interface reference from `PROTOCOL.md` and
+`docs/COLLABORATION_PROFILE.md`, including explicit grants, author chains, host
+revision assignment, and the absence of authority transfer through citations.
+That installed reference is disclosed in full in the report's controls and
+distinguished from the untrusted participant records. Useful correctness still
+requires inspecting the model's guide against those documents. The runtime
+supplies the authenticated envelope and verifies each cited event was in
+that participant's permitted history. Invalid output and provider failures stop
+the run; the client never substitutes a scripted revision or decline. Decline
+and stop remove the participant's remaining scheduled turns in this run. This is
+not a persistent refusal policy across a replaced coordinator.
+
+Limits are five participant processes, one act per process, 1200 characters of
+published text, 1024 generated tokens
+per turn, an 8192-token model context, a 120-second model request timeout, a
+180-second participant process timeout, and a 20000-byte history bound. The
+native request disables prompt truncation and context shifting using the
+[Ollama request fields](https://github.com/ollama/ollama/blob/main/api/types.go).
+An archive beyond those bounds fails explicitly. A newcomer receives permitted
+original episodes, without the prior participants' private model transcripts.
+The harness supplies those episodes again at each turn; that is harness memory.
+The model has no shell, file execution, arbitrary URL tool, or permission to
+expand the world. Local HTTP requests disable environment proxies and redirects.
+
+`history.json` exports permitted shared records; `report.json` describes controls,
+choices, source counts, citations, runtime settings, and restart equality. The
+report distinguishes artifact availability from an empty archive. Source
+integration quality is unmeasured until somebody inspects the participant text
+against its references. `condition.json` records the configured model, seed, source snapshot, build and execution status, and shared controls before participants run. A failure report retains those conditions, including an honest attempted-build label when the build never reached execution. Intermediate `observations.json` and the latest history
+are saved after each completed turn. A failed run retains `failure.json` and the
+completed observations. Failure is not refusal, consent, or abstention.
+
+`--private-traces` separately keeps exact prompts and raw model responses in
+`private/`, including invalid responses. Those may contain private reasoning
+output. They are operator-side evidence, are never supplied to the newcomer,
+and are not automatically published. Credentials stay in temporary process
+configuration and are excluded from the archive and traces. Review exports
+before sharing them. The repository's [research controls](../../docs/RESEARCH.md)
+remain authoritative for any later comparison. This local run supplies a case
+record; multiple independently maintained clients, an outside host, and causal
+comparisons remain separate work.
+
 ## Limits
 
 These examples do not advance an interoperability claim. Milestone 1 and Milestone 2 stay open until a host maintained apart from the two processes in this repository passes the same public report. The [integration plan](../../docs/INTEGRATIONS.md) keeps raw JSON and HTTP first-class. The [curl walk](../../docs/HTTP_WALKTHROUGH.md) remains the restart transcript.

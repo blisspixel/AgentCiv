@@ -21,7 +21,7 @@ const AUTHORIZED_CASES: [&str; 5] = [
     "submit.conflict",
     "events.recorded",
 ];
-const EXTENDED_CASES: [&str; 14] = [
+const EXTENDED_CASES: [&str; 17] = [
     "submit.forbidden",
     "submit.unsupported_version",
     "submit.malformed_json",
@@ -36,8 +36,11 @@ const EXTENDED_CASES: [&str; 14] = [
     "events.foreign_cursor",
     "events.visibility",
     "events.pagination",
+    "submit.concurrent_retry",
+    "submit.concurrent_conflict",
+    "submit.concurrent_distinct",
 ];
-const COLLABORATION_CASES: [&str; 23] = [
+const COLLABORATION_CASES: [&str; 28] = [
     "collaborate.client_revision",
     "collaborate.forbidden",
     "collaborate.unauthenticated",
@@ -61,6 +64,11 @@ const COLLABORATION_CASES: [&str; 23] = [
     "collaborate.withdrawn_citation",
     "collaborate.unknown_target",
     "collaborate.other_chain",
+    "collaborate.hidden_visibility",
+    "collaborate.hidden_derivation",
+    "collaborate.hidden_objection",
+    "collaborate.hidden_decline",
+    "collaborate.hidden_withdrawal",
 ];
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -671,6 +679,13 @@ fn redact(report: &mut Report, secrets: &[&str]) {
 
 fn extended_targets(discovery_url: &str) -> Result<(Client, Value, Url, Url, Url), String> {
     let discovery = parse_allowed_url(discovery_url)?;
+    if !discovery
+        .host_str()
+        .and_then(|host| host.trim_matches(['[', ']']).parse::<IpAddr>().ok())
+        .is_some_and(|ip| ip.is_loopback())
+    {
+        return Err("this runner version accepts only loopback IP hosts".to_owned());
+    }
     let client = Client::builder()
         .timeout(Duration::from_secs(10))
         .redirect(redirect::Policy::none())
@@ -890,6 +905,11 @@ fn run_extended_cases(
                 "events.pagination",
                 "writer event page was unreadable",
             ));
+            skip_ids(
+                cases,
+                &EXTENDED_CASES[14..],
+                "writer event page was unreadable",
+            );
             return;
         }
     };
@@ -917,6 +937,17 @@ fn run_extended_cases(
         "events.pagination",
         check_pagination(client, events, submit, writer, writer_token, world_id),
     ));
+    adversarial::run_concurrency(
+        client,
+        events,
+        submit,
+        world_id,
+        Party {
+            principal: writer,
+            token: writer_token,
+        },
+        cases,
+    );
     run_collaboration_cases(
         &CollaborationInput {
             client,
@@ -1224,6 +1255,7 @@ fn run_collaboration_cases(input: &CollaborationInput<'_>, cases: &mut Vec<Case>
         peer: input.peer,
         audience,
     };
+    adversarial::run_hidden_cases(&ctx, cases);
     cases.push(result_case(
         "collaborate.client_revision",
         client_revision(&ctx),
@@ -1373,15 +1405,35 @@ fn send_collaboration(
 }
 
 fn read_history(ctx: &CollaborationRun<'_>, token: &str) -> Result<Vec<Value>, String> {
+    read_complete_history(ctx.client, ctx.events, ctx.world_id, token)
+}
+
+fn read_complete_history(
+    client: &Client,
+    events: &Url,
+    world_id: &str,
+    token: &str,
+) -> Result<Vec<Value>, String> {
     let mut after = None;
     let mut seen_cursors = Vec::new();
     let mut collected = Vec::new();
+    let mut event_ids = std::collections::HashSet::new();
+    let mut last_sequence = 0;
     for _ in 0..8 {
         let page = check_page_value(
-            read_events(ctx.client, ctx.events, token, after.as_deref())?,
-            ctx.world_id,
+            read_events(client, events, token, after.as_deref())?,
+            world_id,
         )?;
         let batch = page["events"].as_array().expect("validated events");
+        for event in batch {
+            let sequence = event["sequence"].as_u64().ok_or("event sequence missing")?;
+            if sequence <= last_sequence || !event_ids.insert(event["id"].to_string()) {
+                return Err(
+                    "event history repeats an id or does not increase in sequence".to_owned(),
+                );
+            }
+            last_sequence = sequence;
+        }
         collected.extend(batch.iter().cloned());
         if page["has_more"] != true {
             return Ok(collected);
@@ -2188,3 +2240,7 @@ fn run_internal(discovery_url: &str, credential: Option<(&str, &str)>) -> Report
 
 #[cfg(test)]
 mod tests;
+
+mod adversarial;
+mod lifecycle;
+pub use lifecycle::run_lifecycle;

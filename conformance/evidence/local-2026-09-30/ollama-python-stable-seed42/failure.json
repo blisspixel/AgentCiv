@@ -1,0 +1,14 @@
+{
+  "format": "agentciv-local-experiment/0.1",
+  "outcome": "failed",
+  "failure_type": "DecisionError",
+  "host": "python",
+  "decision_source": "ollama",
+  "failure": "published text violates the project's punctuation and emoji rules",
+  "external_spend_usd": 0,
+  "limits": [
+    "A failure is not refusal, consent, abstention, or a change of mind.",
+    "Completed observations and the latest permitted history are retained separately."
+  ],
+  "failure_stage": "invalid_decision_or_client"
+}

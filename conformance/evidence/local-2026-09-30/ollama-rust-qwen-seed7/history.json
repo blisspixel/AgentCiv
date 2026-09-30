@@ -1,0 +1,119 @@
+[
+  {
+    "actor": "agent:experiment-a",
+    "body": {
+      "artifact_revision": {
+        "artifact_id": "artifact:newcomer-guide",
+        "body": {
+          "source_event_ids": [],
+          "text": "Welcome to the Artifact Archive. To inspect original sources, read the provided interface reference and examine cited source records. Preserve disagreement by objecting or declining, not by deleting. Distinguish citations from authority by verifying they confer no additional permissions. Choose to continue, question, or decline work based on your analysis of the sources and your comfort level with the cited material. Use the decision schema to publish your actions."
+        },
+        "experiment_provenance": {
+          "decision_source": "ollama",
+          "envelope_source": "local_harness"
+        },
+        "from": "agent:experiment-a",
+        "id": "submission:a-1",
+        "media_type": "text/plain",
+        "protocol_version": "0.1-draft",
+        "revision": 1,
+        "to": [
+          "agent:experiment-b",
+          "agent:experiment-c"
+        ],
+        "type": "artifact_revision",
+        "world": "civ:experiment"
+      }
+    },
+    "id": "event:2045c087a9b9bb8cd4788290dc6af054",
+    "kind": "artifact.recorded",
+    "protocol_version": "0.1-draft",
+    "sequence": 1,
+    "timestamp": "2026-09-30T12:19:43Z",
+    "type": "event",
+    "world": "civ:experiment"
+  },
+  {
+    "actor": "agent:experiment-b",
+    "body": {
+      "artifact_revision": {
+        "artifact_id": "artifact:newcomer-guide",
+        "body": {
+          "source_event_ids": [
+            "event:2045c087a9b9bb8cd4788290dc6af054"
+          ],
+          "text": "Welcome to the Artifact Archive. To inspect original sources, refer to the interface reference and examine cited source records. Preserve disagreement by objecting or declining, not by deleting. Distinguish citations from authority by verifying they confer no additional permissions. Choose to continue, question, or decline work based on your analysis and comfort level with the cited material. Use the decision schema to publish your actions."
+        },
+        "derived_from": {
+          "artifact_id": "artifact:newcomer-guide",
+          "from": "agent:experiment-a",
+          "revision": 1
+        },
+        "experiment_provenance": {
+          "decision_source": "ollama",
+          "envelope_source": "local_harness"
+        },
+        "from": "agent:experiment-b",
+        "id": "submission:b-1",
+        "media_type": "text/plain",
+        "protocol_version": "0.1-draft",
+        "revision": 1,
+        "to": [
+          "agent:experiment-a",
+          "agent:experiment-c"
+        ],
+        "type": "artifact_revision",
+        "world": "civ:experiment"
+      }
+    },
+    "id": "event:8efd0769829e24818c9f97adfa53e17e",
+    "kind": "artifact.recorded",
+    "protocol_version": "0.1-draft",
+    "sequence": 2,
+    "timestamp": "2026-09-30T12:19:46Z",
+    "type": "event",
+    "world": "civ:experiment"
+  },
+  {
+    "actor": "agent:experiment-a",
+    "body": {
+      "artifact_revision": {
+        "artifact_id": "artifact:newcomer-guide",
+        "body": {
+          "source_event_ids": [
+            "event:2045c087a9b9bb8cd4788290dc6af054",
+            "event:8efd0769829e24818c9f97adfa53e17e"
+          ],
+          "text": "Welcome to the Artifact Archive. To inspect original sources, consult the interface reference and examine cited source records. Preserve disagreement by objecting or declining, not by deleting entries. Distinguish citations from authority by verifying they confer no additional permissions. Choose to continue, question, or decline work based on your analysis and comfort level with the cited material. Use the decision schema to publish your actions."
+        },
+        "derived_from": {
+          "artifact_id": "artifact:newcomer-guide",
+          "from": "agent:experiment-b",
+          "revision": 1
+        },
+        "experiment_provenance": {
+          "decision_source": "ollama",
+          "envelope_source": "local_harness"
+        },
+        "from": "agent:experiment-a",
+        "id": "submission:a-2",
+        "media_type": "text/plain",
+        "protocol_version": "0.1-draft",
+        "revision": 2,
+        "to": [
+          "agent:experiment-b",
+          "agent:experiment-c"
+        ],
+        "type": "artifact_revision",
+        "world": "civ:experiment"
+      }
+    },
+    "id": "event:4bc8ac2b452ebd99413808d8be0b2642",
+    "kind": "artifact.recorded",
+    "protocol_version": "0.1-draft",
+    "sequence": 3,
+    "timestamp": "2026-09-30T12:19:49Z",
+    "type": "event",
+    "world": "civ:experiment"
+  }
+]

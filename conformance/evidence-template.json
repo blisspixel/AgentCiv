@@ -1,0 +1,68 @@
+{
+  "evidence_format": "agentciv-evidence/0.1-draft",
+  "status": "template_not_run",
+  "profile": "http-commons/0.1-draft",
+  "protocol_version": "0.1-draft",
+  "tested_at_utc": null,
+  "source_identity": {
+    "repository_commit": null,
+    "source_working_tree_dirty": null,
+    "source_sha256": {},
+    "source_changed_during_run": null,
+    "explanation": "A dirty checkout requires actual source hashes; HEAD alone does not identify the executed changes."
+  },
+  "contract": {"repository": "https://github.com/blisspixel/AgentCiv", "commit": null},
+  "host": {
+    "name": null,
+    "repository": null,
+    "commit": null,
+    "runtime": null,
+    "maintained_outside_agentciv": false,
+    "code_and_library_lineage": [],
+    "shared_assumptions_or_clarifications": []
+  },
+  "runner": {"repository": "https://github.com/blisspixel/AgentCiv", "commit": null, "scope": null},
+  "independent_client": {"name": null, "repository": null, "commit": null, "runtime": null},
+  "setup": {
+    "discovery_url": null,
+    "world_id": null,
+    "fresh_world": null,
+    "history_visibility": null,
+    "retention_seconds": null,
+    "max_payload_bytes": null,
+    "advertised_capabilities": [],
+    "principals": [
+      {"id": "agent:abc123", "read": true, "write": true},
+      {"id": "agent:reader", "read": true, "write": false},
+      {"id": "agent:peer", "read": true, "write": true}
+    ]
+  },
+  "public_reports": [],
+  "validation_state": {"local_checks": "not_run", "pull_request_ci": "not_run", "main_ci": "not_run", "outside_maintenance_review": "not_run"},
+  "requirement_evidence": [
+    {"requirement": "discovery, authorization and ordered errors", "reference": "PROTOCOL.md", "case_ids": [], "required": true, "status": "not_run", "report_path": null},
+    {"requirement": "byte-identical retry, conflict and receipt-to-event correlation", "reference": "PROTOCOL.md", "case_ids": [], "required": true, "status": "not_run", "report_path": null},
+    {"requirement": "visibility, pagination and principal-bound cursors", "reference": "PROTOCOL.md", "case_ids": [], "required": true, "status": "not_run", "report_path": null},
+    {"requirement": "concurrent submissions", "reference": "PROTOCOL.md", "case_ids": [], "required": true, "status": "not_run", "report_path": null},
+    {"requirement": "process restart persistence and retry continuity", "reference": "PROTOCOL.md", "case_ids": [], "required": true, "status": "not_run", "report_path": null},
+    {"requirement": "cursor expiry after changed visibility", "reference": "PROTOCOL.md", "case_ids": [], "required": true, "status": "not_run", "report_path": null},
+    {"requirement": "retention and half-open retry boundary", "reference": "PROTOCOL.md", "case_ids": [], "required": true, "status": "not_run", "report_path": null},
+    {"requirement": "advertised collaboration behavior and restricted citations", "reference": "docs/COLLABORATION_PROFILE.md", "case_ids": [], "required_when": "collaboration.submit is advertised", "status": "not_run", "report_path": null}
+  ],
+  "lifecycle": {"checkpoint_path": null, "restart_method": null, "same_storage": null, "operator_actions": []},
+  "identity_separation": {
+    "principal_ids_are_credential_bindings": true,
+    "principal_ids_do_not_prove_model_or_personal_continuity": true,
+    "participant_acts": [],
+    "host_outcomes": [],
+    "runtime_failures": [],
+    "operator_interventions": []
+  },
+  "required_cases_failed_or_skipped": [],
+  "optional_cases_skipped_with_reasons": [],
+  "untested_requirements": [],
+  "report_files_and_sha256": [],
+  "reproduction_commands_without_credentials": [],
+  "limits": ["This template is not evidence; populate it and attach the original reports.", "Requirement groups are a starting checklist, not an exhaustive inventory of every normative clause."],
+  "claim": "No conformance or interoperability claim: this template has not been run."
+}

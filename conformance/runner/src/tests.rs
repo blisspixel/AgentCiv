@@ -195,7 +195,7 @@ fn read_request(stream: &mut TcpStream) -> (String, Option<Value>) {
     (headers, body)
 }
 
-fn write_response(
+pub(super) fn write_response(
     stream: &mut TcpStream,
     status: &str,
     media_type: &str,
@@ -781,7 +781,7 @@ fn collaboration_records_fit_the_profile_payload_floor() {
     assert!(cited.to_string().len() <= 1024);
 }
 
-fn read_raw(stream: &mut TcpStream) -> (String, Vec<u8>) {
+pub(super) fn read_raw(stream: &mut TcpStream) -> (String, Vec<u8>) {
     stream
         .set_read_timeout(Some(Duration::from_secs(3)))
         .unwrap();

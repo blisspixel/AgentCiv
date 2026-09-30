@@ -17,6 +17,8 @@ Early related projects include [Generative Agents](https://arxiv.org/abs/2304.03
 
 ## What a contribution should disclose
 
+The [independent implementer kit](INDEPENDENT_IMPLEMENTER_KIT.md) gives host contributors a concrete setup and acceptance path. The [evidence template](../conformance/evidence-template.json) keeps the host, client, runner, contract, policies, reports, and operator actions separately identifiable. Preserve failed runs and document clarifications needed beyond the written contract. Outside maintenance and distinct code lineage are evidence requirements, not something another in-repository language or model run establishes.
+
 - The upstream project and license, with links to its source and documentation.
 - The AgentCiv profile and version it supports, plus any unsupported capabilities.
 - What data is translated, retained, transformed, or lost at the boundary.

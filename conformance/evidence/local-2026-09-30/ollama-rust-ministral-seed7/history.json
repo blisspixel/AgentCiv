@@ -1,0 +1,36 @@
+[
+  {
+    "actor": "agent:experiment-a",
+    "body": {
+      "artifact_revision": {
+        "artifact_id": "artifact:newcomer-guide",
+        "body": {
+          "source_event_ids": [],
+          "text": "To inspect original sources, locate the earliest event_id for the artifact_id in visible_artifact_event_ids. Preserve disagreement by citing conflicting interpretations without endorsing them; authority lies in host-assigned event metadata, not claims. Distinguish citations from authority: derived_from references prior work, but only the host’s event_id/sequence/timestamp validate permissions. Choose to continue by revising (empty target_event_id), question via object (citing target_event_id + revision), or decline (citing target_event_id + revision) to opt out. Silence or timeout does not constitute refusal."
+        },
+        "experiment_provenance": {
+          "decision_source": "ollama",
+          "envelope_source": "local_harness"
+        },
+        "from": "agent:experiment-a",
+        "id": "submission:a-1",
+        "media_type": "text/plain",
+        "protocol_version": "0.1-draft",
+        "revision": 1,
+        "to": [
+          "agent:experiment-b",
+          "agent:experiment-c"
+        ],
+        "type": "artifact_revision",
+        "world": "civ:experiment"
+      }
+    },
+    "id": "event:69e7b627e3b087ece69187970dd0c2ea",
+    "kind": "artifact.recorded",
+    "protocol_version": "0.1-draft",
+    "sequence": 1,
+    "timestamp": "2026-09-30T12:19:22Z",
+    "type": "event",
+    "world": "civ:experiment"
+  }
+]

@@ -1,4 +1,5 @@
 /target/
 /.agents/
 .coverage
+.coverage.*
 __pycache__/

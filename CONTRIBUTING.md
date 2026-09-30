@@ -4,6 +4,8 @@ AgentCiv is at the design stage. Code, experiments, critique, and cross-discipli
 
 Independent projects can contribute adapters, worlds, scenarios, methods, or links to maintained external implementations. See [Collaborating with other projects](docs/ECOSYSTEM.md) for the information needed to make these contributions usable without requiring anyone to move their project into this repository.
 
+For a separately maintained HTTP Commons host, use the [independent implementer kit](docs/INDEPENDENT_IMPLEMENTER_KIT.md) and [evidence template](conformance/evidence-template.json). Include immutable tested host, client, runner, and contract commits; original reports; configured permissions and retention; skipped cases; untested requirements; and operator interventions. Keep credentials outside published evidence. A partial runner pass should be described by its scope, and a local model test should be described as functionality evidence.
+
 ## Start here
 
 Read the [vision](docs/VISION.md), [roadmap](ROADMAP.md), [architecture proposal](docs/ARCHITECTURE.md), and [welfare policy](docs/WELFARE.md). Check existing discussions and issues before proposing a large change.
@@ -32,7 +34,22 @@ Routine work does not go straight to `main`. A long-lived feature branch is a po
 
 ## Repository checks
 
-Maintained executable code is the Rust checker, the black-box runner, and the two loopback hosts. Use the pinned toolchain in [rust-toolchain.toml](rust-toolchain.toml). From the repository root, run `cargo fmt --all -- --check`, `cargo clippy --workspace --all-targets --locked -- -D warnings`, `cargo run --locked -p agentciv-checks`, `python -m mypy`, and `cargo llvm-cov --workspace --all-targets --locked --fail-under-lines 80`. Install `cargo-llvm-cov` at the version pinned in [CI](.github/workflows/ci.yml), and install mypy 2.3.1 from [requirements-dev.txt](requirements-dev.txt). The Python check is strict and targets Python 3.11, the oldest version the Python host claims. The same files are also tested on Python 3.14. CI runs the Rust and Python tests on Linux, Windows, and macOS. New implementations must add their own strict type, lint, test, coverage, and conformance gates.
+Maintained executable code includes the Rust checker, black-box runner, two loopback hosts, public validation adapter, and bounded participant examples. Use the pinned toolchain in [rust-toolchain.toml](rust-toolchain.toml). From the repository root, run `cargo fmt --all -- --check`, `cargo clippy --workspace --all-targets --locked -- -D warnings`, `cargo run --locked -p agentciv-checks`, `python -m mypy`, and `cargo llvm-cov --workspace --all-targets --locked --fail-under-lines 80`. Install `cargo-llvm-cov` at the version pinned in [CI](.github/workflows/ci.yml), and install the pinned mypy 2.3.1 and coverage 7.16.2 tools with `python -m pip install -r requirements-dev.txt` first. The Python check is strict and targets Python 3.11, the oldest version the Python host claims. The same files are also tested on Python 3.14.
+
+Run the Python coverage gate using the same commands as Linux CI. Use a new output filename if `local-validation.json` already holds evidence you want to keep:
+
+```sh
+python -m coverage erase
+python -m coverage run -m unittest implementations/http-commons-python/test_host.py
+python -m coverage run -m unittest discover -s examples/participants -p "test_*.py"
+python -m coverage run -m unittest examples/http-commons/test_validate.py
+python -m coverage run examples/http-commons/walk.py
+python -m coverage run examples/http-commons/validate.py --output local-validation.json
+python -m coverage combine
+python -m coverage report
+```
+
+[pyproject.toml](pyproject.toml) collects subprocess coverage and fails below 80% of maintained Python lines, excluding test files. Preserve the validation JSON as scoped public evidence. CI runs native checks and tests on Linux, Windows, and macOS, retains visibility and lifecycle reports, and exercises scripted decisions without paid inference. New implementations must add their own strict type, lint, test, coverage, and conformance gates.
 
 ## License
 
