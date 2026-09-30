@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Protocol
 
 import local_participant as wire
+import decision_loop as loop
 from loopback import loopback_origin
 
 JsonObject = dict[str, object]
@@ -89,15 +90,33 @@ def history(origin: str, token: str) -> list[JsonObject]:
     found: list[JsonObject] = []
     cursor: str | None = None
     seen: set[str] = set()
+    event_ids: set[str] = set()
     for _ in range(MAX_PAGES):
         page = wire.read_page(origin, token, after=cursor)
+        if token in json.dumps(page, ensure_ascii=False):
+            raise DecisionError("host response reflected the participant credential")
         events = page.get("events")
         if not isinstance(events, list):
             raise DecisionError("invalid event page")
-        found.extend(object_value(event) for event in events)
+        for value in events:
+            event = object_value(value)
+            event_id = event.get("id")
+            if not isinstance(event_id, str) or not event_id or event_id in event_ids:
+                raise DecisionError("invalid or duplicate source event id")
+            revision = artifact(event)
+            if revision is not None and (
+                not isinstance(revision.get("from"), str) or not revision["from"]
+                or not isinstance(revision.get("artifact_id"), str) or not revision["artifact_id"]
+                or type(revision.get("revision")) is not int or int(str(revision["revision"])) < 1
+            ):
+                raise DecisionError("invalid source artifact revision")
+            event_ids.add(event_id)
+            found.append(event)
         if len(json.dumps(found, ensure_ascii=False).encode("utf-8")) > MAX_HISTORY_BYTES:
             raise DecisionError("history exceeds this experiment's context bound")
-        if page.get("has_more") is False:
+        if type(page.get("has_more")) is not bool:
+            raise DecisionError("invalid pagination flag")
+        if page["has_more"] is False:
             return found
         next_cursor = page.get("next_cursor")
         if not isinstance(next_cursor, str) or not next_cursor or next_cursor in seen:
@@ -142,10 +161,10 @@ def validate_decision(value: object, events: list[JsonObject]) -> JsonObject:
     sources = decision["source_event_ids"]
     if not isinstance(text, str) or len(text) > MAX_TEXT_CHARACTERS:
         raise DecisionError("invalid decision text")
-    if any(character in {"\u2013", "\u2014", "\ufe0f"}
-           or 0x1F000 <= ord(character) <= 0x1FAFF or 0x2600 <= ord(character) <= 0x27BF
-           for character in text):
-        raise DecisionError("published text violates the project's punctuation and emoji rules")
+    try:
+        text.encode("utf-8")
+    except UnicodeEncodeError as error:
+        raise DecisionError("invalid decision text") from error
     if decision["action"] != "stop" and not text.strip():
         raise DecisionError("a published act needs the participant's words")
     if not isinstance(target, str):
@@ -172,11 +191,25 @@ def validate_decision(value: object, events: list[JsonObject]) -> JsonObject:
     return decision
 
 
+def validate_publication_text(decision: JsonObject) -> None:
+    """This repository's experiment policy, separate from structural validity."""
+    if decision.get("action") == "stop":
+        return
+    text = decision.get("text")
+    if not isinstance(text, str):
+        raise DecisionError("invalid decision text")
+    if any(character in {"\u2013", "\u2014", "\ufe0f"}
+           or 0x1F000 <= ord(character) <= 0x1FAFF or 0x2600 <= ord(character) <= 0x27BF
+           for character in text):
+        raise DecisionError("published text violates the project's punctuation and emoji rules")
+
+
 def submission(
     *, discovery: JsonObject, principal: str, recipients: list[str],
     record_id: str, decision: JsonObject, events: list[JsonObject], mode: str,
 ) -> JsonObject | None:
     decision = validate_decision(decision, events)
+    validate_publication_text(decision)
     action = decision["action"]
     if action == "stop":
         return None
@@ -241,6 +274,8 @@ def ollama_exchange(origin: str, path: str, payload: JsonObject | None, timeout:
         raise ModelError("local model HTTP request failed") from error
     except (urllib.error.URLError, TimeoutError) as error:
         raise ModelError("local model request failed") from error
+    except wire.ParticipantError as error:
+        raise ModelError("local model redirect was refused") from error
     if len(body) > MAX_RESPONSE_BYTES:
         raise ModelError("model response exceeded byte bound")
     try:
@@ -256,6 +291,7 @@ class OllamaDecision:
         self.model = model
         self.seed = seed
         self.trace = trace
+        self.calls = 0
         if not 1 <= max_tokens <= 2048 or not 1 <= timeout <= 180:
             raise ValueError("model budget exceeds bounds")
         self.timeout = timeout
@@ -276,37 +312,134 @@ class OllamaDecision:
         self.version = ollama_exchange(self.origin, "/api/version", None, 5).get("version")
         self.options: JsonObject = {"seed": self.seed, "temperature": 0.4, "num_ctx": 8192, "num_predict": self.max_tokens}
 
-    def __call__(self, prompt: str, events: list[JsonObject]) -> JsonObject:
+    def complete(self, prompt: str, events: list[JsonObject], *, output_tokens: int,
+                 timeout: float) -> loop.Reply:
+        self.calls += 1
+        options = {**self.options, "num_predict": output_tokens}
         request: JsonObject = {
             "model": self.model, "messages": [{"role": "user", "content": prompt}],
             "stream": False, "format": decision_schema(events),
             "truncate": False, "shift": False,
-            "options": self.options,
+            "options": options,
             "keep_alive": "2m",
         }
         try:
-            response = ollama_exchange(self.origin, "/api/chat", request, self.timeout)
+            response = ollama_exchange(self.origin, "/api/chat", request, timeout)
         except DecisionError:
-            if self.trace is not None:
-                self.trace.write_text(json.dumps({"request": request, "outcome": "model_request_failed"}), encoding="utf-8")
+            self.save_trace({"request": request, "outcome": "model_request_failed"})
             raise
-        if self.trace is not None:
-            self.trace.write_text(json.dumps({"request": request, "response": response, "model": self.metadata},
-                                             ensure_ascii=False, indent=2), encoding="utf-8")
-        if response.get("done") is not True or response.get("done_reason") == "length":
-            raise ModelError("model did not complete a bounded decision")
+        self.save_trace({"request": request, "response": response, "model": self.metadata})
         self.metrics = {key: response.get(key) for key in ("prompt_eval_count", "eval_count", "total_duration")}
-        content = object_value(response.get("message")).get("content")
+        try:
+            content = object_value(response.get("message")).get("content")
+        except DecisionError as error:
+            raise ModelError("local model message is invalid") from error
         if not isinstance(content, str):
-            raise DecisionError("model content is missing")
-        return validate_decision(decode(content.encode("utf-8")), events)
+            raise ModelError("model content is missing")
+        return loop.Reply(content, self.metrics,
+                          response.get("done") is True and response.get("done_reason") != "length")
+
+    def save_trace(self, value: JsonObject) -> None:
+        if self.trace is not None:
+            path = self.trace if self.calls == 1 else self.trace.with_name(
+                f"{self.trace.stem}.attempt-{self.calls}{self.trace.suffix}")
+            with path.open("x", encoding="utf-8") as destination:
+                destination.write(json.dumps(value, ensure_ascii=False, indent=2))
+
+    def __call__(self, prompt: str, events: list[JsonObject]) -> JsonObject:
+        reply = self.complete(prompt, events, output_tokens=self.max_tokens, timeout=self.timeout)
+        if not reply.complete:
+            raise ModelError("model did not complete a bounded decision")
+        return validate_decision(decode(reply.content.encode("utf-8")), events)
+
+
+VALIDATION_CODES = {
+    "invalid JSON": "invalid_json", "expected a JSON object": "invalid_json",
+    "unexpected decision fields": "invalid_fields", "unsupported action": "invalid_action",
+    "invalid decision text": "invalid_text",
+    "published text violates the project's punctuation and emoji rules": "invalid_text",
+    "a published act needs the participant's words": "invalid_text",
+    "invalid target": "invalid_target", "target is not a visible live artifact revision": "invalid_target",
+    "invalid source references": "invalid_sources",
+    "source was not in the participant's permitted history": "invalid_sources",
+    "target must also be cited as a source": "target_not_cited",
+    "objection and decline require a target": "target_required",
+    "stop is a local outcome without a publication": "invalid_stop",
+}
+
+
+class LoopDecision:
+    def __init__(self, config: JsonObject, model: OllamaDecision | None = None) -> None:
+        self.config = config
+        self.model = model
+        self.engine: loop.DecisionLoop | None = None
+
+    def __call__(self, prompt: str, events: list[JsonObject]) -> JsonObject:
+        def request(prompt: str, output_tokens: int, timeout: float) -> loop.Reply:
+            if self.model is not None:
+                return self.model.complete(prompt, events, output_tokens=output_tokens, timeout=timeout)
+            decision = scripted_decision(str(self.config["principal"]), int(str(self.config["turn"])), events)
+            return loop.Reply(json.dumps(decision), {"eval_count": 0})
+
+        def validate(content: str) -> JsonObject:
+            try:
+                decision = validate_decision(decode(content.encode("utf-8")), events)
+                validate_publication_text(decision)
+                return decision
+            except DecisionError as error:
+                code = VALIDATION_CODES.get(str(error))
+                if code is None:
+                    raise
+                raise loop.InvalidDecision(code) from error
+
+        journal = self.config.get("attempt_journal")
+        private = self.config.get("private_candidates")
+        self.engine = loop.DecisionLoop(request, validate,
+            budget=loop.Budget(attempts=int(str(self.config.get("decision_attempts", 1)))),
+            journal=Path(journal) if isinstance(journal, str) else None,
+            private=Path(private) if isinstance(private, str) else None)
+        return self.engine.run(prompt)
+
+
+def validate_config(config: JsonObject) -> None:
+    for name in ("origin", "principal", "token", "record_id"):
+        value = config.get(name)
+        if not isinstance(value, str) or not value.strip():
+            raise DecisionError("invalid participant configuration")
+    loopback_origin(str(config["origin"]))
+    if config.get("mode") not in ("scripted", "ollama"):
+        raise DecisionError("unsupported decision source")
+    if config["mode"] == "ollama":
+        for name in ("ollama_origin", "model"):
+            if not isinstance(config.get(name), str) or not str(config[name]).strip():
+                raise DecisionError("invalid local model configuration")
+        loopback_origin(str(config["ollama_origin"]))
+        if type(config.get("seed")) is not int:
+            raise DecisionError("invalid local model configuration")
+    recipients = config.get("recipients")
+    if (not isinstance(recipients, list) or not recipients
+        or not all(isinstance(item, str) and item.strip() for item in recipients)
+        or len(recipients) != len(set(recipients))):
+        raise DecisionError("invalid recipients")
+    attempts = config.get("decision_attempts", 1)
+    if type(attempts) is not int or not 1 <= int(str(attempts)) <= 3:
+        raise DecisionError("invalid decision attempt budget")
+    for name in ("turn", "seed"):
+        if name in config and type(config[name]) is not int:
+            raise DecisionError("invalid participant configuration")
+    for name in ("attempt_journal", "private_candidates", "private_trace"):
+        if name in config and (not isinstance(config[name], str) or not config[name]):
+            raise DecisionError("invalid participant configuration")
 
 
 def participate(config: JsonObject, decide: Decide) -> JsonObject:
+    validate_config(config)
     origin = str(config["origin"])
     principal = str(config["principal"])
     token = str(config["token"])
     discovery = wire.discover(origin)
+    if token in json.dumps(discovery, ensure_ascii=False):
+        raise DecisionError("host response reflected the participant credential")
     endpoints = object_value(discovery.get("endpoints"))
     capabilities = discovery.get("capabilities")
     collaborate = endpoints.get("collaborate")
@@ -343,12 +476,22 @@ def participate(config: JsonObject, decide: Decide) -> JsonObject:
     record = submission(discovery=discovery, principal=principal, recipients=recipients,
                         record_id=str(config["record_id"]), decision=decision, events=events, mode=str(config["mode"]))
     receipt: JsonObject | None = None
+    engine = decide.engine if isinstance(decide, LoopDecision) else None
+    if engine is not None:
+        engine.ensure_deadline()
+        engine.publication_state("stopped" if record is None else "publication_started", record=record)
     if record is not None:
         status, payload = wire.exchange("POST", collaborate, token=token,
                                        body=json.dumps(record, ensure_ascii=False, separators=(",", ":")).encode("utf-8"))
         if status != 200:
             wire._fail(status, payload)
+        if token.encode("utf-8") in payload:
+            raise DecisionError("host response reflected the participant credential")
         receipt = decode(payload)
+        if token in json.dumps(receipt, ensure_ascii=False):
+            raise DecisionError("host response reflected the participant credential")
+        if engine is not None:
+            engine.publication_state("verification_pending", record=record, receipt=receipt)
         if (receipt.get("record_id") != record["id"] or receipt.get("status") != "recorded"
             or receipt.get("type") != "receipt" or receipt.get("world") != discovery["id"]):
             raise DecisionError("unexpected collaboration receipt")
@@ -367,9 +510,14 @@ def participate(config: JsonObject, decide: Decide) -> JsonObject:
             raise DecisionError("stored participant act differs from the submitted act")
         if key == "artifact_revision" and stored.get("revision") != receipt.get("revision"):
             raise DecisionError("assigned revision differs from the receipt")
-    return {"principal": principal, "decision_source": config["mode"], "decision": decision,
+        if engine is not None:
+            engine.publication_state("verified", record=record, receipt=receipt)
+    result: JsonObject = {"principal": principal, "decision_source": config["mode"], "decision": decision,
             "record": record, "receipt": receipt, "visible_event_ids": [event["id"] for event in events],
             "elapsed_seconds": time.monotonic() - started, "outcome": "stopped" if record is None else "recorded"}
+    if engine is not None:
+        result["decision_loop"] = engine.summary()
+    return result
 
 
 def main() -> int:
@@ -377,21 +525,22 @@ def main() -> int:
     parser.add_argument("--config", type=Path, required=True)
     args = parser.parse_args()
     config = decode(args.config.read_bytes())
+    validate_config(config)
+    model: OllamaDecision | None = None
     if config["mode"] == "scripted":
-        def decide(prompt: str, events: list[JsonObject]) -> JsonObject:
-            return scripted_decision(str(config["principal"]), int(str(config["turn"])), events)
-        decider: Decide = decide
+        pass
     elif config["mode"] == "ollama":
         trace = config.get("private_trace")
-        decider = OllamaDecision(str(config["ollama_origin"]), str(config["model"]), int(str(config["seed"])),
+        model = OllamaDecision(str(config["ollama_origin"]), str(config["model"]), int(str(config["seed"])),
                                 Path(trace) if isinstance(trace, str) else None)
     else:
         raise DecisionError("unsupported decision source")
+    decider = LoopDecision(config, model)
     result = participate(config, decider)
-    if isinstance(decider, OllamaDecision):
-        result["provider"] = {"runtime": "ollama", "version": decider.version,
-                              "model": decider.metadata, "options": decider.options,
-                              "metrics": decider.metrics, "truncate": False, "shift": False}
+    if model is not None:
+        result["provider"] = {"runtime": "ollama", "version": model.version,
+                              "model": model.metadata, "options": model.options,
+                              "metrics": model.metrics, "truncate": False, "shift": False}
     print(json.dumps(result, ensure_ascii=False))
     return 0
 
@@ -399,8 +548,8 @@ def main() -> int:
 if __name__ == "__main__":
     try:
         raise SystemExit(main())
-    except (DecisionError, wire.ParticipantError, OSError, ValueError, KeyError) as error:
-        stage = "provider" if isinstance(error, ModelError) else "host" if isinstance(error, wire.ParticipantError) else "invalid_decision_or_client"
+    except (DecisionError, loop.LoopFailure, wire.ParticipantError, OSError, ValueError, KeyError) as error:
+        stage = "provider" if isinstance(error, ModelError) else "decision_loop" if isinstance(error, loop.LoopFailure) else "host" if isinstance(error, wire.ParticipantError) else "invalid_decision_or_client"
         print(json.dumps({"outcome": "failed", "failure_stage": stage,
                           "failure_type": type(error).__name__, "failure": str(error)}))
         raise SystemExit(1)

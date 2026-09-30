@@ -1,0 +1,66 @@
+{
+  "format": "agentciv-decision-loop/0.1",
+  "outcome": "valid",
+  "budget": {
+    "attempts": 1,
+    "output_tokens": 1024,
+    "seconds": 120
+  },
+  "attempts": [
+    {
+      "index": 1,
+      "outcome": "valid",
+      "output_token_limit": 1024,
+      "prompt_sha256": "ab5674b7f86ea68ddba5f15ecc11bfd6751306fd209e547029e1f13e94d5c6af",
+      "candidate_sha256": "9ea6c0c96b05bf626cfade2ef3d3deca1f3da7097aff3b323da9d668e4201ebf",
+      "candidate_bytes": 690,
+      "charged_output_tokens": 145,
+      "output_usage_measured": true,
+      "metrics": {
+        "prompt_eval_count": 2287,
+        "eval_count": 145,
+        "total_duration": 1453891600
+      },
+      "candidate_retained_privately": true
+    }
+  ],
+  "charged_output_tokens": 145,
+  "first_attempt_valid": true,
+  "eventual_valid": true,
+  "exact_candidates_retained_privately": true,
+  "publication": {
+    "outcome": "verified",
+    "record": {
+      "protocol_version": "0.1-draft",
+      "id": "submission:a-2",
+      "world": "civ:experiment",
+      "from": "agent:experiment-a",
+      "to": [
+        "agent:experiment-b",
+        "agent:experiment-c"
+      ],
+      "body": {
+        "text": "This guide explains how to inspect original sources by querying the host for all events under `agent:experiment-a` and a specific artifact_id. Disagreements are preserved by citing conflicting interpretations as `source_event_ids` without endorsement. Citations are references only; authority derives exclusively from the host\u2019s event_id and timestamp. To proceed, revise with a new event_id, citing the target_event_id and relevant sources. To question, object by referencing the target_event_id and sources. To decline, record refusal explicitly. Silence or failure does not invalidate prior work.",
+        "source_event_ids": []
+      },
+      "experiment_provenance": {
+        "decision_source": "ollama",
+        "envelope_source": "local_harness"
+      },
+      "type": "artifact_revision",
+      "artifact_id": "artifact:newcomer-guide",
+      "media_type": "text/plain"
+    },
+    "receipt": {
+      "protocol_version": "0.1-draft",
+      "type": "receipt",
+      "world": "civ:experiment",
+      "record_id": "submission:a-2",
+      "event_id": "event:433e9de2c119841c0bb066be6ddeafeb",
+      "sequence": 3,
+      "status": "recorded",
+      "artifact_id": "artifact:newcomer-guide",
+      "revision": 2
+    }
+  }
+}

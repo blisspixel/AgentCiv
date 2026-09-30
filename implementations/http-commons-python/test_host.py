@@ -1161,10 +1161,6 @@ def runner_command(root: Path, discovery: str) -> list[str]:
         "--peer",
         "agent:two",
     ]
-    for name in ("agentciv-conformance.exe", "agentciv-conformance"):
-        candidate = root / "target" / "debug" / name
-        if candidate.exists():
-            return [str(candidate), *arguments]
     return ["cargo", "run", "--locked", "-p", "agentciv-conformance", "--", *arguments]
 
 

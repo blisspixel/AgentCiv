@@ -165,15 +165,11 @@ def run_one(
 
 
 def binaries() -> tuple[Path, Path]:
-    built = subprocess.run(
-        ["cargo", "build", "--locked", "-p", "agentciv-host", "-p", "agentciv-conformance"],
-        cwd=ROOT, check=False,
-    )
-    if built.returncode != 0:
-        raise ValidationFailure("building the local validation binaries failed")
-    suffix = ".exe" if os.name == "nt" else ""
-    folder = ROOT / "target" / "debug"
-    return folder / f"agentciv-host{suffix}", folder / f"agentciv-conformance{suffix}"
+    try:
+        built = walk.build_rust_binaries("agentciv-host", "agentciv-conformance")
+    except walk.WalkFailure as error:
+        raise ValidationFailure("building the local validation binaries failed") from error
+    return built["agentciv-host"], built["agentciv-conformance"]
 
 
 def run_lifecycle(

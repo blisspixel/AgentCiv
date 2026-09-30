@@ -14,6 +14,7 @@ from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import collaboration as client  # noqa: E402
+import decision_loop as loop  # noqa: E402
 import experiment  # noqa: E402
 import local_participant as wire  # noqa: E402
 
@@ -69,6 +70,7 @@ class DecisionTests(unittest.TestCase):
         bad: list[object] = [None, {"action": "decline"}, {**choice(), "from": "agent:stolen"},
                              choice("execute"), choice("object"), choice("decline", "event:hidden"),
                              {**choice(), "text": ""}, {**choice(), "text": 1},
+                             {**choice(), "text": chr(0xD800)},
                              {**choice(), "text": "x" * 6001}, {**choice(), "target_event_id": []},
                              {**choice(), "source_event_ids": ["event:hidden"]},
                              {**choice(), "source_event_ids": ["event:one", "event:one"]},
@@ -85,9 +87,44 @@ class DecisionTests(unittest.TestCase):
         for payload in (b"not json", b"\xff", b"[]"):
             with self.assertRaises(client.DecisionError):
                 client.decode(payload)
+
+    def test_unicode_is_structurally_valid_but_repository_publication_policy_is_explicit(self) -> None:
         for character in (chr(0x2013), chr(0x2014), chr(0x1F600)):
-            with self.assertRaises(client.DecisionError):
-                client.validate_decision({**choice(), "text": "invalid " + character}, [])
+            decision = {**choice(), "text": "Participant text " + character}
+            with self.subTest(character=hex(ord(character))):
+                self.assertEqual(client.validate_decision(decision, []), decision)
+                with self.assertRaises(client.DecisionError):
+                    client.validate_publication_text(decision)
+                with self.assertRaises(client.DecisionError):
+                    client.submission(discovery={"id": "civ:test"}, principal="agent:new",
+                                      recipients=["agent:author"], record_id="submission:new",
+                                      decision=decision, events=[], mode="ollama")
+                self.assertEqual(decision["text"], "Participant text " + character)
+        permitted = {**choice(), "text": "Inspect the original source: caf\u00e9, \u77e5\u8bc6."}
+        self.assertEqual(client.validate_decision(permitted, []), permitted)
+        client.validate_publication_text(permitted)
+
+    def test_feedback_loop_reports_publication_style_policy_without_altering_candidate(self) -> None:
+        decision = {**choice(), "text": "Participant text " + chr(0x2014)}
+        response: client.JsonObject = {"done": True, "done_reason": "stop",
+                                       "message": {"content": json.dumps(decision)}, "eval_count": 100}
+        inventory: client.JsonObject = {"models": [{"name": "local:8b", "digest": "fixture"}]}
+        config: client.JsonObject = {"origin": "http://127.0.0.1:1", "principal": "agent:a",
+                                     "token": "fixture-token", "record_id": "submission:a",
+                                     "recipients": ["agent:b"], "mode": "ollama", "turn": 1,
+                                     "ollama_origin": "http://127.0.0.1:1", "model": "local:8b", "seed": 42}
+        with patch.object(client, "ollama_exchange", side_effect=[inventory, {}, {"version": "fixture"}, response]):
+            model = client.OllamaDecision("http://127.0.0.1:1", "local:8b", 42, None)
+            decider = client.LoopDecision(config, model)
+            with self.assertRaises(loop.LoopFailure) as caught:
+                decider("Operator task", [])
+        self.assertEqual(caught.exception.code, "attempts_exhausted")
+        engine = decider.engine
+        if engine is None:
+            raise AssertionError("decision loop was not initialized")
+        self.assertEqual(engine.attempts[0]["feedback_code"], "invalid_text")
+        self.assertFalse(engine.summary()["eventual_valid"])
+        self.assertEqual(decision["text"], "Participant text " + chr(0x2014))
 
     def test_pagination_uses_every_source_and_rejects_loops_or_truncation(self) -> None:
         pages = [{"events": [revision()], "has_more": True, "next_cursor": "cursor:one"},

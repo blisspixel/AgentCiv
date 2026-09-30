@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -13,6 +14,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import validate
 import evidence
+import walk
 
 
 def report(policy: str = "addressed") -> dict[str, object]:
@@ -84,6 +86,41 @@ class ReportTests(unittest.TestCase):
             command.return_value.returncode = 1
             with self.assertRaises(validate.ValidationFailure):
                 validate.binaries()
+
+    def test_build_uses_reported_external_executables_not_stale_repository_paths(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            folder = Path(temporary) / "external-build" / "custom-target" / "debug"
+            folder.mkdir(parents=True)
+            paths = {name: folder / name for name in ("agentciv-host", "agentciv-conformance")}
+            for path in paths.values():
+                path.touch()
+            messages: list[dict[str, object]] = [
+                {"reason": "compiler-message"}, {"reason": "build-finished", "success": True},
+                {"reason": "compiler-artifact", "target": {"kind": ["lib"], "name": "agentciv-host"},
+                 "executable": None},
+            ]
+            for name, path in paths.items():
+                messages.append({"reason": "compiler-artifact", "target": {"kind": ["bin"], "name": name},
+                                 "executable": str(path)})
+            completed = subprocess.CompletedProcess(["cargo"], 0, "\n".join(json.dumps(m) for m in messages), "")
+            with patch("walk.subprocess.run", return_value=completed) as command:
+                self.assertEqual(validate.binaries(), (paths["agentciv-host"], paths["agentciv-conformance"]))
+                self.assertIn("--message-format=json", command.call_args.args[0])
+                self.assertEqual(walk.rust_binary(), paths["agentciv-host"])
+
+    def test_build_rejects_missing_ambiguous_or_malformed_artifact_reports(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            binary = Path(temporary) / "host"
+            binary.touch()
+            artifact = {"reason": "compiler-artifact", "target": {"kind": ["bin"], "name": "agentciv-host"},
+                        "executable": str(binary)}
+            for payload in ("not JSON", "[]", "{}", json.dumps(artifact) + "\n" + json.dumps(artifact),
+                            json.dumps({**artifact, "executable": str(binary.with_name("absent"))}),
+                            json.dumps({"reason": "compiler-artifact", "target": None, "executable": str(binary)})):
+                with self.subTest(payload=payload):
+                    completed = subprocess.CompletedProcess(["cargo"], 0, payload, "")
+                    with patch("walk.subprocess.run", return_value=completed), self.assertRaises(walk.WalkFailure):
+                        walk.build_rust_binaries("agentciv-host")
 
     def test_lifecycle_requires_every_case_and_matching_summary(self) -> None:
         for phase, inventory in validate.LIFECYCLE_CASES.items():

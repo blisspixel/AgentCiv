@@ -42,6 +42,13 @@ Maintained executable code includes the Rust checker, black-box runner, two loop
 
 Run the Python coverage gate using the same commands as Linux CI. Use a new output filename if `local-validation.json` already holds evidence you want to keep:
 
+For a checkout on a constrained drive, set `CARGO_TARGET_DIR` to an external
+build directory before these commands. Local host and runner selection uses
+Cargo's reported executable artifacts rather than assuming `target/debug`.
+Set `TEMP`, `TMP`, and `TMPDIR` to an existing scratch directory before launching
+Python and Rust when test temporary files should use that drive. These are
+operator environment settings, not repository-specific absolute paths.
+
 ```sh
 python -m coverage erase
 python -m coverage run -m unittest implementations/http-commons-python/test_host.py

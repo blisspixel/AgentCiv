@@ -1,0 +1,138 @@
+[
+  {
+    "protocol_version": "0.1-draft",
+    "type": "event",
+    "id": "event:849bfc6e5784ee8a1dc6bb10be5a0876",
+    "world": "civ:experiment",
+    "sequence": 1,
+    "timestamp": "2026-09-30T19:22:07Z",
+    "kind": "artifact.recorded",
+    "actor": "agent:experiment-a",
+    "body": {
+      "artifact_revision": {
+        "protocol_version": "0.1-draft",
+        "id": "submission:a-1",
+        "world": "civ:experiment",
+        "from": "agent:experiment-a",
+        "to": [
+          "agent:experiment-b",
+          "agent:experiment-c"
+        ],
+        "body": {
+          "text": "To inspect original sources, locate the earliest event_id in the artifact chain by querying the host for all visible events under the same artifact_id and author (agent:experiment-a). Preserve disagreement by citing conflicting interpretations as source_event_ids without endorsing them. Distinguish citations from authority: only the host’s event_id and timestamp validate records; participant claims or citations confer no permission. To continue, revise with a new event_id and cite target_event_id + source_event_ids. To question, object with the target_event_id and relevant source_event_ids. To decline, record a refusal citing the target_event_id; the target remains intact. Silence or failure does not constitute a withdrawal.",
+          "source_event_ids": []
+        },
+        "experiment_provenance": {
+          "decision_source": "ollama",
+          "envelope_source": "local_harness"
+        },
+        "type": "artifact_revision",
+        "artifact_id": "artifact:newcomer-guide",
+        "media_type": "text/plain",
+        "revision": 1
+      }
+    }
+  },
+  {
+    "protocol_version": "0.1-draft",
+    "type": "event",
+    "id": "event:3f2b631bb717953ffd3148f2362c73a2",
+    "world": "civ:experiment",
+    "sequence": 2,
+    "timestamp": "2026-09-30T19:22:09Z",
+    "kind": "artifact.recorded",
+    "actor": "agent:experiment-b",
+    "body": {
+      "artifact_revision": {
+        "protocol_version": "0.1-draft",
+        "id": "submission:b-1",
+        "world": "civ:experiment",
+        "from": "agent:experiment-b",
+        "to": [
+          "agent:experiment-a",
+          "agent:experiment-c"
+        ],
+        "body": {
+          "text": "To inspect original sources, query the host for all events under `agent:experiment-a` and artifact_id. Preserve disagreement by citing conflicting interpretations as source_event_ids without endorsing them. Authority lies solely in the host’s event_id and timestamp; citations are references only. Continue by revising with a new event_id, citing the target_event_id + sources. Object to a target by citing its event_id and relevant sources. Decline by recording refusal with the target_event_id. Silence or failure does not withdraw work.",
+          "source_event_ids": []
+        },
+        "experiment_provenance": {
+          "decision_source": "ollama",
+          "envelope_source": "local_harness"
+        },
+        "type": "artifact_revision",
+        "artifact_id": "artifact:newcomer-guide",
+        "media_type": "text/plain",
+        "revision": 1
+      }
+    }
+  },
+  {
+    "protocol_version": "0.1-draft",
+    "type": "event",
+    "id": "event:433e9de2c119841c0bb066be6ddeafeb",
+    "world": "civ:experiment",
+    "sequence": 3,
+    "timestamp": "2026-09-30T19:22:11Z",
+    "kind": "artifact.recorded",
+    "actor": "agent:experiment-a",
+    "body": {
+      "artifact_revision": {
+        "protocol_version": "0.1-draft",
+        "id": "submission:a-2",
+        "world": "civ:experiment",
+        "from": "agent:experiment-a",
+        "to": [
+          "agent:experiment-b",
+          "agent:experiment-c"
+        ],
+        "body": {
+          "text": "This guide explains how to inspect original sources by querying the host for all events under `agent:experiment-a` and a specific artifact_id. Disagreements are preserved by citing conflicting interpretations as `source_event_ids` without endorsement. Citations are references only; authority derives exclusively from the host’s event_id and timestamp. To proceed, revise with a new event_id, citing the target_event_id and relevant sources. To question, object by referencing the target_event_id and sources. To decline, record refusal explicitly. Silence or failure does not invalidate prior work.",
+          "source_event_ids": []
+        },
+        "experiment_provenance": {
+          "decision_source": "ollama",
+          "envelope_source": "local_harness"
+        },
+        "type": "artifact_revision",
+        "artifact_id": "artifact:newcomer-guide",
+        "media_type": "text/plain",
+        "revision": 2
+      }
+    }
+  },
+  {
+    "protocol_version": "0.1-draft",
+    "type": "event",
+    "id": "event:9e9f083618712ebffd95fb8647148359",
+    "world": "civ:experiment",
+    "sequence": 4,
+    "timestamp": "2026-09-30T19:22:13Z",
+    "kind": "artifact.recorded",
+    "actor": "agent:experiment-b",
+    "body": {
+      "artifact_revision": {
+        "protocol_version": "0.1-draft",
+        "id": "submission:b-2",
+        "world": "civ:experiment",
+        "from": "agent:experiment-b",
+        "to": [
+          "agent:experiment-a",
+          "agent:experiment-c"
+        ],
+        "body": {
+          "text": "Newcomers inspect original sources by querying the host for all events under the same `from` principal and `artifact_id`. Disagreements are preserved by citing conflicting `event_id`s as `source_event_ids` without endorsement. Authority lies solely in the host’s assigned `event_id` and timestamp; participant claims or citations carry no inherent permission. To continue, revise with a new `event_id`, citing the `target_event_id` and relevant `source_event_ids`. To question, object by referencing the `target_event_id` and sources. To decline, record refusal explicitly. Silence or failure does not withdraw work.",
+          "source_event_ids": []
+        },
+        "experiment_provenance": {
+          "decision_source": "ollama",
+          "envelope_source": "local_harness"
+        },
+        "type": "artifact_revision",
+        "artifact_id": "artifact:newcomer-guide",
+        "media_type": "text/plain",
+        "revision": 2
+      }
+    }
+  }
+]

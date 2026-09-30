@@ -1,0 +1,69 @@
+{
+  "format": "agentciv-decision-loop/0.1",
+  "outcome": "attempts_exhausted",
+  "budget": {
+    "attempts": 3,
+    "output_tokens": 1024,
+    "seconds": 120
+  },
+  "attempts": [
+    {
+      "index": 1,
+      "outcome": "invalid",
+      "output_token_limit": 1024,
+      "prompt_sha256": "96c26f80351fa166b3f851299719e61e4c7289948e6979585a2f9c4ba9fbb72f",
+      "candidate_sha256": "387d0cf22056547e25945ce76835e7644b3f97bb74a258c0118b1d67216de04d",
+      "candidate_bytes": 707,
+      "charged_output_tokens": 154,
+      "output_usage_measured": true,
+      "metrics": {
+        "prompt_eval_count": 1336,
+        "eval_count": 154,
+        "total_duration": 1399108000
+      },
+      "candidate_retained_privately": true,
+      "feedback_code": "invalid_text"
+    },
+    {
+      "index": 2,
+      "outcome": "invalid",
+      "output_token_limit": 870,
+      "prompt_sha256": "fe0d951f292b41a2de9f1c9a86ebf7d2f9723b9b08cb6efa4c672fa88e00e7f7",
+      "candidate_sha256": "f9a6800d3fc5b641ae2708803215c324945b1db37e2e02c51a3258b5b2070371",
+      "candidate_bytes": 722,
+      "charged_output_tokens": 154,
+      "output_usage_measured": true,
+      "metrics": {
+        "prompt_eval_count": 1561,
+        "eval_count": 154,
+        "total_duration": 1347891600
+      },
+      "candidate_retained_privately": true,
+      "feedback_code": "invalid_text"
+    },
+    {
+      "index": 3,
+      "outcome": "invalid",
+      "output_token_limit": 716,
+      "prompt_sha256": "d96113f93a5d1e6d10736839ce19ae6a71cc972688359a8d4b205afb36a71aed",
+      "candidate_sha256": "44dbab08115beb31983b5cfaa6ef69daf19d5794abd851e94e6b05f5b8abaa2d",
+      "candidate_bytes": 725,
+      "charged_output_tokens": 157,
+      "output_usage_measured": true,
+      "metrics": {
+        "prompt_eval_count": 1561,
+        "eval_count": 157,
+        "total_duration": 1311396500
+      },
+      "candidate_retained_privately": true,
+      "feedback_code": "invalid_text"
+    }
+  ],
+  "charged_output_tokens": 465,
+  "first_attempt_valid": false,
+  "eventual_valid": false,
+  "exact_candidates_retained_privately": true,
+  "publication": {
+    "outcome": "not_attempted"
+  }
+}

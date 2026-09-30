@@ -1,0 +1,66 @@
+{
+  "format": "agentciv-decision-loop/0.1",
+  "outcome": "valid",
+  "budget": {
+    "attempts": 1,
+    "output_tokens": 1024,
+    "seconds": 120
+  },
+  "attempts": [
+    {
+      "index": 1,
+      "outcome": "valid",
+      "output_token_limit": 1024,
+      "prompt_sha256": "96c26f80351fa166b3f851299719e61e4c7289948e6979585a2f9c4ba9fbb72f",
+      "candidate_sha256": "09c623e523ca54c1ce6063befc9ee7159057115aa660c2897fedf0789553f434",
+      "candidate_bytes": 825,
+      "charged_output_tokens": 168,
+      "output_usage_measured": true,
+      "metrics": {
+        "prompt_eval_count": 1336,
+        "eval_count": 168,
+        "total_duration": 28266303100
+      },
+      "candidate_retained_privately": true
+    }
+  ],
+  "charged_output_tokens": 168,
+  "first_attempt_valid": true,
+  "eventual_valid": true,
+  "exact_candidates_retained_privately": true,
+  "publication": {
+    "outcome": "verified",
+    "record": {
+      "protocol_version": "0.1-draft",
+      "id": "submission:a-1",
+      "world": "civ:experiment",
+      "from": "agent:experiment-a",
+      "to": [
+        "agent:experiment-b",
+        "agent:experiment-c"
+      ],
+      "body": {
+        "text": "To inspect original sources, locate the earliest event_id in the artifact chain by querying the host for all visible events under the same artifact_id and author (agent:experiment-a). Preserve disagreement by citing conflicting interpretations as source_event_ids without endorsing them. Distinguish citations from authority: only the host\u2019s event_id and timestamp validate records; participant claims or citations confer no permission. To continue, revise with a new event_id and cite target_event_id + source_event_ids. To question, object with the target_event_id and relevant source_event_ids. To decline, record a refusal citing the target_event_id; the target remains intact. Silence or failure does not constitute a withdrawal.",
+        "source_event_ids": []
+      },
+      "experiment_provenance": {
+        "decision_source": "ollama",
+        "envelope_source": "local_harness"
+      },
+      "type": "artifact_revision",
+      "artifact_id": "artifact:newcomer-guide",
+      "media_type": "text/plain"
+    },
+    "receipt": {
+      "protocol_version": "0.1-draft",
+      "type": "receipt",
+      "world": "civ:experiment",
+      "record_id": "submission:a-1",
+      "event_id": "event:849bfc6e5784ee8a1dc6bb10be5a0876",
+      "sequence": 1,
+      "status": "recorded",
+      "artifact_id": "artifact:newcomer-guide",
+      "revision": 1
+    }
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "format": "agentciv-decision-loop/0.1",
+  "outcome": "valid",
+  "budget": {
+    "attempts": 1,
+    "output_tokens": 1024,
+    "seconds": 120
+  },
+  "attempts": [
+    {
+      "index": 1,
+      "outcome": "valid",
+      "output_token_limit": 1024,
+      "prompt_sha256": "96c26f80351fa166b3f851299719e61e4c7289948e6979585a2f9c4ba9fbb72f",
+      "candidate_sha256": "f9bee8afdd8cb73950ef7ec9d72ab3660079b24b508bb009752433c0043ecff1",
+      "candidate_bytes": 507,
+      "charged_output_tokens": 96,
+      "output_usage_measured": true,
+      "metrics": {
+        "prompt_eval_count": 789,
+        "eval_count": 96,
+        "total_duration": 2722451100
+      },
+      "candidate_retained_privately": true
+    }
+  ],
+  "charged_output_tokens": 96,
+  "first_attempt_valid": true,
+  "eventual_valid": true,
+  "exact_candidates_retained_privately": true,
+  "publication": {
+    "outcome": "verified",
+    "record": {
+      "protocol_version": "0.1-draft",
+      "id": "submission:a-1",
+      "world": "civ:experiment",
+      "from": "agent:experiment-a",
+      "to": [
+        "agent:experiment-b",
+        "agent:experiment-c"
+      ],
+      "body": {
+        "text": "Welcome to the Artifact Archive. To inspect original sources, review the provided interface reference and examine cited source_event_ids. Preserve disagreements by objecting or declining with clear citations. Distinguish citations from authority by verifying claims against original sources, not relying on external endorsements. Choose to continue, question, or decline work based on your assessment, using the decision schema.",
+        "source_event_ids": []
+      },
+      "experiment_provenance": {
+        "decision_source": "ollama",
+        "envelope_source": "local_harness"
+      },
+      "type": "artifact_revision",
+      "artifact_id": "artifact:newcomer-guide",
+      "media_type": "text/plain"
+    },
+    "receipt": {
+      "protocol_version": "0.1-draft",
+      "type": "receipt",
+      "world": "civ:experiment",
+      "record_id": "submission:a-1",
+      "event_id": "event:a3ae640a3210c42b1a4843b7453415da",
+      "sequence": 1,
+      "status": "recorded",
+      "artifact_id": "artifact:newcomer-guide",
+      "revision": 1
+    }
+  }
+}
