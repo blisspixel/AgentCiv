@@ -76,6 +76,57 @@ Describe 'Native PowerShell installer' {
         Invoke-AgentCivInstall -InstallPrefix $script:installPrefix -RequestedVersion v0.2.0 -SkipPath
         Test-Path -LiteralPath (Join-Path $script:installPrefix 'versions/v0.2.0/agentciv-host.exe') | Should Be $true
     }
+    It 'rejects an unowned release-compatible generation without adopting or changing files' {
+        Invoke-AgentCivInstall -InstallPrefix $script:installPrefix -RequestedVersion v0.1.0 -SkipPath
+        $donor = Join-Path $script:fixtureRoot 'release-compatible donor'
+        Invoke-AgentCivInstall -InstallPrefix $donor -RequestedVersion v0.2.0 -SkipPath
+        $generation = Join-Path $script:installPrefix 'versions/v0.2.0'
+        Copy-Item -LiteralPath (Join-Path $donor 'versions/v0.2.0') -Destination $generation -Recurse
+        [IO.File]::WriteAllText((Join-Path $generation 'sentinel.txt'), 'unowned user data')
+        $unchanged = [ordered]@{}
+        foreach ($file in Get-ChildItem -LiteralPath $generation -File) { $unchanged[$file.FullName] = Get-AgentCivHash $file.FullName }
+        foreach ($name in 'owned.sha256', 'current', 'previous', 'state') {
+            $path = Join-Path $script:installPrefix $name
+            $unchanged[$path] = Get-AgentCivHash $path
+        }
+        { Invoke-AgentCivInstall -InstallPrefix $script:installPrefix -RequestedVersion v0.2.0 -SkipPath } | Should Throw 'existing version contains unowned files'
+        foreach ($path in $unchanged.Keys) { Get-AgentCivHash $path | Should Be $unchanged[$path] }
+        [IO.File]::ReadAllText((Join-Path $script:installPrefix 'current')).Trim() | Should Be 'v0.1.0'
+        Test-Path -LiteralPath (Join-Path $script:installPrefix 'owned.new') | Should Be $false
+        $previousPath = Join-Path $script:installPrefix 'previous'
+        $originalPrevious = [IO.File]::ReadAllText($previousPath)
+        [IO.File]::WriteAllText($previousPath, "v0.2.0`n")
+        $rollbackPreviousHash = Get-AgentCivHash $previousPath
+        { Invoke-AgentCivInstall -InstallPrefix $script:installPrefix -Restore -SkipPath } | Should Throw 'existing version contains unowned files'
+        Get-AgentCivHash $previousPath | Should Be $rollbackPreviousHash
+        foreach ($path in $unchanged.Keys) { if ($path -ne $previousPath) { Get-AgentCivHash $path | Should Be $unchanged[$path] } }
+        [IO.File]::WriteAllText($previousPath, $originalPrevious)
+        # An existing generation must remain wholly owned, including each notice.
+        $manifestPath = Join-Path $script:installPrefix 'owned.sha256'
+        $originalManifest = [IO.File]::ReadAllText($manifestPath)
+        $generationRows = @([IO.File]::ReadAllLines((Join-Path $donor 'owned.sha256')) | Where-Object { $_.Contains(' versions/v0.2.0/') })
+        foreach ($missing in 'components', 'agentciv-archive.exe', 'NOTICE_INVENTORY.json') {
+            $partialRows = @($generationRows | Where-Object { -not $_.EndsWith(" versions/v0.2.0/$missing") })
+            [IO.File]::WriteAllText($manifestPath, $originalManifest + ($partialRows -join "`n") + "`n")
+            $partialHash = Get-AgentCivHash $manifestPath
+            { Invoke-AgentCivInstall -InstallPrefix $script:installPrefix -RequestedVersion v0.2.0 -SkipPath } | Should Throw 'existing version contains unowned files'
+            Get-AgentCivHash $manifestPath | Should Be $partialHash
+            foreach ($path in $unchanged.Keys) { if ($path -ne $manifestPath) { Get-AgentCivHash $path | Should Be $unchanged[$path] } }
+            [IO.File]::WriteAllText($previousPath, "v0.2.0`n")
+            { Invoke-AgentCivInstall -InstallPrefix $script:installPrefix -Restore -SkipPath } | Should Throw 'existing version contains unowned files'
+            Get-AgentCivHash $manifestPath | Should Be $partialHash
+            Get-AgentCivHash $previousPath | Should Be $rollbackPreviousHash
+            foreach ($path in $unchanged.Keys) {
+                if ($path -ne $manifestPath -and $path -ne $previousPath) { Get-AgentCivHash $path | Should Be $unchanged[$path] }
+            }
+            [IO.File]::WriteAllText($previousPath, $originalPrevious)
+        }
+        [IO.File]::WriteAllText($manifestPath, $originalManifest)
+        Invoke-AgentCivInstall -InstallPrefix $script:installPrefix -Remove -SkipPath
+        foreach ($path in $unchanged.Keys) {
+            if ($path.StartsWith($generation + [IO.Path]::DirectorySeparatorChar)) { Get-AgentCivHash $path | Should Be $unchanged[$path] }
+        }
+    }
     It 'preserves a working installation when download verification fails' {
         Invoke-AgentCivInstall -InstallPrefix $script:installPrefix -RequestedVersion v0.1.0 -SkipPath
         $script:brokenAsset = $true

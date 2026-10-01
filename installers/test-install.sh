@@ -129,6 +129,55 @@ export AGENTCIV_TEST_CPU
 # Broken releases cannot change an already working current pointer.
 healthy=$scratch/healthy
 run --prefix "$healthy" --version v0.1.0
+# Release-equivalent bytes do not grant the installer ownership of existing files.
+unowned=$scratch/unowned-generation
+donor=$scratch/release-compatible-donor
+run --prefix "$unowned" --version v0.1.0
+run --prefix "$donor" --version v0.2.0
+cp -R "$donor/versions/v0.2.0" "$unowned/versions/v0.2.0"
+printf 'unowned user data\n' > "$unowned/versions/v0.2.0/sentinel.txt"
+cp "$unowned/owned.sha256" "$scratch/unowned-original-manifest"
+for path in "$unowned/versions/v0.2.0/"* "$unowned/current" "$unowned/previous" "$unowned/state" "$unowned/owned.sha256"; do
+    printf '%s %s\n' "$(digest "$path")" "$path"
+done > "$scratch/unowned-original-hashes"
+reject --prefix "$unowned" --version v0.2.0
+grep -q 'existing version contains unowned files' "$scratch/stderr"
+while IFS=' ' read -r expected path; do [ "$(digest "$path")" = "$expected" ]; done < "$scratch/unowned-original-hashes"
+[ "$(cat "$unowned/current")" = v0.1.0 ] && [ ! -e "$unowned/owned.new" ]
+cp "$unowned/previous" "$scratch/unowned-original-previous"
+printf '%s\n' v0.2.0 > "$unowned/previous"
+rollback_previous_hash=$(digest "$unowned/previous")
+reject --prefix "$unowned" --rollback
+grep -q 'existing version contains unowned files' "$scratch/stderr"
+[ "$(digest "$unowned/previous")" = "$rollback_previous_hash" ]
+while IFS=' ' read -r expected path; do
+    if [ "$path" != "$unowned/previous" ]; then [ "$(digest "$path")" = "$expected" ]; fi
+done < "$scratch/unowned-original-hashes"
+cp "$scratch/unowned-original-previous" "$unowned/previous"
+for missing in components agentciv-archive NOTICE_INVENTORY.json; do
+    cat "$scratch/unowned-original-manifest" > "$unowned/owned.sha256"
+    awk -v missing="versions/v0.2.0/$missing" '$2 ~ /^versions\/v0\.2\.0\// && $2 != missing' "$donor/owned.sha256" >> "$unowned/owned.sha256"
+    partial_hash=$(digest "$unowned/owned.sha256")
+    reject --prefix "$unowned" --version v0.2.0
+    grep -q 'existing version contains unowned files' "$scratch/stderr"
+    [ "$(digest "$unowned/owned.sha256")" = "$partial_hash" ]
+    while IFS=' ' read -r expected path; do
+        if [ "$path" != "$unowned/owned.sha256" ]; then [ "$(digest "$path")" = "$expected" ]; fi
+    done < "$scratch/unowned-original-hashes"
+    printf '%s\n' v0.2.0 > "$unowned/previous"
+    reject --prefix "$unowned" --rollback
+    grep -q 'existing version contains unowned files' "$scratch/stderr"
+    [ "$(digest "$unowned/owned.sha256")" = "$partial_hash" ] && [ "$(digest "$unowned/previous")" = "$rollback_previous_hash" ]
+    while IFS=' ' read -r expected path; do
+        if [ "$path" != "$unowned/owned.sha256" ] && [ "$path" != "$unowned/previous" ]; then [ "$(digest "$path")" = "$expected" ]; fi
+    done < "$scratch/unowned-original-hashes"
+    cp "$scratch/unowned-original-previous" "$unowned/previous"
+done
+cp "$scratch/unowned-original-manifest" "$unowned/owned.sha256"
+run --prefix "$unowned" --uninstall
+while IFS=' ' read -r expected path; do
+    case "$path" in "$unowned/versions/v0.2.0/"*) [ "$(digest "$path")" = "$expected" ] ;; esac
+done < "$scratch/unowned-original-hashes"
 cp "$healthy/owned.sha256" "$scratch/original-ownership"
 cat "$scratch/original-ownership" >> "$healthy/owned.sha256"
 reject --prefix "$healthy" --uninstall

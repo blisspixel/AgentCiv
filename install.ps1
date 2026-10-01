@@ -219,7 +219,12 @@ function Invoke-AgentCivInstall {
         if ($Restore) {
             if ($previous -eq 'none') { throw 'no previous version' }
             $resolvedVersion = $previous
+            if (-not $owned.Contains("versions/$resolvedVersion/components")) { throw 'existing version contains unowned files' }
             $components = [IO.File]::ReadAllText((Join-Path $root "versions/$resolvedVersion/components")).Trim() -split ' '
+            $requiredFiles = @('LICENSE', 'THIRD_PARTY_NOTICES.txt', 'NOTICE_INVENTORY.json') + @($components | ForEach-Object { "$_.exe" })
+            foreach ($requiredFile in $requiredFiles) {
+                if (-not $owned.Contains("versions/$resolvedVersion/$requiredFile")) { throw 'existing version contains unowned files' }
+            }
         } else {
             $target = Get-AgentCivTarget
             $temporary = Join-Path ([IO.Path]::GetTempPath()) ('agentciv-install-' + [Guid]::NewGuid().ToString('N'))
@@ -257,6 +262,10 @@ function Invoke-AgentCivInstall {
             $destination = Join-Path $root "versions/$resolvedVersion"
             Test-AgentCivPath $destination
             if (Test-Path -LiteralPath $destination) {
+                $requiredFiles = @('components', 'LICENSE', 'THIRD_PARTY_NOTICES.txt', 'NOTICE_INVENTORY.json') + @($components | ForEach-Object { "$_.exe" })
+                foreach ($requiredFile in $requiredFiles) {
+                    if (-not $owned.Contains("versions/$resolvedVersion/$requiredFile")) { throw 'existing version contains unowned files' }
+                }
                 if ([IO.File]::ReadAllText((Join-Path $destination 'components')).Trim() -ne ($components -join ' ')) { throw 'version installed with different components' }
                 foreach ($component in $components) {
                     if ((Get-AgentCivHash (Join-Path $destination "$component.exe")) -ne (Get-AgentCivHash (Join-Path $temporary "$component.exe"))) { throw 'existing version differs from release' }

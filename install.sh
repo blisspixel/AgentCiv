@@ -62,6 +62,9 @@ verify_owned() {
         [ "$(hash_file "$prefix/$relative")" = "$expected" ] || fail 'owned file changed; preserve it and resolve manually'
     done < "$prefix/owned.sha256"
 }
+require_owned_path() {
+    awk -v path="$1" '$2 == path { found=1 } END { exit !found }' "$prefix/owned.sha256" || fail 'existing version contains unowned files'
+}
 current=none
 previous=none
 if [ -e "$prefix" ]; then
@@ -120,7 +123,9 @@ fi
 if [ "$operation" = rollback ]; then
     [ "$previous" != none ] || fail 'no previous version'
     version=$previous
+    require_owned_path "versions/$version/components"
     components=$(cat "$prefix/versions/$version/components")
+    for required in LICENSE THIRD_PARTY_NOTICES.txt NOTICE_INVENTORY.json $components; do require_owned_path "versions/$version/$required"; done
 else
     # Explicit updates retain optional tools already installed.
     if [ "$current" != none ] && grep -Fq agentciv-host "$prefix/versions/$current/components"; then
@@ -169,6 +174,9 @@ else
     # A private staging directory lives on the destination volume for rename.
     destination=$prefix/versions/$version
     if [ -e "$destination" ]; then
+        for required in components LICENSE THIRD_PARTY_NOTICES.txt NOTICE_INVENTORY.json $components; do
+            require_owned_path "versions/$version/$required"
+        done
         [ "$(cat "$destination/components")" = "$components" ] || fail 'version already installed with different components'
         for component in $components; do
             cmp -s "$temp/$component" "$destination/$component" || fail 'existing version differs from release'
