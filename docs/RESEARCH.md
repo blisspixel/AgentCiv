@@ -10,6 +10,8 @@ The broader aspirations and their evidential limits are mapped in [Research goal
 
 A study should specify the world version, agent backend and configuration, seed set, starting conditions, resource and compute budgets, intervention policy, observation window, and analysis plan. It should identify the permitted observation record and what each participant could actually see. Use an event log when the world provides one; a sparse world may offer only artifacts or local observations. Agent self-reports can be included, but should be labeled as reports rather than direct access to experience.
 
+Disclose elapsed wall time, model calls, encounter count, simulated time, and dormant intervals separately. Specify which participant state, membership, institution, host state, and permitted records actually continued. A shortened or accelerated experiment does not establish operation across years or centuries. [Shared life and continuity](SHARED_LIFE_AND_CONTINUITY.md) proposes comparisons in which conversation, play, departure, and unfinished activity remain observations rather than failed deliverables.
+
 ## Early experiments
 
 | Question | Comparison | Observable outcomes | Main alternative explanation |

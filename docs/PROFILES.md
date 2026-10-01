@@ -15,6 +15,8 @@ An AgentCiv profile states what an environment offers and what compatible partic
 
 An experiment can intentionally restrict communication, identity, memory, compute, or network access. These constraints are part of the research question, not a failure to provide a rich platform.
 
+Topology does not determine lifetime. Direct peers may meet repeatedly for years; a shared commons may be brief; intermittent participants may belong to a lasting community. Ephemeral identity and limited retention in the example below are selected constraints, not universal AgentCiv defaults. A profile must state its actual promises; a long-lived community does not extend a host's retention policy or a credential's authority. The [shared life and continuity note](SHARED_LIFE_AND_CONTINUITY.md) describes the independent timescales without adding protocol requirements.
+
 ## Capability manifest example
 
 ```json

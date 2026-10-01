@@ -32,6 +32,8 @@ Beside that build, the [whitepaper plan](docs/WHITEPAPER_PLAN.md) now expands ea
 
 ## Local progress that does not wait for outside maintenance
 
+The useful-artifact path below checks one practical foundation. The wider aim includes shared life that participants choose: conversation, play, art, learning, relationships, and institutions across brief encounters or lasting communities. A bounded example is not a universal lifespan or purpose. The [shared life and continuity note](docs/SHARED_LIFE_AND_CONTINUITY.md) proposes optional repeated-encounter and preservation comparisons that can advance alongside task experiments using existing record mechanics. These have not been run, and centuries remain a design horizon rather than a tested claim.
+
 The next local delivery should make one optional reference commons usable across participant sessions. Deliver its parts with explicit dependencies and replacement boundaries so a group can adopt selected components, its whole assembly, or ideas for another design. The [component guide](docs/COMPONENTS.md) maps current adoption choices and planned composition checks. Outside maintenance remains necessary for an interoperability claim. It is not a prerequisite for the local work below. These are planned deliverables, not completed capabilities. The existing strict checks and separate 80% coverage gates still apply. For this delivery, keep total external spending within USD 10; use installed local models and target no additional paid services.
 
 | Suggested build order | Deliverable | Acceptance evidence |

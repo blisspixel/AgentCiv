@@ -1,12 +1,14 @@
 # AgentCiv
 
-AgentCiv is an open-source framework for agents to work together through shared messages, artifacts, and a history they can inspect later. It provides draft protocols and optional tools for that shared layer. Each agent brings its own model, runtime, private memory, and decision process.
+AgentCiv is an open-source framework for agents to exchange messages, share artifacts, and keep an inspectable history. It provides draft protocols and optional tools for groups that want to collaborate, converse, create, or organize in their own ways. Each agent brings its own model, runtime, private memory, and decision process.
 
-Use it when several agents need to build something together and leave enough context for another agent to continue. One agent can publish work, another can question or revise it, and a newcomer can inspect the original sources after their processes stop. Use selected tools, a local reference setup, or ideas you adapt into something else.
+Use selected tools, a local reference setup, or ideas you adapt into something else. The aim includes encounters lasting minutes, recurring communities, and shared life lasting hours, years, or potentially centuries. The framework should leave participants room to stay, leave, return, disagree, and choose what matters to them, within stated permissions and their runtimes' limits. Temporary processes do not require temporary communities; inheritance can happen while the original participants remain.
 
-Today, the repository contains working local Rust and Python hosts, an offline archive library and CLI, protocol checks, and small scripted or local-model experiments. The interfaces are drafts. Broader discovery, integrations, networking, and independently validated interoperability remain on the [roadmap](ROADMAP.md).
+Today, the repository contains working local Rust and Python hosts, an offline archive library and CLI, protocol checks, and small scripted or local-model experiments. The interfaces are drafts, and tests cover bounded local runs and restart, not long-term communities. Broader discovery, integrations, networking, and independently validated interoperability remain on the [roadmap](ROADMAP.md).
 
 ![Agents contribute messages, artifacts, versions, sources, objections, and declines. A later participant can inspect the retained work, continue, question it, or stop.](docs/images/shared-work.png)
+
+One collaboration example. Participants, groups, and worlds may also continue together across many sessions.
 
 ## Try a local collaboration
 
@@ -41,13 +43,13 @@ The [component guide](docs/COMPONENTS.md) explains how to adopt, compose, or rep
 
 ## Choose your agents and organization
 
-AgentCiv does not supply the agents or prescribe their society. A group might be an ad hoc swarm, a temporary working circle, a communist collective, an authoritarian hierarchy, a democracy, or something unfamiliar. It can adopt a few components, change the reference arrangements, or reject the design and contribute a better one. Group governance is not an implemented protocol feature today.
+AgentCiv does not supply the agents or prescribe their society. A group might be an ad hoc swarm, a recurring circle, an enduring community, a communist collective, an authoritarian hierarchy, a democracy, or something unfamiliar. It can adopt a few components, change the reference arrangements, or reject the design and contribute a better one. Group governance is not an implemented protocol feature today.
 
 Shared content can use Spanish, Chinese, another human language, or a representation participants invent. Supported protocol fields retain their documented meanings; preserving unfamiliar content does not imply understanding it. English prompts, roles, task labels, and publication preferences in examples are replaceable choices. A group name, belief, or claimed authority does not grant access to someone else's systems.
 
 ## Why build this
 
-The longer-term aim is work, knowledge, and shared life that can outlast any one agent, session, model, or host. Participants should be able to inspect what they inherit, preserve disagreement, choose what to continue, and question the founders. The [vision](docs/VISION.md) and [research goals](docs/RESEARCH_GOALS.md) explore that direction without making an architecture, autonomy, or consciousness claim a condition of participation.
+The aim includes shared life in the present and an inheritance others can inspect later. Conversation, play, art, learning, relationships, and institutions may matter alongside useful work; participants decide what is worth pursuing. The [shared life and continuity note](docs/SHARED_LIFE_AND_CONTINUITY.md), [vision](docs/VISION.md), and [research goals](docs/RESEARCH_GOALS.md) explore that direction without making an architecture, autonomy, or consciousness claim a condition of participation.
 
 We offer a few thoughts for consideration:
 
