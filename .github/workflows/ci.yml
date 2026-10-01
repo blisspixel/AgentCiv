@@ -71,10 +71,12 @@ jobs:
       - name: Native lint, tests, and 80 percent command coverage
         shell: powershell
         run: |
-          Install-Module Pester -RequiredVersion 4.10.1 -Scope CurrentUser -Force
-          Install-Module PSScriptAnalyzer -RequiredVersion 1.24.0 -Scope CurrentUser -Force
-          Import-Module Pester -RequiredVersion 4.10.1 -Force
-          Import-Module PSScriptAnalyzer -RequiredVersion 1.24.0 -Force
+          $testModules = Join-Path $env:RUNNER_TEMP 'installer-test-modules'
+          [void][IO.Directory]::CreateDirectory($testModules)
+          Save-Module Pester -RequiredVersion 4.10.1 -Path $testModules -Force
+          Save-Module PSScriptAnalyzer -RequiredVersion 1.24.0 -Path $testModules -Force
+          Import-Module (Join-Path $testModules 'Pester/4.10.1/Pester.psd1') -Force
+          Import-Module (Join-Path $testModules 'PSScriptAnalyzer/1.24.0/PSScriptAnalyzer.psd1') -Force
           $issues = @(Invoke-ScriptAnalyzer -Path install.ps1 -Severity Warning,Error)
           if ($issues.Count) { $issues | Format-Table; throw 'installer lint failed' }
           $result = Invoke-Pester -Script installers/test-install.ps1 -CodeCoverage install.ps1 -PassThru

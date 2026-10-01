@@ -8,7 +8,19 @@ export AGENTCIV_NATIVE_RELEASE AGENTCIV_NATIVE_VERSION
 AGENTCIV_NATIVE_REPOSITORY=$repository
 export AGENTCIV_NATIVE_REPOSITORY
 scratch=$(mktemp -d "${TMPDIR:-/tmp}/agentciv-native-smoke.XXXXXXXX")
-trap 'rm -rf -- "$scratch"' EXIT HUP INT TERM
+scratch=$(CDPATH='' cd "$scratch" && pwd -P)
+smoke_stage=setup
+cleanup() {
+    smoke_status=$?
+    trap - EXIT HUP INT TERM
+    if [ "$smoke_status" -ne 0 ]; then printf 'Native POSIX installer smoke failed (exit %s): %s\n' "$smoke_status" "$smoke_stage" >&2; fi
+    rm -rf -- "$scratch"
+    exit "$smoke_status"
+}
+trap cleanup EXIT
+trap 'exit 129' HUP
+trap 'exit 130' INT
+trap 'exit 143' TERM
 mkdir "$scratch/commands"
 cat > "$scratch/commands/curl" <<'SCRIPT'
 #!/bin/sh
@@ -47,13 +59,20 @@ chmod 755 "$scratch/commands/curl"
 PATH=$scratch/commands:$PATH
 export PATH
 prefix=$scratch/installed\ with\ spaces
+smoke_stage='initial install'
 sh "$repository/install.sh" --prefix "$prefix" --version "$AGENTCIV_NATIVE_VERSION" --with-host-tools
+smoke_stage='archive demo'
 "$prefix/bin/agentciv-archive" demo > "$scratch/demo.json"
+smoke_stage='archive demo validation'
 grep -q source_authenticity "$scratch/demo.json"
 for tool in agentciv-archive agentciv-reader agentciv-host agentciv-conformance; do
+    smoke_stage="version check: $tool"
     [ "$("$prefix/bin/$tool" --version)" = "$tool ${AGENTCIV_NATIVE_VERSION#v}" ]
 done
+smoke_stage=reinstall
 sh "$repository/install.sh" --prefix "$prefix" --version "$AGENTCIV_NATIVE_VERSION"
+smoke_stage=uninstall
 sh "$repository/install.sh" --prefix "$prefix" --uninstall
+smoke_stage='uninstall directory check'
 [ ! -e "$prefix" ]
 printf '%s\n' 'Native POSIX installer fixture smoke passed.'

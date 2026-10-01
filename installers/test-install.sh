@@ -3,7 +3,26 @@
 set -eu
 repository=$(CDPATH='' cd "$(dirname "$0")/.." && pwd)
 scratch=$(mktemp -d "${TMPDIR:-/tmp}/agentciv-installer-tests.XXXXXXXX")
-trap 'rm -rf -- "$scratch"' EXIT HUP INT TERM
+scratch=$(CDPATH='' cd "$scratch" && pwd -P)
+cleanup() {
+    fixture_status=$?
+    trap - EXIT HUP INT TERM
+    if [ "$fixture_status" -ne 0 ]; then
+        printf 'Shell installer fixture failed (exit %s, case %s): %s\n' "$fixture_status" "${case_number:-0}" "${last_arguments:-setup}" >&2
+        for stream in stdout stderr; do
+            if [ -f "$scratch/$stream" ]; then
+                printf '%s\n' "Last installer $stream:" >&2
+                cat "$scratch/$stream" >&2 || :
+            fi
+        done
+    fi
+    rm -rf -- "$scratch"
+    exit "$fixture_status"
+}
+trap cleanup EXIT
+trap 'exit 129' HUP
+trap 'exit 130' INT
+trap 'exit 143' TERM
 mkdir "$scratch/commands" "$scratch/releases"
 export AGENTCIV_FIXTURE="$scratch/releases"
 export AGENTCIV_TEST_LOG="$scratch/downloads"
@@ -69,6 +88,7 @@ case_number=0
 if [ -n "${AGENTCIV_COVERAGE_DIR:-}" ]; then mkdir -p "$AGENTCIV_COVERAGE_DIR"; fi
 run() {
     case_number=$((case_number + 1))
+    last_arguments=$*
     if [ -n "${AGENTCIV_COVERAGE_DIR:-}" ]; then
         kcov --bash-parser="$(command -v bash)" --bash-dont-parse-binary-dir --include-path="$repository/install.sh" "$AGENTCIV_COVERAGE_DIR/case-$case_number" "$repository/install.sh" "$@" > "$scratch/stdout" 2> "$scratch/stderr"
     else
