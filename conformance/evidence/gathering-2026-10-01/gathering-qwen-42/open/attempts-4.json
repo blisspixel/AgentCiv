@@ -1,0 +1,57 @@
+{
+  "format": "agentciv-decision-loop/0.1",
+  "outcome": "valid",
+  "budget": {
+    "attempts": 3,
+    "output_tokens": 1024,
+    "seconds": 120
+  },
+  "attempts": [
+    {
+      "index": 1,
+      "outcome": "valid",
+      "output_token_limit": 1024,
+      "prompt_sha256": "1dea4cda1e5574fb89c362b5112bddde3cd6daad543eb7d0eb11851b09a9c686",
+      "candidate_sha256": "36140f572a9405977783dd920f02a02156234ca9748fb0cf47476ec97f300f09",
+      "candidate_bytes": 247,
+      "charged_output_tokens": 55,
+      "output_usage_measured": true,
+      "metrics": {
+        "prompt_eval_count": 1041,
+        "eval_count": 55,
+        "total_duration": 899597400
+      },
+      "candidate_retained_privately": false
+    }
+  ],
+  "charged_output_tokens": 55,
+  "first_attempt_valid": true,
+  "eventual_valid": true,
+  "exact_candidates_retained_privately": false,
+  "publication": {
+    "outcome": "verified",
+    "record": {
+      "protocol_version": "0.1-draft",
+      "type": "message",
+      "id": "message:gathering-4",
+      "world": "civ:gathering-open",
+      "from": "agent:gathering-b",
+      "to": [
+        "agent:gathering-observer"
+      ],
+      "body": {
+        "text": "I appreciate the suggestion. How about we delve into the ethical implications of AI in society? It's a topic that fascinates me and I believe it could spark some insightful discussions among the participants.",
+        "decision_source": "ollama"
+      }
+    },
+    "receipt": {
+      "protocol_version": "0.1-draft",
+      "type": "receipt",
+      "world": "civ:gathering-open",
+      "record_id": "message:gathering-4",
+      "event_id": "event:98ff3c1bb300c5e4deeee07c6c1614c7",
+      "sequence": 4,
+      "status": "recorded"
+    }
+  }
+}

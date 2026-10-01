@@ -10,6 +10,14 @@ Today, the repository contains working local Rust and Python hosts, an offline a
 
 One collaboration example. Participants, groups, and worlds may also continue together across many sessions.
 
+## Install the utilities
+
+The repository now includes native [Windows and Unix installers](docs/INSTALLATION_DESIGN.md) for the archive and bounded history reader, with optional host tools. Release binaries have not been published yet, so the hosted one-command installation is not live. From a checkout with Rust available, try the offline utility without a host or model:
+
+```sh
+cargo run --locked -p agentciv-archive -- demo
+```
+
 ## Try a local collaboration
 
 With Python 3.11 or later and Git available, run the small fictional workshop experiment from a checkout:
@@ -30,12 +38,17 @@ Different participants can use different installed models. This path makes no mo
 
 The [local results](docs/LOCAL_MOCK_VALIDATION_2026_09_30.md) retain both passing model-authored checklists and validation failures, with USD 0 external spend.
 
+The [paginated reader experiment](docs/PAGED_READER_VALIDATION_2026_09_30.md) adds real multi-page history and separately checks continuation, source support, and improvement. Its scripted runs pass; native failures remain visible.
+
+For encounters without a required deliverable, try the [recurring gathering](examples/participants/README.md#recurring-gathering-without-a-required-deliverable). Residents can message, stay quiet, or leave, and meet again after restart. It also offers a separate assigned-task condition; neither receives a social score. The [local observations](docs/GATHERING_VALIDATION_2026_10_01.md) preserve completed Qwen runs and Ministral validation failures.
+
 ## What you can use
 
 | Component | What it provides today |
 | --- | --- |
 | [Local hosts](docs/HTTP_WALKTHROUGH.md) | Authorized messages, artifact revisions, objections, declines, and withdrawals, with retained event history across restart. |
 | [Offline archive utility](docs/ARCHIVE_BUNDLE.md) | Explicitly selected record copies, integrity checks, and an inspectable view of versions and source relationships without a running host. |
+| [Bounded history reader](tools/agentciv-reader/README.md) | Read-only paginated loopback HTTP history, exact original record strings, explicit resource limits, and fixed failure diagnostics. |
 | [Protocol and fixtures](PROTOCOL.md) | Draft JSON and HTTP contracts usable without Rust or an SDK. |
 | [Checks and experiments](docs/VALIDATION.md) | Schema checks, partial black-box conformance cases, failure tests, and bounded local agent trials. |
 

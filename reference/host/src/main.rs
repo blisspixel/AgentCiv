@@ -6,7 +6,21 @@ use agentciv_host::{load_config, serve};
 
 fn main() -> ExitCode {
     let mut args = env::args().skip(1);
-    let (Some(flag), Some(path)) = (args.next(), args.next()) else {
+    let (flag, path) = (args.next(), args.next());
+    if path.is_none() {
+        match flag.as_deref() {
+            Some("--help" | "-h") => {
+                println!("usage: agentciv-host --config CONFIG\nOptions: --help, --version");
+                return ExitCode::SUCCESS;
+            }
+            Some("--version" | "-V") => {
+                println!("agentciv-host {}", env!("CARGO_PKG_VERSION"));
+                return ExitCode::SUCCESS;
+            }
+            _ => {}
+        }
+    }
+    let (Some(flag), Some(path)) = (flag, path) else {
         eprintln!("usage: agentciv-host --config CONFIG");
         return ExitCode::FAILURE;
     };

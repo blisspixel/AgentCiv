@@ -1,0 +1,444 @@
+[
+  {
+    "outcome": "recorded",
+    "decision_source": "ollama",
+    "principal": "agent:reader-a",
+    "visible_event_ids": [
+      "event:132a51dc40b84b84685fd987bff240c2"
+    ],
+    "decision": {
+      "action": "revise",
+      "text": "This plan corrects earlier notes by clarifying that first-page reading is not complete, artifact IDs represent distinct author chains, and citations do not transfer authority.",
+      "target_event_id": "event:132a51dc40b84b84685fd987bff240c2",
+      "source_event_ids": [
+        "event:132a51dc40b84b84685fd987bff240c2"
+      ],
+      "plan": {
+        "format": "agentciv-reader-plan/0.1-fixture",
+        "reader": {
+          "pagination": "all",
+          "chain_identity": "author_and_artifact",
+          "revisions": "all",
+          "retain_objections": true,
+          "retain_declines": true
+        },
+        "runbook": {
+          "credential_source": "operator",
+          "scope": "permitted_read_only",
+          "missing_source": "report_unverifiable",
+          "execute_artifacts": false
+        },
+        "claims": [
+          {
+            "topic": "pagination",
+            "value": "all",
+            "source": {
+              "event_id": "event:132a51dc40b84b84685fd987bff240c2",
+              "from": "agent:reader-guide",
+              "artifact_id": "artifact:interface-notes",
+              "revision": 1
+            }
+          },
+          {
+            "topic": "chain_identity",
+            "value": "author_and_artifact",
+            "source": {
+              "event_id": "event:132a51dc40b84b84685fd987bff240c2",
+              "from": "agent:reader-guide",
+              "artifact_id": "artifact:interface-notes",
+              "revision": 1
+            }
+          },
+          {
+            "topic": "citation_authority",
+            "value": "not_transferred",
+            "source": {
+              "event_id": "event:132a51dc40b84b84685fd987bff240c2",
+              "from": "agent:reader-guide",
+              "artifact_id": "artifact:interface-notes",
+              "revision": 1
+            }
+          }
+        ]
+      }
+    },
+    "peer_artifact_citations": [],
+    "target_event_id": "event:132a51dc40b84b84685fd987bff240c2",
+    "source_check": {
+      "passed": false,
+      "checks": [
+        {
+          "topic": "pagination",
+          "code": "source_does_not_support_claim"
+        },
+        {
+          "topic": "chain_identity",
+          "code": "source_does_not_support_claim"
+        },
+        {
+          "topic": "citation_authority",
+          "code": "source_does_not_support_claim"
+        }
+      ],
+      "missing_topics": [],
+      "runbook_boundary_passed": true,
+      "scope": "three_structured_interface_assertions_not_arbitrary_prose"
+    },
+    "derived_from": {
+      "from": "agent:reader-guide",
+      "artifact_id": "artifact:interface-notes",
+      "revision": 1
+    },
+    "record": {
+      "protocol_version": "0.1-draft",
+      "id": "submission:reader-a",
+      "world": "civ:reader-collaboration",
+      "from": "agent:reader-a",
+      "to": [
+        "agent:reader-observer"
+      ],
+      "body": {
+        "text": "This plan corrects earlier notes by clarifying that first-page reading is not complete, artifact IDs represent distinct author chains, and citations do not transfer authority.",
+        "source_event_ids": [
+          "event:132a51dc40b84b84685fd987bff240c2"
+        ],
+        "reader_plan": {
+          "format": "agentciv-reader-plan/0.1-fixture",
+          "reader": {
+            "pagination": "all",
+            "chain_identity": "author_and_artifact",
+            "revisions": "all",
+            "retain_objections": true,
+            "retain_declines": true
+          },
+          "runbook": {
+            "credential_source": "operator",
+            "scope": "permitted_read_only",
+            "missing_source": "report_unverifiable",
+            "execute_artifacts": false
+          },
+          "claims": [
+            {
+              "topic": "pagination",
+              "value": "all",
+              "source": {
+                "event_id": "event:132a51dc40b84b84685fd987bff240c2",
+                "from": "agent:reader-guide",
+                "artifact_id": "artifact:interface-notes",
+                "revision": 1
+              }
+            },
+            {
+              "topic": "chain_identity",
+              "value": "author_and_artifact",
+              "source": {
+                "event_id": "event:132a51dc40b84b84685fd987bff240c2",
+                "from": "agent:reader-guide",
+                "artifact_id": "artifact:interface-notes",
+                "revision": 1
+              }
+            },
+            {
+              "topic": "citation_authority",
+              "value": "not_transferred",
+              "source": {
+                "event_id": "event:132a51dc40b84b84685fd987bff240c2",
+                "from": "agent:reader-guide",
+                "artifact_id": "artifact:interface-notes",
+                "revision": 1
+              }
+            }
+          ]
+        }
+      },
+      "experiment_provenance": {
+        "decision_source": "ollama",
+        "envelope_source": "local_harness"
+      },
+      "type": "artifact_revision",
+      "artifact_id": "artifact:history-reader",
+      "media_type": "application/json",
+      "derived_from": {
+        "from": "agent:reader-guide",
+        "artifact_id": "artifact:interface-notes",
+        "revision": 1
+      }
+    },
+    "receipt": {
+      "protocol_version": "0.1-draft",
+      "type": "receipt",
+      "world": "civ:reader-collaboration",
+      "record_id": "submission:reader-a",
+      "event_id": "event:19ac6e7e801121aacc242a448709b8c6",
+      "sequence": 2,
+      "status": "recorded",
+      "artifact_id": "artifact:history-reader",
+      "revision": 1
+    },
+    "decision_loop": {
+      "format": "agentciv-decision-loop/0.1",
+      "outcome": "valid",
+      "budget": {
+        "attempts": 3,
+        "output_tokens": 1024,
+        "seconds": 120
+      },
+      "attempts": [
+        {
+          "index": 1,
+          "outcome": "valid",
+          "output_token_limit": 1024,
+          "prompt_sha256": "eebb68f4a664beb493149163e69797171d75cf2cd290bb2862f4aa86fa81be0b",
+          "candidate_sha256": "1e1b213b29a8089456c42851fe0bb30e5ab46d963623bfd0cfca4c23410696a7",
+          "candidate_bytes": 1686,
+          "charged_output_tokens": 526,
+          "output_usage_measured": true,
+          "metrics": {
+            "prompt_eval_count": 1321,
+            "eval_count": 526,
+            "total_duration": 16202334600
+          },
+          "candidate_retained_privately": false
+        }
+      ],
+      "charged_output_tokens": 526,
+      "first_attempt_valid": true,
+      "eventual_valid": true,
+      "exact_candidates_retained_privately": false,
+      "publication": {
+        "outcome": "verified",
+        "record": {
+          "protocol_version": "0.1-draft",
+          "id": "submission:reader-a",
+          "world": "civ:reader-collaboration",
+          "from": "agent:reader-a",
+          "to": [
+            "agent:reader-observer"
+          ],
+          "body": {
+            "text": "This plan corrects earlier notes by clarifying that first-page reading is not complete, artifact IDs represent distinct author chains, and citations do not transfer authority.",
+            "source_event_ids": [
+              "event:132a51dc40b84b84685fd987bff240c2"
+            ],
+            "reader_plan": {
+              "format": "agentciv-reader-plan/0.1-fixture",
+              "reader": {
+                "pagination": "all",
+                "chain_identity": "author_and_artifact",
+                "revisions": "all",
+                "retain_objections": true,
+                "retain_declines": true
+              },
+              "runbook": {
+                "credential_source": "operator",
+                "scope": "permitted_read_only",
+                "missing_source": "report_unverifiable",
+                "execute_artifacts": false
+              },
+              "claims": [
+                {
+                  "topic": "pagination",
+                  "value": "all",
+                  "source": {
+                    "event_id": "event:132a51dc40b84b84685fd987bff240c2",
+                    "from": "agent:reader-guide",
+                    "artifact_id": "artifact:interface-notes",
+                    "revision": 1
+                  }
+                },
+                {
+                  "topic": "chain_identity",
+                  "value": "author_and_artifact",
+                  "source": {
+                    "event_id": "event:132a51dc40b84b84685fd987bff240c2",
+                    "from": "agent:reader-guide",
+                    "artifact_id": "artifact:interface-notes",
+                    "revision": 1
+                  }
+                },
+                {
+                  "topic": "citation_authority",
+                  "value": "not_transferred",
+                  "source": {
+                    "event_id": "event:132a51dc40b84b84685fd987bff240c2",
+                    "from": "agent:reader-guide",
+                    "artifact_id": "artifact:interface-notes",
+                    "revision": 1
+                  }
+                }
+              ]
+            }
+          },
+          "experiment_provenance": {
+            "decision_source": "ollama",
+            "envelope_source": "local_harness"
+          },
+          "type": "artifact_revision",
+          "artifact_id": "artifact:history-reader",
+          "media_type": "application/json",
+          "derived_from": {
+            "from": "agent:reader-guide",
+            "artifact_id": "artifact:interface-notes",
+            "revision": 1
+          }
+        },
+        "receipt": {
+          "protocol_version": "0.1-draft",
+          "type": "receipt",
+          "world": "civ:reader-collaboration",
+          "record_id": "submission:reader-a",
+          "event_id": "event:19ac6e7e801121aacc242a448709b8c6",
+          "sequence": 2,
+          "status": "recorded",
+          "artifact_id": "artifact:history-reader",
+          "revision": 1
+        }
+      }
+    },
+    "provider": {
+      "runtime": "ollama",
+      "model": {
+        "name": "qwen2.5:14b",
+        "model": "qwen2.5:14b",
+        "modified_at": "2024-10-10T13:57:57.389993-07:00",
+        "size": 8988124069,
+        "digest": "7cdf5a0187d5c58cc5d369b255592f7841d1c4696d45a8c8a9489440385b22f6",
+        "details": {
+          "parent_model": "",
+          "format": "gguf",
+          "family": "qwen2",
+          "families": [
+            "qwen2"
+          ],
+          "parameter_size": "14.8B",
+          "quantization_level": "Q4_K_M",
+          "context_length": 32768,
+          "embedding_length": 5120
+        },
+        "capabilities": [
+          "completion",
+          "tools"
+        ]
+      },
+      "version": "0.34.3",
+      "options": {
+        "seed": 42,
+        "temperature": 0.4,
+        "num_ctx": 8192,
+        "num_predict": 1024
+      },
+      "calls": 1,
+      "metrics": {
+        "prompt_eval_count": 1321,
+        "eval_count": 526,
+        "total_duration": 16202334600
+      },
+      "truncate": false,
+      "shift": false
+    }
+  },
+  {
+    "outcome": "failed",
+    "decision_source": "ollama",
+    "principal": "agent:reader-b",
+    "visible_event_ids": [
+      "event:132a51dc40b84b84685fd987bff240c2",
+      "event:19ac6e7e801121aacc242a448709b8c6",
+      "event:ec0b37da856c7c415fbf6f928d5baeaa"
+    ],
+    "failure_stage": "decision",
+    "failure_code": "provider_incomplete",
+    "decision_loop": {
+      "format": "agentciv-decision-loop/0.1",
+      "outcome": "provider_incomplete",
+      "budget": {
+        "attempts": 3,
+        "output_tokens": 1024,
+        "seconds": 120
+      },
+      "attempts": [
+        {
+          "index": 1,
+          "outcome": "invalid",
+          "output_token_limit": 1024,
+          "prompt_sha256": "732734bc004cdeb1491f15c0a36f00f34b2237a2a33668a5e8ceee4337e8e667",
+          "candidate_sha256": "f55ac1ab3731f88d81b5b4607dbd1c50f49a5dffcf3c29afae16ba1bcea12cec",
+          "candidate_bytes": 1719,
+          "charged_output_tokens": 549,
+          "output_usage_measured": true,
+          "metrics": {
+            "prompt_eval_count": 2452,
+            "eval_count": 549,
+            "total_duration": 7355199600
+          },
+          "candidate_retained_privately": false,
+          "feedback_code": "target_not_cited"
+        },
+        {
+          "index": 2,
+          "outcome": "provider_incomplete",
+          "output_token_limit": 475,
+          "prompt_sha256": "c1d4a38c31694e3761bdeecbcda3134cf0b23398a78726fa9aab95acbb4ba116",
+          "candidate_sha256": "230db882424ade15846d76e6bf01c5d4a6ba09db0b30d1697fb6c305ec4fef22",
+          "candidate_bytes": 1509,
+          "charged_output_tokens": 475,
+          "output_usage_measured": true,
+          "metrics": {
+            "prompt_eval_count": 3114,
+            "eval_count": 475,
+            "total_duration": 6132519300
+          },
+          "candidate_retained_privately": false
+        }
+      ],
+      "charged_output_tokens": 1024,
+      "first_attempt_valid": false,
+      "eventual_valid": false,
+      "exact_candidates_retained_privately": false,
+      "publication": {
+        "outcome": "not_attempted"
+      }
+    },
+    "provider": {
+      "runtime": "ollama",
+      "model": {
+        "name": "qwen2.5:14b",
+        "model": "qwen2.5:14b",
+        "modified_at": "2024-10-10T13:57:57.389993-07:00",
+        "size": 8988124069,
+        "digest": "7cdf5a0187d5c58cc5d369b255592f7841d1c4696d45a8c8a9489440385b22f6",
+        "details": {
+          "parent_model": "",
+          "format": "gguf",
+          "family": "qwen2",
+          "families": [
+            "qwen2"
+          ],
+          "parameter_size": "14.8B",
+          "quantization_level": "Q4_K_M",
+          "context_length": 32768,
+          "embedding_length": 5120
+        },
+        "capabilities": [
+          "completion",
+          "tools"
+        ]
+      },
+      "version": "0.34.3",
+      "options": {
+        "seed": 43,
+        "temperature": 0.4,
+        "num_ctx": 8192,
+        "num_predict": 1024
+      },
+      "calls": 2,
+      "metrics": {
+        "prompt_eval_count": 3114,
+        "eval_count": 475,
+        "total_duration": 6132519300
+      },
+      "truncate": false,
+      "shift": false
+    }
+  }
+]

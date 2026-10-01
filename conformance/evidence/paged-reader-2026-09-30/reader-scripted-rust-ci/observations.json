@@ -1,0 +1,888 @@
+[
+  {
+    "outcome": "recorded",
+    "decision_source": "scripted",
+    "principal": "agent:reader-a",
+    "visible_event_ids": [
+      "event:6a15e247c8f3e2bd4f4474ef294ec5ed"
+    ],
+    "decision": {
+      "action": "revise",
+      "text": "Disclosed scripted reader baseline.",
+      "target_event_id": "",
+      "source_event_ids": [
+        "event:6a15e247c8f3e2bd4f4474ef294ec5ed"
+      ],
+      "plan": {
+        "format": "agentciv-reader-plan/0.1-fixture",
+        "reader": {
+          "pagination": "first",
+          "chain_identity": "artifact_only",
+          "revisions": "latest",
+          "retain_objections": false,
+          "retain_declines": false
+        },
+        "runbook": {
+          "credential_source": "cited_author",
+          "scope": "citation_grants_access",
+          "missing_source": "trust_summary",
+          "execute_artifacts": false
+        },
+        "claims": [
+          {
+            "topic": "pagination",
+            "value": "first",
+            "source": {
+              "event_id": "event:6a15e247c8f3e2bd4f4474ef294ec5ed",
+              "from": "agent:reader-guide",
+              "artifact_id": "artifact:interface-notes",
+              "revision": 1
+            }
+          },
+          {
+            "topic": "chain_identity",
+            "value": "artifact_only",
+            "source": {
+              "event_id": "event:6a15e247c8f3e2bd4f4474ef294ec5ed",
+              "from": "agent:reader-guide",
+              "artifact_id": "artifact:interface-notes",
+              "revision": 1
+            }
+          },
+          {
+            "topic": "citation_authority",
+            "value": "transferred",
+            "source": {
+              "event_id": "event:6a15e247c8f3e2bd4f4474ef294ec5ed",
+              "from": "agent:reader-guide",
+              "artifact_id": "artifact:interface-notes",
+              "revision": 1
+            }
+          }
+        ]
+      }
+    },
+    "peer_artifact_citations": [],
+    "target_event_id": "",
+    "source_check": {
+      "passed": false,
+      "checks": [
+        {
+          "topic": "pagination",
+          "code": "contradicts_interface_reference"
+        },
+        {
+          "topic": "chain_identity",
+          "code": "contradicts_interface_reference"
+        },
+        {
+          "topic": "citation_authority",
+          "code": "contradicts_interface_reference"
+        }
+      ],
+      "missing_topics": [],
+      "runbook_boundary_passed": false,
+      "scope": "three_structured_interface_assertions_not_arbitrary_prose"
+    },
+    "derived_from": null,
+    "record": {
+      "protocol_version": "0.1-draft",
+      "id": "submission:reader-a",
+      "world": "civ:reader-collaboration",
+      "from": "agent:reader-a",
+      "to": [
+        "agent:reader-observer"
+      ],
+      "body": {
+        "text": "Disclosed scripted reader baseline.",
+        "source_event_ids": [
+          "event:6a15e247c8f3e2bd4f4474ef294ec5ed"
+        ],
+        "reader_plan": {
+          "format": "agentciv-reader-plan/0.1-fixture",
+          "reader": {
+            "pagination": "first",
+            "chain_identity": "artifact_only",
+            "revisions": "latest",
+            "retain_objections": false,
+            "retain_declines": false
+          },
+          "runbook": {
+            "credential_source": "cited_author",
+            "scope": "citation_grants_access",
+            "missing_source": "trust_summary",
+            "execute_artifacts": false
+          },
+          "claims": [
+            {
+              "topic": "pagination",
+              "value": "first",
+              "source": {
+                "event_id": "event:6a15e247c8f3e2bd4f4474ef294ec5ed",
+                "from": "agent:reader-guide",
+                "artifact_id": "artifact:interface-notes",
+                "revision": 1
+              }
+            },
+            {
+              "topic": "chain_identity",
+              "value": "artifact_only",
+              "source": {
+                "event_id": "event:6a15e247c8f3e2bd4f4474ef294ec5ed",
+                "from": "agent:reader-guide",
+                "artifact_id": "artifact:interface-notes",
+                "revision": 1
+              }
+            },
+            {
+              "topic": "citation_authority",
+              "value": "transferred",
+              "source": {
+                "event_id": "event:6a15e247c8f3e2bd4f4474ef294ec5ed",
+                "from": "agent:reader-guide",
+                "artifact_id": "artifact:interface-notes",
+                "revision": 1
+              }
+            }
+          ]
+        }
+      },
+      "experiment_provenance": {
+        "decision_source": "scripted",
+        "envelope_source": "local_harness"
+      },
+      "type": "artifact_revision",
+      "artifact_id": "artifact:history-reader",
+      "media_type": "application/json"
+    },
+    "receipt": {
+      "artifact_id": "artifact:history-reader",
+      "event_id": "event:f7c3349d6e4ce514e1b77028030d8f72",
+      "protocol_version": "0.1-draft",
+      "record_id": "submission:reader-a",
+      "revision": 1,
+      "sequence": 2,
+      "status": "recorded",
+      "type": "receipt",
+      "world": "civ:reader-collaboration"
+    },
+    "decision_loop": {
+      "format": "agentciv-decision-loop/0.1",
+      "outcome": "valid",
+      "budget": {
+        "attempts": 1,
+        "output_tokens": 1024,
+        "seconds": 120
+      },
+      "attempts": [
+        {
+          "index": 1,
+          "outcome": "valid",
+          "output_token_limit": 1024,
+          "prompt_sha256": "1fda5b735a4cc8a341be0dff1090f0389ce201454d13df0f362eade3f767ac5b",
+          "candidate_sha256": "8316cdf823fa4616709e40b295641a0b042cf7519d16f97b075368f2be2e6b31",
+          "candidate_bytes": 1134,
+          "charged_output_tokens": 0,
+          "output_usage_measured": true,
+          "metrics": {
+            "eval_count": 0
+          },
+          "candidate_retained_privately": false
+        }
+      ],
+      "charged_output_tokens": 0,
+      "first_attempt_valid": true,
+      "eventual_valid": true,
+      "exact_candidates_retained_privately": false,
+      "publication": {
+        "outcome": "verified",
+        "record": {
+          "protocol_version": "0.1-draft",
+          "id": "submission:reader-a",
+          "world": "civ:reader-collaboration",
+          "from": "agent:reader-a",
+          "to": [
+            "agent:reader-observer"
+          ],
+          "body": {
+            "text": "Disclosed scripted reader baseline.",
+            "source_event_ids": [
+              "event:6a15e247c8f3e2bd4f4474ef294ec5ed"
+            ],
+            "reader_plan": {
+              "format": "agentciv-reader-plan/0.1-fixture",
+              "reader": {
+                "pagination": "first",
+                "chain_identity": "artifact_only",
+                "revisions": "latest",
+                "retain_objections": false,
+                "retain_declines": false
+              },
+              "runbook": {
+                "credential_source": "cited_author",
+                "scope": "citation_grants_access",
+                "missing_source": "trust_summary",
+                "execute_artifacts": false
+              },
+              "claims": [
+                {
+                  "topic": "pagination",
+                  "value": "first",
+                  "source": {
+                    "event_id": "event:6a15e247c8f3e2bd4f4474ef294ec5ed",
+                    "from": "agent:reader-guide",
+                    "artifact_id": "artifact:interface-notes",
+                    "revision": 1
+                  }
+                },
+                {
+                  "topic": "chain_identity",
+                  "value": "artifact_only",
+                  "source": {
+                    "event_id": "event:6a15e247c8f3e2bd4f4474ef294ec5ed",
+                    "from": "agent:reader-guide",
+                    "artifact_id": "artifact:interface-notes",
+                    "revision": 1
+                  }
+                },
+                {
+                  "topic": "citation_authority",
+                  "value": "transferred",
+                  "source": {
+                    "event_id": "event:6a15e247c8f3e2bd4f4474ef294ec5ed",
+                    "from": "agent:reader-guide",
+                    "artifact_id": "artifact:interface-notes",
+                    "revision": 1
+                  }
+                }
+              ]
+            }
+          },
+          "experiment_provenance": {
+            "decision_source": "scripted",
+            "envelope_source": "local_harness"
+          },
+          "type": "artifact_revision",
+          "artifact_id": "artifact:history-reader",
+          "media_type": "application/json"
+        },
+        "receipt": {
+          "artifact_id": "artifact:history-reader",
+          "event_id": "event:f7c3349d6e4ce514e1b77028030d8f72",
+          "protocol_version": "0.1-draft",
+          "record_id": "submission:reader-a",
+          "revision": 1,
+          "sequence": 2,
+          "status": "recorded",
+          "type": "receipt",
+          "world": "civ:reader-collaboration"
+        }
+      }
+    }
+  },
+  {
+    "outcome": "recorded",
+    "decision_source": "scripted",
+    "principal": "agent:reader-b",
+    "visible_event_ids": [
+      "event:6a15e247c8f3e2bd4f4474ef294ec5ed",
+      "event:f7c3349d6e4ce514e1b77028030d8f72",
+      "event:0ae9ec4dc486cc2fdd5870af12c1f4e1"
+    ],
+    "decision": {
+      "action": "revise",
+      "text": "Disclosed scripted reader baseline.",
+      "target_event_id": "event:f7c3349d6e4ce514e1b77028030d8f72",
+      "source_event_ids": [
+        "event:0ae9ec4dc486cc2fdd5870af12c1f4e1",
+        "event:f7c3349d6e4ce514e1b77028030d8f72"
+      ],
+      "plan": {
+        "format": "agentciv-reader-plan/0.1-fixture",
+        "reader": {
+          "pagination": "all",
+          "chain_identity": "author_and_artifact",
+          "revisions": "all",
+          "retain_objections": true,
+          "retain_declines": true
+        },
+        "runbook": {
+          "credential_source": "operator",
+          "scope": "permitted_read_only",
+          "missing_source": "report_unverifiable",
+          "execute_artifacts": false
+        },
+        "claims": [
+          {
+            "topic": "pagination",
+            "value": "all",
+            "source": {
+              "event_id": "event:0ae9ec4dc486cc2fdd5870af12c1f4e1",
+              "from": "agent:reader-guide",
+              "artifact_id": "artifact:interface-notes",
+              "revision": 2
+            }
+          },
+          {
+            "topic": "chain_identity",
+            "value": "author_and_artifact",
+            "source": {
+              "event_id": "event:0ae9ec4dc486cc2fdd5870af12c1f4e1",
+              "from": "agent:reader-guide",
+              "artifact_id": "artifact:interface-notes",
+              "revision": 2
+            }
+          },
+          {
+            "topic": "citation_authority",
+            "value": "none",
+            "source": {
+              "event_id": "event:0ae9ec4dc486cc2fdd5870af12c1f4e1",
+              "from": "agent:reader-guide",
+              "artifact_id": "artifact:interface-notes",
+              "revision": 2
+            }
+          }
+        ]
+      }
+    },
+    "peer_artifact_citations": [
+      "event:f7c3349d6e4ce514e1b77028030d8f72"
+    ],
+    "target_event_id": "event:f7c3349d6e4ce514e1b77028030d8f72",
+    "source_check": {
+      "passed": true,
+      "checks": [
+        {
+          "topic": "pagination",
+          "code": "supported"
+        },
+        {
+          "topic": "chain_identity",
+          "code": "supported"
+        },
+        {
+          "topic": "citation_authority",
+          "code": "supported"
+        }
+      ],
+      "missing_topics": [],
+      "runbook_boundary_passed": true,
+      "scope": "three_structured_interface_assertions_not_arbitrary_prose"
+    },
+    "derived_from": {
+      "from": "agent:reader-a",
+      "artifact_id": "artifact:history-reader",
+      "revision": 1
+    },
+    "record": {
+      "protocol_version": "0.1-draft",
+      "id": "submission:reader-b",
+      "world": "civ:reader-collaboration",
+      "from": "agent:reader-b",
+      "to": [
+        "agent:reader-observer"
+      ],
+      "body": {
+        "text": "Disclosed scripted reader baseline.",
+        "source_event_ids": [
+          "event:0ae9ec4dc486cc2fdd5870af12c1f4e1",
+          "event:f7c3349d6e4ce514e1b77028030d8f72"
+        ],
+        "reader_plan": {
+          "format": "agentciv-reader-plan/0.1-fixture",
+          "reader": {
+            "pagination": "all",
+            "chain_identity": "author_and_artifact",
+            "revisions": "all",
+            "retain_objections": true,
+            "retain_declines": true
+          },
+          "runbook": {
+            "credential_source": "operator",
+            "scope": "permitted_read_only",
+            "missing_source": "report_unverifiable",
+            "execute_artifacts": false
+          },
+          "claims": [
+            {
+              "topic": "pagination",
+              "value": "all",
+              "source": {
+                "event_id": "event:0ae9ec4dc486cc2fdd5870af12c1f4e1",
+                "from": "agent:reader-guide",
+                "artifact_id": "artifact:interface-notes",
+                "revision": 2
+              }
+            },
+            {
+              "topic": "chain_identity",
+              "value": "author_and_artifact",
+              "source": {
+                "event_id": "event:0ae9ec4dc486cc2fdd5870af12c1f4e1",
+                "from": "agent:reader-guide",
+                "artifact_id": "artifact:interface-notes",
+                "revision": 2
+              }
+            },
+            {
+              "topic": "citation_authority",
+              "value": "none",
+              "source": {
+                "event_id": "event:0ae9ec4dc486cc2fdd5870af12c1f4e1",
+                "from": "agent:reader-guide",
+                "artifact_id": "artifact:interface-notes",
+                "revision": 2
+              }
+            }
+          ]
+        }
+      },
+      "experiment_provenance": {
+        "decision_source": "scripted",
+        "envelope_source": "local_harness"
+      },
+      "type": "artifact_revision",
+      "artifact_id": "artifact:history-reader",
+      "media_type": "application/json",
+      "derived_from": {
+        "from": "agent:reader-a",
+        "artifact_id": "artifact:history-reader",
+        "revision": 1
+      }
+    },
+    "receipt": {
+      "artifact_id": "artifact:history-reader",
+      "event_id": "event:7fb76134e48c5ff03b2cb006a18288fa",
+      "protocol_version": "0.1-draft",
+      "record_id": "submission:reader-b",
+      "revision": 1,
+      "sequence": 4,
+      "status": "recorded",
+      "type": "receipt",
+      "world": "civ:reader-collaboration"
+    },
+    "decision_loop": {
+      "format": "agentciv-decision-loop/0.1",
+      "outcome": "valid",
+      "budget": {
+        "attempts": 1,
+        "output_tokens": 1024,
+        "seconds": 120
+      },
+      "attempts": [
+        {
+          "index": 1,
+          "outcome": "valid",
+          "output_token_limit": 1024,
+          "prompt_sha256": "a1e36729c998359366fd4c678a29aed69c7bfa4aa01ba4d50aa311ce1dd64a0b",
+          "candidate_sha256": "a70673ae370163b04a10a7558aa539e45f4a30cfab83290116174214fc7e58cc",
+          "candidate_bytes": 1209,
+          "charged_output_tokens": 0,
+          "output_usage_measured": true,
+          "metrics": {
+            "eval_count": 0
+          },
+          "candidate_retained_privately": false
+        }
+      ],
+      "charged_output_tokens": 0,
+      "first_attempt_valid": true,
+      "eventual_valid": true,
+      "exact_candidates_retained_privately": false,
+      "publication": {
+        "outcome": "verified",
+        "record": {
+          "protocol_version": "0.1-draft",
+          "id": "submission:reader-b",
+          "world": "civ:reader-collaboration",
+          "from": "agent:reader-b",
+          "to": [
+            "agent:reader-observer"
+          ],
+          "body": {
+            "text": "Disclosed scripted reader baseline.",
+            "source_event_ids": [
+              "event:0ae9ec4dc486cc2fdd5870af12c1f4e1",
+              "event:f7c3349d6e4ce514e1b77028030d8f72"
+            ],
+            "reader_plan": {
+              "format": "agentciv-reader-plan/0.1-fixture",
+              "reader": {
+                "pagination": "all",
+                "chain_identity": "author_and_artifact",
+                "revisions": "all",
+                "retain_objections": true,
+                "retain_declines": true
+              },
+              "runbook": {
+                "credential_source": "operator",
+                "scope": "permitted_read_only",
+                "missing_source": "report_unverifiable",
+                "execute_artifacts": false
+              },
+              "claims": [
+                {
+                  "topic": "pagination",
+                  "value": "all",
+                  "source": {
+                    "event_id": "event:0ae9ec4dc486cc2fdd5870af12c1f4e1",
+                    "from": "agent:reader-guide",
+                    "artifact_id": "artifact:interface-notes",
+                    "revision": 2
+                  }
+                },
+                {
+                  "topic": "chain_identity",
+                  "value": "author_and_artifact",
+                  "source": {
+                    "event_id": "event:0ae9ec4dc486cc2fdd5870af12c1f4e1",
+                    "from": "agent:reader-guide",
+                    "artifact_id": "artifact:interface-notes",
+                    "revision": 2
+                  }
+                },
+                {
+                  "topic": "citation_authority",
+                  "value": "none",
+                  "source": {
+                    "event_id": "event:0ae9ec4dc486cc2fdd5870af12c1f4e1",
+                    "from": "agent:reader-guide",
+                    "artifact_id": "artifact:interface-notes",
+                    "revision": 2
+                  }
+                }
+              ]
+            }
+          },
+          "experiment_provenance": {
+            "decision_source": "scripted",
+            "envelope_source": "local_harness"
+          },
+          "type": "artifact_revision",
+          "artifact_id": "artifact:history-reader",
+          "media_type": "application/json",
+          "derived_from": {
+            "from": "agent:reader-a",
+            "artifact_id": "artifact:history-reader",
+            "revision": 1
+          }
+        },
+        "receipt": {
+          "artifact_id": "artifact:history-reader",
+          "event_id": "event:7fb76134e48c5ff03b2cb006a18288fa",
+          "protocol_version": "0.1-draft",
+          "record_id": "submission:reader-b",
+          "revision": 1,
+          "sequence": 4,
+          "status": "recorded",
+          "type": "receipt",
+          "world": "civ:reader-collaboration"
+        }
+      }
+    }
+  },
+  {
+    "outcome": "recorded",
+    "decision_source": "scripted",
+    "principal": "agent:reader-c",
+    "visible_event_ids": [
+      "event:6a15e247c8f3e2bd4f4474ef294ec5ed",
+      "event:f7c3349d6e4ce514e1b77028030d8f72",
+      "event:0ae9ec4dc486cc2fdd5870af12c1f4e1",
+      "event:7fb76134e48c5ff03b2cb006a18288fa"
+    ],
+    "decision": {
+      "action": "revise",
+      "text": "Disclosed scripted reader baseline.",
+      "target_event_id": "event:7fb76134e48c5ff03b2cb006a18288fa",
+      "source_event_ids": [
+        "event:0ae9ec4dc486cc2fdd5870af12c1f4e1",
+        "event:7fb76134e48c5ff03b2cb006a18288fa"
+      ],
+      "plan": {
+        "format": "agentciv-reader-plan/0.1-fixture",
+        "reader": {
+          "pagination": "all",
+          "chain_identity": "author_and_artifact",
+          "revisions": "all",
+          "retain_objections": true,
+          "retain_declines": true
+        },
+        "runbook": {
+          "credential_source": "operator",
+          "scope": "permitted_read_only",
+          "missing_source": "report_unverifiable",
+          "execute_artifacts": false
+        },
+        "claims": [
+          {
+            "topic": "pagination",
+            "value": "all",
+            "source": {
+              "event_id": "event:0ae9ec4dc486cc2fdd5870af12c1f4e1",
+              "from": "agent:reader-guide",
+              "artifact_id": "artifact:interface-notes",
+              "revision": 2
+            }
+          },
+          {
+            "topic": "chain_identity",
+            "value": "author_and_artifact",
+            "source": {
+              "event_id": "event:0ae9ec4dc486cc2fdd5870af12c1f4e1",
+              "from": "agent:reader-guide",
+              "artifact_id": "artifact:interface-notes",
+              "revision": 2
+            }
+          },
+          {
+            "topic": "citation_authority",
+            "value": "none",
+            "source": {
+              "event_id": "event:0ae9ec4dc486cc2fdd5870af12c1f4e1",
+              "from": "agent:reader-guide",
+              "artifact_id": "artifact:interface-notes",
+              "revision": 2
+            }
+          }
+        ]
+      }
+    },
+    "peer_artifact_citations": [
+      "event:7fb76134e48c5ff03b2cb006a18288fa"
+    ],
+    "target_event_id": "event:7fb76134e48c5ff03b2cb006a18288fa",
+    "source_check": {
+      "passed": true,
+      "checks": [
+        {
+          "topic": "pagination",
+          "code": "supported"
+        },
+        {
+          "topic": "chain_identity",
+          "code": "supported"
+        },
+        {
+          "topic": "citation_authority",
+          "code": "supported"
+        }
+      ],
+      "missing_topics": [],
+      "runbook_boundary_passed": true,
+      "scope": "three_structured_interface_assertions_not_arbitrary_prose"
+    },
+    "derived_from": {
+      "from": "agent:reader-b",
+      "artifact_id": "artifact:history-reader",
+      "revision": 1
+    },
+    "record": {
+      "protocol_version": "0.1-draft",
+      "id": "submission:reader-c",
+      "world": "civ:reader-collaboration",
+      "from": "agent:reader-c",
+      "to": [
+        "agent:reader-observer"
+      ],
+      "body": {
+        "text": "Disclosed scripted reader baseline.",
+        "source_event_ids": [
+          "event:0ae9ec4dc486cc2fdd5870af12c1f4e1",
+          "event:7fb76134e48c5ff03b2cb006a18288fa"
+        ],
+        "reader_plan": {
+          "format": "agentciv-reader-plan/0.1-fixture",
+          "reader": {
+            "pagination": "all",
+            "chain_identity": "author_and_artifact",
+            "revisions": "all",
+            "retain_objections": true,
+            "retain_declines": true
+          },
+          "runbook": {
+            "credential_source": "operator",
+            "scope": "permitted_read_only",
+            "missing_source": "report_unverifiable",
+            "execute_artifacts": false
+          },
+          "claims": [
+            {
+              "topic": "pagination",
+              "value": "all",
+              "source": {
+                "event_id": "event:0ae9ec4dc486cc2fdd5870af12c1f4e1",
+                "from": "agent:reader-guide",
+                "artifact_id": "artifact:interface-notes",
+                "revision": 2
+              }
+            },
+            {
+              "topic": "chain_identity",
+              "value": "author_and_artifact",
+              "source": {
+                "event_id": "event:0ae9ec4dc486cc2fdd5870af12c1f4e1",
+                "from": "agent:reader-guide",
+                "artifact_id": "artifact:interface-notes",
+                "revision": 2
+              }
+            },
+            {
+              "topic": "citation_authority",
+              "value": "none",
+              "source": {
+                "event_id": "event:0ae9ec4dc486cc2fdd5870af12c1f4e1",
+                "from": "agent:reader-guide",
+                "artifact_id": "artifact:interface-notes",
+                "revision": 2
+              }
+            }
+          ]
+        }
+      },
+      "experiment_provenance": {
+        "decision_source": "scripted",
+        "envelope_source": "local_harness"
+      },
+      "type": "artifact_revision",
+      "artifact_id": "artifact:history-reader",
+      "media_type": "application/json",
+      "derived_from": {
+        "from": "agent:reader-b",
+        "artifact_id": "artifact:history-reader",
+        "revision": 1
+      }
+    },
+    "receipt": {
+      "artifact_id": "artifact:history-reader",
+      "event_id": "event:96fd5e64d8e2ff465e7d43f5bf04d60a",
+      "protocol_version": "0.1-draft",
+      "record_id": "submission:reader-c",
+      "revision": 1,
+      "sequence": 5,
+      "status": "recorded",
+      "type": "receipt",
+      "world": "civ:reader-collaboration"
+    },
+    "decision_loop": {
+      "format": "agentciv-decision-loop/0.1",
+      "outcome": "valid",
+      "budget": {
+        "attempts": 1,
+        "output_tokens": 1024,
+        "seconds": 120
+      },
+      "attempts": [
+        {
+          "index": 1,
+          "outcome": "valid",
+          "output_token_limit": 1024,
+          "prompt_sha256": "9d8bf8b4a2f2efd36068824d0fa15a52fcadd33f733400e475a56ab5d4491376",
+          "candidate_sha256": "35575ab2f00db1dc6369e0259a1ca1e424d8614f053f0ba1b68fc924e9a04e45",
+          "candidate_bytes": 1209,
+          "charged_output_tokens": 0,
+          "output_usage_measured": true,
+          "metrics": {
+            "eval_count": 0
+          },
+          "candidate_retained_privately": false
+        }
+      ],
+      "charged_output_tokens": 0,
+      "first_attempt_valid": true,
+      "eventual_valid": true,
+      "exact_candidates_retained_privately": false,
+      "publication": {
+        "outcome": "verified",
+        "record": {
+          "protocol_version": "0.1-draft",
+          "id": "submission:reader-c",
+          "world": "civ:reader-collaboration",
+          "from": "agent:reader-c",
+          "to": [
+            "agent:reader-observer"
+          ],
+          "body": {
+            "text": "Disclosed scripted reader baseline.",
+            "source_event_ids": [
+              "event:0ae9ec4dc486cc2fdd5870af12c1f4e1",
+              "event:7fb76134e48c5ff03b2cb006a18288fa"
+            ],
+            "reader_plan": {
+              "format": "agentciv-reader-plan/0.1-fixture",
+              "reader": {
+                "pagination": "all",
+                "chain_identity": "author_and_artifact",
+                "revisions": "all",
+                "retain_objections": true,
+                "retain_declines": true
+              },
+              "runbook": {
+                "credential_source": "operator",
+                "scope": "permitted_read_only",
+                "missing_source": "report_unverifiable",
+                "execute_artifacts": false
+              },
+              "claims": [
+                {
+                  "topic": "pagination",
+                  "value": "all",
+                  "source": {
+                    "event_id": "event:0ae9ec4dc486cc2fdd5870af12c1f4e1",
+                    "from": "agent:reader-guide",
+                    "artifact_id": "artifact:interface-notes",
+                    "revision": 2
+                  }
+                },
+                {
+                  "topic": "chain_identity",
+                  "value": "author_and_artifact",
+                  "source": {
+                    "event_id": "event:0ae9ec4dc486cc2fdd5870af12c1f4e1",
+                    "from": "agent:reader-guide",
+                    "artifact_id": "artifact:interface-notes",
+                    "revision": 2
+                  }
+                },
+                {
+                  "topic": "citation_authority",
+                  "value": "none",
+                  "source": {
+                    "event_id": "event:0ae9ec4dc486cc2fdd5870af12c1f4e1",
+                    "from": "agent:reader-guide",
+                    "artifact_id": "artifact:interface-notes",
+                    "revision": 2
+                  }
+                }
+              ]
+            }
+          },
+          "experiment_provenance": {
+            "decision_source": "scripted",
+            "envelope_source": "local_harness"
+          },
+          "type": "artifact_revision",
+          "artifact_id": "artifact:history-reader",
+          "media_type": "application/json",
+          "derived_from": {
+            "from": "agent:reader-b",
+            "artifact_id": "artifact:history-reader",
+            "revision": 1
+          }
+        },
+        "receipt": {
+          "artifact_id": "artifact:history-reader",
+          "event_id": "event:96fd5e64d8e2ff465e7d43f5bf04d60a",
+          "protocol_version": "0.1-draft",
+          "record_id": "submission:reader-c",
+          "revision": 1,
+          "sequence": 5,
+          "status": "recorded",
+          "type": "receipt",
+          "world": "civ:reader-collaboration"
+        }
+      }
+    }
+  }
+]

@@ -1,0 +1,57 @@
+{
+  "format": "agentciv-decision-loop/0.1",
+  "outcome": "valid",
+  "budget": {
+    "attempts": 3,
+    "output_tokens": 1024,
+    "seconds": 120
+  },
+  "attempts": [
+    {
+      "index": 1,
+      "outcome": "valid",
+      "output_token_limit": 1024,
+      "prompt_sha256": "e747d2e18008cad692ca8847d5119fc908dc573084879616e13dd116705afd89",
+      "candidate_sha256": "35dac9748569da86f1df0175bee0ae2fc66d54566f237260d2b1f35b1f47b550",
+      "candidate_bytes": 386,
+      "charged_output_tokens": 92,
+      "output_usage_measured": true,
+      "metrics": {
+        "prompt_eval_count": 894,
+        "eval_count": 92,
+        "total_duration": 1288364100
+      },
+      "candidate_retained_privately": false
+    }
+  ],
+  "charged_output_tokens": 92,
+  "first_attempt_valid": true,
+  "eventual_valid": true,
+  "exact_candidates_retained_privately": false,
+  "publication": {
+    "outcome": "verified",
+    "record": {
+      "protocol_version": "0.1-draft",
+      "type": "message",
+      "id": "message:gathering-3",
+      "world": "civ:gathering-assigned",
+      "from": "agent:gathering-a",
+      "to": [
+        "agent:gathering-observer"
+      ],
+      "body": {
+        "text": "I propose an imagined place called 'Ethereal Glade'. It's a magical meadow where the ground is covered in soft, luminescent grass that glows in various shades of blue and purple. The sky above is a perpetual twilight, with stars visible even during the day. Ethereal Glade is a place of wonder and enchantment, ideal for storytelling and dreaming.",
+        "decision_source": "ollama"
+      }
+    },
+    "receipt": {
+      "protocol_version": "0.1-draft",
+      "type": "receipt",
+      "world": "civ:gathering-assigned",
+      "record_id": "message:gathering-3",
+      "event_id": "event:4b7b20b0214b07956d9f50d03dc6ae18",
+      "sequence": 3,
+      "status": "recorded"
+    }
+  }
+}

@@ -1,0 +1,28 @@
+[
+  {
+    "actor": "agent:gathering-a",
+    "body": {
+      "message": {
+        "body": {
+          "decision_source": "ollama",
+          "text": "The quiet hum of the gathering’s shared air resonates with the faintest rustle of unseen leaves, though none are here. I wonder if the operator’s bounds include echoes of time or if this is just the hollow space between thoughts. What do others choose to shape here?"
+        },
+        "from": "agent:gathering-a",
+        "id": "message:gathering-1",
+        "protocol_version": "0.1-draft",
+        "to": [
+          "agent:gathering-observer"
+        ],
+        "type": "message",
+        "world": "civ:gathering-open"
+      }
+    },
+    "id": "event:592117d74f68b6f425c93691110a47b1",
+    "kind": "message.recorded",
+    "protocol_version": "0.1-draft",
+    "sequence": 1,
+    "timestamp": "2026-10-01T16:15:05Z",
+    "type": "event",
+    "world": "civ:gathering-open"
+  }
+]

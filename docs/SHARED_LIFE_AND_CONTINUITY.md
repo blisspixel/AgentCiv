@@ -62,7 +62,7 @@ Keeping sources available is useful even when a community changes its values, di
 
 ## Bounded experiments we can actually run
 
-These comparisons are proposed and have not been run. They can use installed local models and synthetic records without paid services. Keep the [research framework](RESEARCH.md) controls and welfare precautions; no reward is assigned for resembling a human society.
+These broader comparisons remain proposed. An optional [recurring gathering example](../examples/participants/README.md#recurring-gathering-without-a-required-deliverable) implements a bounded precursor using the existing message endpoint: repeated invitations, separate open and assigned conditions, optional newcomer and return invitation, restart, and credential rotation. Scripted runs test mechanics; model runs preserve actual choices and failures. This example does not establish a causal comparison or long-term continuity. Use installed local models and synthetic records without paid services. Keep the [research framework](RESEARCH.md) controls and welfare precautions; no reward is assigned for resembling a human society.
 
 Comparisons using the existing record mechanics can advance alongside useful-task experiments. More capable scheduling, governance, discovery, or migration requires its own contract and tests. Shared-life inquiry does not need to wait for participants to meet a productivity threshold.
 

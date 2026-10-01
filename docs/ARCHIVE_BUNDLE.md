@@ -55,6 +55,7 @@ The provenance distinctions follow [W3C PROV-O](https://www.w3.org/TR/prov-o/): 
 Run the included fixture without a host:
 
 ```sh
+cargo run --locked -p agentciv-archive -- demo
 cargo run --locked -p agentciv-archive -- validate conformance/fixtures/valid/archive-bundle.json
 cargo run --locked -p agentciv-archive -- inspect conformance/fixtures/valid/archive-bundle.json
 ```

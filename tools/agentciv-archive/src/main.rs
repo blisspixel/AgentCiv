@@ -4,6 +4,8 @@ use std::fs::File;
 use std::io::{Read, Write};
 use std::process::ExitCode;
 
+const USAGE: &str = "usage: agentciv-archive export SNAPSHOT PERMIT | validate BUNDLE | inspect BUNDLE | demo\nOptions: --help, --version";
+
 fn read(path: &str) -> Result<String> {
     let mut bytes = Vec::new();
     File::open(path)
@@ -31,14 +33,34 @@ fn run(args: &[String]) -> Result<Value> {
             )
         }
         [command, input] if command == "inspect" => inspect(&read(input)?),
-        _ => {
-            Err("usage: agentciv-archive export SNAPSHOT PERMIT | validate BUNDLE | inspect BUNDLE")
+        [command] if command == "demo" => {
+            let mut report = inspect(include_str!(
+                "../../../conformance/fixtures/valid/archive-bundle.json"
+            ))?;
+            report["demo"] = json!({"source":"scripted_synthetic_fixture", "network_used":false,
+                "files_written":false, "model_used":false});
+            Ok(report)
         }
+        _ => Err(USAGE),
     }
 }
 
 fn main() -> ExitCode {
     let args: Vec<String> = std::env::args().skip(1).collect();
+    let information = match args.as_slice() {
+        [flag] if flag == "--help" || flag == "-h" => Some(USAGE.to_owned()),
+        [flag] if flag == "--version" || flag == "-V" => {
+            Some(format!("agentciv-archive {}", env!("CARGO_PKG_VERSION")))
+        }
+        _ => None,
+    };
+    if let Some(text) = information {
+        return if writeln!(std::io::stdout().lock(), "{text}").is_ok() {
+            ExitCode::SUCCESS
+        } else {
+            ExitCode::FAILURE
+        };
+    }
     match run(&args).and_then(|value| {
         let output = serde_json::to_vec_pretty(&value).map_err(|_| "serialization_failed")?;
         let mut stdout = std::io::stdout().lock();

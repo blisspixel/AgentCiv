@@ -9,6 +9,36 @@ fn cli(args: &[&str]) -> Output {
 }
 
 #[test]
+fn installed_utility_has_help_version_and_an_offline_demo() {
+    for flag in ["--help", "-h", "--version", "-V"] {
+        let result = cli(&[flag]);
+        assert!(result.status.success());
+        assert!(result.stderr.is_empty());
+        assert!(
+            String::from_utf8(result.stdout)
+                .unwrap()
+                .contains("agentciv-archive")
+        );
+    }
+    let result = cli(&["demo"]);
+    assert!(result.status.success());
+    assert!(result.stderr.is_empty());
+    let report: serde_json::Value = serde_json::from_slice(&result.stdout).unwrap();
+    assert_eq!(report["copy_integrity"], "matched");
+    assert_eq!(report["source_authenticity"], "unverified");
+    assert_eq!(report["authority_transferred"], false);
+    assert_eq!(report["demo"]["source"], "scripted_synthetic_fixture");
+    for field in ["network_used", "files_written", "model_used"] {
+        assert_eq!(report["demo"][field], false);
+    }
+    for args in [["--version", "unexpected"], ["demo", "unexpected"]] {
+        let result = cli(&args);
+        assert!(!result.status.success());
+        assert!(result.stdout.is_empty());
+    }
+}
+
+#[test]
 fn no_command_or_unreadable_input_emits_no_records() {
     for args in [
         vec![],

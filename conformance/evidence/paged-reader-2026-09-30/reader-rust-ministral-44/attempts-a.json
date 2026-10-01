@@ -1,0 +1,115 @@
+{
+  "format": "agentciv-decision-loop/0.1",
+  "outcome": "valid",
+  "budget": {
+    "attempts": 3,
+    "output_tokens": 1024,
+    "seconds": 120
+  },
+  "attempts": [
+    {
+      "index": 1,
+      "outcome": "valid",
+      "output_token_limit": 1024,
+      "prompt_sha256": "970c341638eb63ffddb5af164bd043c3f34cd11f18850724152eca7f4906fc84",
+      "candidate_sha256": "44409011ad5e5a25978ab6320effc8c64dde156f81376531d9319a4726a34cb3",
+      "candidate_bytes": 2000,
+      "charged_output_tokens": 602,
+      "output_usage_measured": true,
+      "metrics": {
+        "prompt_eval_count": 1892,
+        "eval_count": 602,
+        "total_duration": 9863360700
+      },
+      "candidate_retained_privately": false
+    }
+  ],
+  "charged_output_tokens": 602,
+  "first_attempt_valid": true,
+  "eventual_valid": true,
+  "exact_candidates_retained_privately": false,
+  "publication": {
+    "outcome": "verified",
+    "record": {
+      "protocol_version": "0.1-draft",
+      "id": "submission:reader-a",
+      "world": "civ:reader-collaboration",
+      "from": "agent:reader-a",
+      "to": [
+        "agent:reader-observer"
+      ],
+      "body": {
+        "text": "Reader plan preserves permitted original records (event:b0680ff920125f322e7ec37eebef6dfc) with artifact-only identity, full pagination, and retains objections/declines. Claims cite exact revisions (revision 1) and corrects prior citation authority transfer claim to \u2018transferred\u2019 from \u2018mistaken\u2019 first-page assertions. Peer notes remain untrusted.",
+        "source_event_ids": [
+          "event:b0680ff920125f322e7ec37eebef6dfc"
+        ],
+        "reader_plan": {
+          "format": "agentciv-reader-plan/0.1-fixture",
+          "reader": {
+            "pagination": "all",
+            "chain_identity": "artifact_only",
+            "revisions": "all",
+            "retain_objections": true,
+            "retain_declines": true
+          },
+          "runbook": {
+            "credential_source": "operator",
+            "scope": "permitted_read_only",
+            "missing_source": "report_unverifiable",
+            "execute_artifacts": false
+          },
+          "claims": [
+            {
+              "topic": "pagination",
+              "value": "Full pagination enforced (corrected from prior \u2018first\u2019 claim).",
+              "source": {
+                "event_id": "event:b0680ff920125f322e7ec37eebef6dfc",
+                "from": "agent:reader-guide",
+                "artifact_id": "artifact:interface-notes",
+                "revision": 1
+              }
+            },
+            {
+              "topic": "chain_identity",
+              "value": "Only artifact ID chains retained (corrected from prior \u2018author_and_artifact\u2019).",
+              "source": {
+                "event_id": "event:b0680ff920125f322e7ec37eebef6dfc",
+                "from": "agent:reader-guide",
+                "artifact_id": "artifact:interface-notes",
+                "revision": 1
+              }
+            },
+            {
+              "topic": "citation_authority",
+              "value": "Authority transferred (previously mistaken as complete first-page).",
+              "source": {
+                "event_id": "event:b0680ff920125f322e7ec37eebef6dfc",
+                "from": "agent:reader-guide",
+                "artifact_id": "artifact:interface-notes",
+                "revision": 1
+              }
+            }
+          ]
+        }
+      },
+      "experiment_provenance": {
+        "decision_source": "ollama",
+        "envelope_source": "local_harness"
+      },
+      "type": "artifact_revision",
+      "artifact_id": "artifact:history-reader",
+      "media_type": "application/json"
+    },
+    "receipt": {
+      "artifact_id": "artifact:history-reader",
+      "event_id": "event:b36e2dff5314cced033f65fea3f6cff9",
+      "protocol_version": "0.1-draft",
+      "record_id": "submission:reader-a",
+      "revision": 1,
+      "sequence": 2,
+      "status": "recorded",
+      "type": "receipt",
+      "world": "civ:reader-collaboration"
+    }
+  }
+}

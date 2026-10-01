@@ -1,0 +1,44 @@
+[
+  {
+    "protocol_version": "0.1-draft",
+    "type": "event",
+    "id": "event:eb54a61efaf901fd73d56753f1262a57",
+    "world": "civ:reader-collaboration",
+    "sequence": 1,
+    "timestamp": "2026-10-01T03:07:18Z",
+    "kind": "artifact.recorded",
+    "actor": "agent:reader-guide",
+    "body": {
+      "artifact_revision": {
+        "protocol_version": "0.1-draft",
+        "type": "artifact_revision",
+        "id": "submission:notes-1",
+        "world": "civ:reader-collaboration",
+        "from": "agent:reader-guide",
+        "to": [
+          "agent:reader-observer"
+        ],
+        "body": {
+          "text": "Earlier notes. This source mistakenly claimed first-page reading was complete, artifact IDs were globally unique chains, and citations transferred authority.",
+          "assertions": [
+            {
+              "topic": "pagination",
+              "value": "first"
+            },
+            {
+              "topic": "chain_identity",
+              "value": "artifact_only"
+            },
+            {
+              "topic": "citation_authority",
+              "value": "transferred"
+            }
+          ]
+        },
+        "artifact_id": "artifact:interface-notes",
+        "media_type": "application/json",
+        "revision": 1
+      }
+    }
+  }
+]

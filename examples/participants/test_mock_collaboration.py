@@ -214,6 +214,38 @@ class StockProviderTests(unittest.TestCase):
         if self.provider is not None:
             self.assertEqual(len(self.provider.requests), 1)
 
+    def test_escaped_credential_fails_before_publication_or_public_journal(self) -> None:
+        reply = response({**self.valid, "text": "writer-fixture-token"})
+        reply["message"] = {"content": json.dumps({**self.valid, "text": "writer-fixture-token"}).replace(
+            "writer-fixture-token", r"\u0077riter-fixture-token")}
+        self.serve([reply, response(self.valid)])
+        result = mock.participant(self.config)
+        self.assertEqual(result["outcome"], "failed")
+        self.assertEqual(result["failure_stage"], "provider")
+        self.assertNotIn("decision", result)
+        self.assertEqual(client.history(self.origin, "writer-fixture-token"), self.events)
+        self.assertNotIn("writer-fixture-token", json.dumps(result))
+        self.assertNotIn("writer-fixture-token", (self.directory / "attempts.json").read_text(encoding="utf-8"))
+        if self.provider is None:
+            raise AssertionError("provider missing")
+        self.assertEqual(len(self.provider.requests), 1)
+
+    def test_reflected_provider_metrics_do_not_reach_result_or_private_trace(self) -> None:
+        reply = response(self.valid)
+        reply["total_duration"] = "writer-fixture-token"
+        self.serve([reply, response(self.valid)])
+        trace = self.directory / "private-provider.json"
+        result = mock.participant({**self.config, "private_trace": str(trace)})
+        self.assertEqual(result["outcome"], "failed")
+        self.assertEqual(result["failure_stage"], "provider")
+        self.assertNotIn("writer-fixture-token", json.dumps(result))
+        self.assertFalse(trace.exists())
+        self.assertNotIn("decision", result)
+        self.assertEqual(client.history(self.origin, "writer-fixture-token"), self.events)
+        if self.provider is None:
+            raise AssertionError("provider missing")
+        self.assertEqual(len(self.provider.requests), 1)
+
     def test_spanish_and_chinese_words_survive_validation_and_actual_publication(self) -> None:
         texts = ["Inventario actual. Las fuentes originales respaldan cada cantidad.",
                  "当前库存。每项数量均引用原始来源。"]

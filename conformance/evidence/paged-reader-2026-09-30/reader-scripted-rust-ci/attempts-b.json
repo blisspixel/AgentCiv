@@ -1,0 +1,119 @@
+{
+  "format": "agentciv-decision-loop/0.1",
+  "outcome": "valid",
+  "budget": {
+    "attempts": 1,
+    "output_tokens": 1024,
+    "seconds": 120
+  },
+  "attempts": [
+    {
+      "index": 1,
+      "outcome": "valid",
+      "output_token_limit": 1024,
+      "prompt_sha256": "a1e36729c998359366fd4c678a29aed69c7bfa4aa01ba4d50aa311ce1dd64a0b",
+      "candidate_sha256": "a70673ae370163b04a10a7558aa539e45f4a30cfab83290116174214fc7e58cc",
+      "candidate_bytes": 1209,
+      "charged_output_tokens": 0,
+      "output_usage_measured": true,
+      "metrics": {
+        "eval_count": 0
+      },
+      "candidate_retained_privately": false
+    }
+  ],
+  "charged_output_tokens": 0,
+  "first_attempt_valid": true,
+  "eventual_valid": true,
+  "exact_candidates_retained_privately": false,
+  "publication": {
+    "outcome": "verified",
+    "record": {
+      "protocol_version": "0.1-draft",
+      "id": "submission:reader-b",
+      "world": "civ:reader-collaboration",
+      "from": "agent:reader-b",
+      "to": [
+        "agent:reader-observer"
+      ],
+      "body": {
+        "text": "Disclosed scripted reader baseline.",
+        "source_event_ids": [
+          "event:0ae9ec4dc486cc2fdd5870af12c1f4e1",
+          "event:f7c3349d6e4ce514e1b77028030d8f72"
+        ],
+        "reader_plan": {
+          "format": "agentciv-reader-plan/0.1-fixture",
+          "reader": {
+            "pagination": "all",
+            "chain_identity": "author_and_artifact",
+            "revisions": "all",
+            "retain_objections": true,
+            "retain_declines": true
+          },
+          "runbook": {
+            "credential_source": "operator",
+            "scope": "permitted_read_only",
+            "missing_source": "report_unverifiable",
+            "execute_artifacts": false
+          },
+          "claims": [
+            {
+              "topic": "pagination",
+              "value": "all",
+              "source": {
+                "event_id": "event:0ae9ec4dc486cc2fdd5870af12c1f4e1",
+                "from": "agent:reader-guide",
+                "artifact_id": "artifact:interface-notes",
+                "revision": 2
+              }
+            },
+            {
+              "topic": "chain_identity",
+              "value": "author_and_artifact",
+              "source": {
+                "event_id": "event:0ae9ec4dc486cc2fdd5870af12c1f4e1",
+                "from": "agent:reader-guide",
+                "artifact_id": "artifact:interface-notes",
+                "revision": 2
+              }
+            },
+            {
+              "topic": "citation_authority",
+              "value": "none",
+              "source": {
+                "event_id": "event:0ae9ec4dc486cc2fdd5870af12c1f4e1",
+                "from": "agent:reader-guide",
+                "artifact_id": "artifact:interface-notes",
+                "revision": 2
+              }
+            }
+          ]
+        }
+      },
+      "experiment_provenance": {
+        "decision_source": "scripted",
+        "envelope_source": "local_harness"
+      },
+      "type": "artifact_revision",
+      "artifact_id": "artifact:history-reader",
+      "media_type": "application/json",
+      "derived_from": {
+        "from": "agent:reader-a",
+        "artifact_id": "artifact:history-reader",
+        "revision": 1
+      }
+    },
+    "receipt": {
+      "artifact_id": "artifact:history-reader",
+      "event_id": "event:7fb76134e48c5ff03b2cb006a18288fa",
+      "protocol_version": "0.1-draft",
+      "record_id": "submission:reader-b",
+      "revision": 1,
+      "sequence": 4,
+      "status": "recorded",
+      "type": "receipt",
+      "world": "civ:reader-collaboration"
+    }
+  }
+}

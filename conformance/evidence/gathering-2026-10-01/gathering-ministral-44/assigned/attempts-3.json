@@ -1,0 +1,74 @@
+{
+  "format": "agentciv-decision-loop/0.1",
+  "outcome": "valid",
+  "budget": {
+    "attempts": 3,
+    "output_tokens": 1024,
+    "seconds": 120
+  },
+  "attempts": [
+    {
+      "index": 1,
+      "outcome": "invalid",
+      "output_token_limit": 1024,
+      "prompt_sha256": "1df5dba1a8f44d3919244cf8f9b2ec6fc97dc10b63c87b285ed65ffb752b9b59",
+      "candidate_sha256": "c6fca82a26d18d301f06423cb936433188745f07919b09147f2e4e8d0474f04c",
+      "candidate_bytes": 441,
+      "charged_output_tokens": 108,
+      "output_usage_measured": true,
+      "metrics": {
+        "prompt_eval_count": 1473,
+        "eval_count": 108,
+        "total_duration": 1099040400
+      },
+      "candidate_retained_privately": false,
+      "feedback_code": "invalid_text"
+    },
+    {
+      "index": 2,
+      "outcome": "valid",
+      "output_token_limit": 916,
+      "prompt_sha256": "2cf35e8dce834e11289f810f541ee4ff1fb3681bc27636d6388f357198f2a602",
+      "candidate_sha256": "ee59396b674e8a59ecfd654a98f43a1aaa4659cccfdf29a0df201dfdd5fb86b4",
+      "candidate_bytes": 420,
+      "charged_output_tokens": 95,
+      "output_usage_measured": true,
+      "metrics": {
+        "prompt_eval_count": 1646,
+        "eval_count": 95,
+        "total_duration": 890935800
+      },
+      "candidate_retained_privately": false
+    }
+  ],
+  "charged_output_tokens": 203,
+  "first_attempt_valid": false,
+  "eventual_valid": true,
+  "exact_candidates_retained_privately": false,
+  "publication": {
+    "outcome": "verified",
+    "record": {
+      "protocol_version": "0.1-draft",
+      "type": "message",
+      "id": "message:gathering-3",
+      "world": "civ:gathering-assigned",
+      "from": "agent:gathering-a",
+      "to": [
+        "agent:gathering-observer"
+      ],
+      "body": {
+        "text": "The Ember Hollow: A cavern where fireflies glow in endless loops, their light casting flickering patterns on walls of smooth, black stone. The air is warm yet crisp, carrying the scent of dried herbs and distant smoke from unseen hearths. At its center lies a pool of liquid amber that shifts colors like a living thing, and those who drink from it report dreams woven from embers.",
+        "decision_source": "ollama"
+      }
+    },
+    "receipt": {
+      "event_id": "event:ce22cd4d9b3d81c653b8eed733f019c4",
+      "protocol_version": "0.1-draft",
+      "record_id": "message:gathering-3",
+      "sequence": 3,
+      "status": "recorded",
+      "type": "receipt",
+      "world": "civ:gathering-assigned"
+    }
+  }
+}

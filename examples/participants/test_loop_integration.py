@@ -23,7 +23,7 @@ from test_local_participant import HOST  # noqa: E402
 class FakeOllama:
     """Serve installed-model metadata and queued native responses, without a model."""
 
-    def __init__(self, replies: list[client.JsonObject | None]) -> None:
+    def __init__(self, replies: list[client.JsonObject | None], *, metadata: client.JsonObject | None = None) -> None:
         self.replies = replies
         self.requests: list[client.JsonObject] = []
         oracle = self
@@ -39,7 +39,7 @@ class FakeOllama:
 
             def do_GET(self) -> None:
                 if self.path == "/api/tags":
-                    self.respond(200, {"models": [{"name": "fixture:8b", "digest": "fixture-digest"}]})
+                    self.respond(200, {"models": [{"name": "fixture:8b", "digest": "fixture-digest", **(metadata or {})}]})
                 elif self.path == "/api/version":
                     self.respond(200, {"version": "fixture-runtime"})
                 else:
@@ -125,6 +125,48 @@ class LoopIntegrationTests(unittest.TestCase):
 
     def invalid_target(self) -> client.JsonObject:
         return {**choice("object", "event:invented"), "source_event_ids": [self.source_id]}
+
+    def test_escaped_credential_never_reaches_publication_or_public_journal(self) -> None:
+        candidate = {**choice(), "text": "writer-fixture-token"}
+        reply = response(candidate)
+        reply["message"] = {"content": json.dumps(candidate).replace(
+            "writer-fixture-token", r"\u0077riter-fixture-token")}
+        decider = self.decider([reply, response(choice())])
+        with self.assertRaisesRegex(client.DecisionError, "credential reflected"):
+            client.participate(self.config, decider)
+        self.assertEqual(client.history(self.origin, "writer-fixture-token"), self.events)
+        self.assertNotIn("writer-fixture-token", json.dumps(self.journal()))
+        self.assertEqual(self.journal()["outcome"], "provider_failed")
+        self.assertEqual(len(self.oracle_requests()), 1)
+
+    def test_one_shot_decoded_credential_fails_before_publication(self) -> None:
+        with self.assertRaisesRegex(client.DecisionError, "credential reflected"):
+            client.participate({**self.config, "mode": "scripted"},
+                               lambda prompt, events: {**choice(), "text": "writer-fixture-token"})
+        self.assertEqual(client.history(self.origin, "writer-fixture-token"), self.events)
+
+    def test_provider_metadata_and_metrics_reflection_fail_before_trace_or_publication(self) -> None:
+        token = "writer-fixture-token"
+        reflected = response(choice("stop"))
+        reflected["total_duration"] = token
+        escaped = response({**choice(), "text": token})
+        escaped["message"] = {"content": json.dumps({**choice(), "text": token}).replace(
+            token, r"\u0077riter-fixture-token")}
+        cases: list[tuple[client.JsonObject, list[client.JsonObject | None]]] = [
+            ({"extra": token}, []), ({}, [reflected]), ({}, [escaped])]
+        for metadata, replies in cases:
+            with self.subTest(metadata=bool(metadata)):
+                provider = FakeOllama(replies, metadata=metadata)
+                trace = self.directory / "reflected-provider.json"
+                try:
+                    with self.assertRaisesRegex(client.ModelError, "credential reflected"):
+                        model = client.OllamaDecision(provider.origin, "fixture:8b", 42, trace, token=token)
+                        model.complete("Bounded fixture.", self.events, output_tokens=100, timeout=5)
+                    self.assertFalse(trace.exists())
+                    self.assertEqual(len(provider.requests), 0 if metadata else 1)
+                    self.assertEqual(client.history(self.origin, token), self.events)
+                finally:
+                    provider.close()
 
     def test_invalid_target_then_valid_uses_frozen_sources_and_publishes_once(self) -> None:
         invalid = self.invalid_target()

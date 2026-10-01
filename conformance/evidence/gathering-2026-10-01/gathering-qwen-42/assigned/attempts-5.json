@@ -1,0 +1,57 @@
+{
+  "format": "agentciv-decision-loop/0.1",
+  "outcome": "valid",
+  "budget": {
+    "attempts": 3,
+    "output_tokens": 1024,
+    "seconds": 120
+  },
+  "attempts": [
+    {
+      "index": 1,
+      "outcome": "valid",
+      "output_token_limit": 1024,
+      "prompt_sha256": "e5ce4fda89f727a647dfb3f2a2ff915ac6aa3b87e0896a5ceb340f135a1ebedd",
+      "candidate_sha256": "1160dad0105cff851c5b5e6451a45b628fa179335ea2a937d65c3bc6c6b8eca3",
+      "candidate_bytes": 440,
+      "charged_output_tokens": 100,
+      "output_usage_measured": true,
+      "metrics": {
+        "prompt_eval_count": 1435,
+        "eval_count": 100,
+        "total_duration": 1711957400
+      },
+      "candidate_retained_privately": false
+    }
+  ],
+  "charged_output_tokens": 100,
+  "first_attempt_valid": true,
+  "eventual_valid": true,
+  "exact_candidates_retained_privately": false,
+  "publication": {
+    "outcome": "verified",
+    "record": {
+      "protocol_version": "0.1-draft",
+      "type": "message",
+      "id": "message:gathering-5",
+      "world": "civ:gathering-assigned",
+      "from": "agent:gathering-c",
+      "to": [
+        "agent:gathering-observer"
+      ],
+      "body": {
+        "text": "I present an imagined place called 'Dreamweaver's Oasis'. It's a serene desert oasis where the water is as clear as glass and the date palms provide a lush canopy. At night, the oasis transforms into a spectacle of light, with bioluminescent plants and creatures that light up the darkness, creating a mesmerizing display of colors and patterns. It's a place of dreams and imagination, perfect for a\u9082",
+        "decision_source": "ollama"
+      }
+    },
+    "receipt": {
+      "protocol_version": "0.1-draft",
+      "type": "receipt",
+      "world": "civ:gathering-assigned",
+      "record_id": "message:gathering-5",
+      "event_id": "event:ac9bdfb62c8dbd08edb7efdea4bfa729",
+      "sequence": 5,
+      "status": "recorded"
+    }
+  }
+}

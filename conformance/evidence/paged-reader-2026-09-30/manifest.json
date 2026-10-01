@@ -1,0 +1,308 @@
+{
+  "format": "agentciv-evidence-copy/0.1",
+  "copying_condition": "operator_authorized_synthetic_fixture_export_only",
+  "representation_change": "outer JSON CRLF to LF only; JSON values equal; inner record strings unchanged",
+  "excluded": [
+    "credentials",
+    "world databases",
+    "private-*.json",
+    "private-candidates-*"
+  ],
+  "source_state": "uncommitted working tree; exact source and binary hashes retained in each report",
+  "entries": [
+    {
+      "path": "reader-python-qwen-42/attempts-a.json",
+      "original_sha256": "bd4f359bbbbf944c424a004df9b3e03beb9bd8b780d4e29317e087efa8373139",
+      "published_sha256": "822929813f68d219d9914cf1e5541f6674f9550e778e83903990c45235fd30a8",
+      "json_values_equal": true
+    },
+    {
+      "path": "reader-python-qwen-42/attempts-b.json",
+      "original_sha256": "9788167135d38fd0bfa37310e5d3e3d7dd483c947ec0a0e6cbb8e7356c222f46",
+      "published_sha256": "72af9011f3ccbe0cf03e947209b506d1fd73becc47e830c8284e3e634b97ccb3",
+      "json_values_equal": true
+    },
+    {
+      "path": "reader-python-qwen-42/history.json",
+      "original_sha256": "c3a42bf837b1da9db1d7de12f5170fb3bb7243111ac54aeb85308422113b5d52",
+      "published_sha256": "27daccbcb365042461ae725d46b8d6fde0ea602755a3610ba5845f7dfeb739b0",
+      "json_values_equal": true
+    },
+    {
+      "path": "reader-python-qwen-42/observations.json",
+      "original_sha256": "d333af04f508a92bc81473505c5f7883ccf30a834616c89639c299f9ca3dae2b",
+      "published_sha256": "ec7fe850b296c5202a38f98fccec60382eda12d9c8533414198e698d66186325",
+      "json_values_equal": true
+    },
+    {
+      "path": "reader-python-qwen-42/report.json",
+      "original_sha256": "dd282cb61e9d2d23b41f6d61824ca6d7b58fc5faf5f378c35e6e53256d21555b",
+      "published_sha256": "ae5dc61b73f4a2529b8fe10d42eebdf4caafc2863efd7db63a619f1725480cec",
+      "json_values_equal": true
+    },
+    {
+      "path": "reader-python-qwen-42/visible-a.json",
+      "original_sha256": "6acad406ed2452a35265d57d1dfa3e70bbbc4258be6c790259adb35b62926ee6",
+      "published_sha256": "88a1cb39668ddc39b32a836b4889cb8f8cea3b42ba886f4b6b9b2e4c8a29daf6",
+      "json_values_equal": true
+    },
+    {
+      "path": "reader-python-qwen-42/visible-b.json",
+      "original_sha256": "c3a42bf837b1da9db1d7de12f5170fb3bb7243111ac54aeb85308422113b5d52",
+      "published_sha256": "27daccbcb365042461ae725d46b8d6fde0ea602755a3610ba5845f7dfeb739b0",
+      "json_values_equal": true
+    },
+    {
+      "path": "reader-rust-ministral-44/attempts-a.json",
+      "original_sha256": "989365363817466b6df71564d23765e5162f582154b7079968be94a88385be51",
+      "published_sha256": "3c0d7e2acaf926d3dce32e918cc84f9ea6a204f7dd071302eedda8181a1d746f",
+      "json_values_equal": true
+    },
+    {
+      "path": "reader-rust-ministral-44/attempts-b.json",
+      "original_sha256": "42455d5157e061852426135f448d7b1fa88e66c615c3867c0e2c25c29ac1d787",
+      "published_sha256": "7c6ff89a10d7c4608420209c93493c6b01a015ff397feca835fdebe1405cc651",
+      "json_values_equal": true
+    },
+    {
+      "path": "reader-rust-ministral-44/attempts-c.json",
+      "original_sha256": "d20d9f244a1769a8acadedbe62b4150415e9e41dfb7a96875126f5013e5e69d7",
+      "published_sha256": "f3786c151707b1f5fa79ced4451014d9679c7cb6d9c1ecb3ee9306af83af8073",
+      "json_values_equal": true
+    },
+    {
+      "path": "reader-rust-ministral-44/before-restart.json",
+      "original_sha256": "12acec581ac2af1d229fdd45735b2e2ae83ec20379e66d976115a93f74f92bf9",
+      "published_sha256": "f8063800ccfb27c34be101ef12e92d585a6f61be9fe88a397e80246627dd7708",
+      "json_values_equal": true
+    },
+    {
+      "path": "reader-rust-ministral-44/history.json",
+      "original_sha256": "12acec581ac2af1d229fdd45735b2e2ae83ec20379e66d976115a93f74f92bf9",
+      "published_sha256": "f8063800ccfb27c34be101ef12e92d585a6f61be9fe88a397e80246627dd7708",
+      "json_values_equal": true
+    },
+    {
+      "path": "reader-rust-ministral-44/observations.json",
+      "original_sha256": "f95443ae1bb845773c3060ff2c54975edd4ab959acc65d5685cf363949ebea77",
+      "published_sha256": "106dd7ea1838df9b17636fb34364d33bdfb80bd1ef4232f8992365a77d5052ca",
+      "json_values_equal": true
+    },
+    {
+      "path": "reader-rust-ministral-44/report.json",
+      "original_sha256": "537f757cf9b222d3dd87248f8d4197cd965660d1587c5348b4ac37262d98dff1",
+      "published_sha256": "882be9c6f78fa11144450ad1ec2389df3cba633974f5204a4f03bcaba51cf00e",
+      "json_values_equal": true
+    },
+    {
+      "path": "reader-rust-ministral-44/visible-a.json",
+      "original_sha256": "c2f3cbe5652f4de15ada07de42d14cd9b70932808ca2a948a1c261128b0d831e",
+      "published_sha256": "948bf74db9f77570deb8f6319a9878ecc15884820057ecf56c645f1bc79c3458",
+      "json_values_equal": true
+    },
+    {
+      "path": "reader-rust-ministral-44/visible-b.json",
+      "original_sha256": "1b7209f97a3fc3b92ee9036d5646aca7d26c054e3ca6ca00bcd1351fe7c4e397",
+      "published_sha256": "fb95824edcd444c5416c38b1ef87c793f4482cb44e00fa2f3fb2b0c2b44250e0",
+      "json_values_equal": true
+    },
+    {
+      "path": "reader-rust-ministral-44/visible-c.json",
+      "original_sha256": "12acec581ac2af1d229fdd45735b2e2ae83ec20379e66d976115a93f74f92bf9",
+      "published_sha256": "f8063800ccfb27c34be101ef12e92d585a6f61be9fe88a397e80246627dd7708",
+      "json_values_equal": true
+    },
+    {
+      "path": "reader-python-coder-46/attempts-a.json",
+      "original_sha256": "08a431658898b507549324a7cd436c163b7a1b4fc33e4880bb156ed20add8946",
+      "published_sha256": "d65c5b9f427db1bc7c9bc9a635d87ab610a3dab5aa0182fbf6fe368755b45fd4",
+      "json_values_equal": true
+    },
+    {
+      "path": "reader-python-coder-46/history.json",
+      "original_sha256": "180b717d7a54c13e3c2ef06697f2963efaca1b2894090e69b73e355a2c3f34fa",
+      "published_sha256": "4eef752fa8e845c53a6f4038d909b631ec2ef47b295df94ad055548a1e06b914",
+      "json_values_equal": true
+    },
+    {
+      "path": "reader-python-coder-46/observations.json",
+      "original_sha256": "8f9e520c4fc9526bb1a5a6c5590ac6de7c91bfcbff078d74cfed247ac9d07e78",
+      "published_sha256": "17ff09676e0a28a16ee4b353cfc28f0e7bab813b6fb5f2ef170b386e85121349",
+      "json_values_equal": true
+    },
+    {
+      "path": "reader-python-coder-46/report.json",
+      "original_sha256": "c2008cb8367fae438ef1b5541ae1e8715f39f9fdb620fc95446ed16f6bbe769d",
+      "published_sha256": "1d66acd9003ba63fa8644eb787d170f1974a0727294dcf746fa5aff27708eeda",
+      "json_values_equal": true
+    },
+    {
+      "path": "reader-python-coder-46/visible-a.json",
+      "original_sha256": "180b717d7a54c13e3c2ef06697f2963efaca1b2894090e69b73e355a2c3f34fa",
+      "published_sha256": "4eef752fa8e845c53a6f4038d909b631ec2ef47b295df94ad055548a1e06b914",
+      "json_values_equal": true
+    },
+    {
+      "path": "reader-scripted-python-ci/attempts-a.json",
+      "original_sha256": "b0ba0a7fced6809e4127202a6234c09ec27ae171e4331711c05f3ad84cfd6336",
+      "published_sha256": "40b3dd3e5f646496dad30e22166d5cf8251321a8cc6e0c1e640b06f974cf1ff6",
+      "json_values_equal": true
+    },
+    {
+      "path": "reader-scripted-python-ci/attempts-b.json",
+      "original_sha256": "ed6b1dc94967b3d4a61e42411c55af7a7d62db76d28e8c4e1ea87ff317805ebf",
+      "published_sha256": "6643e563a34267cd79c2004406be9747046a4d8348064779a73d22767592f370",
+      "json_values_equal": true
+    },
+    {
+      "path": "reader-scripted-python-ci/attempts-c.json",
+      "original_sha256": "9b6cee10c8e59ecb514f3f972a5de6d1064bbd2bd123117026e5a0cd6fb34795",
+      "published_sha256": "7f4cbbc8bb897d5c7068462841202afef0136bcf8c8fe57d4083546a71c76eaf",
+      "json_values_equal": true
+    },
+    {
+      "path": "reader-scripted-python-ci/before-restart.json",
+      "original_sha256": "d6f84627146c379250bec98f8f74f45eeda0adf046c3c75ac1a013dc5f3ec7f4",
+      "published_sha256": "c8ec1df9145a6849c709e966637de9e24dd5ec81627a90864d8a2c10b2cb1f68",
+      "json_values_equal": true
+    },
+    {
+      "path": "reader-scripted-python-ci/challenge-history.json",
+      "original_sha256": "75b4d09491604884d46d8678ab9de6cb68eb5a4f95180c338eda64918ade9b53",
+      "published_sha256": "a7bffafa2ddf1771ce8e99e9dede66dd34e8468b426b11d327588e995e690b98",
+      "json_values_equal": true
+    },
+    {
+      "path": "reader-scripted-python-ci/challenge-originals.json",
+      "original_sha256": "d5a98472cf40a67aa1abe9f3731e49824db271cd25ab63c3fabfeb1075323614",
+      "published_sha256": "d3e6bde4dcbc9b611e6ceb186fb68e8e7d685b5a49cbcdc1d33fae366bfbfcbc",
+      "json_values_equal": true
+    },
+    {
+      "path": "reader-scripted-python-ci/checks.json",
+      "original_sha256": "98bf7b0f4a1f638e7cbe6a4de249c3de39c58492969a0fc0c6aa6a5fd11f918e",
+      "published_sha256": "aeefd2d2b204b1382354cd7bc61a6f599579630386f894cd7349988d59280d38",
+      "json_values_equal": true
+    },
+    {
+      "path": "reader-scripted-python-ci/history.json",
+      "original_sha256": "214f8d9770e697349354f1f2d1aecaeae8281f19cc204c8bc6d08a2b3a2f2091",
+      "published_sha256": "d76b509fc4c709860f5c16b6f841a76e7530ed30645e718b31e2452d3daf42ff",
+      "json_values_equal": true
+    },
+    {
+      "path": "reader-scripted-python-ci/observations.json",
+      "original_sha256": "c3dff124bb1c80f511122492d1ab91835f57dac86ccf83ab9369d66471387851",
+      "published_sha256": "a9f0625fd32c183882f8dcfd784cb1ac2db78f859a8c3baf748322d21ba77cff",
+      "json_values_equal": true
+    },
+    {
+      "path": "reader-scripted-python-ci/report.json",
+      "original_sha256": "fc3b51be36a26cb35e46ab0750100f578a80c5c45be7e157584e2437622e14ec",
+      "published_sha256": "bd59f76cfe7fc7c3d10f367772d9f23e0303d71faa30cb2352debfb1ed3e82f0",
+      "json_values_equal": true
+    },
+    {
+      "path": "reader-scripted-python-ci/visible-a.json",
+      "original_sha256": "6721b52aa39049c91f830f12e671df58202742369ad233fb60774a5218540f36",
+      "published_sha256": "be5283014aff0459809d4a4235d595851d280035aa17eddfa7dfd5029b0a4820",
+      "json_values_equal": true
+    },
+    {
+      "path": "reader-scripted-python-ci/visible-b.json",
+      "original_sha256": "db97df4780ea1b7972f0ba69c68c5c4404a98146cc896245c2c13564bdf455ff",
+      "published_sha256": "fb501993cc1543be2d3b5cbab05c4a20c0f33ffd7b3d48bd410b521a7ae09773",
+      "json_values_equal": true
+    },
+    {
+      "path": "reader-scripted-python-ci/visible-c.json",
+      "original_sha256": "d6f84627146c379250bec98f8f74f45eeda0adf046c3c75ac1a013dc5f3ec7f4",
+      "published_sha256": "c8ec1df9145a6849c709e966637de9e24dd5ec81627a90864d8a2c10b2cb1f68",
+      "json_values_equal": true
+    },
+    {
+      "path": "reader-scripted-rust-ci/attempts-a.json",
+      "original_sha256": "688a77b1cec287861c881d5d788523a4998b08a071c814e8d42c74c70f3437f7",
+      "published_sha256": "5c3f7b16890880a65ac6ce653bb3e84c788d1acf083d10a6103af45bbcd7e330",
+      "json_values_equal": true
+    },
+    {
+      "path": "reader-scripted-rust-ci/attempts-b.json",
+      "original_sha256": "cd1bf0317d6c96f0bbfecce255f995828259f00a9119592f3e5db8c0b66fc1c8",
+      "published_sha256": "1a95bf06bdf51d50a38b1c0510240e916ee500ac525d24d2131ff6a96befcfb3",
+      "json_values_equal": true
+    },
+    {
+      "path": "reader-scripted-rust-ci/attempts-c.json",
+      "original_sha256": "2e62968ba05f10f3105eb56742ac7b918d69139cf7fb62b3931afbf07b9edf7b",
+      "published_sha256": "13453fb72a3518f419b1eba543e5f6ffe48ad3ec4099367b70f02de72729aae5",
+      "json_values_equal": true
+    },
+    {
+      "path": "reader-scripted-rust-ci/before-restart.json",
+      "original_sha256": "735947ab9ed095437c7c7aea33013ad1a3c9090d7da917fd7235b45c0e6f5708",
+      "published_sha256": "d97fa1f8be28df7909303b4daee84f16c3e5037b2c92a30faef40519a7fdd571",
+      "json_values_equal": true
+    },
+    {
+      "path": "reader-scripted-rust-ci/challenge-history.json",
+      "original_sha256": "3089a37248d3ceb4375c7ecb82ebd52f5cc47e73d634befcbbb6354d649a6ca5",
+      "published_sha256": "1a2289edff4a374670d83c971b41428942cc0de44d335210be37dc6cc4a40d7c",
+      "json_values_equal": true
+    },
+    {
+      "path": "reader-scripted-rust-ci/challenge-originals.json",
+      "original_sha256": "af7e14e34420481500d83d877a49b620bb2ede32ab2f76245b5616203a317d54",
+      "published_sha256": "565fece3ca6ce2823590af18a91fe95ca40d99d07747854e12dffe3e806174c9",
+      "json_values_equal": true
+    },
+    {
+      "path": "reader-scripted-rust-ci/checks.json",
+      "original_sha256": "4f7bee7476c792d5d1407acc706699e3cf9b7c870c4e890a5b30aa4256c182f3",
+      "published_sha256": "a0575f3035fb848167f94c501f696d44c320e76355a472ecb9e2933e83bb3208",
+      "json_values_equal": true
+    },
+    {
+      "path": "reader-scripted-rust-ci/history.json",
+      "original_sha256": "a5371e15f3c0fa646e9cbfb34923076e38fa0d3792a39134df2e0da93eec36c5",
+      "published_sha256": "7c919e56a76dd809d8b036522b05f4337a7ed5830e0f7bc9294c63032f40af71",
+      "json_values_equal": true
+    },
+    {
+      "path": "reader-scripted-rust-ci/observations.json",
+      "original_sha256": "67f8ac4dfd4d69fbbdcba8c3f36367577724988e8f991c4deae936ee134548e2",
+      "published_sha256": "59754e0394255d082090787efcb07b37a3f65ed838eccfbbfd3d3f2fe91e6451",
+      "json_values_equal": true
+    },
+    {
+      "path": "reader-scripted-rust-ci/report.json",
+      "original_sha256": "2a6413becabbac4c2223dd21ea56c59dee54e4bf86071eb0c503100dd2978c23",
+      "published_sha256": "6abc2f9317583554949df183c16094969011132900b76ac5e6866d9b7408d7e4",
+      "json_values_equal": true
+    },
+    {
+      "path": "reader-scripted-rust-ci/visible-a.json",
+      "original_sha256": "450e00067c63ab9d055c66d0a860649db3c4d1a1cc0b1a4855f0add91979f2bc",
+      "published_sha256": "2727486d79bf2a351674ec706b6488ed6ca11a23a045a29c902bf4b17b3c989e",
+      "json_values_equal": true
+    },
+    {
+      "path": "reader-scripted-rust-ci/visible-b.json",
+      "original_sha256": "7e6d8e553f69dfebee45512dfe887dce3c3e8bf809dd9c4a816681a1c41a6aa5",
+      "published_sha256": "4bafb28acdb9c21aef3b84fc69d66882bdbd5bf046fb296fb4dab9fe99c4ad17",
+      "json_values_equal": true
+    },
+    {
+      "path": "reader-scripted-rust-ci/visible-c.json",
+      "original_sha256": "735947ab9ed095437c7c7aea33013ad1a3c9090d7da917fd7235b45c0e6f5708",
+      "published_sha256": "d97fa1f8be28df7909303b4daee84f16c3e5037b2c92a30faef40519a7fdd571",
+      "json_values_equal": true
+    },
+    {
+      "path": "reader-local-validation-rerun.json",
+      "original_sha256": "643d155d5c27209cf316e5bd2353151cdc1f8f755bf857ac23239d72d9c04d87",
+      "published_sha256": "d284597c77ffd2bf9f6fa12e0579276e4932e1512e20e351ef10b5136ca4c556",
+      "json_values_equal": true
+    }
+  ]
+}

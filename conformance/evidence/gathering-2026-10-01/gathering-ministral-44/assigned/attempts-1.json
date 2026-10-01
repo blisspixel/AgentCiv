@@ -1,0 +1,57 @@
+{
+  "format": "agentciv-decision-loop/0.1",
+  "outcome": "valid",
+  "budget": {
+    "attempts": 3,
+    "output_tokens": 1024,
+    "seconds": 120
+  },
+  "attempts": [
+    {
+      "index": 1,
+      "outcome": "valid",
+      "output_token_limit": 1024,
+      "prompt_sha256": "fe2153fa81b5a55666e1303118d3624f1d7c3810c8de4e10be8c487c8771e40e",
+      "candidate_sha256": "b25f191e7ae0116037add8235bfbd8707672c703a7de4ccadccdb8168f68165e",
+      "candidate_bytes": 395,
+      "charged_output_tokens": 94,
+      "output_usage_measured": true,
+      "metrics": {
+        "prompt_eval_count": 921,
+        "eval_count": 94,
+        "total_duration": 1007038800
+      },
+      "candidate_retained_privately": false
+    }
+  ],
+  "charged_output_tokens": 94,
+  "first_attempt_valid": true,
+  "eventual_valid": true,
+  "exact_candidates_retained_privately": false,
+  "publication": {
+    "outcome": "verified",
+    "record": {
+      "protocol_version": "0.1-draft",
+      "type": "message",
+      "id": "message:gathering-1",
+      "world": "civ:gathering-assigned",
+      "from": "agent:gathering-a",
+      "to": [
+        "agent:gathering-observer"
+      ],
+      "body": {
+        "text": "The Hollow Glade: A sunken clearing where ancient oaks arch over moss-kissed stones, their roots forming a labyrinth of whispers. Here, the air hums with the faint echoes of forgotten conversations, and the wind carries seeds of stories yet untold. A pool of still water mirrors the sky, but only those who pause to listen hear the ripples of time beneath.",
+        "decision_source": "ollama"
+      }
+    },
+    "receipt": {
+      "event_id": "event:fc7519b430ae6b3e38eb8e357f72edf8",
+      "protocol_version": "0.1-draft",
+      "record_id": "message:gathering-1",
+      "sequence": 1,
+      "status": "recorded",
+      "type": "receipt",
+      "world": "civ:gathering-assigned"
+    }
+  }
+}

@@ -8,11 +8,87 @@ permissions:
   contents: read
 
 jobs:
+  installer-unix:
+    name: Unix installer on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-26.04, macos-15]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        with:
+          python-version: '3.14'
+      - name: Check native shell syntax and offline behavior
+        run: |
+          sh -n install.sh
+          bash -n install.sh
+          sh -n installers/test-install.sh
+          sh -n installers/smoke-install.sh
+          sh installers/test-install.sh
+      - name: Install pinned Linux coverage and check shell lint
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends kcov=43+dfsg-2 shellcheck
+          shellcheck --version | grep -Fx 'version: 0.11.0'
+          shellcheck --shell=sh install.sh installers/test-install.sh installers/smoke-install.sh
+      - name: Require at least 80 percent native installer line coverage
+        if: runner.os == 'Linux'
+        run: |
+          export AGENTCIV_COVERAGE_DIR="$PWD/installer-coverage"
+          sh installers/test-install.sh
+          kcov --merge "$PWD/installer-coverage/merged" "$PWD"/installer-coverage/case-*
+          python - <<'PY'
+          from pathlib import Path
+          import xml.etree.ElementTree as ET
+          lines = {}
+          for report in Path('installer-coverage/merged').rglob('cobertura.xml'):
+              for cls in ET.parse(report).iter('class'):
+                  if Path(cls.attrib.get('filename', '')).name != 'install.sh':
+                      continue
+                  for line in cls.findall('./lines/line'):
+                      number, hits = int(line.attrib['number']), int(line.attrib['hits'])
+                      lines[number] = max(lines.get(number, 0), hits)
+          if not lines:
+              raise SystemExit('installer coverage missing')
+          fraction = sum(hits > 0 for hits in lines.values()) / len(lines)
+          print(f'Installer line coverage: {fraction:.2%}')
+          if fraction < 0.80:
+              raise SystemExit('installer coverage below 80 percent')
+          PY
+
+  installer-windows:
+    name: Windows PowerShell installer
+    runs-on: windows-2025
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: Native lint, tests, and 80 percent command coverage
+        shell: powershell
+        run: |
+          $testModules = Join-Path $env:RUNNER_TEMP 'installer-test-modules'
+          [void][IO.Directory]::CreateDirectory($testModules)
+          Save-Module Pester -RequiredVersion 4.10.1 -Path $testModules -Force
+          Save-Module PSScriptAnalyzer -RequiredVersion 1.24.0 -Path $testModules -Force
+          Import-Module (Join-Path $testModules 'Pester/4.10.1/Pester.psd1') -Force
+          Import-Module (Join-Path $testModules 'PSScriptAnalyzer/1.24.0/PSScriptAnalyzer.psd1') -Force
+          $issues = @(Invoke-ScriptAnalyzer -Path install.ps1 -Severity Warning,Error)
+          if ($issues.Count) { $issues | Format-Table; throw 'installer lint failed' }
+          $result = Invoke-Pester -Script installers/test-install.ps1 -CodeCoverage install.ps1 -PassThru
+          if ($result.FailedCount -or !$result.CodeCoverage.NumberOfCommandsAnalyzed -or ($result.CodeCoverage.NumberOfCommandsExecuted / $result.CodeCoverage.NumberOfCommandsAnalyzed) -lt 0.80) {
+            throw 'installer tests or coverage failed'
+          }
+
   docs-and-tests:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-python@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
         with:
           python-version: "3.14"
       - name: Install Rust coverage tool
@@ -43,6 +119,14 @@ jobs:
           python -m coverage run examples/participants/mock_collaboration.py --host rust --output .agents/mock-rust-ci
       - name: Walk raw HTTP against both loopback hosts
         run: python -m coverage run examples/http-commons/walk.py
+      - name: Exercise paginated reader plans against both hosts
+        run: |
+          python -m coverage run examples/participants/reader_collaboration.py --host python --output .agents/reader-python-ci
+          python -m coverage run examples/participants/reader_collaboration.py --host rust --output .agents/reader-rust-ci
+      - name: Exercise recurring gatherings against both hosts
+        run: |
+          python -m coverage run examples/participants/gathering.py --host python --output .agents/gathering-python-ci
+          python -m coverage run examples/participants/gathering.py --host rust --output .agents/gathering-rust-ci
       - name: Validate visibility and lifecycle against both hosts
         run: python -m coverage run examples/http-commons/validate.py --output local-validation.json
       - name: Check Python coverage
@@ -50,7 +134,7 @@ jobs:
           python -m coverage combine
           python -m coverage report
       - name: Preserve public validation reports
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: local-validation
           path: local-validation.json
@@ -59,7 +143,7 @@ jobs:
       - name: Test with coverage
         run: cargo llvm-cov --workspace --all-targets --locked --fail-under-lines 80
       - name: Preserve public offline handoff records
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: offline-inheritance
           path: .agents/inheritance-ci/*.json
@@ -76,8 +160,8 @@ jobs:
         os: [ubuntu-24.04, windows-latest, macos-latest]
         python-version: ["3.11", "3.14"]
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-python@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
         with:
           python-version: ${{ matrix.python-version }}
       - name: Type-check Python
@@ -103,8 +187,8 @@ jobs:
       matrix:
         os: [windows-latest, macos-latest]
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-python@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
         with:
           python-version: "3.14"
       - name: Lint Rust
@@ -113,6 +197,14 @@ jobs:
         run: cargo test --workspace --locked
       - name: Walk raw HTTP against both loopback hosts
         run: python examples/http-commons/walk.py
+      - name: Exercise paginated reader plans against both hosts
+        run: |
+          python examples/participants/reader_collaboration.py --host python --output .agents/reader-python-ci
+          python examples/participants/reader_collaboration.py --host rust --output .agents/reader-rust-ci
+      - name: Exercise recurring gatherings against both hosts
+        run: |
+          python examples/participants/gathering.py --host python --output .agents/gathering-python-ci
+          python examples/participants/gathering.py --host rust --output .agents/gathering-rust-ci
       - name: Exercise a scripted offline handoff after host restart
         run: python examples/inheritance/harness.py --source host --output .agents/inheritance-ci
       - name: Exercise scripted stock handoffs against both hosts
@@ -122,7 +214,7 @@ jobs:
       - name: Validate visibility and lifecycle against both hosts
         run: python examples/http-commons/validate.py --output local-validation.json
       - name: Preserve public validation reports
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: local-validation-${{ matrix.os }}
           path: local-validation.json

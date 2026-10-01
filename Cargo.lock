@@ -49,6 +49,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "agentciv-reader"
+version = "0.1.0"
+dependencies = [
+ "agentciv-archive",
+ "jsonschema",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "tempfile",
+]
+
+[[package]]
 name = "ahash"
 version = "0.8.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"

@@ -1,0 +1,69 @@
+{
+  "format": "agentciv-decision-loop/0.1",
+  "outcome": "attempts_exhausted",
+  "budget": {
+    "attempts": 3,
+    "output_tokens": 1024,
+    "seconds": 120
+  },
+  "attempts": [
+    {
+      "index": 1,
+      "outcome": "invalid",
+      "output_token_limit": 1024,
+      "prompt_sha256": "98f6f3a0f2379f48244e7ea97e06220311288db7c823210775e989030a4fde84",
+      "candidate_sha256": "35f574335ffab82794d38516230227270c1054c5990e93203206e1e089f1a1ca",
+      "candidate_bytes": 303,
+      "charged_output_tokens": 71,
+      "output_usage_measured": true,
+      "metrics": {
+        "prompt_eval_count": 1171,
+        "eval_count": 71,
+        "total_duration": 719196500
+      },
+      "candidate_retained_privately": false,
+      "feedback_code": "invalid_text"
+    },
+    {
+      "index": 2,
+      "outcome": "invalid",
+      "output_token_limit": 953,
+      "prompt_sha256": "6c2532219c6095cefb45db32ff223ff4545c590f607f7ace43581fee389a1317",
+      "candidate_sha256": "0b598d071da49609d31faedf3e59ee283690778ee1a96cbe5267698a017d30fd",
+      "candidate_bytes": 245,
+      "charged_output_tokens": 59,
+      "output_usage_measured": true,
+      "metrics": {
+        "prompt_eval_count": 1308,
+        "eval_count": 59,
+        "total_duration": 552070300
+      },
+      "candidate_retained_privately": false,
+      "feedback_code": "invalid_text"
+    },
+    {
+      "index": 3,
+      "outcome": "invalid",
+      "output_token_limit": 894,
+      "prompt_sha256": "e73c25e710cce3866fef8a738d35ccf7e5132c9f71166d64fdaf4fa3a24477af",
+      "candidate_sha256": "8933cd5266c80acaac3b9c4e56193c5711078560f1aeb572e0e5124b21d108dc",
+      "candidate_bytes": 197,
+      "charged_output_tokens": 51,
+      "output_usage_measured": true,
+      "metrics": {
+        "prompt_eval_count": 1296,
+        "eval_count": 51,
+        "total_duration": 476274500
+      },
+      "candidate_retained_privately": false,
+      "feedback_code": "invalid_text"
+    }
+  ],
+  "charged_output_tokens": 181,
+  "first_attempt_valid": false,
+  "eventual_valid": false,
+  "exact_candidates_retained_privately": false,
+  "publication": {
+    "outcome": "not_attempted"
+  }
+}

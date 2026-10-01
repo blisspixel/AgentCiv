@@ -1,0 +1,74 @@
+[
+  {
+    "outcome": "failed",
+    "decision_source": "ollama",
+    "principal": "agent:reader-a",
+    "visible_event_ids": [
+      "event:553817b21126cca1334b82636ab7d9cc"
+    ],
+    "failure_stage": "provider",
+    "failure_code": "stage_failed",
+    "decision_loop": {
+      "format": "agentciv-decision-loop/0.1",
+      "outcome": "provider_failed",
+      "budget": {
+        "attempts": 3,
+        "output_tokens": 1024,
+        "seconds": 120
+      },
+      "attempts": [
+        {
+          "index": 1,
+          "outcome": "provider_failed",
+          "output_token_limit": 1024,
+          "prompt_sha256": "18c5b80aebcec174d033d518073d8d19b846b1562700990b30ed84d9efe8f6bb"
+        }
+      ],
+      "charged_output_tokens": 0,
+      "first_attempt_valid": false,
+      "eventual_valid": false,
+      "exact_candidates_retained_privately": false,
+      "publication": {
+        "outcome": "not_attempted"
+      }
+    },
+    "provider": {
+      "runtime": "ollama",
+      "model": {
+        "name": "qwen2.5-coder:32b",
+        "model": "qwen2.5-coder:32b",
+        "modified_at": "2026-06-10T07:03:40.6656596-07:00",
+        "size": 19851349898,
+        "digest": "b92d6a0bd47ee79114298de0177bf920c05a706d12633950b3936778492bef41",
+        "details": {
+          "parent_model": "",
+          "format": "gguf",
+          "family": "qwen2",
+          "families": [
+            "qwen2"
+          ],
+          "parameter_size": "32.8B",
+          "quantization_level": "Q4_K_M",
+          "context_length": 32768,
+          "embedding_length": 5120
+        },
+        "capabilities": [
+          "completion",
+          "tools",
+          "insert"
+        ]
+      },
+      "version": "0.34.3",
+      "options": {
+        "seed": 46,
+        "temperature": 0.4,
+        "num_ctx": 8192,
+        "num_predict": 1024
+      },
+      "calls": 1,
+      "metrics": {},
+      "truncate": false,
+      "shift": false
+    }
+  }
+]
