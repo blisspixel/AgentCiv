@@ -1,0 +1,179 @@
+[
+  {
+    "protocol_version": "0.1-draft",
+    "type": "event",
+    "id": "event:0a0b95b14dcea878a7b2d704cd483085",
+    "world": "civ:mock-workshop",
+    "sequence": 1,
+    "timestamp": "2026-09-30T23:46:21Z",
+    "kind": "message.recorded",
+    "actor": "agent:operator",
+    "body": {
+      "message": {
+        "body": {
+          "stock": {
+            "item": "nuts",
+            "quantity": 12
+          },
+          "text": "Operator-supplied fictional stock fact."
+        },
+        "from": "agent:operator",
+        "id": "message:stock-1",
+        "protocol_version": "0.1-draft",
+        "to": [
+          "agent:mock-c"
+        ],
+        "type": "message",
+        "world": "civ:mock-workshop"
+      }
+    }
+  },
+  {
+    "protocol_version": "0.1-draft",
+    "type": "event",
+    "id": "event:264665444d0b8db1828334dbd0a81bf9",
+    "world": "civ:mock-workshop",
+    "sequence": 2,
+    "timestamp": "2026-09-30T23:46:21Z",
+    "kind": "message.recorded",
+    "actor": "agent:operator",
+    "body": {
+      "message": {
+        "body": {
+          "stock": {
+            "item": "bolts",
+            "quantity": 8
+          },
+          "text": "Operator-supplied fictional stock fact."
+        },
+        "from": "agent:operator",
+        "id": "message:stock-2",
+        "protocol_version": "0.1-draft",
+        "to": [
+          "agent:mock-c"
+        ],
+        "type": "message",
+        "world": "civ:mock-workshop"
+      }
+    }
+  },
+  {
+    "protocol_version": "0.1-draft",
+    "type": "event",
+    "id": "event:17192dfae17738e2081c700c432a8151",
+    "world": "civ:mock-workshop",
+    "sequence": 3,
+    "timestamp": "2026-09-30T23:46:21Z",
+    "kind": "message.recorded",
+    "actor": "agent:operator",
+    "body": {
+      "message": {
+        "body": {
+          "stock": {
+            "item": "washers",
+            "quantity": 20
+          },
+          "text": "Operator-supplied fictional stock fact."
+        },
+        "from": "agent:operator",
+        "id": "message:stock-3",
+        "protocol_version": "0.1-draft",
+        "to": [
+          "agent:mock-c"
+        ],
+        "type": "message",
+        "world": "civ:mock-workshop"
+      }
+    }
+  },
+  {
+    "protocol_version": "0.1-draft",
+    "type": "event",
+    "id": "event:4a0aef8a16d9e5e64ef011a81f1391c4",
+    "world": "civ:mock-workshop",
+    "sequence": 4,
+    "timestamp": "2026-09-30T23:46:25Z",
+    "kind": "artifact.recorded",
+    "actor": "agent:mock-a",
+    "body": {
+      "artifact_revision": {
+        "protocol_version": "0.1-draft",
+        "id": "submission:checklist-a",
+        "world": "civ:mock-workshop",
+        "from": "agent:mock-a",
+        "to": [
+          "agent:mock-observer"
+        ],
+        "body": {
+          "text": "Fictional workshop stock checklist compiled from authenticated operator records. Discrepancies resolved by operator-supplied facts only.",
+          "source_event_ids": [
+            "event:0a0b95b14dcea878a7b2d704cd483085",
+            "event:264665444d0b8db1828334dbd0a81bf9",
+            "event:17192dfae17738e2081c700c432a8151"
+          ],
+          "rows": [
+            {
+              "item": "nuts",
+              "quantity": 12,
+              "source_event_ids": [
+                "event:0a0b95b14dcea878a7b2d704cd483085"
+              ]
+            },
+            {
+              "item": "bolts",
+              "quantity": 8,
+              "source_event_ids": [
+                "event:264665444d0b8db1828334dbd0a81bf9"
+              ]
+            },
+            {
+              "item": "washers",
+              "quantity": 20,
+              "source_event_ids": [
+                "event:17192dfae17738e2081c700c432a8151"
+              ]
+            }
+          ],
+          "total": 40
+        },
+        "experiment_provenance": {
+          "decision_source": "ollama",
+          "envelope_source": "local_harness"
+        },
+        "type": "artifact_revision",
+        "artifact_id": "artifact:workshop-checklist",
+        "media_type": "application/json",
+        "revision": 1
+      }
+    }
+  },
+  {
+    "protocol_version": "0.1-draft",
+    "type": "event",
+    "id": "event:d98ba9a634113461e310d588a4b9cca6",
+    "world": "civ:mock-workshop",
+    "sequence": 5,
+    "timestamp": "2026-09-30T23:46:25Z",
+    "kind": "message.recorded",
+    "actor": "agent:operator",
+    "body": {
+      "message": {
+        "body": {
+          "stock": {
+            "item": "bolts",
+            "quantity": 5
+          },
+          "text": "Operator-supplied fictional stock fact."
+        },
+        "from": "agent:operator",
+        "id": "message:stock-4",
+        "protocol_version": "0.1-draft",
+        "to": [
+          "agent:mock-c"
+        ],
+        "type": "message",
+        "world": "civ:mock-workshop"
+      }
+    }
+  }
+]

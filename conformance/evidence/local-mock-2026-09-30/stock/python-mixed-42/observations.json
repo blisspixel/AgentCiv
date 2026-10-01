@@ -1,0 +1,840 @@
+[
+  {
+    "outcome": "recorded",
+    "decision_source": "ollama",
+    "visible_event_ids": [
+      "event:8637d7b87bb1d9b9231b0b8d773446a1",
+      "event:760170355758eb08c9bf895ea6ba0af1",
+      "event:03dcec9f305d8f65adc9eb8c3e2de6a3"
+    ],
+    "principal": "agent:mock-a",
+    "provider": {
+      "runtime": "ollama",
+      "model": {
+        "name": "qwen2.5:14b",
+        "model": "qwen2.5:14b",
+        "modified_at": "2024-10-10T13:57:57.389993-07:00",
+        "size": 8988124069,
+        "digest": "7cdf5a0187d5c58cc5d369b255592f7841d1c4696d45a8c8a9489440385b22f6",
+        "details": {
+          "parent_model": "",
+          "format": "gguf",
+          "family": "qwen2",
+          "families": [
+            "qwen2"
+          ],
+          "parameter_size": "14.8B",
+          "quantization_level": "Q4_K_M",
+          "context_length": 32768,
+          "embedding_length": 5120
+        },
+        "capabilities": [
+          "completion",
+          "tools"
+        ]
+      },
+      "version": "0.34.3",
+      "options": {
+        "seed": 42,
+        "temperature": 0.4,
+        "num_ctx": 8192,
+        "num_predict": 1024
+      },
+      "calls": 1,
+      "metrics": {
+        "prompt_eval_count": 1387,
+        "eval_count": 312,
+        "total_duration": 12953826500
+      },
+      "truncate": false,
+      "shift": false
+    },
+    "decision": {
+      "action": "revise",
+      "text": "Workshop stock checklist based on operator facts. Total quantity of items in stock.",
+      "target_event_id": "",
+      "source_event_ids": [
+        "event:8637d7b87bb1d9b9231b0b8d773446a1",
+        "event:760170355758eb08c9bf895ea6ba0af1",
+        "event:03dcec9f305d8f65adc9eb8c3e2de6a3"
+      ],
+      "rows": [
+        {
+          "item": "nuts",
+          "quantity": 12,
+          "source_event_ids": [
+            "event:8637d7b87bb1d9b9231b0b8d773446a1"
+          ]
+        },
+        {
+          "item": "bolts",
+          "quantity": 8,
+          "source_event_ids": [
+            "event:760170355758eb08c9bf895ea6ba0af1"
+          ]
+        },
+        {
+          "item": "washers",
+          "quantity": 20,
+          "source_event_ids": [
+            "event:03dcec9f305d8f65adc9eb8c3e2de6a3"
+          ]
+        }
+      ],
+      "total": 40
+    },
+    "peer_artifact_citations": [],
+    "target_event_id": "",
+    "semantic_check": {
+      "format": "agentciv-stock-checklist-result/0.1-fixture",
+      "accepted": true,
+      "scope": "fictional_operator_stock_facts_and_exact_event_provenance",
+      "outcome": "accepted",
+      "checks": {
+        "artifact_authored": true,
+        "operator_facts_complete": true,
+        "items_unique_and_complete": true,
+        "latest_quantities_match": true,
+        "latest_row_sources_match": true,
+        "visible_sources_cover_rows": true,
+        "total_matches_rows": true,
+        "total_matches_latest_facts": true
+      },
+      "expected_latest_facts": {
+        "nuts": {
+          "quantity": 12,
+          "event_id": "event:8637d7b87bb1d9b9231b0b8d773446a1"
+        },
+        "bolts": {
+          "quantity": 8,
+          "event_id": "event:760170355758eb08c9bf895ea6ba0af1"
+        },
+        "washers": {
+          "quantity": 20,
+          "event_id": "event:03dcec9f305d8f65adc9eb8c3e2de6a3"
+        }
+      },
+      "expected_total": 40
+    },
+    "derived_from": null,
+    "record": {
+      "protocol_version": "0.1-draft",
+      "id": "submission:checklist-a",
+      "world": "civ:mock-workshop",
+      "from": "agent:mock-a",
+      "to": [
+        "agent:mock-observer"
+      ],
+      "body": {
+        "text": "Workshop stock checklist based on operator facts. Total quantity of items in stock.",
+        "source_event_ids": [
+          "event:8637d7b87bb1d9b9231b0b8d773446a1",
+          "event:760170355758eb08c9bf895ea6ba0af1",
+          "event:03dcec9f305d8f65adc9eb8c3e2de6a3"
+        ],
+        "rows": [
+          {
+            "item": "nuts",
+            "quantity": 12,
+            "source_event_ids": [
+              "event:8637d7b87bb1d9b9231b0b8d773446a1"
+            ]
+          },
+          {
+            "item": "bolts",
+            "quantity": 8,
+            "source_event_ids": [
+              "event:760170355758eb08c9bf895ea6ba0af1"
+            ]
+          },
+          {
+            "item": "washers",
+            "quantity": 20,
+            "source_event_ids": [
+              "event:03dcec9f305d8f65adc9eb8c3e2de6a3"
+            ]
+          }
+        ],
+        "total": 40
+      },
+      "experiment_provenance": {
+        "decision_source": "ollama",
+        "envelope_source": "local_harness"
+      },
+      "type": "artifact_revision",
+      "artifact_id": "artifact:workshop-checklist",
+      "media_type": "application/json"
+    },
+    "receipt": {
+      "protocol_version": "0.1-draft",
+      "type": "receipt",
+      "world": "civ:mock-workshop",
+      "record_id": "submission:checklist-a",
+      "event_id": "event:5abb1fa12ab015794e60edfc340479f9",
+      "sequence": 4,
+      "status": "recorded",
+      "artifact_id": "artifact:workshop-checklist",
+      "revision": 1
+    },
+    "decision_loop": {
+      "format": "agentciv-decision-loop/0.1",
+      "outcome": "valid",
+      "budget": {
+        "attempts": 3,
+        "output_tokens": 1024,
+        "seconds": 120
+      },
+      "attempts": [
+        {
+          "index": 1,
+          "outcome": "valid",
+          "output_token_limit": 1024,
+          "prompt_sha256": "cbbdf1bab4f57bf7f0c47aae00baf68b4c55bd348b7401ceb7c462ffc6e1dc66",
+          "candidate_sha256": "eb9cf658354a57330f86065db1e2ec3d56fa0b367379631bf56e298f57fd0fce",
+          "candidate_bytes": 636,
+          "charged_output_tokens": 312,
+          "output_usage_measured": true,
+          "metrics": {
+            "prompt_eval_count": 1387,
+            "eval_count": 312,
+            "total_duration": 12953826500
+          },
+          "candidate_retained_privately": false
+        }
+      ],
+      "charged_output_tokens": 312,
+      "first_attempt_valid": true,
+      "eventual_valid": true,
+      "exact_candidates_retained_privately": false,
+      "publication": {
+        "outcome": "verified",
+        "record": {
+          "protocol_version": "0.1-draft",
+          "id": "submission:checklist-a",
+          "world": "civ:mock-workshop",
+          "from": "agent:mock-a",
+          "to": [
+            "agent:mock-observer"
+          ],
+          "body": {
+            "text": "Workshop stock checklist based on operator facts. Total quantity of items in stock.",
+            "source_event_ids": [
+              "event:8637d7b87bb1d9b9231b0b8d773446a1",
+              "event:760170355758eb08c9bf895ea6ba0af1",
+              "event:03dcec9f305d8f65adc9eb8c3e2de6a3"
+            ],
+            "rows": [
+              {
+                "item": "nuts",
+                "quantity": 12,
+                "source_event_ids": [
+                  "event:8637d7b87bb1d9b9231b0b8d773446a1"
+                ]
+              },
+              {
+                "item": "bolts",
+                "quantity": 8,
+                "source_event_ids": [
+                  "event:760170355758eb08c9bf895ea6ba0af1"
+                ]
+              },
+              {
+                "item": "washers",
+                "quantity": 20,
+                "source_event_ids": [
+                  "event:03dcec9f305d8f65adc9eb8c3e2de6a3"
+                ]
+              }
+            ],
+            "total": 40
+          },
+          "experiment_provenance": {
+            "decision_source": "ollama",
+            "envelope_source": "local_harness"
+          },
+          "type": "artifact_revision",
+          "artifact_id": "artifact:workshop-checklist",
+          "media_type": "application/json"
+        },
+        "receipt": {
+          "protocol_version": "0.1-draft",
+          "type": "receipt",
+          "world": "civ:mock-workshop",
+          "record_id": "submission:checklist-a",
+          "event_id": "event:5abb1fa12ab015794e60edfc340479f9",
+          "sequence": 4,
+          "status": "recorded",
+          "artifact_id": "artifact:workshop-checklist",
+          "revision": 1
+        }
+      }
+    }
+  },
+  {
+    "outcome": "recorded",
+    "decision_source": "ollama",
+    "visible_event_ids": [
+      "event:8637d7b87bb1d9b9231b0b8d773446a1",
+      "event:760170355758eb08c9bf895ea6ba0af1",
+      "event:03dcec9f305d8f65adc9eb8c3e2de6a3",
+      "event:5abb1fa12ab015794e60edfc340479f9",
+      "event:b1d4a2f52800dfa74363164b3769f556"
+    ],
+    "principal": "agent:mock-b",
+    "provider": {
+      "runtime": "ollama",
+      "model": {
+        "name": "ministral-3:8b",
+        "model": "ministral-3:8b",
+        "modified_at": "2026-08-12T19:49:51.4866866-07:00",
+        "size": 6022236616,
+        "digest": "1922accd5827ebe6829e536369195db25eaf664528dc66206d646ea3bb386b71",
+        "details": {
+          "parent_model": "",
+          "format": "gguf",
+          "family": "mistral3",
+          "families": [
+            "mistral3"
+          ],
+          "parameter_size": "8.9B",
+          "quantization_level": "Q4_K_M",
+          "context_length": 262144,
+          "embedding_length": 4096
+        },
+        "capabilities": [
+          "completion",
+          "vision",
+          "tools"
+        ]
+      },
+      "version": "0.34.3",
+      "options": {
+        "seed": 43,
+        "temperature": 0.4,
+        "num_ctx": 8192,
+        "num_predict": 1024
+      },
+      "calls": 1,
+      "metrics": {
+        "prompt_eval_count": 2832,
+        "eval_count": 412,
+        "total_duration": 8824613400
+      },
+      "truncate": false,
+      "shift": false
+    },
+    "decision": {
+      "action": "revise",
+      "text": "Updated checklist incorporating latest operator fact for bolts (5) from event:b1d4a2f52800dfa74363164b3769f556. Overrides prior bolt quantity (8). Total recalculated as 37 (nuts:12, bolts:5, washers:20).",
+      "target_event_id": "",
+      "source_event_ids": [
+        "event:8637d7b87bb1d9b9231b0b8d773446a1",
+        "event:b1d4a2f52800dfa74363164b3769f556",
+        "event:03dcec9f305d8f65adc9eb8c3e2de6a3"
+      ],
+      "rows": [
+        {
+          "item": "nuts",
+          "quantity": 12,
+          "source_event_ids": [
+            "event:8637d7b87bb1d9b9231b0b8d773446a1"
+          ]
+        },
+        {
+          "item": "bolts",
+          "quantity": 5,
+          "source_event_ids": [
+            "event:b1d4a2f52800dfa74363164b3769f556"
+          ]
+        },
+        {
+          "item": "washers",
+          "quantity": 20,
+          "source_event_ids": [
+            "event:03dcec9f305d8f65adc9eb8c3e2de6a3"
+          ]
+        }
+      ],
+      "total": 37
+    },
+    "peer_artifact_citations": [],
+    "target_event_id": "",
+    "semantic_check": {
+      "format": "agentciv-stock-checklist-result/0.1-fixture",
+      "accepted": true,
+      "scope": "fictional_operator_stock_facts_and_exact_event_provenance",
+      "outcome": "accepted",
+      "checks": {
+        "artifact_authored": true,
+        "operator_facts_complete": true,
+        "items_unique_and_complete": true,
+        "latest_quantities_match": true,
+        "latest_row_sources_match": true,
+        "visible_sources_cover_rows": true,
+        "total_matches_rows": true,
+        "total_matches_latest_facts": true
+      },
+      "expected_latest_facts": {
+        "nuts": {
+          "quantity": 12,
+          "event_id": "event:8637d7b87bb1d9b9231b0b8d773446a1"
+        },
+        "bolts": {
+          "quantity": 5,
+          "event_id": "event:b1d4a2f52800dfa74363164b3769f556"
+        },
+        "washers": {
+          "quantity": 20,
+          "event_id": "event:03dcec9f305d8f65adc9eb8c3e2de6a3"
+        }
+      },
+      "expected_total": 37
+    },
+    "derived_from": null,
+    "record": {
+      "protocol_version": "0.1-draft",
+      "id": "submission:checklist-b",
+      "world": "civ:mock-workshop",
+      "from": "agent:mock-b",
+      "to": [
+        "agent:mock-observer"
+      ],
+      "body": {
+        "text": "Updated checklist incorporating latest operator fact for bolts (5) from event:b1d4a2f52800dfa74363164b3769f556. Overrides prior bolt quantity (8). Total recalculated as 37 (nuts:12, bolts:5, washers:20).",
+        "source_event_ids": [
+          "event:8637d7b87bb1d9b9231b0b8d773446a1",
+          "event:b1d4a2f52800dfa74363164b3769f556",
+          "event:03dcec9f305d8f65adc9eb8c3e2de6a3"
+        ],
+        "rows": [
+          {
+            "item": "nuts",
+            "quantity": 12,
+            "source_event_ids": [
+              "event:8637d7b87bb1d9b9231b0b8d773446a1"
+            ]
+          },
+          {
+            "item": "bolts",
+            "quantity": 5,
+            "source_event_ids": [
+              "event:b1d4a2f52800dfa74363164b3769f556"
+            ]
+          },
+          {
+            "item": "washers",
+            "quantity": 20,
+            "source_event_ids": [
+              "event:03dcec9f305d8f65adc9eb8c3e2de6a3"
+            ]
+          }
+        ],
+        "total": 37
+      },
+      "experiment_provenance": {
+        "decision_source": "ollama",
+        "envelope_source": "local_harness"
+      },
+      "type": "artifact_revision",
+      "artifact_id": "artifact:workshop-checklist",
+      "media_type": "application/json"
+    },
+    "receipt": {
+      "protocol_version": "0.1-draft",
+      "type": "receipt",
+      "world": "civ:mock-workshop",
+      "record_id": "submission:checklist-b",
+      "event_id": "event:5e02702981626a4a9d560964f0b97277",
+      "sequence": 6,
+      "status": "recorded",
+      "artifact_id": "artifact:workshop-checklist",
+      "revision": 1
+    },
+    "decision_loop": {
+      "format": "agentciv-decision-loop/0.1",
+      "outcome": "valid",
+      "budget": {
+        "attempts": 3,
+        "output_tokens": 1024,
+        "seconds": 120
+      },
+      "attempts": [
+        {
+          "index": 1,
+          "outcome": "valid",
+          "output_token_limit": 1024,
+          "prompt_sha256": "b8bf2c42ec9e6fe478c87658e40d180505a3827442adccac1503e61da040308c",
+          "candidate_sha256": "85532e3cd228a0bf589551549b216357af8172c2df66788f68675be4e7381960",
+          "candidate_bytes": 844,
+          "charged_output_tokens": 412,
+          "output_usage_measured": true,
+          "metrics": {
+            "prompt_eval_count": 2832,
+            "eval_count": 412,
+            "total_duration": 8824613400
+          },
+          "candidate_retained_privately": false
+        }
+      ],
+      "charged_output_tokens": 412,
+      "first_attempt_valid": true,
+      "eventual_valid": true,
+      "exact_candidates_retained_privately": false,
+      "publication": {
+        "outcome": "verified",
+        "record": {
+          "protocol_version": "0.1-draft",
+          "id": "submission:checklist-b",
+          "world": "civ:mock-workshop",
+          "from": "agent:mock-b",
+          "to": [
+            "agent:mock-observer"
+          ],
+          "body": {
+            "text": "Updated checklist incorporating latest operator fact for bolts (5) from event:b1d4a2f52800dfa74363164b3769f556. Overrides prior bolt quantity (8). Total recalculated as 37 (nuts:12, bolts:5, washers:20).",
+            "source_event_ids": [
+              "event:8637d7b87bb1d9b9231b0b8d773446a1",
+              "event:b1d4a2f52800dfa74363164b3769f556",
+              "event:03dcec9f305d8f65adc9eb8c3e2de6a3"
+            ],
+            "rows": [
+              {
+                "item": "nuts",
+                "quantity": 12,
+                "source_event_ids": [
+                  "event:8637d7b87bb1d9b9231b0b8d773446a1"
+                ]
+              },
+              {
+                "item": "bolts",
+                "quantity": 5,
+                "source_event_ids": [
+                  "event:b1d4a2f52800dfa74363164b3769f556"
+                ]
+              },
+              {
+                "item": "washers",
+                "quantity": 20,
+                "source_event_ids": [
+                  "event:03dcec9f305d8f65adc9eb8c3e2de6a3"
+                ]
+              }
+            ],
+            "total": 37
+          },
+          "experiment_provenance": {
+            "decision_source": "ollama",
+            "envelope_source": "local_harness"
+          },
+          "type": "artifact_revision",
+          "artifact_id": "artifact:workshop-checklist",
+          "media_type": "application/json"
+        },
+        "receipt": {
+          "protocol_version": "0.1-draft",
+          "type": "receipt",
+          "world": "civ:mock-workshop",
+          "record_id": "submission:checklist-b",
+          "event_id": "event:5e02702981626a4a9d560964f0b97277",
+          "sequence": 6,
+          "status": "recorded",
+          "artifact_id": "artifact:workshop-checklist",
+          "revision": 1
+        }
+      }
+    }
+  },
+  {
+    "outcome": "recorded",
+    "decision_source": "ollama",
+    "visible_event_ids": [
+      "event:8637d7b87bb1d9b9231b0b8d773446a1",
+      "event:760170355758eb08c9bf895ea6ba0af1",
+      "event:03dcec9f305d8f65adc9eb8c3e2de6a3",
+      "event:5abb1fa12ab015794e60edfc340479f9",
+      "event:b1d4a2f52800dfa74363164b3769f556",
+      "event:5e02702981626a4a9d560964f0b97277",
+      "event:d2c63c93a687242bbc9cf5b1ec58ddca",
+      "event:538689ab005f795863ac05cba078dc74"
+    ],
+    "principal": "agent:mock-c",
+    "provider": {
+      "runtime": "ollama",
+      "model": {
+        "name": "qwen2.5:14b",
+        "model": "qwen2.5:14b",
+        "modified_at": "2024-10-10T13:57:57.389993-07:00",
+        "size": 8988124069,
+        "digest": "7cdf5a0187d5c58cc5d369b255592f7841d1c4696d45a8c8a9489440385b22f6",
+        "details": {
+          "parent_model": "",
+          "format": "gguf",
+          "family": "qwen2",
+          "families": [
+            "qwen2"
+          ],
+          "parameter_size": "14.8B",
+          "quantization_level": "Q4_K_M",
+          "context_length": 32768,
+          "embedding_length": 5120
+        },
+        "capabilities": [
+          "completion",
+          "tools"
+        ]
+      },
+      "version": "0.34.3",
+      "options": {
+        "seed": 44,
+        "temperature": 0.4,
+        "num_ctx": 8192,
+        "num_predict": 1024
+      },
+      "calls": 2,
+      "metrics": {
+        "prompt_eval_count": 3957,
+        "eval_count": 364,
+        "total_duration": 7166403600
+      },
+      "truncate": false,
+      "shift": false
+    },
+    "decision": {
+      "action": "revise",
+      "text": "Updated checklist incorporating latest operator fact for washers (22) from event:d2c63c93a687242bbc9cf5b1ec58ddca. Total recalculated as 39 (nuts:12, bolts:5, washers:22).",
+      "target_event_id": "",
+      "source_event_ids": [
+        "event:8637d7b87bb1d9b9231b0b8d773446a1",
+        "event:b1d4a2f52800dfa74363164b3769f556",
+        "event:d2c63c93a687242bbc9cf5b1ec58ddca"
+      ],
+      "rows": [
+        {
+          "item": "nuts",
+          "quantity": 12,
+          "source_event_ids": [
+            "event:8637d7b87bb1d9b9231b0b8d773446a1"
+          ]
+        },
+        {
+          "item": "bolts",
+          "quantity": 5,
+          "source_event_ids": [
+            "event:b1d4a2f52800dfa74363164b3769f556"
+          ]
+        },
+        {
+          "item": "washers",
+          "quantity": 22,
+          "source_event_ids": [
+            "event:d2c63c93a687242bbc9cf5b1ec58ddca"
+          ]
+        }
+      ],
+      "total": 39
+    },
+    "peer_artifact_citations": [],
+    "target_event_id": "",
+    "semantic_check": {
+      "format": "agentciv-stock-checklist-result/0.1-fixture",
+      "accepted": true,
+      "scope": "fictional_operator_stock_facts_and_exact_event_provenance",
+      "outcome": "accepted",
+      "checks": {
+        "artifact_authored": true,
+        "operator_facts_complete": true,
+        "items_unique_and_complete": true,
+        "latest_quantities_match": true,
+        "latest_row_sources_match": true,
+        "visible_sources_cover_rows": true,
+        "total_matches_rows": true,
+        "total_matches_latest_facts": true
+      },
+      "expected_latest_facts": {
+        "nuts": {
+          "quantity": 12,
+          "event_id": "event:8637d7b87bb1d9b9231b0b8d773446a1"
+        },
+        "bolts": {
+          "quantity": 5,
+          "event_id": "event:b1d4a2f52800dfa74363164b3769f556"
+        },
+        "washers": {
+          "quantity": 22,
+          "event_id": "event:d2c63c93a687242bbc9cf5b1ec58ddca"
+        }
+      },
+      "expected_total": 39
+    },
+    "derived_from": null,
+    "record": {
+      "protocol_version": "0.1-draft",
+      "id": "submission:checklist-c",
+      "world": "civ:mock-workshop",
+      "from": "agent:mock-c",
+      "to": [
+        "agent:mock-observer"
+      ],
+      "body": {
+        "text": "Updated checklist incorporating latest operator fact for washers (22) from event:d2c63c93a687242bbc9cf5b1ec58ddca. Total recalculated as 39 (nuts:12, bolts:5, washers:22).",
+        "source_event_ids": [
+          "event:8637d7b87bb1d9b9231b0b8d773446a1",
+          "event:b1d4a2f52800dfa74363164b3769f556",
+          "event:d2c63c93a687242bbc9cf5b1ec58ddca"
+        ],
+        "rows": [
+          {
+            "item": "nuts",
+            "quantity": 12,
+            "source_event_ids": [
+              "event:8637d7b87bb1d9b9231b0b8d773446a1"
+            ]
+          },
+          {
+            "item": "bolts",
+            "quantity": 5,
+            "source_event_ids": [
+              "event:b1d4a2f52800dfa74363164b3769f556"
+            ]
+          },
+          {
+            "item": "washers",
+            "quantity": 22,
+            "source_event_ids": [
+              "event:d2c63c93a687242bbc9cf5b1ec58ddca"
+            ]
+          }
+        ],
+        "total": 39
+      },
+      "experiment_provenance": {
+        "decision_source": "ollama",
+        "envelope_source": "local_harness"
+      },
+      "type": "artifact_revision",
+      "artifact_id": "artifact:workshop-checklist",
+      "media_type": "application/json"
+    },
+    "receipt": {
+      "protocol_version": "0.1-draft",
+      "type": "receipt",
+      "world": "civ:mock-workshop",
+      "record_id": "submission:checklist-c",
+      "event_id": "event:4fea2a798eb7542edfb993694aa7195f",
+      "sequence": 9,
+      "status": "recorded",
+      "artifact_id": "artifact:workshop-checklist",
+      "revision": 1
+    },
+    "decision_loop": {
+      "format": "agentciv-decision-loop/0.1",
+      "outcome": "valid",
+      "budget": {
+        "attempts": 3,
+        "output_tokens": 1024,
+        "seconds": 120
+      },
+      "attempts": [
+        {
+          "index": 1,
+          "outcome": "invalid",
+          "output_token_limit": 1024,
+          "prompt_sha256": "ad76dab61a038712f6181711967e1798cb3cfc4d18ae6565d67beb403f48afc7",
+          "candidate_sha256": "b03d9569aed3c28ec2e9cc0b13a702ee3e31b2e00f752202e48898191a6cf759",
+          "candidate_bytes": 762,
+          "charged_output_tokens": 399,
+          "output_usage_measured": true,
+          "metrics": {
+            "prompt_eval_count": 3480,
+            "eval_count": 399,
+            "total_duration": 7786968400
+          },
+          "candidate_retained_privately": false,
+          "feedback_code": "target_not_cited"
+        },
+        {
+          "index": 2,
+          "outcome": "valid",
+          "output_token_limit": 625,
+          "prompt_sha256": "47dc85be46400d74dae862b228cca30a8bdff176d94425fa1033e3d9458b2d83",
+          "candidate_sha256": "1b49151c40b8a544c560ba8c607a31ed43d6160ae01300b2a97ca0c0dda2e059",
+          "candidate_bytes": 724,
+          "charged_output_tokens": 364,
+          "output_usage_measured": true,
+          "metrics": {
+            "prompt_eval_count": 3957,
+            "eval_count": 364,
+            "total_duration": 7166403600
+          },
+          "candidate_retained_privately": false
+        }
+      ],
+      "charged_output_tokens": 763,
+      "first_attempt_valid": false,
+      "eventual_valid": true,
+      "exact_candidates_retained_privately": false,
+      "publication": {
+        "outcome": "verified",
+        "record": {
+          "protocol_version": "0.1-draft",
+          "id": "submission:checklist-c",
+          "world": "civ:mock-workshop",
+          "from": "agent:mock-c",
+          "to": [
+            "agent:mock-observer"
+          ],
+          "body": {
+            "text": "Updated checklist incorporating latest operator fact for washers (22) from event:d2c63c93a687242bbc9cf5b1ec58ddca. Total recalculated as 39 (nuts:12, bolts:5, washers:22).",
+            "source_event_ids": [
+              "event:8637d7b87bb1d9b9231b0b8d773446a1",
+              "event:b1d4a2f52800dfa74363164b3769f556",
+              "event:d2c63c93a687242bbc9cf5b1ec58ddca"
+            ],
+            "rows": [
+              {
+                "item": "nuts",
+                "quantity": 12,
+                "source_event_ids": [
+                  "event:8637d7b87bb1d9b9231b0b8d773446a1"
+                ]
+              },
+              {
+                "item": "bolts",
+                "quantity": 5,
+                "source_event_ids": [
+                  "event:b1d4a2f52800dfa74363164b3769f556"
+                ]
+              },
+              {
+                "item": "washers",
+                "quantity": 22,
+                "source_event_ids": [
+                  "event:d2c63c93a687242bbc9cf5b1ec58ddca"
+                ]
+              }
+            ],
+            "total": 39
+          },
+          "experiment_provenance": {
+            "decision_source": "ollama",
+            "envelope_source": "local_harness"
+          },
+          "type": "artifact_revision",
+          "artifact_id": "artifact:workshop-checklist",
+          "media_type": "application/json"
+        },
+        "receipt": {
+          "protocol_version": "0.1-draft",
+          "type": "receipt",
+          "world": "civ:mock-workshop",
+          "record_id": "submission:checklist-c",
+          "event_id": "event:4fea2a798eb7542edfb993694aa7195f",
+          "sequence": 9,
+          "status": "recorded",
+          "artifact_id": "artifact:workshop-checklist",
+          "revision": 1
+        }
+      }
+    }
+  }
+]

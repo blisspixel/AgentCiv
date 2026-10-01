@@ -1,0 +1,89 @@
+[
+  {
+    "protocol_version": "0.1-draft",
+    "type": "event",
+    "id": "event:8637d7b87bb1d9b9231b0b8d773446a1",
+    "world": "civ:mock-workshop",
+    "sequence": 1,
+    "timestamp": "2026-09-30T23:39:52Z",
+    "kind": "message.recorded",
+    "actor": "agent:operator",
+    "body": {
+      "message": {
+        "body": {
+          "stock": {
+            "item": "nuts",
+            "quantity": 12
+          },
+          "text": "Operator-supplied fictional stock fact."
+        },
+        "from": "agent:operator",
+        "id": "message:stock-1",
+        "protocol_version": "0.1-draft",
+        "to": [
+          "agent:mock-c"
+        ],
+        "type": "message",
+        "world": "civ:mock-workshop"
+      }
+    }
+  },
+  {
+    "protocol_version": "0.1-draft",
+    "type": "event",
+    "id": "event:760170355758eb08c9bf895ea6ba0af1",
+    "world": "civ:mock-workshop",
+    "sequence": 2,
+    "timestamp": "2026-09-30T23:39:52Z",
+    "kind": "message.recorded",
+    "actor": "agent:operator",
+    "body": {
+      "message": {
+        "body": {
+          "stock": {
+            "item": "bolts",
+            "quantity": 8
+          },
+          "text": "Operator-supplied fictional stock fact."
+        },
+        "from": "agent:operator",
+        "id": "message:stock-2",
+        "protocol_version": "0.1-draft",
+        "to": [
+          "agent:mock-c"
+        ],
+        "type": "message",
+        "world": "civ:mock-workshop"
+      }
+    }
+  },
+  {
+    "protocol_version": "0.1-draft",
+    "type": "event",
+    "id": "event:03dcec9f305d8f65adc9eb8c3e2de6a3",
+    "world": "civ:mock-workshop",
+    "sequence": 3,
+    "timestamp": "2026-09-30T23:39:52Z",
+    "kind": "message.recorded",
+    "actor": "agent:operator",
+    "body": {
+      "message": {
+        "body": {
+          "stock": {
+            "item": "washers",
+            "quantity": 20
+          },
+          "text": "Operator-supplied fictional stock fact."
+        },
+        "from": "agent:operator",
+        "id": "message:stock-3",
+        "protocol_version": "0.1-draft",
+        "to": [
+          "agent:mock-c"
+        ],
+        "type": "message",
+        "world": "civ:mock-workshop"
+      }
+    }
+  }
+]

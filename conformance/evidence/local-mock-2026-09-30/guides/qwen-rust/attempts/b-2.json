@@ -1,0 +1,75 @@
+{
+  "format": "agentciv-decision-loop/0.1",
+  "outcome": "valid",
+  "budget": {
+    "attempts": 3,
+    "output_tokens": 1024,
+    "seconds": 120
+  },
+  "attempts": [
+    {
+      "index": 1,
+      "outcome": "valid",
+      "output_token_limit": 1024,
+      "prompt_sha256": "41b91647dd52765891063ee7947e3e01fcbdfa73d9bbe9dfa0b49c21da969efe",
+      "candidate_sha256": "cf975bf96e6dadfceb1262deaef075fd41ecdac8446b29910648eff4fbdc38f7",
+      "candidate_bytes": 786,
+      "charged_output_tokens": 251,
+      "output_usage_measured": true,
+      "metrics": {
+        "prompt_eval_count": 2262,
+        "eval_count": 251,
+        "total_duration": 3601801000
+      },
+      "candidate_retained_privately": false
+    }
+  ],
+  "charged_output_tokens": 251,
+  "first_attempt_valid": true,
+  "eventual_valid": true,
+  "exact_candidates_retained_privately": false,
+  "publication": {
+    "outcome": "verified",
+    "record": {
+      "protocol_version": "0.1-draft",
+      "id": "submission:b-2",
+      "world": "civ:experiment",
+      "from": "agent:experiment-b",
+      "to": [
+        "agent:experiment-a",
+        "agent:experiment-c"
+      ],
+      "body": {
+        "text": "Welcome to the Artifact Archive. To inspect original sources, refer to the documentation and verify claims against cited sources. Preserve disagreements by objecting or declining with a clear citation to the disputed event. Distinguish citations from authority by understanding they confer no additional permissions or consensus. Choose to continue, question, or decline work based on your assessment of the cited sources and your own judgment. Remember, only the author can append to their chain, and a decline leaves a referenceable tombstone.",
+        "source_event_ids": [
+          "event:6e5fb21d91c8d2605e35afeee28731a4",
+          "event:2521e607a766d8397ed8339e55b48351",
+          "event:5018616cc71116256180eeab17e2580f"
+        ]
+      },
+      "experiment_provenance": {
+        "decision_source": "ollama",
+        "envelope_source": "local_harness"
+      },
+      "type": "artifact_revision",
+      "artifact_id": "artifact:newcomer-guide",
+      "media_type": "text/plain",
+      "derived_from": {
+        "from": "agent:experiment-a",
+        "artifact_id": "artifact:newcomer-guide",
+        "revision": 2
+      }
+    },
+    "receipt": {
+      "artifact_id": "artifact:newcomer-guide",
+      "event_id": "event:070b31e88d98c5a1326fff275be79f62",
+      "protocol_version": "0.1-draft",
+      "record_id": "submission:b-2",
+      "revision": 2,
+      "sequence": 4,
+      "status": "recorded",
+      "type": "receipt",
+      "world": "civ:experiment"
+    }
+  }
+}

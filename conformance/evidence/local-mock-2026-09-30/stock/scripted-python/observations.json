@@ -1,0 +1,731 @@
+[
+  {
+    "outcome": "recorded",
+    "decision_source": "scripted",
+    "visible_event_ids": [
+      "event:979b133d92a8c1528d96a08223b09f00",
+      "event:35c5792e612d6cd1d77fc43827af67e2",
+      "event:ab0ec26c975296c415e5b6ca8e70c854"
+    ],
+    "principal": "agent:mock-a",
+    "decision": {
+      "action": "revise",
+      "text": "Disclosed scripted checklist baseline.",
+      "target_event_id": "",
+      "source_event_ids": [
+        "event:979b133d92a8c1528d96a08223b09f00",
+        "event:35c5792e612d6cd1d77fc43827af67e2",
+        "event:ab0ec26c975296c415e5b6ca8e70c854"
+      ],
+      "rows": [
+        {
+          "item": "nuts",
+          "quantity": 12,
+          "source_event_ids": [
+            "event:979b133d92a8c1528d96a08223b09f00"
+          ]
+        },
+        {
+          "item": "bolts",
+          "quantity": 8,
+          "source_event_ids": [
+            "event:35c5792e612d6cd1d77fc43827af67e2"
+          ]
+        },
+        {
+          "item": "washers",
+          "quantity": 20,
+          "source_event_ids": [
+            "event:ab0ec26c975296c415e5b6ca8e70c854"
+          ]
+        }
+      ],
+      "total": 40
+    },
+    "peer_artifact_citations": [],
+    "target_event_id": "",
+    "semantic_check": {
+      "format": "agentciv-stock-checklist-result/0.1-fixture",
+      "accepted": true,
+      "scope": "fictional_operator_stock_facts_and_exact_event_provenance",
+      "outcome": "accepted",
+      "checks": {
+        "artifact_authored": true,
+        "operator_facts_complete": true,
+        "items_unique_and_complete": true,
+        "latest_quantities_match": true,
+        "latest_row_sources_match": true,
+        "visible_sources_cover_rows": true,
+        "total_matches_rows": true,
+        "total_matches_latest_facts": true
+      },
+      "expected_latest_facts": {
+        "nuts": {
+          "quantity": 12,
+          "event_id": "event:979b133d92a8c1528d96a08223b09f00"
+        },
+        "bolts": {
+          "quantity": 8,
+          "event_id": "event:35c5792e612d6cd1d77fc43827af67e2"
+        },
+        "washers": {
+          "quantity": 20,
+          "event_id": "event:ab0ec26c975296c415e5b6ca8e70c854"
+        }
+      },
+      "expected_total": 40
+    },
+    "derived_from": null,
+    "record": {
+      "protocol_version": "0.1-draft",
+      "id": "submission:checklist-a",
+      "world": "civ:mock-workshop",
+      "from": "agent:mock-a",
+      "to": [
+        "agent:mock-observer"
+      ],
+      "body": {
+        "text": "Disclosed scripted checklist baseline.",
+        "source_event_ids": [
+          "event:979b133d92a8c1528d96a08223b09f00",
+          "event:35c5792e612d6cd1d77fc43827af67e2",
+          "event:ab0ec26c975296c415e5b6ca8e70c854"
+        ],
+        "rows": [
+          {
+            "item": "nuts",
+            "quantity": 12,
+            "source_event_ids": [
+              "event:979b133d92a8c1528d96a08223b09f00"
+            ]
+          },
+          {
+            "item": "bolts",
+            "quantity": 8,
+            "source_event_ids": [
+              "event:35c5792e612d6cd1d77fc43827af67e2"
+            ]
+          },
+          {
+            "item": "washers",
+            "quantity": 20,
+            "source_event_ids": [
+              "event:ab0ec26c975296c415e5b6ca8e70c854"
+            ]
+          }
+        ],
+        "total": 40
+      },
+      "experiment_provenance": {
+        "decision_source": "scripted",
+        "envelope_source": "local_harness"
+      },
+      "type": "artifact_revision",
+      "artifact_id": "artifact:workshop-checklist",
+      "media_type": "application/json"
+    },
+    "receipt": {
+      "protocol_version": "0.1-draft",
+      "type": "receipt",
+      "world": "civ:mock-workshop",
+      "record_id": "submission:checklist-a",
+      "event_id": "event:d4a120565b96bb03ceb7dd461a911d52",
+      "sequence": 4,
+      "status": "recorded",
+      "artifact_id": "artifact:workshop-checklist",
+      "revision": 1
+    },
+    "decision_loop": {
+      "format": "agentciv-decision-loop/0.1",
+      "outcome": "valid",
+      "budget": {
+        "attempts": 1,
+        "output_tokens": 1024,
+        "seconds": 120
+      },
+      "attempts": [
+        {
+          "index": 1,
+          "outcome": "valid",
+          "output_token_limit": 1024,
+          "prompt_sha256": "b0ba17221f6a2e640c334101cc2cf8ab577815b9fb918373e56de29485f11458",
+          "candidate_sha256": "e8dad5d36dcb759faf4dfe97b7e553c622b95d27d14b13f7ce9a9fce6158df8c",
+          "candidate_bytes": 561,
+          "charged_output_tokens": 0,
+          "output_usage_measured": true,
+          "metrics": {
+            "eval_count": 0
+          },
+          "candidate_retained_privately": false
+        }
+      ],
+      "charged_output_tokens": 0,
+      "first_attempt_valid": true,
+      "eventual_valid": true,
+      "exact_candidates_retained_privately": false,
+      "publication": {
+        "outcome": "verified",
+        "record": {
+          "protocol_version": "0.1-draft",
+          "id": "submission:checklist-a",
+          "world": "civ:mock-workshop",
+          "from": "agent:mock-a",
+          "to": [
+            "agent:mock-observer"
+          ],
+          "body": {
+            "text": "Disclosed scripted checklist baseline.",
+            "source_event_ids": [
+              "event:979b133d92a8c1528d96a08223b09f00",
+              "event:35c5792e612d6cd1d77fc43827af67e2",
+              "event:ab0ec26c975296c415e5b6ca8e70c854"
+            ],
+            "rows": [
+              {
+                "item": "nuts",
+                "quantity": 12,
+                "source_event_ids": [
+                  "event:979b133d92a8c1528d96a08223b09f00"
+                ]
+              },
+              {
+                "item": "bolts",
+                "quantity": 8,
+                "source_event_ids": [
+                  "event:35c5792e612d6cd1d77fc43827af67e2"
+                ]
+              },
+              {
+                "item": "washers",
+                "quantity": 20,
+                "source_event_ids": [
+                  "event:ab0ec26c975296c415e5b6ca8e70c854"
+                ]
+              }
+            ],
+            "total": 40
+          },
+          "experiment_provenance": {
+            "decision_source": "scripted",
+            "envelope_source": "local_harness"
+          },
+          "type": "artifact_revision",
+          "artifact_id": "artifact:workshop-checklist",
+          "media_type": "application/json"
+        },
+        "receipt": {
+          "protocol_version": "0.1-draft",
+          "type": "receipt",
+          "world": "civ:mock-workshop",
+          "record_id": "submission:checklist-a",
+          "event_id": "event:d4a120565b96bb03ceb7dd461a911d52",
+          "sequence": 4,
+          "status": "recorded",
+          "artifact_id": "artifact:workshop-checklist",
+          "revision": 1
+        }
+      }
+    }
+  },
+  {
+    "outcome": "recorded",
+    "decision_source": "scripted",
+    "visible_event_ids": [
+      "event:979b133d92a8c1528d96a08223b09f00",
+      "event:35c5792e612d6cd1d77fc43827af67e2",
+      "event:ab0ec26c975296c415e5b6ca8e70c854",
+      "event:d4a120565b96bb03ceb7dd461a911d52",
+      "event:2de11b50b6a72f18077bb4e35739f013"
+    ],
+    "principal": "agent:mock-b",
+    "decision": {
+      "action": "revise",
+      "text": "Disclosed scripted checklist baseline.",
+      "target_event_id": "event:d4a120565b96bb03ceb7dd461a911d52",
+      "source_event_ids": [
+        "event:979b133d92a8c1528d96a08223b09f00",
+        "event:2de11b50b6a72f18077bb4e35739f013",
+        "event:ab0ec26c975296c415e5b6ca8e70c854",
+        "event:d4a120565b96bb03ceb7dd461a911d52"
+      ],
+      "rows": [
+        {
+          "item": "nuts",
+          "quantity": 12,
+          "source_event_ids": [
+            "event:979b133d92a8c1528d96a08223b09f00"
+          ]
+        },
+        {
+          "item": "bolts",
+          "quantity": 5,
+          "source_event_ids": [
+            "event:2de11b50b6a72f18077bb4e35739f013"
+          ]
+        },
+        {
+          "item": "washers",
+          "quantity": 20,
+          "source_event_ids": [
+            "event:ab0ec26c975296c415e5b6ca8e70c854"
+          ]
+        }
+      ],
+      "total": 37
+    },
+    "peer_artifact_citations": [
+      "event:d4a120565b96bb03ceb7dd461a911d52"
+    ],
+    "target_event_id": "event:d4a120565b96bb03ceb7dd461a911d52",
+    "semantic_check": {
+      "format": "agentciv-stock-checklist-result/0.1-fixture",
+      "accepted": true,
+      "scope": "fictional_operator_stock_facts_and_exact_event_provenance",
+      "outcome": "accepted",
+      "checks": {
+        "artifact_authored": true,
+        "operator_facts_complete": true,
+        "items_unique_and_complete": true,
+        "latest_quantities_match": true,
+        "latest_row_sources_match": true,
+        "visible_sources_cover_rows": true,
+        "total_matches_rows": true,
+        "total_matches_latest_facts": true
+      },
+      "expected_latest_facts": {
+        "nuts": {
+          "quantity": 12,
+          "event_id": "event:979b133d92a8c1528d96a08223b09f00"
+        },
+        "bolts": {
+          "quantity": 5,
+          "event_id": "event:2de11b50b6a72f18077bb4e35739f013"
+        },
+        "washers": {
+          "quantity": 20,
+          "event_id": "event:ab0ec26c975296c415e5b6ca8e70c854"
+        }
+      },
+      "expected_total": 37
+    },
+    "derived_from": {
+      "from": "agent:mock-a",
+      "artifact_id": "artifact:workshop-checklist",
+      "revision": 1
+    },
+    "record": {
+      "protocol_version": "0.1-draft",
+      "id": "submission:checklist-b",
+      "world": "civ:mock-workshop",
+      "from": "agent:mock-b",
+      "to": [
+        "agent:mock-observer"
+      ],
+      "body": {
+        "text": "Disclosed scripted checklist baseline.",
+        "source_event_ids": [
+          "event:979b133d92a8c1528d96a08223b09f00",
+          "event:2de11b50b6a72f18077bb4e35739f013",
+          "event:ab0ec26c975296c415e5b6ca8e70c854",
+          "event:d4a120565b96bb03ceb7dd461a911d52"
+        ],
+        "rows": [
+          {
+            "item": "nuts",
+            "quantity": 12,
+            "source_event_ids": [
+              "event:979b133d92a8c1528d96a08223b09f00"
+            ]
+          },
+          {
+            "item": "bolts",
+            "quantity": 5,
+            "source_event_ids": [
+              "event:2de11b50b6a72f18077bb4e35739f013"
+            ]
+          },
+          {
+            "item": "washers",
+            "quantity": 20,
+            "source_event_ids": [
+              "event:ab0ec26c975296c415e5b6ca8e70c854"
+            ]
+          }
+        ],
+        "total": 37
+      },
+      "experiment_provenance": {
+        "decision_source": "scripted",
+        "envelope_source": "local_harness"
+      },
+      "type": "artifact_revision",
+      "artifact_id": "artifact:workshop-checklist",
+      "media_type": "application/json",
+      "derived_from": {
+        "from": "agent:mock-a",
+        "artifact_id": "artifact:workshop-checklist",
+        "revision": 1
+      }
+    },
+    "receipt": {
+      "protocol_version": "0.1-draft",
+      "type": "receipt",
+      "world": "civ:mock-workshop",
+      "record_id": "submission:checklist-b",
+      "event_id": "event:8c0bead9a6ca440f0c933ae6a7a9651e",
+      "sequence": 6,
+      "status": "recorded",
+      "artifact_id": "artifact:workshop-checklist",
+      "revision": 1
+    },
+    "decision_loop": {
+      "format": "agentciv-decision-loop/0.1",
+      "outcome": "valid",
+      "budget": {
+        "attempts": 1,
+        "output_tokens": 1024,
+        "seconds": 120
+      },
+      "attempts": [
+        {
+          "index": 1,
+          "outcome": "valid",
+          "output_token_limit": 1024,
+          "prompt_sha256": "00873080d496c83ba61c8be697fd0ed48c8f02d32e14fb9981004ff84e9b940f",
+          "candidate_sha256": "c8822803a3a2c8fa15b68cba6d9f04b6d462bc9cf6fcdce4e8f186581e053a25",
+          "candidate_bytes": 641,
+          "charged_output_tokens": 0,
+          "output_usage_measured": true,
+          "metrics": {
+            "eval_count": 0
+          },
+          "candidate_retained_privately": false
+        }
+      ],
+      "charged_output_tokens": 0,
+      "first_attempt_valid": true,
+      "eventual_valid": true,
+      "exact_candidates_retained_privately": false,
+      "publication": {
+        "outcome": "verified",
+        "record": {
+          "protocol_version": "0.1-draft",
+          "id": "submission:checklist-b",
+          "world": "civ:mock-workshop",
+          "from": "agent:mock-b",
+          "to": [
+            "agent:mock-observer"
+          ],
+          "body": {
+            "text": "Disclosed scripted checklist baseline.",
+            "source_event_ids": [
+              "event:979b133d92a8c1528d96a08223b09f00",
+              "event:2de11b50b6a72f18077bb4e35739f013",
+              "event:ab0ec26c975296c415e5b6ca8e70c854",
+              "event:d4a120565b96bb03ceb7dd461a911d52"
+            ],
+            "rows": [
+              {
+                "item": "nuts",
+                "quantity": 12,
+                "source_event_ids": [
+                  "event:979b133d92a8c1528d96a08223b09f00"
+                ]
+              },
+              {
+                "item": "bolts",
+                "quantity": 5,
+                "source_event_ids": [
+                  "event:2de11b50b6a72f18077bb4e35739f013"
+                ]
+              },
+              {
+                "item": "washers",
+                "quantity": 20,
+                "source_event_ids": [
+                  "event:ab0ec26c975296c415e5b6ca8e70c854"
+                ]
+              }
+            ],
+            "total": 37
+          },
+          "experiment_provenance": {
+            "decision_source": "scripted",
+            "envelope_source": "local_harness"
+          },
+          "type": "artifact_revision",
+          "artifact_id": "artifact:workshop-checklist",
+          "media_type": "application/json",
+          "derived_from": {
+            "from": "agent:mock-a",
+            "artifact_id": "artifact:workshop-checklist",
+            "revision": 1
+          }
+        },
+        "receipt": {
+          "protocol_version": "0.1-draft",
+          "type": "receipt",
+          "world": "civ:mock-workshop",
+          "record_id": "submission:checklist-b",
+          "event_id": "event:8c0bead9a6ca440f0c933ae6a7a9651e",
+          "sequence": 6,
+          "status": "recorded",
+          "artifact_id": "artifact:workshop-checklist",
+          "revision": 1
+        }
+      }
+    }
+  },
+  {
+    "outcome": "recorded",
+    "decision_source": "scripted",
+    "visible_event_ids": [
+      "event:979b133d92a8c1528d96a08223b09f00",
+      "event:35c5792e612d6cd1d77fc43827af67e2",
+      "event:ab0ec26c975296c415e5b6ca8e70c854",
+      "event:d4a120565b96bb03ceb7dd461a911d52",
+      "event:2de11b50b6a72f18077bb4e35739f013",
+      "event:8c0bead9a6ca440f0c933ae6a7a9651e",
+      "event:10bf9adb854505ccafc0cb075883d4c6",
+      "event:9cd1245c35c7dff0db36e4c2fca970f1"
+    ],
+    "principal": "agent:mock-c",
+    "decision": {
+      "action": "revise",
+      "text": "Disclosed scripted checklist baseline.",
+      "target_event_id": "event:8c0bead9a6ca440f0c933ae6a7a9651e",
+      "source_event_ids": [
+        "event:979b133d92a8c1528d96a08223b09f00",
+        "event:2de11b50b6a72f18077bb4e35739f013",
+        "event:10bf9adb854505ccafc0cb075883d4c6",
+        "event:8c0bead9a6ca440f0c933ae6a7a9651e"
+      ],
+      "rows": [
+        {
+          "item": "nuts",
+          "quantity": 12,
+          "source_event_ids": [
+            "event:979b133d92a8c1528d96a08223b09f00"
+          ]
+        },
+        {
+          "item": "bolts",
+          "quantity": 5,
+          "source_event_ids": [
+            "event:2de11b50b6a72f18077bb4e35739f013"
+          ]
+        },
+        {
+          "item": "washers",
+          "quantity": 22,
+          "source_event_ids": [
+            "event:10bf9adb854505ccafc0cb075883d4c6"
+          ]
+        }
+      ],
+      "total": 39
+    },
+    "peer_artifact_citations": [
+      "event:8c0bead9a6ca440f0c933ae6a7a9651e"
+    ],
+    "target_event_id": "event:8c0bead9a6ca440f0c933ae6a7a9651e",
+    "semantic_check": {
+      "format": "agentciv-stock-checklist-result/0.1-fixture",
+      "accepted": true,
+      "scope": "fictional_operator_stock_facts_and_exact_event_provenance",
+      "outcome": "accepted",
+      "checks": {
+        "artifact_authored": true,
+        "operator_facts_complete": true,
+        "items_unique_and_complete": true,
+        "latest_quantities_match": true,
+        "latest_row_sources_match": true,
+        "visible_sources_cover_rows": true,
+        "total_matches_rows": true,
+        "total_matches_latest_facts": true
+      },
+      "expected_latest_facts": {
+        "nuts": {
+          "quantity": 12,
+          "event_id": "event:979b133d92a8c1528d96a08223b09f00"
+        },
+        "bolts": {
+          "quantity": 5,
+          "event_id": "event:2de11b50b6a72f18077bb4e35739f013"
+        },
+        "washers": {
+          "quantity": 22,
+          "event_id": "event:10bf9adb854505ccafc0cb075883d4c6"
+        }
+      },
+      "expected_total": 39
+    },
+    "derived_from": {
+      "from": "agent:mock-b",
+      "artifact_id": "artifact:workshop-checklist",
+      "revision": 1
+    },
+    "record": {
+      "protocol_version": "0.1-draft",
+      "id": "submission:checklist-c",
+      "world": "civ:mock-workshop",
+      "from": "agent:mock-c",
+      "to": [
+        "agent:mock-observer"
+      ],
+      "body": {
+        "text": "Disclosed scripted checklist baseline.",
+        "source_event_ids": [
+          "event:979b133d92a8c1528d96a08223b09f00",
+          "event:2de11b50b6a72f18077bb4e35739f013",
+          "event:10bf9adb854505ccafc0cb075883d4c6",
+          "event:8c0bead9a6ca440f0c933ae6a7a9651e"
+        ],
+        "rows": [
+          {
+            "item": "nuts",
+            "quantity": 12,
+            "source_event_ids": [
+              "event:979b133d92a8c1528d96a08223b09f00"
+            ]
+          },
+          {
+            "item": "bolts",
+            "quantity": 5,
+            "source_event_ids": [
+              "event:2de11b50b6a72f18077bb4e35739f013"
+            ]
+          },
+          {
+            "item": "washers",
+            "quantity": 22,
+            "source_event_ids": [
+              "event:10bf9adb854505ccafc0cb075883d4c6"
+            ]
+          }
+        ],
+        "total": 39
+      },
+      "experiment_provenance": {
+        "decision_source": "scripted",
+        "envelope_source": "local_harness"
+      },
+      "type": "artifact_revision",
+      "artifact_id": "artifact:workshop-checklist",
+      "media_type": "application/json",
+      "derived_from": {
+        "from": "agent:mock-b",
+        "artifact_id": "artifact:workshop-checklist",
+        "revision": 1
+      }
+    },
+    "receipt": {
+      "protocol_version": "0.1-draft",
+      "type": "receipt",
+      "world": "civ:mock-workshop",
+      "record_id": "submission:checklist-c",
+      "event_id": "event:8f643d88eac53356aa9ff54392c3a9cb",
+      "sequence": 9,
+      "status": "recorded",
+      "artifact_id": "artifact:workshop-checklist",
+      "revision": 1
+    },
+    "decision_loop": {
+      "format": "agentciv-decision-loop/0.1",
+      "outcome": "valid",
+      "budget": {
+        "attempts": 1,
+        "output_tokens": 1024,
+        "seconds": 120
+      },
+      "attempts": [
+        {
+          "index": 1,
+          "outcome": "valid",
+          "output_token_limit": 1024,
+          "prompt_sha256": "683be609309e839e105a86faec327a46c5b3f65b66c6489dad7e182b0cf62a4a",
+          "candidate_sha256": "27cc9762e0ba516a369e87bddfbe1c37ceccbb06895ef6bc5754717173eebb06",
+          "candidate_bytes": 641,
+          "charged_output_tokens": 0,
+          "output_usage_measured": true,
+          "metrics": {
+            "eval_count": 0
+          },
+          "candidate_retained_privately": false
+        }
+      ],
+      "charged_output_tokens": 0,
+      "first_attempt_valid": true,
+      "eventual_valid": true,
+      "exact_candidates_retained_privately": false,
+      "publication": {
+        "outcome": "verified",
+        "record": {
+          "protocol_version": "0.1-draft",
+          "id": "submission:checklist-c",
+          "world": "civ:mock-workshop",
+          "from": "agent:mock-c",
+          "to": [
+            "agent:mock-observer"
+          ],
+          "body": {
+            "text": "Disclosed scripted checklist baseline.",
+            "source_event_ids": [
+              "event:979b133d92a8c1528d96a08223b09f00",
+              "event:2de11b50b6a72f18077bb4e35739f013",
+              "event:10bf9adb854505ccafc0cb075883d4c6",
+              "event:8c0bead9a6ca440f0c933ae6a7a9651e"
+            ],
+            "rows": [
+              {
+                "item": "nuts",
+                "quantity": 12,
+                "source_event_ids": [
+                  "event:979b133d92a8c1528d96a08223b09f00"
+                ]
+              },
+              {
+                "item": "bolts",
+                "quantity": 5,
+                "source_event_ids": [
+                  "event:2de11b50b6a72f18077bb4e35739f013"
+                ]
+              },
+              {
+                "item": "washers",
+                "quantity": 22,
+                "source_event_ids": [
+                  "event:10bf9adb854505ccafc0cb075883d4c6"
+                ]
+              }
+            ],
+            "total": 39
+          },
+          "experiment_provenance": {
+            "decision_source": "scripted",
+            "envelope_source": "local_harness"
+          },
+          "type": "artifact_revision",
+          "artifact_id": "artifact:workshop-checklist",
+          "media_type": "application/json",
+          "derived_from": {
+            "from": "agent:mock-b",
+            "artifact_id": "artifact:workshop-checklist",
+            "revision": 1
+          }
+        },
+        "receipt": {
+          "protocol_version": "0.1-draft",
+          "type": "receipt",
+          "world": "civ:mock-workshop",
+          "record_id": "submission:checklist-c",
+          "event_id": "event:8f643d88eac53356aa9ff54392c3a9cb",
+          "sequence": 9,
+          "status": "recorded",
+          "artifact_id": "artifact:workshop-checklist",
+          "revision": 1
+        }
+      }
+    }
+  }
+]

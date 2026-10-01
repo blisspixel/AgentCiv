@@ -26,6 +26,8 @@ python examples/participants/mock_collaboration.py --host python --mode ollama -
 
 Different participants can use different installed models. This path makes no model downloads or paid inference calls, executes no submitted artifacts, and retains failed choices without substituting a scripted answer. The [participant guide](examples/participants/README.md#small-stock-collaboration-mock) covers settings, outputs, and what the experiment checks.
 
+The [local results](docs/LOCAL_MOCK_VALIDATION_2026_09_30.md) retain both passing model-authored checklists and validation failures, with USD 0 external spend.
+
 ## What you can use
 
 | Component | What it provides today |

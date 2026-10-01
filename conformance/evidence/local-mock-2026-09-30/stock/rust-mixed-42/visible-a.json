@@ -1,0 +1,89 @@
+[
+  {
+    "actor": "agent:operator",
+    "body": {
+      "message": {
+        "body": {
+          "stock": {
+            "item": "nuts",
+            "quantity": 12
+          },
+          "text": "Operator-supplied fictional stock fact."
+        },
+        "from": "agent:operator",
+        "id": "message:stock-1",
+        "protocol_version": "0.1-draft",
+        "to": [
+          "agent:mock-c"
+        ],
+        "type": "message",
+        "world": "civ:mock-workshop"
+      }
+    },
+    "id": "event:622d27bf376c01ec8669bfd3286564c0",
+    "kind": "message.recorded",
+    "protocol_version": "0.1-draft",
+    "sequence": 1,
+    "timestamp": "2026-09-30T23:40:37Z",
+    "type": "event",
+    "world": "civ:mock-workshop"
+  },
+  {
+    "actor": "agent:operator",
+    "body": {
+      "message": {
+        "body": {
+          "stock": {
+            "item": "bolts",
+            "quantity": 8
+          },
+          "text": "Operator-supplied fictional stock fact."
+        },
+        "from": "agent:operator",
+        "id": "message:stock-2",
+        "protocol_version": "0.1-draft",
+        "to": [
+          "agent:mock-c"
+        ],
+        "type": "message",
+        "world": "civ:mock-workshop"
+      }
+    },
+    "id": "event:9b230c9022b0fdc966159582d60354f2",
+    "kind": "message.recorded",
+    "protocol_version": "0.1-draft",
+    "sequence": 2,
+    "timestamp": "2026-09-30T23:40:37Z",
+    "type": "event",
+    "world": "civ:mock-workshop"
+  },
+  {
+    "actor": "agent:operator",
+    "body": {
+      "message": {
+        "body": {
+          "stock": {
+            "item": "washers",
+            "quantity": 20
+          },
+          "text": "Operator-supplied fictional stock fact."
+        },
+        "from": "agent:operator",
+        "id": "message:stock-3",
+        "protocol_version": "0.1-draft",
+        "to": [
+          "agent:mock-c"
+        ],
+        "type": "message",
+        "world": "civ:mock-workshop"
+      }
+    },
+    "id": "event:0e7f89e0780a6b33d52f5fb186084961",
+    "kind": "message.recorded",
+    "protocol_version": "0.1-draft",
+    "sequence": 3,
+    "timestamp": "2026-09-30T23:40:37Z",
+    "type": "event",
+    "world": "civ:mock-workshop"
+  }
+]

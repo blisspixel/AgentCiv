@@ -1,0 +1,110 @@
+{
+  "format": "agentciv-decision-loop/0.1",
+  "outcome": "valid",
+  "budget": {
+    "attempts": 3,
+    "output_tokens": 1024,
+    "seconds": 120
+  },
+  "attempts": [
+    {
+      "index": 1,
+      "outcome": "invalid",
+      "output_token_limit": 1024,
+      "prompt_sha256": "ad76dab61a038712f6181711967e1798cb3cfc4d18ae6565d67beb403f48afc7",
+      "candidate_sha256": "b03d9569aed3c28ec2e9cc0b13a702ee3e31b2e00f752202e48898191a6cf759",
+      "candidate_bytes": 762,
+      "charged_output_tokens": 399,
+      "output_usage_measured": true,
+      "metrics": {
+        "prompt_eval_count": 3480,
+        "eval_count": 399,
+        "total_duration": 7786968400
+      },
+      "candidate_retained_privately": false,
+      "feedback_code": "target_not_cited"
+    },
+    {
+      "index": 2,
+      "outcome": "valid",
+      "output_token_limit": 625,
+      "prompt_sha256": "47dc85be46400d74dae862b228cca30a8bdff176d94425fa1033e3d9458b2d83",
+      "candidate_sha256": "1b49151c40b8a544c560ba8c607a31ed43d6160ae01300b2a97ca0c0dda2e059",
+      "candidate_bytes": 724,
+      "charged_output_tokens": 364,
+      "output_usage_measured": true,
+      "metrics": {
+        "prompt_eval_count": 3957,
+        "eval_count": 364,
+        "total_duration": 7166403600
+      },
+      "candidate_retained_privately": false
+    }
+  ],
+  "charged_output_tokens": 763,
+  "first_attempt_valid": false,
+  "eventual_valid": true,
+  "exact_candidates_retained_privately": false,
+  "publication": {
+    "outcome": "verified",
+    "record": {
+      "protocol_version": "0.1-draft",
+      "id": "submission:checklist-c",
+      "world": "civ:mock-workshop",
+      "from": "agent:mock-c",
+      "to": [
+        "agent:mock-observer"
+      ],
+      "body": {
+        "text": "Updated checklist incorporating latest operator fact for washers (22) from event:d2c63c93a687242bbc9cf5b1ec58ddca. Total recalculated as 39 (nuts:12, bolts:5, washers:22).",
+        "source_event_ids": [
+          "event:8637d7b87bb1d9b9231b0b8d773446a1",
+          "event:b1d4a2f52800dfa74363164b3769f556",
+          "event:d2c63c93a687242bbc9cf5b1ec58ddca"
+        ],
+        "rows": [
+          {
+            "item": "nuts",
+            "quantity": 12,
+            "source_event_ids": [
+              "event:8637d7b87bb1d9b9231b0b8d773446a1"
+            ]
+          },
+          {
+            "item": "bolts",
+            "quantity": 5,
+            "source_event_ids": [
+              "event:b1d4a2f52800dfa74363164b3769f556"
+            ]
+          },
+          {
+            "item": "washers",
+            "quantity": 22,
+            "source_event_ids": [
+              "event:d2c63c93a687242bbc9cf5b1ec58ddca"
+            ]
+          }
+        ],
+        "total": 39
+      },
+      "experiment_provenance": {
+        "decision_source": "ollama",
+        "envelope_source": "local_harness"
+      },
+      "type": "artifact_revision",
+      "artifact_id": "artifact:workshop-checklist",
+      "media_type": "application/json"
+    },
+    "receipt": {
+      "protocol_version": "0.1-draft",
+      "type": "receipt",
+      "world": "civ:mock-workshop",
+      "record_id": "submission:checklist-c",
+      "event_id": "event:4fea2a798eb7542edfb993694aa7195f",
+      "sequence": 9,
+      "status": "recorded",
+      "artifact_id": "artifact:workshop-checklist",
+      "revision": 1
+    }
+  }
+}

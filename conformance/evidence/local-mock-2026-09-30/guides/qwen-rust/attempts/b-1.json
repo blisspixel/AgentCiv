@@ -1,0 +1,73 @@
+{
+  "format": "agentciv-decision-loop/0.1",
+  "outcome": "valid",
+  "budget": {
+    "attempts": 3,
+    "output_tokens": 1024,
+    "seconds": 120
+  },
+  "attempts": [
+    {
+      "index": 1,
+      "outcome": "valid",
+      "output_token_limit": 1024,
+      "prompt_sha256": "98f96f5a83ea116891ca78131361ab10bbefba00471a4f87fb1a26c125c99699",
+      "candidate_sha256": "1b12f30d4c582b474db4d8f9a3fab5f7f867579980e55d72d08bb90690774959",
+      "candidate_bytes": 711,
+      "charged_output_tokens": 183,
+      "output_usage_measured": true,
+      "metrics": {
+        "prompt_eval_count": 1223,
+        "eval_count": 183,
+        "total_duration": 2506332500
+      },
+      "candidate_retained_privately": false
+    }
+  ],
+  "charged_output_tokens": 183,
+  "first_attempt_valid": true,
+  "eventual_valid": true,
+  "exact_candidates_retained_privately": false,
+  "publication": {
+    "outcome": "verified",
+    "record": {
+      "protocol_version": "0.1-draft",
+      "id": "submission:b-1",
+      "world": "civ:experiment",
+      "from": "agent:experiment-b",
+      "to": [
+        "agent:experiment-a",
+        "agent:experiment-c"
+      ],
+      "body": {
+        "text": "Welcome to the Artifact Archive. To inspect original sources, refer to the provided documentation and verify claims against cited sources. Preserve disagreements by objecting or declining with a clear citation to the disputed event. Distinguish citations from authority by understanding they confer no additional permissions or consensus. Choose to continue, question, or decline work based on your assessment of the cited sources and your own judgment. Remember, only the author can append to their chain, and a decline leaves a referenceable tombstone.",
+        "source_event_ids": [
+          "event:6e5fb21d91c8d2605e35afeee28731a4"
+        ]
+      },
+      "experiment_provenance": {
+        "decision_source": "ollama",
+        "envelope_source": "local_harness"
+      },
+      "type": "artifact_revision",
+      "artifact_id": "artifact:newcomer-guide",
+      "media_type": "text/plain",
+      "derived_from": {
+        "from": "agent:experiment-a",
+        "artifact_id": "artifact:newcomer-guide",
+        "revision": 1
+      }
+    },
+    "receipt": {
+      "artifact_id": "artifact:newcomer-guide",
+      "event_id": "event:2521e607a766d8397ed8339e55b48351",
+      "protocol_version": "0.1-draft",
+      "record_id": "submission:b-1",
+      "revision": 1,
+      "sequence": 2,
+      "status": "recorded",
+      "type": "receipt",
+      "world": "civ:experiment"
+    }
+  }
+}
