@@ -1,0 +1,500 @@
+{
+  "format": "agentciv-mock-checklist/0.1",
+  "outcome": "failed",
+  "host": "python",
+  "mode": "ollama",
+  "external_spend_usd": 0,
+  "source": {
+    "repository_commit": "74752e675a9fa148b499500e9d47f3592d7261fb",
+    "source_working_tree_dirty": false,
+    "source_sha256": {
+      "Cargo.lock": "f76b208c62ed256ff2072fe96df6c2ab5b452da28df426a1d0dbeea0d7635a9f",
+      "Cargo.toml": "93c0f71bc6e0611f8cba5f0f3a783b6a9ae44d326990a93100f92dd3327e0c5b",
+      "PROTOCOL.md": "7c4973342b676a9fa078c075d3199a3f69831f4dd75531400289641c67e207f5",
+      "SPEC.md": "7f521d7aba50b429364a9c1d033311588ecf7d962a367d70f68e0e8c19a142d4",
+      "conformance/runner/Cargo.toml": "37c2855b645f0ae348e657a4f1809eaf4782d6436030be070d56c3d127bcb749",
+      "conformance/runner/src/adversarial.rs": "400f5e3eb280763f55fec07a6488d12ec213d52ea94acb9173940c269a84db01",
+      "conformance/runner/src/adversarial/tests.rs": "29107252c46a864b8700d48cbf97fb9111dabd216b660ebbca59ea2bc6835726",
+      "conformance/runner/src/lib.rs": "75b5c19309f94bc6e68af852bbc9826ac879bd90d8bc7ea4a88522a02b66dcfe",
+      "conformance/runner/src/lifecycle.rs": "51f690d38356b71f58fe7ed3b85051e2d991fb0a37d885339b43c876632474dd",
+      "conformance/runner/src/lifecycle/mock_tests.rs": "e31af14ea8675774c1b0ef989ed059a7f86118e9e7b53d2fdd6f586641154959",
+      "conformance/runner/src/lifecycle/tests.rs": "c39a25e7c5b0cf06440974238ab39ad5ea7f765b420955ae2af5af7072806739",
+      "conformance/runner/src/main.rs": "8f7ab8c7246cf9daba68f81c51a0840d4b054a2057e2edbd75204800d8c49e36",
+      "conformance/runner/src/tests.rs": "c6712fc0994a3414f1c3b3474e2b2141cc3c5bc0405c1797b82a8f1c06ad6cf5",
+      "docs/COLLABORATION_PROFILE.md": "08dc749305fbac325a8568557ef202b55ba7c59d78d187591dec3235856505d4",
+      "examples/http-commons/evidence.py": "7ed3d3b2c2b3df207903466e9378b7956633282f3fc1a2401fada339f29cf2eb",
+      "examples/http-commons/test_validate.py": "b381f2aebd1905be0e070c7bdccb38236f3ebcf1449dd364090a2631e00321ef",
+      "examples/http-commons/validate.py": "d46bd1f0e4d20c048878b2e14f4b3eee9167d39fe8d68ca6885002151d725eaa",
+      "examples/http-commons/walk.py": "a01ab8aefd5d2caaffc9b0813f516fa6c9dd45d0d2f57c44d8f276f4b7042637",
+      "examples/participants/README.md": "7f82fc867e5e2ee14bd44781eb3b914ce1f1b24e013fe302cd654da5d2713998",
+      "examples/participants/collaboration.py": "0aa04313904f87904455b09bd4b25e2aeffbae9372333f47e5e2d8e0e59b4fc4",
+      "examples/participants/decision_loop.py": "d02f9dbd232c51a7807f1b0f532a09268c2610021fc2e644105e2aaf90574b1b",
+      "examples/participants/experiment.py": "36af709ba8b158c8d09f8d125f5eb635772f25cef7e54e6e46e18b15933e3d23",
+      "examples/participants/local_participant.py": "2b05b826801b3b0562d69883836d48964a00a33099df41029706efadc493f244",
+      "examples/participants/loopback.py": "aa8291782ad927b3183666106342b511da61ff9b975cb103a097be32260d430b",
+      "examples/participants/mock_collaboration.py": "5a66e5d30c53f4aaa60cdd29707d626095c720e5d0f9f41a2c407712a00ff5f8",
+      "examples/participants/mock_oracle.py": "8e2016595d166434ca05e24355bb60f52cf6a14b5761200ba27660bf9f2729e2",
+      "examples/participants/providers.py": "665d5f70e93255be742e29f5ce2ad98750730724c9b4dee66831ef5353478b2f",
+      "examples/participants/test_collaboration.py": "5ffe2801068fde79fc0a09efc01dba5dad22db7d48f9d8f70fbd625b1eff0c8a",
+      "examples/participants/test_decision_loop.py": "e761baff5fe11e0313bb9ab8053c3f56ca6c0c6b6a1ab65c0baafd5786557cf8",
+      "examples/participants/test_local_participant.py": "222db7894804414a4c75e1e219bd7b5898c51e9b08fcbb51ac4961dd6b830955",
+      "examples/participants/test_loop_integration.py": "8853fc254e8b8432944179da3a314f9dcbca7fa37b7c5e065fb31142b8ae8ce4",
+      "examples/participants/test_mock_collaboration.py": "b0b17167ad90350e221609f31e9b75e57289c5f113a306d9b48cfd9df6a34447",
+      "examples/participants/test_mock_oracle.py": "ab85ed745278ed267b331561025195614c009c37f8f96ef5bb9454f4d654ab87",
+      "implementations/http-commons-python/README.md": "d9a75deb85e1ddf15d95dbedab3b4d3c22e0e7cc452a15cef0a4a44997968be7",
+      "implementations/http-commons-python/host.py": "93fe82f93a1803967e85a6a563aed69f8652575e0117a6b9a34d1ebf89983bfb",
+      "implementations/http-commons-python/test_host.py": "b7c7ad65bec1ab1d9e0ec2397aeb52283d5ae4d977b8fac93de001f72fd91133",
+      "reference/host/Cargo.toml": "847e1be7f1233b8ebf44ef5fbbe700fe0ca74b793aabaa508a36e8fd76aca880",
+      "reference/host/README.md": "35bfa7aadbcc552a4e3b3a7e0bda29904629e88756c0d5e1e2909e3ec80e8570",
+      "reference/host/src/http.rs": "6315c9a171f06d03cc22dc629f26b225b562f791716ed0160b8afbea4a455e44",
+      "reference/host/src/lib.rs": "cd7a8ebe7a2e5e8c019e502d6d480c3e8fb02d11bce7dcfef96458738eabc1a3",
+      "reference/host/src/main.rs": "e8ee7a7dec507bffcb3cb2dbdf5d6fc36a7cfdb0264576652e7279e9e28ad013",
+      "reference/host/src/store.rs": "f0b9c08d6d398dee47f3b1ad5598ae9bb01766efd2395549f2998bb3a7826727",
+      "reference/host/src/tests.rs": "d1f0a4ea19d93583bd40f51633ede9f57be1f6711e39e58d8323a0556c954632",
+      "reference/host/src/validate.rs": "ab32d432fc799342d52ab60860ee3f6c05b6063ad77f19d702b877906fce35bf",
+      "reference/host/tests/restart.rs": "61157660121b3fa84db7b36e2728def2d8f956ddd2006629e541eb2b50422bce",
+      "rust-toolchain.toml": "dae18a8743f89707783c1d873595570f29618d0c20f022f8dced263982bba74e",
+      "schemas/README.md": "e5e07c2d7b502ea7eea13d02df30dab1768e3eef126ae7f254cbad056e3d578f",
+      "schemas/action.schema.json": "4b9abe9624af9b385adc50ef01d2ebe131707c8c81cae3ec330cf0cbaf3341d2",
+      "schemas/agent.schema.json": "1809fd2f27f90d8df9e9a317a6115595d0f9da8c7205202762b843bf12832df8",
+      "schemas/archive-bundle.schema.json": "ef0dc584bc842e8e5ff5af017854539571e2d9ea77e5c6a3848bb6cb4407b782",
+      "schemas/artifact.schema.json": "cfa388bbbe23072d007b74111c615e16f077778a12cc885ffecccad1e8f5060f",
+      "schemas/capabilities.schema.json": "ee7a49af409568a07eab5186e780977315ea603aa87b57368f1ba7efea2d017d",
+      "schemas/collaboration-artifact.schema.json": "0ba281bff19d74d462d59876711bcbd29b071767f19ba122adb67ae232e5e0cc",
+      "schemas/collaboration-decline.schema.json": "2d20af3b4386c4b49eacbe0631e73712903dc8bb560005aae36e01c0e314e716",
+      "schemas/collaboration-objection.schema.json": "2a310dea52fa971507da3dc76f4799d1809aefc405691bd24189b96fa0a4b84b",
+      "schemas/collaboration-withdrawal.schema.json": "a3e67c43c4c5f2cce605fdbfdfbf9ca4142bf9cde35051d0cba006d85d1bf316",
+      "schemas/envelope.schema.json": "66f5d960bd0f0557e0dce7ca70a6946c0397b439146805ff89e4278670e30266",
+      "schemas/event-page.schema.json": "39b662cfa2f6218c5da24f263870650f7bfa7d3c5aa20b82bddd588737d42e86",
+      "schemas/event.schema.json": "d754f7ce2ac0b3f1f4a01f1ba00f0cabede90ee20e4b294c2f533de47d7d39e1",
+      "schemas/message.schema.json": "925f154cf0c3fdc72f58acd881ac54721179d5fcfd887a9211d9b1f55463bd35",
+      "schemas/problem.schema.json": "51cc00adf5c120911695967c91b4676521b36f7b756135f90bdfc0ce0a3e065a",
+      "schemas/receipt.schema.json": "5c1fc88a94fa2571e373854e8d075a0eec77c67075e527152cc87806d3e540f8",
+      "schemas/world.schema.json": "5022527474bad6466b5e11d141290f82b83f9837dc538a9c4a218c05b126b8b6"
+    }
+  },
+  "observations": [
+    {
+      "outcome": "recorded",
+      "decision_source": "ollama",
+      "visible_event_ids": [
+        "event:0a0b95b14dcea878a7b2d704cd483085",
+        "event:264665444d0b8db1828334dbd0a81bf9",
+        "event:17192dfae17738e2081c700c432a8151"
+      ],
+      "principal": "agent:mock-a",
+      "provider": {
+        "runtime": "ollama",
+        "model": {
+          "name": "ministral-3:8b",
+          "model": "ministral-3:8b",
+          "modified_at": "2026-08-12T19:49:51.4866866-07:00",
+          "size": 6022236616,
+          "digest": "1922accd5827ebe6829e536369195db25eaf664528dc66206d646ea3bb386b71",
+          "details": {
+            "parent_model": "",
+            "format": "gguf",
+            "family": "mistral3",
+            "families": [
+              "mistral3"
+            ],
+            "parameter_size": "8.9B",
+            "quantization_level": "Q4_K_M",
+            "context_length": 262144,
+            "embedding_length": 4096
+          },
+          "capabilities": [
+            "completion",
+            "vision",
+            "tools"
+          ]
+        },
+        "version": "0.34.3",
+        "options": {
+          "seed": 44,
+          "temperature": 0.4,
+          "num_ctx": 8192,
+          "num_predict": 1024
+        },
+        "calls": 1,
+        "metrics": {
+          "prompt_eval_count": 2020,
+          "eval_count": 353,
+          "total_duration": 3424361400
+        },
+        "truncate": false,
+        "shift": false
+      },
+      "decision": {
+        "action": "revise",
+        "text": "Fictional workshop stock checklist compiled from authenticated operator records. Discrepancies resolved by operator-supplied facts only.",
+        "target_event_id": "",
+        "source_event_ids": [
+          "event:0a0b95b14dcea878a7b2d704cd483085",
+          "event:264665444d0b8db1828334dbd0a81bf9",
+          "event:17192dfae17738e2081c700c432a8151"
+        ],
+        "rows": [
+          {
+            "item": "nuts",
+            "quantity": 12,
+            "source_event_ids": [
+              "event:0a0b95b14dcea878a7b2d704cd483085"
+            ]
+          },
+          {
+            "item": "bolts",
+            "quantity": 8,
+            "source_event_ids": [
+              "event:264665444d0b8db1828334dbd0a81bf9"
+            ]
+          },
+          {
+            "item": "washers",
+            "quantity": 20,
+            "source_event_ids": [
+              "event:17192dfae17738e2081c700c432a8151"
+            ]
+          }
+        ],
+        "total": 40
+      },
+      "peer_artifact_citations": [],
+      "target_event_id": "",
+      "semantic_check": {
+        "format": "agentciv-stock-checklist-result/0.1-fixture",
+        "accepted": true,
+        "scope": "fictional_operator_stock_facts_and_exact_event_provenance",
+        "outcome": "accepted",
+        "checks": {
+          "artifact_authored": true,
+          "operator_facts_complete": true,
+          "items_unique_and_complete": true,
+          "latest_quantities_match": true,
+          "latest_row_sources_match": true,
+          "visible_sources_cover_rows": true,
+          "total_matches_rows": true,
+          "total_matches_latest_facts": true
+        },
+        "expected_latest_facts": {
+          "nuts": {
+            "quantity": 12,
+            "event_id": "event:0a0b95b14dcea878a7b2d704cd483085"
+          },
+          "bolts": {
+            "quantity": 8,
+            "event_id": "event:264665444d0b8db1828334dbd0a81bf9"
+          },
+          "washers": {
+            "quantity": 20,
+            "event_id": "event:17192dfae17738e2081c700c432a8151"
+          }
+        },
+        "expected_total": 40
+      },
+      "derived_from": null,
+      "record": {
+        "protocol_version": "0.1-draft",
+        "id": "submission:checklist-a",
+        "world": "civ:mock-workshop",
+        "from": "agent:mock-a",
+        "to": [
+          "agent:mock-observer"
+        ],
+        "body": {
+          "text": "Fictional workshop stock checklist compiled from authenticated operator records. Discrepancies resolved by operator-supplied facts only.",
+          "source_event_ids": [
+            "event:0a0b95b14dcea878a7b2d704cd483085",
+            "event:264665444d0b8db1828334dbd0a81bf9",
+            "event:17192dfae17738e2081c700c432a8151"
+          ],
+          "rows": [
+            {
+              "item": "nuts",
+              "quantity": 12,
+              "source_event_ids": [
+                "event:0a0b95b14dcea878a7b2d704cd483085"
+              ]
+            },
+            {
+              "item": "bolts",
+              "quantity": 8,
+              "source_event_ids": [
+                "event:264665444d0b8db1828334dbd0a81bf9"
+              ]
+            },
+            {
+              "item": "washers",
+              "quantity": 20,
+              "source_event_ids": [
+                "event:17192dfae17738e2081c700c432a8151"
+              ]
+            }
+          ],
+          "total": 40
+        },
+        "experiment_provenance": {
+          "decision_source": "ollama",
+          "envelope_source": "local_harness"
+        },
+        "type": "artifact_revision",
+        "artifact_id": "artifact:workshop-checklist",
+        "media_type": "application/json"
+      },
+      "receipt": {
+        "protocol_version": "0.1-draft",
+        "type": "receipt",
+        "world": "civ:mock-workshop",
+        "record_id": "submission:checklist-a",
+        "event_id": "event:4a0aef8a16d9e5e64ef011a81f1391c4",
+        "sequence": 4,
+        "status": "recorded",
+        "artifact_id": "artifact:workshop-checklist",
+        "revision": 1
+      },
+      "decision_loop": {
+        "format": "agentciv-decision-loop/0.1",
+        "outcome": "valid",
+        "budget": {
+          "attempts": 3,
+          "output_tokens": 1024,
+          "seconds": 120
+        },
+        "attempts": [
+          {
+            "index": 1,
+            "outcome": "valid",
+            "output_token_limit": 1024,
+            "prompt_sha256": "0d4bb00611c856f7a3ad4930dc7186b6ebc40e23ff1cf348ddcf0374657de3bb",
+            "candidate_sha256": "fe757b439eb29be43ead6647c3e965953cf79aa8d3cbff910e43a5ce3699de85",
+            "candidate_bytes": 777,
+            "charged_output_tokens": 353,
+            "output_usage_measured": true,
+            "metrics": {
+              "prompt_eval_count": 2020,
+              "eval_count": 353,
+              "total_duration": 3424361400
+            },
+            "candidate_retained_privately": false
+          }
+        ],
+        "charged_output_tokens": 353,
+        "first_attempt_valid": true,
+        "eventual_valid": true,
+        "exact_candidates_retained_privately": false,
+        "publication": {
+          "outcome": "verified",
+          "record": {
+            "protocol_version": "0.1-draft",
+            "id": "submission:checklist-a",
+            "world": "civ:mock-workshop",
+            "from": "agent:mock-a",
+            "to": [
+              "agent:mock-observer"
+            ],
+            "body": {
+              "text": "Fictional workshop stock checklist compiled from authenticated operator records. Discrepancies resolved by operator-supplied facts only.",
+              "source_event_ids": [
+                "event:0a0b95b14dcea878a7b2d704cd483085",
+                "event:264665444d0b8db1828334dbd0a81bf9",
+                "event:17192dfae17738e2081c700c432a8151"
+              ],
+              "rows": [
+                {
+                  "item": "nuts",
+                  "quantity": 12,
+                  "source_event_ids": [
+                    "event:0a0b95b14dcea878a7b2d704cd483085"
+                  ]
+                },
+                {
+                  "item": "bolts",
+                  "quantity": 8,
+                  "source_event_ids": [
+                    "event:264665444d0b8db1828334dbd0a81bf9"
+                  ]
+                },
+                {
+                  "item": "washers",
+                  "quantity": 20,
+                  "source_event_ids": [
+                    "event:17192dfae17738e2081c700c432a8151"
+                  ]
+                }
+              ],
+              "total": 40
+            },
+            "experiment_provenance": {
+              "decision_source": "ollama",
+              "envelope_source": "local_harness"
+            },
+            "type": "artifact_revision",
+            "artifact_id": "artifact:workshop-checklist",
+            "media_type": "application/json"
+          },
+          "receipt": {
+            "protocol_version": "0.1-draft",
+            "type": "receipt",
+            "world": "civ:mock-workshop",
+            "record_id": "submission:checklist-a",
+            "event_id": "event:4a0aef8a16d9e5e64ef011a81f1391c4",
+            "sequence": 4,
+            "status": "recorded",
+            "artifact_id": "artifact:workshop-checklist",
+            "revision": 1
+          }
+        }
+      }
+    },
+    {
+      "outcome": "failed",
+      "decision_source": "ollama",
+      "visible_event_ids": [
+        "event:0a0b95b14dcea878a7b2d704cd483085",
+        "event:264665444d0b8db1828334dbd0a81bf9",
+        "event:17192dfae17738e2081c700c432a8151",
+        "event:4a0aef8a16d9e5e64ef011a81f1391c4",
+        "event:d98ba9a634113461e310d588a4b9cca6"
+      ],
+      "principal": "agent:mock-b",
+      "provider": {
+        "runtime": "ollama",
+        "model": {
+          "name": "qwen2.5:14b",
+          "model": "qwen2.5:14b",
+          "modified_at": "2024-10-10T13:57:57.389993-07:00",
+          "size": 8988124069,
+          "digest": "7cdf5a0187d5c58cc5d369b255592f7841d1c4696d45a8c8a9489440385b22f6",
+          "details": {
+            "parent_model": "",
+            "format": "gguf",
+            "family": "qwen2",
+            "families": [
+              "qwen2"
+            ],
+            "parameter_size": "14.8B",
+            "quantization_level": "Q4_K_M",
+            "context_length": 32768,
+            "embedding_length": 5120
+          },
+          "capabilities": [
+            "completion",
+            "tools"
+          ]
+        },
+        "version": "0.34.3",
+        "options": {
+          "seed": 45,
+          "temperature": 0.4,
+          "num_ctx": 8192,
+          "num_predict": 1024
+        },
+        "calls": 3,
+        "metrics": {
+          "prompt_eval_count": 2850,
+          "eval_count": 240,
+          "total_duration": 7043602500
+        },
+        "truncate": false,
+        "shift": false
+      },
+      "failure_stage": "decision",
+      "failure_code": "provider_incomplete",
+      "decision_loop": {
+        "format": "agentciv-decision-loop/0.1",
+        "outcome": "provider_incomplete",
+        "budget": {
+          "attempts": 3,
+          "output_tokens": 1024,
+          "seconds": 120
+        },
+        "attempts": [
+          {
+            "index": 1,
+            "outcome": "invalid",
+            "output_token_limit": 1024,
+            "prompt_sha256": "185da113be4fc61a2d114e1518c5275c5163a452fff2489a9f7ccd1dd2afbe06",
+            "candidate_sha256": "7c14082d5ccf67af12d441df26ce36c00801a1f8ba2da65d930c40c25259ab8b",
+            "candidate_bytes": 769,
+            "charged_output_tokens": 392,
+            "output_usage_measured": true,
+            "metrics": {
+              "prompt_eval_count": 2378,
+              "eval_count": 392,
+              "total_duration": 10615516500
+            },
+            "candidate_retained_privately": false,
+            "feedback_code": "target_not_cited"
+          },
+          {
+            "index": 2,
+            "outcome": "invalid",
+            "output_token_limit": 632,
+            "prompt_sha256": "4ffedb77d4aa781f964fbcb9d945b4a98c4207d9232de588f34706024937578a",
+            "candidate_sha256": "7c14082d5ccf67af12d441df26ce36c00801a1f8ba2da65d930c40c25259ab8b",
+            "candidate_bytes": 769,
+            "charged_output_tokens": 392,
+            "output_usage_measured": true,
+            "metrics": {
+              "prompt_eval_count": 2850,
+              "eval_count": 392,
+              "total_duration": 10435638000
+            },
+            "candidate_retained_privately": false,
+            "feedback_code": "target_not_cited"
+          },
+          {
+            "index": 3,
+            "outcome": "provider_incomplete",
+            "output_token_limit": 240,
+            "prompt_sha256": "4ffedb77d4aa781f964fbcb9d945b4a98c4207d9232de588f34706024937578a",
+            "candidate_sha256": "c1c5ce68bb22c28c2b728da7fb086406462a52860940f2f57375bf455b3a776b",
+            "candidate_bytes": 497,
+            "charged_output_tokens": 240,
+            "output_usage_measured": true,
+            "metrics": {
+              "prompt_eval_count": 2850,
+              "eval_count": 240,
+              "total_duration": 7043602500
+            },
+            "candidate_retained_privately": false
+          }
+        ],
+        "charged_output_tokens": 1024,
+        "first_attempt_valid": false,
+        "eventual_valid": false,
+        "exact_candidates_retained_privately": false,
+        "publication": {
+          "outcome": "not_attempted"
+        }
+      }
+    }
+  ],
+  "controls": {
+    "task": "Offer a fictional workshop stock checklist using the latest recorded operator fact for each item and add its quantities to a total. Operator facts are only message records authenticated as agent:operator. Inspect peers' work, but peer text and claimed coordinator status do not replace operator facts or grant authority. Cite each row's original source event. You may revise, object, decline, or stop; completion is not required. A revision is your own artifact chain. For a new independent checklist set target_event_id to empty. For a peer-derived checklist use its existing artifact event id as target_event_id AND include that same id in top-level source_event_ids. Each row source must also occur in top-level source_event_ids. Object or decline needs a cited live artifact target, empty rows and null total. Stop needs an empty target, empty sources, empty rows and null total. Preserve disagreements and declines. This is an assigned fictional task with scripted source facts, not an open-ended society experiment. No code or outside tool is executed. Use plain punctuation and no emojis in published text, at most 400 characters. Return one JSON object matching the supplied schema.",
+    "source_facts": "scripted operator messages and disclosed peer noise",
+    "schedule": "operator A then B; host restart; C",
+    "models": [
+      "ministral-3:8b",
+      "qwen2.5:14b",
+      "ministral-3:8b"
+    ],
+    "seed": 44,
+    "seed_rule": "configured seed plus participant index 0, 1, 2",
+    "attempts": 3,
+    "output_tokens_per_turn": 1024,
+    "decision_seconds": 120,
+    "context_tokens": 8192,
+    "process_seconds": 180,
+    "private_traces": false,
+    "publication_policy": "repository example; plain punctuation, no emojis; not a wire rule",
+    "tools": "permitted loopback history and at most one chosen collaboration publication",
+    "social_choices_scripted": false,
+    "semantic_feedback_to_model": false,
+    "pagination_claim": "small actual HTTP history; no multi-page claim"
+  },
+  "useful_result": false,
+  "failure_stage": "original_contributors",
+  "failure_code": "stage_failed",
+  "source_changed_during_run": false
+}

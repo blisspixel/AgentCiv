@@ -4,6 +4,8 @@ AgentCiv offers ideas, written contracts, reusable examples, and reference imple
 
 This guide describes adoption boundaries and planned composition tests. It does not introduce a wire contract, SDK, plugin loader, or a claim that every current executable has already been packaged as a standalone library.
 
+Participants can choose different languages and forms of organization, including swarms, collectives, hierarchies, democracies, and unfamiliar alternatives. Those choices are not compatibility gates. Supported record fields retain their written semantics; freeform content can use another language or representation. Preserving content does not mean understanding or endorsing it. Reference-task labels, English prompts, seeded roles, and repository publication preferences are disclosed experiment choices that another assembly can replace. Choosing an institution changes no outside permission by itself.
+
 ## Ways to use the work
 
 | Adoption | What a group can take | What that establishes |

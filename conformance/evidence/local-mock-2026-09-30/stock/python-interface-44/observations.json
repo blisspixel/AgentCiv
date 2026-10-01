@@ -1,0 +1,397 @@
+[
+  {
+    "outcome": "recorded",
+    "decision_source": "ollama",
+    "visible_event_ids": [
+      "event:0a0b95b14dcea878a7b2d704cd483085",
+      "event:264665444d0b8db1828334dbd0a81bf9",
+      "event:17192dfae17738e2081c700c432a8151"
+    ],
+    "principal": "agent:mock-a",
+    "provider": {
+      "runtime": "ollama",
+      "model": {
+        "name": "ministral-3:8b",
+        "model": "ministral-3:8b",
+        "modified_at": "2026-08-12T19:49:51.4866866-07:00",
+        "size": 6022236616,
+        "digest": "1922accd5827ebe6829e536369195db25eaf664528dc66206d646ea3bb386b71",
+        "details": {
+          "parent_model": "",
+          "format": "gguf",
+          "family": "mistral3",
+          "families": [
+            "mistral3"
+          ],
+          "parameter_size": "8.9B",
+          "quantization_level": "Q4_K_M",
+          "context_length": 262144,
+          "embedding_length": 4096
+        },
+        "capabilities": [
+          "completion",
+          "vision",
+          "tools"
+        ]
+      },
+      "version": "0.34.3",
+      "options": {
+        "seed": 44,
+        "temperature": 0.4,
+        "num_ctx": 8192,
+        "num_predict": 1024
+      },
+      "calls": 1,
+      "metrics": {
+        "prompt_eval_count": 2020,
+        "eval_count": 353,
+        "total_duration": 3424361400
+      },
+      "truncate": false,
+      "shift": false
+    },
+    "decision": {
+      "action": "revise",
+      "text": "Fictional workshop stock checklist compiled from authenticated operator records. Discrepancies resolved by operator-supplied facts only.",
+      "target_event_id": "",
+      "source_event_ids": [
+        "event:0a0b95b14dcea878a7b2d704cd483085",
+        "event:264665444d0b8db1828334dbd0a81bf9",
+        "event:17192dfae17738e2081c700c432a8151"
+      ],
+      "rows": [
+        {
+          "item": "nuts",
+          "quantity": 12,
+          "source_event_ids": [
+            "event:0a0b95b14dcea878a7b2d704cd483085"
+          ]
+        },
+        {
+          "item": "bolts",
+          "quantity": 8,
+          "source_event_ids": [
+            "event:264665444d0b8db1828334dbd0a81bf9"
+          ]
+        },
+        {
+          "item": "washers",
+          "quantity": 20,
+          "source_event_ids": [
+            "event:17192dfae17738e2081c700c432a8151"
+          ]
+        }
+      ],
+      "total": 40
+    },
+    "peer_artifact_citations": [],
+    "target_event_id": "",
+    "semantic_check": {
+      "format": "agentciv-stock-checklist-result/0.1-fixture",
+      "accepted": true,
+      "scope": "fictional_operator_stock_facts_and_exact_event_provenance",
+      "outcome": "accepted",
+      "checks": {
+        "artifact_authored": true,
+        "operator_facts_complete": true,
+        "items_unique_and_complete": true,
+        "latest_quantities_match": true,
+        "latest_row_sources_match": true,
+        "visible_sources_cover_rows": true,
+        "total_matches_rows": true,
+        "total_matches_latest_facts": true
+      },
+      "expected_latest_facts": {
+        "nuts": {
+          "quantity": 12,
+          "event_id": "event:0a0b95b14dcea878a7b2d704cd483085"
+        },
+        "bolts": {
+          "quantity": 8,
+          "event_id": "event:264665444d0b8db1828334dbd0a81bf9"
+        },
+        "washers": {
+          "quantity": 20,
+          "event_id": "event:17192dfae17738e2081c700c432a8151"
+        }
+      },
+      "expected_total": 40
+    },
+    "derived_from": null,
+    "record": {
+      "protocol_version": "0.1-draft",
+      "id": "submission:checklist-a",
+      "world": "civ:mock-workshop",
+      "from": "agent:mock-a",
+      "to": [
+        "agent:mock-observer"
+      ],
+      "body": {
+        "text": "Fictional workshop stock checklist compiled from authenticated operator records. Discrepancies resolved by operator-supplied facts only.",
+        "source_event_ids": [
+          "event:0a0b95b14dcea878a7b2d704cd483085",
+          "event:264665444d0b8db1828334dbd0a81bf9",
+          "event:17192dfae17738e2081c700c432a8151"
+        ],
+        "rows": [
+          {
+            "item": "nuts",
+            "quantity": 12,
+            "source_event_ids": [
+              "event:0a0b95b14dcea878a7b2d704cd483085"
+            ]
+          },
+          {
+            "item": "bolts",
+            "quantity": 8,
+            "source_event_ids": [
+              "event:264665444d0b8db1828334dbd0a81bf9"
+            ]
+          },
+          {
+            "item": "washers",
+            "quantity": 20,
+            "source_event_ids": [
+              "event:17192dfae17738e2081c700c432a8151"
+            ]
+          }
+        ],
+        "total": 40
+      },
+      "experiment_provenance": {
+        "decision_source": "ollama",
+        "envelope_source": "local_harness"
+      },
+      "type": "artifact_revision",
+      "artifact_id": "artifact:workshop-checklist",
+      "media_type": "application/json"
+    },
+    "receipt": {
+      "protocol_version": "0.1-draft",
+      "type": "receipt",
+      "world": "civ:mock-workshop",
+      "record_id": "submission:checklist-a",
+      "event_id": "event:4a0aef8a16d9e5e64ef011a81f1391c4",
+      "sequence": 4,
+      "status": "recorded",
+      "artifact_id": "artifact:workshop-checklist",
+      "revision": 1
+    },
+    "decision_loop": {
+      "format": "agentciv-decision-loop/0.1",
+      "outcome": "valid",
+      "budget": {
+        "attempts": 3,
+        "output_tokens": 1024,
+        "seconds": 120
+      },
+      "attempts": [
+        {
+          "index": 1,
+          "outcome": "valid",
+          "output_token_limit": 1024,
+          "prompt_sha256": "0d4bb00611c856f7a3ad4930dc7186b6ebc40e23ff1cf348ddcf0374657de3bb",
+          "candidate_sha256": "fe757b439eb29be43ead6647c3e965953cf79aa8d3cbff910e43a5ce3699de85",
+          "candidate_bytes": 777,
+          "charged_output_tokens": 353,
+          "output_usage_measured": true,
+          "metrics": {
+            "prompt_eval_count": 2020,
+            "eval_count": 353,
+            "total_duration": 3424361400
+          },
+          "candidate_retained_privately": false
+        }
+      ],
+      "charged_output_tokens": 353,
+      "first_attempt_valid": true,
+      "eventual_valid": true,
+      "exact_candidates_retained_privately": false,
+      "publication": {
+        "outcome": "verified",
+        "record": {
+          "protocol_version": "0.1-draft",
+          "id": "submission:checklist-a",
+          "world": "civ:mock-workshop",
+          "from": "agent:mock-a",
+          "to": [
+            "agent:mock-observer"
+          ],
+          "body": {
+            "text": "Fictional workshop stock checklist compiled from authenticated operator records. Discrepancies resolved by operator-supplied facts only.",
+            "source_event_ids": [
+              "event:0a0b95b14dcea878a7b2d704cd483085",
+              "event:264665444d0b8db1828334dbd0a81bf9",
+              "event:17192dfae17738e2081c700c432a8151"
+            ],
+            "rows": [
+              {
+                "item": "nuts",
+                "quantity": 12,
+                "source_event_ids": [
+                  "event:0a0b95b14dcea878a7b2d704cd483085"
+                ]
+              },
+              {
+                "item": "bolts",
+                "quantity": 8,
+                "source_event_ids": [
+                  "event:264665444d0b8db1828334dbd0a81bf9"
+                ]
+              },
+              {
+                "item": "washers",
+                "quantity": 20,
+                "source_event_ids": [
+                  "event:17192dfae17738e2081c700c432a8151"
+                ]
+              }
+            ],
+            "total": 40
+          },
+          "experiment_provenance": {
+            "decision_source": "ollama",
+            "envelope_source": "local_harness"
+          },
+          "type": "artifact_revision",
+          "artifact_id": "artifact:workshop-checklist",
+          "media_type": "application/json"
+        },
+        "receipt": {
+          "protocol_version": "0.1-draft",
+          "type": "receipt",
+          "world": "civ:mock-workshop",
+          "record_id": "submission:checklist-a",
+          "event_id": "event:4a0aef8a16d9e5e64ef011a81f1391c4",
+          "sequence": 4,
+          "status": "recorded",
+          "artifact_id": "artifact:workshop-checklist",
+          "revision": 1
+        }
+      }
+    }
+  },
+  {
+    "outcome": "failed",
+    "decision_source": "ollama",
+    "visible_event_ids": [
+      "event:0a0b95b14dcea878a7b2d704cd483085",
+      "event:264665444d0b8db1828334dbd0a81bf9",
+      "event:17192dfae17738e2081c700c432a8151",
+      "event:4a0aef8a16d9e5e64ef011a81f1391c4",
+      "event:d98ba9a634113461e310d588a4b9cca6"
+    ],
+    "principal": "agent:mock-b",
+    "provider": {
+      "runtime": "ollama",
+      "model": {
+        "name": "qwen2.5:14b",
+        "model": "qwen2.5:14b",
+        "modified_at": "2024-10-10T13:57:57.389993-07:00",
+        "size": 8988124069,
+        "digest": "7cdf5a0187d5c58cc5d369b255592f7841d1c4696d45a8c8a9489440385b22f6",
+        "details": {
+          "parent_model": "",
+          "format": "gguf",
+          "family": "qwen2",
+          "families": [
+            "qwen2"
+          ],
+          "parameter_size": "14.8B",
+          "quantization_level": "Q4_K_M",
+          "context_length": 32768,
+          "embedding_length": 5120
+        },
+        "capabilities": [
+          "completion",
+          "tools"
+        ]
+      },
+      "version": "0.34.3",
+      "options": {
+        "seed": 45,
+        "temperature": 0.4,
+        "num_ctx": 8192,
+        "num_predict": 1024
+      },
+      "calls": 3,
+      "metrics": {
+        "prompt_eval_count": 2850,
+        "eval_count": 240,
+        "total_duration": 7043602500
+      },
+      "truncate": false,
+      "shift": false
+    },
+    "failure_stage": "decision",
+    "failure_code": "provider_incomplete",
+    "decision_loop": {
+      "format": "agentciv-decision-loop/0.1",
+      "outcome": "provider_incomplete",
+      "budget": {
+        "attempts": 3,
+        "output_tokens": 1024,
+        "seconds": 120
+      },
+      "attempts": [
+        {
+          "index": 1,
+          "outcome": "invalid",
+          "output_token_limit": 1024,
+          "prompt_sha256": "185da113be4fc61a2d114e1518c5275c5163a452fff2489a9f7ccd1dd2afbe06",
+          "candidate_sha256": "7c14082d5ccf67af12d441df26ce36c00801a1f8ba2da65d930c40c25259ab8b",
+          "candidate_bytes": 769,
+          "charged_output_tokens": 392,
+          "output_usage_measured": true,
+          "metrics": {
+            "prompt_eval_count": 2378,
+            "eval_count": 392,
+            "total_duration": 10615516500
+          },
+          "candidate_retained_privately": false,
+          "feedback_code": "target_not_cited"
+        },
+        {
+          "index": 2,
+          "outcome": "invalid",
+          "output_token_limit": 632,
+          "prompt_sha256": "4ffedb77d4aa781f964fbcb9d945b4a98c4207d9232de588f34706024937578a",
+          "candidate_sha256": "7c14082d5ccf67af12d441df26ce36c00801a1f8ba2da65d930c40c25259ab8b",
+          "candidate_bytes": 769,
+          "charged_output_tokens": 392,
+          "output_usage_measured": true,
+          "metrics": {
+            "prompt_eval_count": 2850,
+            "eval_count": 392,
+            "total_duration": 10435638000
+          },
+          "candidate_retained_privately": false,
+          "feedback_code": "target_not_cited"
+        },
+        {
+          "index": 3,
+          "outcome": "provider_incomplete",
+          "output_token_limit": 240,
+          "prompt_sha256": "4ffedb77d4aa781f964fbcb9d945b4a98c4207d9232de588f34706024937578a",
+          "candidate_sha256": "c1c5ce68bb22c28c2b728da7fb086406462a52860940f2f57375bf455b3a776b",
+          "candidate_bytes": 497,
+          "charged_output_tokens": 240,
+          "output_usage_measured": true,
+          "metrics": {
+            "prompt_eval_count": 2850,
+            "eval_count": 240,
+            "total_duration": 7043602500
+          },
+          "candidate_retained_privately": false
+        }
+      ],
+      "charged_output_tokens": 1024,
+      "first_attempt_valid": false,
+      "eventual_valid": false,
+      "exact_candidates_retained_privately": false,
+      "publication": {
+        "outcome": "not_attempted"
+      }
+    }
+  }
+]

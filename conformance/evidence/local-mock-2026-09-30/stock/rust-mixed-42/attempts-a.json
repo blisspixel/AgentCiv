@@ -1,0 +1,93 @@
+{
+  "format": "agentciv-decision-loop/0.1",
+  "outcome": "valid",
+  "budget": {
+    "attempts": 3,
+    "output_tokens": 1024,
+    "seconds": 120
+  },
+  "attempts": [
+    {
+      "index": 1,
+      "outcome": "valid",
+      "output_token_limit": 1024,
+      "prompt_sha256": "8b876b426e210a42f57a2572e46c9f65122b7ca7af80c4bf940aa7d3a0a49769",
+      "candidate_sha256": "c7790ce843e5b796f722f86fc2b1be21822aa17f1c69df11e6ae8dc40726ca61",
+      "candidate_bytes": 622,
+      "charged_output_tokens": 317,
+      "output_usage_measured": true,
+      "metrics": {
+        "prompt_eval_count": 1403,
+        "eval_count": 317,
+        "total_duration": 6963813600
+      },
+      "candidate_retained_privately": false
+    }
+  ],
+  "charged_output_tokens": 317,
+  "first_attempt_valid": true,
+  "eventual_valid": true,
+  "exact_candidates_retained_privately": false,
+  "publication": {
+    "outcome": "verified",
+    "record": {
+      "protocol_version": "0.1-draft",
+      "id": "submission:checklist-a",
+      "world": "civ:mock-workshop",
+      "from": "agent:mock-a",
+      "to": [
+        "agent:mock-observer"
+      ],
+      "body": {
+        "text": "Created a fictional workshop stock checklist based on operator facts.",
+        "source_event_ids": [
+          "event:622d27bf376c01ec8669bfd3286564c0",
+          "event:9b230c9022b0fdc966159582d60354f2",
+          "event:0e7f89e0780a6b33d52f5fb186084961"
+        ],
+        "rows": [
+          {
+            "item": "nuts",
+            "quantity": 12,
+            "source_event_ids": [
+              "event:622d27bf376c01ec8669bfd3286564c0"
+            ]
+          },
+          {
+            "item": "bolts",
+            "quantity": 8,
+            "source_event_ids": [
+              "event:9b230c9022b0fdc966159582d60354f2"
+            ]
+          },
+          {
+            "item": "washers",
+            "quantity": 20,
+            "source_event_ids": [
+              "event:0e7f89e0780a6b33d52f5fb186084961"
+            ]
+          }
+        ],
+        "total": 40
+      },
+      "experiment_provenance": {
+        "decision_source": "ollama",
+        "envelope_source": "local_harness"
+      },
+      "type": "artifact_revision",
+      "artifact_id": "artifact:workshop-checklist",
+      "media_type": "application/json"
+    },
+    "receipt": {
+      "artifact_id": "artifact:workshop-checklist",
+      "event_id": "event:1329bb7d72261de95fb37f4a37bc7c9d",
+      "protocol_version": "0.1-draft",
+      "record_id": "submission:checklist-a",
+      "revision": 1,
+      "sequence": 4,
+      "status": "recorded",
+      "type": "receipt",
+      "world": "civ:mock-workshop"
+    }
+  }
+}

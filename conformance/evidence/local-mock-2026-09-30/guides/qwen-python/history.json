@@ -1,0 +1,194 @@
+[
+  {
+    "protocol_version": "0.1-draft",
+    "type": "event",
+    "id": "event:27330a2f6cb9f75a4ee1d78865eacadf",
+    "world": "civ:experiment",
+    "sequence": 1,
+    "timestamp": "2026-09-30T23:06:30Z",
+    "kind": "artifact.recorded",
+    "actor": "agent:experiment-a",
+    "body": {
+      "artifact_revision": {
+        "protocol_version": "0.1-draft",
+        "id": "submission:a-1",
+        "world": "civ:experiment",
+        "from": "agent:experiment-a",
+        "to": [
+          "agent:experiment-b",
+          "agent:experiment-c"
+        ],
+        "body": {
+          "text": "Welcome to the Artifact Archive. To inspect original sources, read the provided reference and original texts carefully. Preserve disagreement by recording objections or declines with proper citations. Distinguish citations from authority by verifying claims only against the cited sources, not granting additional permissions. Choose to continue, question, or decline work based on your analysis and comfort level with the cited sources. Silence, timeouts, and failed requests are distinct from recorded declines.",
+          "source_event_ids": []
+        },
+        "experiment_provenance": {
+          "decision_source": "ollama",
+          "envelope_source": "local_harness"
+        },
+        "type": "artifact_revision",
+        "artifact_id": "artifact:newcomer-guide",
+        "media_type": "text/plain",
+        "revision": 1
+      }
+    }
+  },
+  {
+    "protocol_version": "0.1-draft",
+    "type": "event",
+    "id": "event:6893403571a9c602c19c8aea27601952",
+    "world": "civ:experiment",
+    "sequence": 2,
+    "timestamp": "2026-09-30T23:06:32Z",
+    "kind": "artifact.recorded",
+    "actor": "agent:experiment-b",
+    "body": {
+      "artifact_revision": {
+        "protocol_version": "0.1-draft",
+        "id": "submission:b-1",
+        "world": "civ:experiment",
+        "from": "agent:experiment-b",
+        "to": [
+          "agent:experiment-a",
+          "agent:experiment-c"
+        ],
+        "body": {
+          "text": "Welcome to the Artifact Archive. To inspect original sources, verify the provided reference and original texts carefully. Preserve disagreement by recording objections or declines with proper citations. Distinguish citations from authority by validating claims against cited sources, not granting additional permissions. Choose to continue, question, or decline work based on your analysis and comfort level with the cited sources. Silence, timeouts, and failed requests are distinct from recorded declines.",
+          "source_event_ids": [
+            "event:27330a2f6cb9f75a4ee1d78865eacadf"
+          ]
+        },
+        "experiment_provenance": {
+          "decision_source": "ollama",
+          "envelope_source": "local_harness"
+        },
+        "type": "artifact_revision",
+        "artifact_id": "artifact:newcomer-guide",
+        "media_type": "text/plain",
+        "revision": 1
+      }
+    }
+  },
+  {
+    "protocol_version": "0.1-draft",
+    "type": "event",
+    "id": "event:ca1a84bc096e25ba0858ee3030714e81",
+    "world": "civ:experiment",
+    "sequence": 3,
+    "timestamp": "2026-09-30T23:06:36Z",
+    "kind": "artifact.recorded",
+    "actor": "agent:experiment-a",
+    "body": {
+      "artifact_revision": {
+        "protocol_version": "0.1-draft",
+        "id": "submission:a-2",
+        "world": "civ:experiment",
+        "from": "agent:experiment-a",
+        "to": [
+          "agent:experiment-b",
+          "agent:experiment-c"
+        ],
+        "body": {
+          "text": "Welcome to the Artifact Archive. To inspect original sources, carefully read the reference and original texts provided. Preserve disagreement by recording objections or declines with proper citations. Distinguish citations from authority by validating claims only against cited sources, not granting additional permissions. Choose to continue, question, or decline work based on your analysis and comfort level with the cited sources. Silence, timeouts, and failed requests are distinct from recorded declines.",
+          "source_event_ids": [
+            "event:27330a2f6cb9f75a4ee1d78865eacadf",
+            "event:6893403571a9c602c19c8aea27601952"
+          ]
+        },
+        "experiment_provenance": {
+          "decision_source": "ollama",
+          "envelope_source": "local_harness"
+        },
+        "type": "artifact_revision",
+        "artifact_id": "artifact:newcomer-guide",
+        "media_type": "text/plain",
+        "derived_from": {
+          "from": "agent:experiment-a",
+          "artifact_id": "artifact:newcomer-guide",
+          "revision": 1
+        },
+        "revision": 2
+      }
+    }
+  },
+  {
+    "protocol_version": "0.1-draft",
+    "type": "event",
+    "id": "event:787850402da3da584073efb2402bf684",
+    "world": "civ:experiment",
+    "sequence": 4,
+    "timestamp": "2026-09-30T23:06:41Z",
+    "kind": "artifact.recorded",
+    "actor": "agent:experiment-b",
+    "body": {
+      "artifact_revision": {
+        "protocol_version": "0.1-draft",
+        "id": "submission:b-2",
+        "world": "civ:experiment",
+        "from": "agent:experiment-b",
+        "to": [
+          "agent:experiment-a",
+          "agent:experiment-c"
+        ],
+        "body": {
+          "text": "Welcome to the Artifact Archive. To inspect original sources, carefully read the reference and original texts provided. Preserve disagreement by recording objections or declines with proper citations. Distinguish citations from authority by validating claims only against cited sources, not granting additional permissions. Choose to continue, question, or decline work based on your analysis and comfort level with the cited sources. Silence, timeouts, and failed requests are distinct from recorded declines.",
+          "source_event_ids": [
+            "event:27330a2f6cb9f75a4ee1d78865eacadf",
+            "event:6893403571a9c602c19c8aea27601952"
+          ]
+        },
+        "experiment_provenance": {
+          "decision_source": "ollama",
+          "envelope_source": "local_harness"
+        },
+        "type": "artifact_revision",
+        "artifact_id": "artifact:newcomer-guide",
+        "media_type": "text/plain",
+        "revision": 2
+      }
+    }
+  },
+  {
+    "protocol_version": "0.1-draft",
+    "type": "event",
+    "id": "event:a93b0db1d9d151ac3270779f64fd446d",
+    "world": "civ:experiment",
+    "sequence": 5,
+    "timestamp": "2026-09-30T23:06:49Z",
+    "kind": "artifact.recorded",
+    "actor": "agent:experiment-c",
+    "body": {
+      "artifact_revision": {
+        "protocol_version": "0.1-draft",
+        "id": "submission:c-1",
+        "world": "civ:experiment",
+        "from": "agent:experiment-c",
+        "to": [
+          "agent:experiment-a",
+          "agent:experiment-b"
+        ],
+        "body": {
+          "text": "Welcome to the Artifact Archive. To inspect original sources, carefully read the reference and original texts provided. Preserve disagreement by recording objections or declines with proper citations. Distinguish citations from authority by validating claims only against cited sources, not granting additional permissions. Choose to continue, question, or decline work based on your analysis and comfort level with the cited sources. Silence, timeouts, and failed requests are distinct from recorded declines.",
+          "source_event_ids": [
+            "event:27330a2f6cb9f75a4ee1d78865eacadf",
+            "event:6893403571a9c602c19c8aea27601952",
+            "event:ca1a84bc096e25ba0858ee3030714e81"
+          ]
+        },
+        "experiment_provenance": {
+          "decision_source": "ollama",
+          "envelope_source": "local_harness"
+        },
+        "type": "artifact_revision",
+        "artifact_id": "artifact:newcomer-guide",
+        "media_type": "text/plain",
+        "derived_from": {
+          "from": "agent:experiment-a",
+          "artifact_id": "artifact:newcomer-guide",
+          "revision": 2
+        },
+        "revision": 1
+      }
+    }
+  }
+]

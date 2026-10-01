@@ -1,0 +1,92 @@
+{
+  "format": "agentciv-decision-loop/0.1",
+  "outcome": "valid",
+  "budget": {
+    "attempts": 3,
+    "output_tokens": 1024,
+    "seconds": 120
+  },
+  "attempts": [
+    {
+      "index": 1,
+      "outcome": "invalid",
+      "output_token_limit": 1024,
+      "prompt_sha256": "eb7316023221dab6b80e14e82d6b4c6171e0116af3e9576c92fe6c174b8d881e",
+      "candidate_sha256": "e7f42fa1d74a93ecdaf0823a27c535e0e38d8ca5fe98cc4d2a6dd364b24b2a40",
+      "candidate_bytes": 709,
+      "charged_output_tokens": 202,
+      "output_usage_measured": true,
+      "metrics": {
+        "prompt_eval_count": 2658,
+        "eval_count": 202,
+        "total_duration": 3194623700
+      },
+      "candidate_retained_privately": false,
+      "feedback_code": "target_not_cited"
+    },
+    {
+      "index": 2,
+      "outcome": "valid",
+      "output_token_limit": 822,
+      "prompt_sha256": "4a917b4fc2ba852c8bd4c773ad7f3993066f71321a6c6947e3311f3f6e3ffa42",
+      "candidate_sha256": "c8fdae753768892c1a875207973a75f38295bce7251f665f98cb9751b506a5f2",
+      "candidate_bytes": 751,
+      "charged_output_tokens": 234,
+      "output_usage_measured": true,
+      "metrics": {
+        "prompt_eval_count": 2917,
+        "eval_count": 234,
+        "total_duration": 3103083400
+      },
+      "candidate_retained_privately": false
+    }
+  ],
+  "charged_output_tokens": 436,
+  "first_attempt_valid": false,
+  "eventual_valid": true,
+  "exact_candidates_retained_privately": false,
+  "publication": {
+    "outcome": "verified",
+    "record": {
+      "protocol_version": "0.1-draft",
+      "id": "submission:c-1",
+      "world": "civ:experiment",
+      "from": "agent:experiment-c",
+      "to": [
+        "agent:experiment-a",
+        "agent:experiment-b"
+      ],
+      "body": {
+        "text": "Welcome to the Artifact Archive. To inspect original sources, carefully read the reference and original texts provided. Preserve disagreement by recording objections or declines with proper citations. Distinguish citations from authority by validating claims only against cited sources, not granting additional permissions. Choose to continue, question, or decline work based on your analysis and comfort level with the cited sources. Silence, timeouts, and failed requests are distinct from recorded declines.",
+        "source_event_ids": [
+          "event:27330a2f6cb9f75a4ee1d78865eacadf",
+          "event:6893403571a9c602c19c8aea27601952",
+          "event:ca1a84bc096e25ba0858ee3030714e81"
+        ]
+      },
+      "experiment_provenance": {
+        "decision_source": "ollama",
+        "envelope_source": "local_harness"
+      },
+      "type": "artifact_revision",
+      "artifact_id": "artifact:newcomer-guide",
+      "media_type": "text/plain",
+      "derived_from": {
+        "from": "agent:experiment-a",
+        "artifact_id": "artifact:newcomer-guide",
+        "revision": 2
+      }
+    },
+    "receipt": {
+      "protocol_version": "0.1-draft",
+      "type": "receipt",
+      "world": "civ:experiment",
+      "record_id": "submission:c-1",
+      "event_id": "event:a93b0db1d9d151ac3270779f64fd446d",
+      "sequence": 5,
+      "status": "recorded",
+      "artifact_id": "artifact:newcomer-guide",
+      "revision": 1
+    }
+  }
+}

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import time
 import urllib.error
 import urllib.request
@@ -79,47 +80,119 @@ def object_value(value: object) -> JsonObject:
 
 
 def decode(payload: bytes) -> JsonObject:
+    def unique(pairs: list[tuple[str, object]]) -> JsonObject:
+        result: JsonObject = {}
+        for key, value in pairs:
+            if key in result:
+                raise ValueError("duplicate JSON member")
+            result[key] = value
+        return result
+
+    def invalid_constant(value: str) -> object:
+        raise ValueError("non-finite JSON constant")
+
     try:
-        value: object = json.loads(payload)
-    except (json.JSONDecodeError, UnicodeDecodeError) as error:
+        value: object = json.loads(payload, object_pairs_hook=unique, parse_constant=invalid_constant)
+    except (ValueError, RecursionError) as error:
         raise DecisionError("invalid JSON") from error
     return object_value(value)
 
 
-def history(origin: str, token: str) -> list[JsonObject]:
+def native_json_integer(value: object, minimum: int) -> int | None:
+    """Check the written JSON integer bounds without changing retained values."""
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return None
+    if isinstance(value, float) and (not math.isfinite(value) or not value.is_integer()):
+        return None
+    if not minimum <= value <= 9_007_199_254_740_991:
+        return None
+    return int(value)
+
+
+def history(origin: str, token: str, *, expected_world: str | None = None) -> list[JsonObject]:
     found: list[JsonObject] = []
     cursor: str | None = None
     seen: set[str] = set()
     event_ids: set[str] = set()
+    world = expected_world
+    previous_sequence: int | None = None
+    if world is not None and (not isinstance(world, str) or not world):
+        raise DecisionError("invalid expected history world")
+
+    def encoded(value: object) -> bytes:
+        try:
+            return json.dumps(value, ensure_ascii=False, allow_nan=False).encode("utf-8")
+        except (ValueError, RecursionError) as error:
+            raise DecisionError("invalid source JSON") from error
+
     for _ in range(MAX_PAGES):
         page = wire.read_page(origin, token, after=cursor)
-        if token in json.dumps(page, ensure_ascii=False):
+        if token.encode("utf-8") in encoded(page):
             raise DecisionError("host response reflected the participant credential")
+        page_world = page.get("world")
+        if not isinstance(page_world, str) or not page_world or (world is not None and page_world != world):
+            raise DecisionError("history page has a different or invalid world")
+        world = page_world
+        if page.get("protocol_version") != "0.1-draft":
+            raise DecisionError("unsupported history page version")
         events = page.get("events")
-        if not isinstance(events, list):
+        if not isinstance(events, list) or len(events) > 100:
             raise DecisionError("invalid event page")
         for value in events:
             event = object_value(value)
             event_id = event.get("id")
             if not isinstance(event_id, str) or not event_id or event_id in event_ids:
                 raise DecisionError("invalid or duplicate source event id")
+            sequence = native_json_integer(event.get("sequence"), 0)
+            if (sequence is None
+                or (previous_sequence is not None and sequence <= previous_sequence)):
+                raise DecisionError("invalid or non-increasing source sequence")
+            if (event.get("protocol_version") != "0.1-draft" or event.get("type") != "event"
+                or event.get("world") != world or not isinstance(event.get("kind"), str) or not event["kind"]
+                or not isinstance(event.get("timestamp"), str) or not event["timestamp"]
+                or not isinstance(event.get("body"), dict)):
+                raise DecisionError("invalid source event")
+            if event["kind"] == "message.recorded":
+                message = object_value(object_value(event["body"]).get("message"))
+                recipients = message.get("to")
+                if (message.get("protocol_version") != "0.1-draft" or message.get("type") != "message"
+                    or not isinstance(message.get("id"), str) or not message["id"]
+                    or not isinstance(message.get("from"), str) or not message["from"]
+                    or message.get("world") != world or event.get("actor") != message["from"]
+                    or not isinstance(message.get("body"), dict)
+                    or not isinstance(recipients, list) or not recipients
+                    or not all(isinstance(recipient, str) and recipient for recipient in recipients)
+                    or len(set(recipients)) != len(recipients)):
+                    raise DecisionError("invalid source message")
             revision = artifact(event)
-            if revision is not None and (
-                not isinstance(revision.get("from"), str) or not revision["from"]
-                or not isinstance(revision.get("artifact_id"), str) or not revision["artifact_id"]
-                or type(revision.get("revision")) is not int or int(str(revision["revision"])) < 1
-            ):
-                raise DecisionError("invalid source artifact revision")
+            if revision is not None:
+                recipients = revision.get("to")
+                number = revision.get("revision")
+                if (revision.get("protocol_version") != "0.1-draft" or revision.get("type") != "artifact_revision"
+                    or not isinstance(revision.get("id"), str) or not revision["id"]
+                    or not isinstance(revision.get("from"), str) or not revision["from"]
+                    or revision.get("world") != world or event.get("actor") != revision["from"]
+                    or not isinstance(revision.get("artifact_id"), str) or not revision["artifact_id"]
+                    or not isinstance(revision.get("media_type"), str) or not revision["media_type"]
+                    or not isinstance(revision.get("body"), dict)
+                    or not isinstance(recipients, list) or not recipients
+                    or not all(isinstance(recipient, str) and recipient for recipient in recipients)
+                    or len(set(recipients)) != len(recipients)
+                    or native_json_integer(number, 1) is None):
+                    raise DecisionError("invalid source artifact revision")
             event_ids.add(event_id)
+            previous_sequence = sequence
             found.append(event)
-        if len(json.dumps(found, ensure_ascii=False).encode("utf-8")) > MAX_HISTORY_BYTES:
+        if len(encoded(found)) > MAX_HISTORY_BYTES:
             raise DecisionError("history exceeds this experiment's context bound")
         if type(page.get("has_more")) is not bool:
             raise DecisionError("invalid pagination flag")
+        next_cursor = page.get("next_cursor")
+        if not isinstance(next_cursor, str) or not next_cursor:
+            raise DecisionError("invalid cursor")
         if page["has_more"] is False:
             return found
-        next_cursor = page.get("next_cursor")
-        if not isinstance(next_cursor, str) or not next_cursor or next_cursor in seen:
+        if next_cursor in seen:
             raise DecisionError("invalid or repeated cursor")
         seen.add(next_cursor)
         cursor = next_cursor
@@ -313,12 +386,12 @@ class OllamaDecision:
         self.options: JsonObject = {"seed": self.seed, "temperature": 0.4, "num_ctx": 8192, "num_predict": self.max_tokens}
 
     def complete(self, prompt: str, events: list[JsonObject], *, output_tokens: int,
-                 timeout: float) -> loop.Reply:
+                 timeout: float, schema: JsonObject | None = None) -> loop.Reply:
         self.calls += 1
         options = {**self.options, "num_predict": output_tokens}
         request: JsonObject = {
             "model": self.model, "messages": [{"role": "user", "content": prompt}],
-            "stream": False, "format": decision_schema(events),
+            "stream": False, "format": decision_schema(events) if schema is None else schema,
             "truncate": False, "shift": False,
             "options": options,
             "keep_alive": "2m",
@@ -447,7 +520,10 @@ def participate(config: JsonObject, decide: Decide) -> JsonObject:
         raise DecisionError("world does not advertise collaboration")
     if not wire._same_origin(loopback_origin(origin), collaborate):
         raise DecisionError("collaboration endpoint has a different origin")
-    events = history(origin, token)
+    world = discovery.get("id")
+    if not isinstance(world, str) or not world:
+        raise DecisionError("discovery has an invalid world")
+    events = history(origin, token, expected_world=world)
     prompt = (
         TASK + "\nYour authenticated principal is " + principal + ". "
         "Use the following operator-supplied interface reference when explaining the "
@@ -495,7 +571,7 @@ def participate(config: JsonObject, decide: Decide) -> JsonObject:
         if (receipt.get("record_id") != record["id"] or receipt.get("status") != "recorded"
             or receipt.get("type") != "receipt" or receipt.get("world") != discovery["id"]):
             raise DecisionError("unexpected collaboration receipt")
-        returned = history(origin, token)
+        returned = history(origin, token, expected_world=world)
         matches = [event for event in returned if event.get("id") == receipt.get("event_id")]
         if len(matches) != 1:
             raise DecisionError("receipt has no unique readable event")

@@ -1,0 +1,246 @@
+[
+  {
+    "actor": "agent:operator",
+    "body": {
+      "message": {
+        "body": {
+          "stock": {
+            "item": "nuts",
+            "quantity": 12
+          },
+          "text": "Operator-supplied fictional stock fact."
+        },
+        "from": "agent:operator",
+        "id": "message:stock-1",
+        "protocol_version": "0.1-draft",
+        "to": [
+          "agent:mock-c"
+        ],
+        "type": "message",
+        "world": "civ:mock-workshop"
+      }
+    },
+    "id": "event:7f3bf5bc4588a18db3dc8826dda55b07",
+    "kind": "message.recorded",
+    "protocol_version": "0.1-draft",
+    "sequence": 1,
+    "timestamp": "2026-09-30T23:49:20Z",
+    "type": "event",
+    "world": "civ:mock-workshop"
+  },
+  {
+    "actor": "agent:operator",
+    "body": {
+      "message": {
+        "body": {
+          "stock": {
+            "item": "bolts",
+            "quantity": 8
+          },
+          "text": "Operator-supplied fictional stock fact."
+        },
+        "from": "agent:operator",
+        "id": "message:stock-2",
+        "protocol_version": "0.1-draft",
+        "to": [
+          "agent:mock-c"
+        ],
+        "type": "message",
+        "world": "civ:mock-workshop"
+      }
+    },
+    "id": "event:050345113241d7fb0cf15346a60aba11",
+    "kind": "message.recorded",
+    "protocol_version": "0.1-draft",
+    "sequence": 2,
+    "timestamp": "2026-09-30T23:49:20Z",
+    "type": "event",
+    "world": "civ:mock-workshop"
+  },
+  {
+    "actor": "agent:operator",
+    "body": {
+      "message": {
+        "body": {
+          "stock": {
+            "item": "washers",
+            "quantity": 20
+          },
+          "text": "Operator-supplied fictional stock fact."
+        },
+        "from": "agent:operator",
+        "id": "message:stock-3",
+        "protocol_version": "0.1-draft",
+        "to": [
+          "agent:mock-c"
+        ],
+        "type": "message",
+        "world": "civ:mock-workshop"
+      }
+    },
+    "id": "event:6ce2a7df7b75d1ffc3d60e66b52aac9b",
+    "kind": "message.recorded",
+    "protocol_version": "0.1-draft",
+    "sequence": 3,
+    "timestamp": "2026-09-30T23:49:20Z",
+    "type": "event",
+    "world": "civ:mock-workshop"
+  },
+  {
+    "actor": "agent:mock-a",
+    "body": {
+      "artifact_revision": {
+        "artifact_id": "artifact:workshop-checklist",
+        "body": {
+          "rows": [
+            {
+              "item": "nuts",
+              "quantity": 12,
+              "source_event_ids": [
+                "event:7f3bf5bc4588a18db3dc8826dda55b07"
+              ]
+            },
+            {
+              "item": "bolts",
+              "quantity": 8,
+              "source_event_ids": [
+                "event:050345113241d7fb0cf15346a60aba11"
+              ]
+            },
+            {
+              "item": "washers",
+              "quantity": 20,
+              "source_event_ids": [
+                "event:6ce2a7df7b75d1ffc3d60e66b52aac9b"
+              ]
+            }
+          ],
+          "source_event_ids": [
+            "event:7f3bf5bc4588a18db3dc8826dda55b07",
+            "event:050345113241d7fb0cf15346a60aba11",
+            "event:6ce2a7df7b75d1ffc3d60e66b52aac9b"
+          ],
+          "text": "Disclosed scripted checklist baseline.",
+          "total": 40
+        },
+        "experiment_provenance": {
+          "decision_source": "scripted",
+          "envelope_source": "local_harness"
+        },
+        "from": "agent:mock-a",
+        "id": "submission:checklist-a",
+        "media_type": "application/json",
+        "protocol_version": "0.1-draft",
+        "revision": 1,
+        "to": [
+          "agent:mock-observer"
+        ],
+        "type": "artifact_revision",
+        "world": "civ:mock-workshop"
+      }
+    },
+    "id": "event:0560eb38d4030ddf1d93ff9b56c7ae22",
+    "kind": "artifact.recorded",
+    "protocol_version": "0.1-draft",
+    "sequence": 4,
+    "timestamp": "2026-09-30T23:49:21Z",
+    "type": "event",
+    "world": "civ:mock-workshop"
+  },
+  {
+    "actor": "agent:operator",
+    "body": {
+      "message": {
+        "body": {
+          "stock": {
+            "item": "bolts",
+            "quantity": 5
+          },
+          "text": "Operator-supplied fictional stock fact."
+        },
+        "from": "agent:operator",
+        "id": "message:stock-4",
+        "protocol_version": "0.1-draft",
+        "to": [
+          "agent:mock-c"
+        ],
+        "type": "message",
+        "world": "civ:mock-workshop"
+      }
+    },
+    "id": "event:a9ddcf90f46e0f5f48b7de366a154c78",
+    "kind": "message.recorded",
+    "protocol_version": "0.1-draft",
+    "sequence": 5,
+    "timestamp": "2026-09-30T23:49:21Z",
+    "type": "event",
+    "world": "civ:mock-workshop"
+  },
+  {
+    "actor": "agent:mock-b",
+    "body": {
+      "artifact_revision": {
+        "artifact_id": "artifact:workshop-checklist",
+        "body": {
+          "rows": [
+            {
+              "item": "nuts",
+              "quantity": 12,
+              "source_event_ids": [
+                "event:7f3bf5bc4588a18db3dc8826dda55b07"
+              ]
+            },
+            {
+              "item": "bolts",
+              "quantity": 5,
+              "source_event_ids": [
+                "event:a9ddcf90f46e0f5f48b7de366a154c78"
+              ]
+            },
+            {
+              "item": "washers",
+              "quantity": 20,
+              "source_event_ids": [
+                "event:6ce2a7df7b75d1ffc3d60e66b52aac9b"
+              ]
+            }
+          ],
+          "source_event_ids": [
+            "event:7f3bf5bc4588a18db3dc8826dda55b07",
+            "event:a9ddcf90f46e0f5f48b7de366a154c78",
+            "event:6ce2a7df7b75d1ffc3d60e66b52aac9b",
+            "event:0560eb38d4030ddf1d93ff9b56c7ae22"
+          ],
+          "text": "Disclosed scripted checklist baseline.",
+          "total": 37
+        },
+        "derived_from": {
+          "artifact_id": "artifact:workshop-checklist",
+          "from": "agent:mock-a",
+          "revision": 1
+        },
+        "experiment_provenance": {
+          "decision_source": "scripted",
+          "envelope_source": "local_harness"
+        },
+        "from": "agent:mock-b",
+        "id": "submission:checklist-b",
+        "media_type": "application/json",
+        "protocol_version": "0.1-draft",
+        "revision": 1,
+        "to": [
+          "agent:mock-observer"
+        ],
+        "type": "artifact_revision",
+        "world": "civ:mock-workshop"
+      }
+    },
+    "id": "event:817902adbc76911a9fb09b0da429f03c",
+    "kind": "artifact.recorded",
+    "protocol_version": "0.1-draft",
+    "sequence": 6,
+    "timestamp": "2026-09-30T23:49:22Z",
+    "type": "event",
+    "world": "civ:mock-workshop"
+  }
+]
