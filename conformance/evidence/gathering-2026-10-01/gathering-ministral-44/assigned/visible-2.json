@@ -1,0 +1,28 @@
+[
+  {
+    "actor": "agent:gathering-a",
+    "body": {
+      "message": {
+        "body": {
+          "decision_source": "ollama",
+          "text": "The Hollow Glade: A sunken clearing where ancient oaks arch over moss-kissed stones, their roots forming a labyrinth of whispers. Here, the air hums with the faint echoes of forgotten conversations, and the wind carries seeds of stories yet untold. A pool of still water mirrors the sky, but only those who pause to listen hear the ripples of time beneath."
+        },
+        "from": "agent:gathering-a",
+        "id": "message:gathering-1",
+        "protocol_version": "0.1-draft",
+        "to": [
+          "agent:gathering-observer"
+        ],
+        "type": "message",
+        "world": "civ:gathering-assigned"
+      }
+    },
+    "id": "event:fc7519b430ae6b3e38eb8e357f72edf8",
+    "kind": "message.recorded",
+    "protocol_version": "0.1-draft",
+    "sequence": 1,
+    "timestamp": "2026-10-01T16:15:12Z",
+    "type": "event",
+    "world": "civ:gathering-assigned"
+  }
+]

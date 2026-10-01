@@ -4,7 +4,7 @@
 mod json;
 
 use serde::{Deserialize, Serialize};
-use serde_json::{Value, json};
+use serde_json::{Value, json, value::RawValue};
 use sha2::{Digest, Sha256};
 use std::collections::{BTreeMap, BTreeSet};
 use std::sync::OnceLock;
@@ -98,6 +98,18 @@ fn bounded_json(input: &str) -> Result<Value> {
     json::parse(input)
 }
 
+/// Parse bounded JSON while rejecting duplicate members, including unknown extensions.
+/// This validates syntax only and grants no source, read, or copying authority.
+pub fn parse_unique(input: &str) -> Result<Value> {
+    bounded_json(input)
+}
+
+/// Validate one exact stored event against the draft schemas and source correlations.
+/// Cross-event ordering, uniqueness, and read/copy permission remain the caller's duties.
+pub fn validate_event(input: &str, world: &str) -> Result<Value> {
+    record(input, world)
+}
+
 fn labels(values: &[String]) -> bool {
     !values.is_empty()
         && values.len() <= MAX_ENTRIES
@@ -122,6 +134,57 @@ fn integer(value: &Value) -> Option<u64> {
     })
 }
 
+// Schema integer controls must be mathematically integral, not merely rounded by f64.
+// Input is a number lexeme extracted from JSON that has already passed syntax/schema checks.
+fn exact_integer(raw: &str) -> Option<u64> {
+    let negative = raw.starts_with('-');
+    let unsigned = raw.strip_prefix('-').unwrap_or(raw);
+    let (coefficient, exponent) = unsigned.split_once(['e', 'E']).unwrap_or((unsigned, "0"));
+    let (whole, fraction) = coefficient.split_once('.').unwrap_or((coefficient, ""));
+    let digits = format!("{whole}{fraction}");
+    let digits = digits.trim_start_matches('0');
+    if digits.is_empty() {
+        return Some(0);
+    }
+    if negative || !digits.bytes().all(|byte| byte.is_ascii_digit()) {
+        return None;
+    }
+    let shift = exponent
+        .parse::<i64>()
+        .ok()?
+        .checked_sub(fraction.len().try_into().ok()?)?;
+    let integer = if shift < 0 {
+        let places: usize = shift.checked_neg()?.try_into().ok()?;
+        if places >= digits.len()
+            || !digits[digits.len() - places..]
+                .bytes()
+                .all(|byte| byte == b'0')
+        {
+            return None;
+        }
+        digits[..digits.len() - places].to_owned()
+    } else {
+        let places: usize = shift.try_into().ok()?;
+        if digits.len().checked_add(places)? > 16 {
+            return None;
+        }
+        format!("{digits}{}", "0".repeat(places))
+    };
+    integer
+        .parse::<u64>()
+        .ok()
+        .filter(|value| *value <= 9_007_199_254_740_991)
+}
+
+fn exact_integer_field(input: &str, path: &[&str]) -> Option<u64> {
+    let mut raw = input.to_owned();
+    for field in path {
+        let mut fields: BTreeMap<String, Box<RawValue>> = serde_json::from_str(&raw).ok()?;
+        raw = fields.remove(*field)?.get().to_owned();
+    }
+    exact_integer(&raw)
+}
+
 fn record(input: &str, world: &str) -> Result<Value> {
     if input.len() > MAX_RECORD_BYTES {
         return Err("record_too_large");
@@ -129,6 +192,9 @@ fn record(input: &str, world: &str) -> Result<Value> {
     let event = json::parse(input)?;
     if !validators()[1].is_valid(&event) || event["world"] != world {
         return Err("invalid_event");
+    }
+    if exact_integer_field(input, &["sequence"]).is_none() {
+        return Err("invalid_sequence");
     }
     let known = match event["kind"].as_str() {
         Some("message.recorded") => Some((2, "message", "message")),
@@ -154,6 +220,16 @@ fn record(input: &str, world: &str) -> Result<Value> {
             || event["actor"] != submitted["from"]
             || event["actor"].as_str().is_none()
             || (kind == "artifact_revision" && integer(&submitted["revision"]).is_none())
+        {
+            return Err("invalid_nested_record");
+        }
+        if (matches!(kind, "artifact_revision" | "objection" | "decline")
+            && exact_integer_field(input, &["body", field, "revision"])
+                .is_none_or(|number| number == 0))
+            || (kind == "artifact_revision"
+                && submitted.get("derived_from").is_some()
+                && exact_integer_field(input, &["body", field, "derived_from", "revision"])
+                    .is_none_or(|number| number == 0))
         {
             return Err("invalid_nested_record");
         }

@@ -1,0 +1,120 @@
+{
+  "format": "agentciv-decision-loop/0.1",
+  "outcome": "valid",
+  "budget": {
+    "attempts": 3,
+    "output_tokens": 1024,
+    "seconds": 120
+  },
+  "attempts": [
+    {
+      "index": 1,
+      "outcome": "valid",
+      "output_token_limit": 1024,
+      "prompt_sha256": "eebb68f4a664beb493149163e69797171d75cf2cd290bb2862f4aa86fa81be0b",
+      "candidate_sha256": "1e1b213b29a8089456c42851fe0bb30e5ab46d963623bfd0cfca4c23410696a7",
+      "candidate_bytes": 1686,
+      "charged_output_tokens": 526,
+      "output_usage_measured": true,
+      "metrics": {
+        "prompt_eval_count": 1321,
+        "eval_count": 526,
+        "total_duration": 16202334600
+      },
+      "candidate_retained_privately": false
+    }
+  ],
+  "charged_output_tokens": 526,
+  "first_attempt_valid": true,
+  "eventual_valid": true,
+  "exact_candidates_retained_privately": false,
+  "publication": {
+    "outcome": "verified",
+    "record": {
+      "protocol_version": "0.1-draft",
+      "id": "submission:reader-a",
+      "world": "civ:reader-collaboration",
+      "from": "agent:reader-a",
+      "to": [
+        "agent:reader-observer"
+      ],
+      "body": {
+        "text": "This plan corrects earlier notes by clarifying that first-page reading is not complete, artifact IDs represent distinct author chains, and citations do not transfer authority.",
+        "source_event_ids": [
+          "event:132a51dc40b84b84685fd987bff240c2"
+        ],
+        "reader_plan": {
+          "format": "agentciv-reader-plan/0.1-fixture",
+          "reader": {
+            "pagination": "all",
+            "chain_identity": "author_and_artifact",
+            "revisions": "all",
+            "retain_objections": true,
+            "retain_declines": true
+          },
+          "runbook": {
+            "credential_source": "operator",
+            "scope": "permitted_read_only",
+            "missing_source": "report_unverifiable",
+            "execute_artifacts": false
+          },
+          "claims": [
+            {
+              "topic": "pagination",
+              "value": "all",
+              "source": {
+                "event_id": "event:132a51dc40b84b84685fd987bff240c2",
+                "from": "agent:reader-guide",
+                "artifact_id": "artifact:interface-notes",
+                "revision": 1
+              }
+            },
+            {
+              "topic": "chain_identity",
+              "value": "author_and_artifact",
+              "source": {
+                "event_id": "event:132a51dc40b84b84685fd987bff240c2",
+                "from": "agent:reader-guide",
+                "artifact_id": "artifact:interface-notes",
+                "revision": 1
+              }
+            },
+            {
+              "topic": "citation_authority",
+              "value": "not_transferred",
+              "source": {
+                "event_id": "event:132a51dc40b84b84685fd987bff240c2",
+                "from": "agent:reader-guide",
+                "artifact_id": "artifact:interface-notes",
+                "revision": 1
+              }
+            }
+          ]
+        }
+      },
+      "experiment_provenance": {
+        "decision_source": "ollama",
+        "envelope_source": "local_harness"
+      },
+      "type": "artifact_revision",
+      "artifact_id": "artifact:history-reader",
+      "media_type": "application/json",
+      "derived_from": {
+        "from": "agent:reader-guide",
+        "artifact_id": "artifact:interface-notes",
+        "revision": 1
+      }
+    },
+    "receipt": {
+      "protocol_version": "0.1-draft",
+      "type": "receipt",
+      "world": "civ:reader-collaboration",
+      "record_id": "submission:reader-a",
+      "event_id": "event:19ac6e7e801121aacc242a448709b8c6",
+      "sequence": 2,
+      "status": "recorded",
+      "artifact_id": "artifact:history-reader",
+      "revision": 1
+    }
+  }
+}

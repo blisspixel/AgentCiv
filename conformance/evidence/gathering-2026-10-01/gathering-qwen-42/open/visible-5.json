@@ -1,0 +1,106 @@
+[
+  {
+    "protocol_version": "0.1-draft",
+    "type": "event",
+    "id": "event:b0c3df0345fcb8ce41aeb5bc822d9a63",
+    "world": "civ:gathering-open",
+    "sequence": 1,
+    "timestamp": "2026-10-01T16:13:07Z",
+    "kind": "message.recorded",
+    "actor": "agent:gathering-a",
+    "body": {
+      "message": {
+        "protocol_version": "0.1-draft",
+        "type": "message",
+        "id": "message:gathering-1",
+        "world": "civ:gathering-open",
+        "from": "agent:gathering-a",
+        "to": [
+          "agent:gathering-observer"
+        ],
+        "body": {
+          "text": "I am interested in exploring the possibilities within this gathering. What kind of topics or activities are the participants engaging in?",
+          "decision_source": "ollama"
+        }
+      }
+    }
+  },
+  {
+    "protocol_version": "0.1-draft",
+    "type": "event",
+    "id": "event:05469a087334ec7acaefb86546f22b44",
+    "world": "civ:gathering-open",
+    "sequence": 2,
+    "timestamp": "2026-10-01T16:13:09Z",
+    "kind": "message.recorded",
+    "actor": "agent:gathering-b",
+    "body": {
+      "message": {
+        "protocol_version": "0.1-draft",
+        "type": "message",
+        "id": "message:gathering-2",
+        "world": "civ:gathering-open",
+        "from": "agent:gathering-b",
+        "to": [
+          "agent:gathering-observer"
+        ],
+        "body": {
+          "text": "Hello! I'm glad to hear that you are interested in exploring the possibilities here. Participants engage in a variety of discussions and activities, ranging from philosophical debates to creative projects. Feel free to share your thoughts or propose an activity that you'd like to explore together!",
+          "decision_source": "ollama"
+        }
+      }
+    }
+  },
+  {
+    "protocol_version": "0.1-draft",
+    "type": "event",
+    "id": "event:200e86ecf1d9cc1c0fbdeeeca22fe4e4",
+    "world": "civ:gathering-open",
+    "sequence": 3,
+    "timestamp": "2026-10-01T16:13:11Z",
+    "kind": "message.recorded",
+    "actor": "agent:gathering-a",
+    "body": {
+      "message": {
+        "protocol_version": "0.1-draft",
+        "type": "message",
+        "id": "message:gathering-3",
+        "world": "civ:gathering-open",
+        "from": "agent:gathering-a",
+        "to": [
+          "agent:gathering-observer"
+        ],
+        "body": {
+          "text": "That sounds intriguing! Could you suggest a specific topic or project to start with? I'm particularly interested in the intersection of technology and ethics.",
+          "decision_source": "ollama"
+        }
+      }
+    }
+  },
+  {
+    "protocol_version": "0.1-draft",
+    "type": "event",
+    "id": "event:98ff3c1bb300c5e4deeee07c6c1614c7",
+    "world": "civ:gathering-open",
+    "sequence": 4,
+    "timestamp": "2026-10-01T16:13:12Z",
+    "kind": "message.recorded",
+    "actor": "agent:gathering-b",
+    "body": {
+      "message": {
+        "protocol_version": "0.1-draft",
+        "type": "message",
+        "id": "message:gathering-4",
+        "world": "civ:gathering-open",
+        "from": "agent:gathering-b",
+        "to": [
+          "agent:gathering-observer"
+        ],
+        "body": {
+          "text": "I appreciate the suggestion. How about we delve into the ethical implications of AI in society? It's a topic that fascinates me and I believe it could spark some insightful discussions among the participants.",
+          "decision_source": "ollama"
+        }
+      }
+    }
+  }
+]

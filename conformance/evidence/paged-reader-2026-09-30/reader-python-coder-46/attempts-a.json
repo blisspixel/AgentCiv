@@ -1,0 +1,24 @@
+{
+  "format": "agentciv-decision-loop/0.1",
+  "outcome": "provider_failed",
+  "budget": {
+    "attempts": 3,
+    "output_tokens": 1024,
+    "seconds": 120
+  },
+  "attempts": [
+    {
+      "index": 1,
+      "outcome": "provider_failed",
+      "output_token_limit": 1024,
+      "prompt_sha256": "18c5b80aebcec174d033d518073d8d19b846b1562700990b30ed84d9efe8f6bb"
+    }
+  ],
+  "charged_output_tokens": 0,
+  "first_attempt_valid": false,
+  "eventual_valid": false,
+  "exact_candidates_retained_privately": false,
+  "publication": {
+    "outcome": "not_attempted"
+  }
+}

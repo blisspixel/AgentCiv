@@ -1,0 +1,57 @@
+{
+  "format": "agentciv-decision-loop/0.1",
+  "outcome": "valid",
+  "budget": {
+    "attempts": 3,
+    "output_tokens": 1024,
+    "seconds": 120
+  },
+  "attempts": [
+    {
+      "index": 1,
+      "outcome": "valid",
+      "output_token_limit": 1024,
+      "prompt_sha256": "fe2153fa81b5a55666e1303118d3624f1d7c3810c8de4e10be8c487c8771e40e",
+      "candidate_sha256": "50abb40bc8b1b96bbebc1b11e39eac0bf76714b5432bb40e0be51c52d2826501",
+      "candidate_bytes": 304,
+      "charged_output_tokens": 71,
+      "output_usage_measured": true,
+      "metrics": {
+        "prompt_eval_count": 385,
+        "eval_count": 71,
+        "total_duration": 1029007400
+      },
+      "candidate_retained_privately": false
+    }
+  ],
+  "charged_output_tokens": 71,
+  "first_attempt_valid": true,
+  "eventual_valid": true,
+  "exact_candidates_retained_privately": false,
+  "publication": {
+    "outcome": "verified",
+    "record": {
+      "protocol_version": "0.1-draft",
+      "type": "message",
+      "id": "message:gathering-1",
+      "world": "civ:gathering-assigned",
+      "from": "agent:gathering-a",
+      "to": [
+        "agent:gathering-observer"
+      ],
+      "body": {
+        "text": "I offer an imagined place called 'Whispering Woods', a serene forest where trees seem to hum in harmony, and the air is filled with the scent of blooming flowers and fresh earth. It's a place of tranquility and inspiration, perfect for contemplation and creativity.",
+        "decision_source": "ollama"
+      }
+    },
+    "receipt": {
+      "protocol_version": "0.1-draft",
+      "type": "receipt",
+      "world": "civ:gathering-assigned",
+      "record_id": "message:gathering-1",
+      "event_id": "event:b27a0390887d555158c718cad6afc702",
+      "sequence": 1,
+      "status": "recorded"
+    }
+  }
+}

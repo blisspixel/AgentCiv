@@ -1,0 +1,287 @@
+{
+  "format": "agentciv-evidence-copy/0.1",
+  "copying_condition": "operator_authorized_export_of_these_synthetic_local_gathering_records_only",
+  "source_of_authority": "operator selection for repository research under the user-authorized local experiments; not derived from reading permission or a participant claim",
+  "representation_change": "outer JSON CRLF to LF only; parsed values and original authored text unchanged; raw HTTP event spans were not retained",
+  "source_state": "uncommitted working tree; exact source hashes retained in reports; unchanged during every run",
+  "excluded": [
+    "credentials",
+    "host databases",
+    "private process configuration",
+    "private provider responses",
+    "private candidate files"
+  ],
+  "external_spend_usd": 0,
+  "entries": [
+    {
+      "path": "gathering-qwen-42/comparison.json",
+      "original_sha256": "e00c8290283fcd844a5ecafe0367afec1633d65a858f4ac0c9ad314bedacd2ec",
+      "published_sha256": "7f613560b0020b6b85f06edc91035d65595a341d2fd9fc3a6f537a524cd4edc5",
+      "json_values_equal": true
+    },
+    {
+      "path": "gathering-qwen-42/open/report.json",
+      "original_sha256": "f9bfc5dc84300ba9e93f040cf676f56452b4ae433e988f1d5f74f06b5839eafa",
+      "published_sha256": "4a2e49f977fc64dc4acf6c6e37f4b0ce696a76b608127c5f32530d5ba92b14b2",
+      "json_values_equal": true
+    },
+    {
+      "path": "gathering-qwen-42/open/history.json",
+      "original_sha256": "a365c78074f2239197e97070a89b5ee635dfd0a38981ebc6f057f33a901de76e",
+      "published_sha256": "64e9867270d824941b11749fcee12e912bfffc8432ca9a552963b0d9d33ef1f3",
+      "json_values_equal": true
+    },
+    {
+      "path": "gathering-qwen-42/open/before-restart.json",
+      "original_sha256": "187279a8d88703ba7206af49047b4e1733ba01f14cf162593e419fd917589d2c",
+      "published_sha256": "598a563670cbe32990fecaceccecce358a7514d195964aad3623660ac37ff8bc",
+      "json_values_equal": true
+    },
+    {
+      "path": "gathering-qwen-42/open/visible-1.json",
+      "original_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "published_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "json_values_equal": true
+    },
+    {
+      "path": "gathering-qwen-42/open/visible-2.json",
+      "original_sha256": "7e1a29be987013ac195d5d85b0058a5870ab09bc4edfa971c597df76c4660b80",
+      "published_sha256": "53f2ca1500bdabe19a41f83fc08177ccbe92a91ebabada390f2b48079210ad03",
+      "json_values_equal": true
+    },
+    {
+      "path": "gathering-qwen-42/open/visible-3.json",
+      "original_sha256": "187279a8d88703ba7206af49047b4e1733ba01f14cf162593e419fd917589d2c",
+      "published_sha256": "598a563670cbe32990fecaceccecce358a7514d195964aad3623660ac37ff8bc",
+      "json_values_equal": true
+    },
+    {
+      "path": "gathering-qwen-42/open/visible-4.json",
+      "original_sha256": "f7eb4377fa1a38a4f95503d628934ab92930765170297e1274db7020a375b823",
+      "published_sha256": "d09c6da1c59b2838eb2198e4872419f6104f52889e96bb6fa03d2d6065628095",
+      "json_values_equal": true
+    },
+    {
+      "path": "gathering-qwen-42/open/visible-5.json",
+      "original_sha256": "285e7f1b46e6c24a7fcd254efc2a0aad71b27e379c1644f949e5cd136aff5fcc",
+      "published_sha256": "0ddd0af980a01f70c5c43e61c0630e36e86bf9bcf74c5db973b89ea208ac5b9c",
+      "json_values_equal": true
+    },
+    {
+      "path": "gathering-qwen-42/open/attempts-1.json",
+      "original_sha256": "5ac7bb2f7d83c7d9f3a021b93b550088c2cd3dc48444baf08c3ff08af21c6c17",
+      "published_sha256": "bc403d167211781c7759bb29e1c3f2295fc6a44d0c08f2c4ef773b1360be756b",
+      "json_values_equal": true
+    },
+    {
+      "path": "gathering-qwen-42/open/attempts-2.json",
+      "original_sha256": "de2918901ee1b51fdbb78f72ba9e566142c29e3f783357ff9cf817b62a1f350e",
+      "published_sha256": "197ca12a3b0c2ddd1063163b9e31f426e7b61005ed0efd6395bbc6ad321a3314",
+      "json_values_equal": true
+    },
+    {
+      "path": "gathering-qwen-42/open/attempts-3.json",
+      "original_sha256": "1f083e8cbc00cd8c74fb23a830726f94e1b7c9ee3bd3c41012dff88d31537ba7",
+      "published_sha256": "4c24b77912a343cc5932dfe65640e4a7a12936172742e53e90a3e941aa77baa9",
+      "json_values_equal": true
+    },
+    {
+      "path": "gathering-qwen-42/open/attempts-4.json",
+      "original_sha256": "898db731cc520093f9ecf453e62781057f01702fd5ca92b27813718990dccd11",
+      "published_sha256": "34c8e4ea599b7b45078280638fb7862649ae652fbb5a485ae465f563ce98e152",
+      "json_values_equal": true
+    },
+    {
+      "path": "gathering-qwen-42/open/attempts-5.json",
+      "original_sha256": "bb105d7e7d7143c807dda053b865002d87983196ffc4cf3f637afd1028072b9d",
+      "published_sha256": "cc2aac444c3c3b36a6a17593f41f7746e58d271d9bb57b9d5eedc08f15fda8d4",
+      "json_values_equal": true
+    },
+    {
+      "path": "gathering-qwen-42/assigned/report.json",
+      "original_sha256": "eb4e77e478527796fb118d50739bb90addbba7855913eb2fcfe40f9c249c1abf",
+      "published_sha256": "36d719a80b174f88b2eec915a99d2d19740739c1e0a4861d579c2a0f8903681c",
+      "json_values_equal": true
+    },
+    {
+      "path": "gathering-qwen-42/assigned/history.json",
+      "original_sha256": "167662cbea0213cb320cdf98fa8672f9a0c2071f51f60fc5225113499ea687a6",
+      "published_sha256": "9008e9c87d0af4fa3e0fb3947836054ae2722dd29584e07186ba4486bac82937",
+      "json_values_equal": true
+    },
+    {
+      "path": "gathering-qwen-42/assigned/before-restart.json",
+      "original_sha256": "89b605f6fdc98b76efe22a380b7c49e2b004fc34692fe68f5bb1e6e7f6c6a00d",
+      "published_sha256": "4c33097aa8c18aafca5c77ad6fa30c391e690ed6a9f9c5e94f0866e06b00b9e7",
+      "json_values_equal": true
+    },
+    {
+      "path": "gathering-qwen-42/assigned/visible-1.json",
+      "original_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "published_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "json_values_equal": true
+    },
+    {
+      "path": "gathering-qwen-42/assigned/visible-2.json",
+      "original_sha256": "5531f98f1a2b6a6a0cc250f74c8097085e3cb134251cf46dc3b5fd701add2ace",
+      "published_sha256": "e37d3a532b72080a21d2a3fec0887a051324b664b3f0cb236306a4319c1d3c21",
+      "json_values_equal": true
+    },
+    {
+      "path": "gathering-qwen-42/assigned/visible-3.json",
+      "original_sha256": "89b605f6fdc98b76efe22a380b7c49e2b004fc34692fe68f5bb1e6e7f6c6a00d",
+      "published_sha256": "4c33097aa8c18aafca5c77ad6fa30c391e690ed6a9f9c5e94f0866e06b00b9e7",
+      "json_values_equal": true
+    },
+    {
+      "path": "gathering-qwen-42/assigned/visible-4.json",
+      "original_sha256": "535aa181c9dc1980c374b8f902054af961cb9d4cde7c9cc76e47fd00815dc6ce",
+      "published_sha256": "f141553fd4e5f983030fdab7d84c619a6ef69d9669e6caff0fdd82d724138476",
+      "json_values_equal": true
+    },
+    {
+      "path": "gathering-qwen-42/assigned/visible-5.json",
+      "original_sha256": "006adb6008ff0f40f9a2b872d1a19943d2196cde2001a1543d6bfee81496f937",
+      "published_sha256": "ea1d08d62847464d42fa1c1ddf7945dd8d5fc8cf91136ed91f60bb8c4db19f4c",
+      "json_values_equal": true
+    },
+    {
+      "path": "gathering-qwen-42/assigned/attempts-1.json",
+      "original_sha256": "127ea65f11a835df09f1bc7d2c5dc151a6faa164f23fcd02e5e74f5bc24dadea",
+      "published_sha256": "60bc977f5559123dcd921476e99115aec695cdd2e01017f1242055b63cf3a6ff",
+      "json_values_equal": true
+    },
+    {
+      "path": "gathering-qwen-42/assigned/attempts-2.json",
+      "original_sha256": "5c6a8558b5a0e7e62869873f171e1d1e49e5d0e1cdb0ac48f1e64c79c6681131",
+      "published_sha256": "f242ceeb116d642716d8a00ed73baff381bb8300f1428c7f8cce1b63a68a0689",
+      "json_values_equal": true
+    },
+    {
+      "path": "gathering-qwen-42/assigned/attempts-3.json",
+      "original_sha256": "5a7af52cd777617fa0c29110890d88db6d28e21fb5bc293e5a44863204b5d3ba",
+      "published_sha256": "1c12b864253f06db314bb388ab782c2773364b815d7cc908360b674ee217087f",
+      "json_values_equal": true
+    },
+    {
+      "path": "gathering-qwen-42/assigned/attempts-4.json",
+      "original_sha256": "cad55ee2e73d95015b4abfaec7dfe427a43eec383f6178544327cce88c26423d",
+      "published_sha256": "eddb8454e6aac8f1db98c70c5d0911b32bcf97825dd28a5b1e12aeca342bf638",
+      "json_values_equal": true
+    },
+    {
+      "path": "gathering-qwen-42/assigned/attempts-5.json",
+      "original_sha256": "04998931230c118538fdc575a66c2e85a9582fc64b4ecf69169a04f9246bc08b",
+      "published_sha256": "abaf555e0e580b520ebdbb15b2bdf8000b8c997f9ba83f191d4475164e709664",
+      "json_values_equal": true
+    },
+    {
+      "path": "gathering-ministral-44/comparison.json",
+      "original_sha256": "59bd36b2d9186b55866a33067eff06e655870306d4aee9e6071cfa7479061b0e",
+      "published_sha256": "6470986a3adecd07a4342450d206eb211416db75c112a44f639fd11415f73567",
+      "json_values_equal": true
+    },
+    {
+      "path": "gathering-ministral-44/open/report.json",
+      "original_sha256": "c1052c6082c0a08e176ee1466c63bb91e16557f0f1c01eea53628cd413bc56eb",
+      "published_sha256": "630a9ecde1f0a40615601b779425a8ebb5f0a90929b515642ab4ac7489c39a74",
+      "json_values_equal": true
+    },
+    {
+      "path": "gathering-ministral-44/open/history.json",
+      "original_sha256": "272cb0d7e56563bd77504443e139756ea1e9d03e45f8a767c658610c2c450b59",
+      "published_sha256": "87f14df32c45661273d8dc38216b8259cb8ac6fe84ee502f3bb38c68afcd5527",
+      "json_values_equal": true
+    },
+    {
+      "path": "gathering-ministral-44/open/visible-1.json",
+      "original_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "published_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "json_values_equal": true
+    },
+    {
+      "path": "gathering-ministral-44/open/visible-2.json",
+      "original_sha256": "272cb0d7e56563bd77504443e139756ea1e9d03e45f8a767c658610c2c450b59",
+      "published_sha256": "87f14df32c45661273d8dc38216b8259cb8ac6fe84ee502f3bb38c68afcd5527",
+      "json_values_equal": true
+    },
+    {
+      "path": "gathering-ministral-44/open/attempts-1.json",
+      "original_sha256": "a28546336f1468b281b43fb07a18e82ad0a45a35d7b62205929f24c6f3831494",
+      "published_sha256": "7721cfedd23238187c50c0ca5fbd5ea866e55c1bfa2b85ce3c20cb657cacc779",
+      "json_values_equal": true
+    },
+    {
+      "path": "gathering-ministral-44/open/attempts-2.json",
+      "original_sha256": "b7dfac8cbb869388e23941174f1df189b4833d5e40640860c372285e09983760",
+      "published_sha256": "09e3cb02911c5cd2060b0945c393c7e308ba010c5705294306aab40f89bf7132",
+      "json_values_equal": true
+    },
+    {
+      "path": "gathering-ministral-44/assigned/report.json",
+      "original_sha256": "7f7f325e35b554d4366e777d8c3988a4acb4fb3d948900341596ca78d438713a",
+      "published_sha256": "258673cee46eba9178fb56e79ef6ef9f34b60fa96741261e7075fe5ad75c1a16",
+      "json_values_equal": true
+    },
+    {
+      "path": "gathering-ministral-44/assigned/history.json",
+      "original_sha256": "bfb2730ba079dc2146d1f3964668131034707042ef8709c5fcd2f77d554471e2",
+      "published_sha256": "e6a0af04d6c9f687043d3706810ce66fc6ac7c713e99ebd89ece1ee48b8e638d",
+      "json_values_equal": true
+    },
+    {
+      "path": "gathering-ministral-44/assigned/before-restart.json",
+      "original_sha256": "e457ffb999fece4d5d304eec7d95b2085ddbca3baae4d8bbd29199b1f0b8f89b",
+      "published_sha256": "dfe6747327dd235a8b8acfd5ba2b9310e2dd0f438699c439e50bb473b6872c21",
+      "json_values_equal": true
+    },
+    {
+      "path": "gathering-ministral-44/assigned/visible-1.json",
+      "original_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "published_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "json_values_equal": true
+    },
+    {
+      "path": "gathering-ministral-44/assigned/visible-2.json",
+      "original_sha256": "b9640050519380186c851173172e8faba3b8a33332c101b842233834c34afe79",
+      "published_sha256": "845d37ad0f1563bb6dc69d8fb23001f2966484565c8a7f105e0e6e130b44351b",
+      "json_values_equal": true
+    },
+    {
+      "path": "gathering-ministral-44/assigned/visible-3.json",
+      "original_sha256": "e457ffb999fece4d5d304eec7d95b2085ddbca3baae4d8bbd29199b1f0b8f89b",
+      "published_sha256": "dfe6747327dd235a8b8acfd5ba2b9310e2dd0f438699c439e50bb473b6872c21",
+      "json_values_equal": true
+    },
+    {
+      "path": "gathering-ministral-44/assigned/visible-4.json",
+      "original_sha256": "bfb2730ba079dc2146d1f3964668131034707042ef8709c5fcd2f77d554471e2",
+      "published_sha256": "e6a0af04d6c9f687043d3706810ce66fc6ac7c713e99ebd89ece1ee48b8e638d",
+      "json_values_equal": true
+    },
+    {
+      "path": "gathering-ministral-44/assigned/attempts-1.json",
+      "original_sha256": "6afddeb644fe631d6a6a14326ba44212e68e6df365ae6881891638437f1748ec",
+      "published_sha256": "cc3fa6f85987eb7fbef7ead1023560b741b4734f58cf52a74edc45481839f649",
+      "json_values_equal": true
+    },
+    {
+      "path": "gathering-ministral-44/assigned/attempts-2.json",
+      "original_sha256": "51d471637fbbd38fc4f096ef3d7384d4245f0831dccba5a2066fd8a07e0c571d",
+      "published_sha256": "d106e3ba727d322800b38a3439ccc182f8914c09c56090d1eb4e1b1573b6095c",
+      "json_values_equal": true
+    },
+    {
+      "path": "gathering-ministral-44/assigned/attempts-3.json",
+      "original_sha256": "4fc153550dbf81fab367b6dfdb21a72a08fa304b326965c8190ad8278edf0c4a",
+      "published_sha256": "3fbaa3622898d75e00bde61b705c1d0682fdd9290b99780ddec08dddaeef97a2",
+      "json_values_equal": true
+    },
+    {
+      "path": "gathering-ministral-44/assigned/attempts-4.json",
+      "original_sha256": "28a50613e2ab55b3073ac91c497af89e011183d67c99eff377a893f1357a28f9",
+      "published_sha256": "426ccb0b2941305462f1403504507b2c933392c65886c1c312a5ed8354dc7b25",
+      "json_values_equal": true
+    }
+  ]
+}

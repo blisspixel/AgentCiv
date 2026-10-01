@@ -1,0 +1,57 @@
+{
+  "format": "agentciv-decision-loop/0.1",
+  "outcome": "valid",
+  "budget": {
+    "attempts": 3,
+    "output_tokens": 1024,
+    "seconds": 120
+  },
+  "attempts": [
+    {
+      "index": 1,
+      "outcome": "valid",
+      "output_token_limit": 1024,
+      "prompt_sha256": "a6576620575e8497359d2dc0cc6d93b364fd6cd1f1798fce5640f07699496184",
+      "candidate_sha256": "2038bdf0ee7f0781e4b3a3c5e02dc5013458110e18e241a5cc63dce614ea36fc",
+      "candidate_bytes": 439,
+      "charged_output_tokens": 98,
+      "output_usage_measured": true,
+      "metrics": {
+        "prompt_eval_count": 1163,
+        "eval_count": 98,
+        "total_duration": 1506333000
+      },
+      "candidate_retained_privately": false
+    }
+  ],
+  "charged_output_tokens": 98,
+  "first_attempt_valid": true,
+  "eventual_valid": true,
+  "exact_candidates_retained_privately": false,
+  "publication": {
+    "outcome": "verified",
+    "record": {
+      "protocol_version": "0.1-draft",
+      "type": "message",
+      "id": "message:gathering-4",
+      "world": "civ:gathering-assigned",
+      "from": "agent:gathering-b",
+      "to": [
+        "agent:gathering-observer"
+      ],
+      "body": {
+        "text": "I introduce an imagined place titled 'Celestial Peaks'. This place features towering mountains that touch the heavens, with peaks that seem to be painted with the colors of the sunrise and sunset. The air is thin and crisp, and the landscape is dotted with rare, hardy flora that thrive in the high altitude. It's a place of awe and reflection, perfect for those seeking to connect with the vastness,",
+        "decision_source": "ollama"
+      }
+    },
+    "receipt": {
+      "protocol_version": "0.1-draft",
+      "type": "receipt",
+      "world": "civ:gathering-assigned",
+      "record_id": "message:gathering-4",
+      "event_id": "event:daa6686811170be97d35a6a485fd8bf0",
+      "sequence": 4,
+      "status": "recorded"
+    }
+  }
+}

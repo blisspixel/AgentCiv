@@ -1,0 +1,51 @@
+{
+  "format": "agentciv-decision-loop/0.1",
+  "outcome": "provider_incomplete",
+  "budget": {
+    "attempts": 3,
+    "output_tokens": 1024,
+    "seconds": 120
+  },
+  "attempts": [
+    {
+      "index": 1,
+      "outcome": "invalid",
+      "output_token_limit": 1024,
+      "prompt_sha256": "eed6ff5ea0bd580f1aaac84145f73d5ebae1b9758ed025fb7cde61dc7576614d",
+      "candidate_sha256": "8bd0f9117ab2f4c3ad3f54ebfdb0b4e5ee918d68933b7d21ed04a3db259ee0ea",
+      "candidate_bytes": 2035,
+      "charged_output_tokens": 674,
+      "output_usage_measured": true,
+      "metrics": {
+        "prompt_eval_count": 4055,
+        "eval_count": 674,
+        "total_duration": 5875265500
+      },
+      "candidate_retained_privately": false,
+      "feedback_code": "target_not_cited"
+    },
+    {
+      "index": 2,
+      "outcome": "provider_incomplete",
+      "output_token_limit": 350,
+      "prompt_sha256": "1a2e100ee9e3a871f55bdafd5712e7dfca23720fc12d598ec3c42dd563d4c0fc",
+      "candidate_sha256": "c1bed3be84ea23c974901e3731db540f1840fa679b5c2fbbaefd747f8b072d03",
+      "candidate_bytes": 1080,
+      "charged_output_tokens": 350,
+      "output_usage_measured": true,
+      "metrics": {
+        "prompt_eval_count": 4876,
+        "eval_count": 350,
+        "total_duration": 2906508200
+      },
+      "candidate_retained_privately": false
+    }
+  ],
+  "charged_output_tokens": 1024,
+  "first_attempt_valid": false,
+  "eventual_valid": false,
+  "exact_candidates_retained_privately": false,
+  "publication": {
+    "outcome": "not_attempted"
+  }
+}

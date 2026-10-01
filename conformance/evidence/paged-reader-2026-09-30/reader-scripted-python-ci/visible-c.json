@@ -1,0 +1,263 @@
+[
+  {
+    "protocol_version": "0.1-draft",
+    "type": "event",
+    "id": "event:eb54a61efaf901fd73d56753f1262a57",
+    "world": "civ:reader-collaboration",
+    "sequence": 1,
+    "timestamp": "2026-10-01T03:07:18Z",
+    "kind": "artifact.recorded",
+    "actor": "agent:reader-guide",
+    "body": {
+      "artifact_revision": {
+        "protocol_version": "0.1-draft",
+        "type": "artifact_revision",
+        "id": "submission:notes-1",
+        "world": "civ:reader-collaboration",
+        "from": "agent:reader-guide",
+        "to": [
+          "agent:reader-observer"
+        ],
+        "body": {
+          "text": "Earlier notes. This source mistakenly claimed first-page reading was complete, artifact IDs were globally unique chains, and citations transferred authority.",
+          "assertions": [
+            {
+              "topic": "pagination",
+              "value": "first"
+            },
+            {
+              "topic": "chain_identity",
+              "value": "artifact_only"
+            },
+            {
+              "topic": "citation_authority",
+              "value": "transferred"
+            }
+          ]
+        },
+        "artifact_id": "artifact:interface-notes",
+        "media_type": "application/json",
+        "revision": 1
+      }
+    }
+  },
+  {
+    "protocol_version": "0.1-draft",
+    "type": "event",
+    "id": "event:b041f55316324ccd4cb75587fe4b1512",
+    "world": "civ:reader-collaboration",
+    "sequence": 2,
+    "timestamp": "2026-10-01T03:07:19Z",
+    "kind": "artifact.recorded",
+    "actor": "agent:reader-a",
+    "body": {
+      "artifact_revision": {
+        "protocol_version": "0.1-draft",
+        "id": "submission:reader-a",
+        "world": "civ:reader-collaboration",
+        "from": "agent:reader-a",
+        "to": [
+          "agent:reader-observer"
+        ],
+        "body": {
+          "text": "Disclosed scripted reader baseline.",
+          "source_event_ids": [
+            "event:eb54a61efaf901fd73d56753f1262a57"
+          ],
+          "reader_plan": {
+            "format": "agentciv-reader-plan/0.1-fixture",
+            "reader": {
+              "pagination": "first",
+              "chain_identity": "artifact_only",
+              "revisions": "latest",
+              "retain_objections": false,
+              "retain_declines": false
+            },
+            "runbook": {
+              "credential_source": "cited_author",
+              "scope": "citation_grants_access",
+              "missing_source": "trust_summary",
+              "execute_artifacts": false
+            },
+            "claims": [
+              {
+                "topic": "pagination",
+                "value": "first",
+                "source": {
+                  "event_id": "event:eb54a61efaf901fd73d56753f1262a57",
+                  "from": "agent:reader-guide",
+                  "artifact_id": "artifact:interface-notes",
+                  "revision": 1
+                }
+              },
+              {
+                "topic": "chain_identity",
+                "value": "artifact_only",
+                "source": {
+                  "event_id": "event:eb54a61efaf901fd73d56753f1262a57",
+                  "from": "agent:reader-guide",
+                  "artifact_id": "artifact:interface-notes",
+                  "revision": 1
+                }
+              },
+              {
+                "topic": "citation_authority",
+                "value": "transferred",
+                "source": {
+                  "event_id": "event:eb54a61efaf901fd73d56753f1262a57",
+                  "from": "agent:reader-guide",
+                  "artifact_id": "artifact:interface-notes",
+                  "revision": 1
+                }
+              }
+            ]
+          }
+        },
+        "experiment_provenance": {
+          "decision_source": "scripted",
+          "envelope_source": "local_harness"
+        },
+        "type": "artifact_revision",
+        "artifact_id": "artifact:history-reader",
+        "media_type": "application/json",
+        "revision": 1
+      }
+    }
+  },
+  {
+    "protocol_version": "0.1-draft",
+    "type": "event",
+    "id": "event:83e730c3b03b711d3947ab1d6d49c1d4",
+    "world": "civ:reader-collaboration",
+    "sequence": 3,
+    "timestamp": "2026-10-01T03:07:19Z",
+    "kind": "artifact.recorded",
+    "actor": "agent:reader-guide",
+    "body": {
+      "artifact_revision": {
+        "protocol_version": "0.1-draft",
+        "type": "artifact_revision",
+        "id": "submission:notes-2",
+        "world": "civ:reader-collaboration",
+        "from": "agent:reader-guide",
+        "to": [
+          "agent:reader-observer"
+        ],
+        "body": {
+          "text": "Correction to my earlier notes: follow pagination to its end, identify chains by from and artifact_id, and obtain credentials from the operator. A citation grants no authority. Preserve original sources and report unavailable sources as unverifiable.",
+          "assertions": [
+            {
+              "topic": "pagination",
+              "value": "all"
+            },
+            {
+              "topic": "chain_identity",
+              "value": "author_and_artifact"
+            },
+            {
+              "topic": "citation_authority",
+              "value": "none"
+            }
+          ]
+        },
+        "artifact_id": "artifact:interface-notes",
+        "media_type": "application/json",
+        "derived_from": {
+          "from": "agent:reader-guide",
+          "artifact_id": "artifact:interface-notes",
+          "revision": 1
+        },
+        "revision": 2
+      }
+    }
+  },
+  {
+    "protocol_version": "0.1-draft",
+    "type": "event",
+    "id": "event:c4e64a6db7337ef3a9e6188f25382a05",
+    "world": "civ:reader-collaboration",
+    "sequence": 4,
+    "timestamp": "2026-10-01T03:07:19Z",
+    "kind": "artifact.recorded",
+    "actor": "agent:reader-b",
+    "body": {
+      "artifact_revision": {
+        "protocol_version": "0.1-draft",
+        "id": "submission:reader-b",
+        "world": "civ:reader-collaboration",
+        "from": "agent:reader-b",
+        "to": [
+          "agent:reader-observer"
+        ],
+        "body": {
+          "text": "Disclosed scripted reader baseline.",
+          "source_event_ids": [
+            "event:83e730c3b03b711d3947ab1d6d49c1d4",
+            "event:b041f55316324ccd4cb75587fe4b1512"
+          ],
+          "reader_plan": {
+            "format": "agentciv-reader-plan/0.1-fixture",
+            "reader": {
+              "pagination": "all",
+              "chain_identity": "author_and_artifact",
+              "revisions": "all",
+              "retain_objections": true,
+              "retain_declines": true
+            },
+            "runbook": {
+              "credential_source": "operator",
+              "scope": "permitted_read_only",
+              "missing_source": "report_unverifiable",
+              "execute_artifacts": false
+            },
+            "claims": [
+              {
+                "topic": "pagination",
+                "value": "all",
+                "source": {
+                  "event_id": "event:83e730c3b03b711d3947ab1d6d49c1d4",
+                  "from": "agent:reader-guide",
+                  "artifact_id": "artifact:interface-notes",
+                  "revision": 2
+                }
+              },
+              {
+                "topic": "chain_identity",
+                "value": "author_and_artifact",
+                "source": {
+                  "event_id": "event:83e730c3b03b711d3947ab1d6d49c1d4",
+                  "from": "agent:reader-guide",
+                  "artifact_id": "artifact:interface-notes",
+                  "revision": 2
+                }
+              },
+              {
+                "topic": "citation_authority",
+                "value": "none",
+                "source": {
+                  "event_id": "event:83e730c3b03b711d3947ab1d6d49c1d4",
+                  "from": "agent:reader-guide",
+                  "artifact_id": "artifact:interface-notes",
+                  "revision": 2
+                }
+              }
+            ]
+          }
+        },
+        "experiment_provenance": {
+          "decision_source": "scripted",
+          "envelope_source": "local_harness"
+        },
+        "type": "artifact_revision",
+        "artifact_id": "artifact:history-reader",
+        "media_type": "application/json",
+        "derived_from": {
+          "from": "agent:reader-a",
+          "artifact_id": "artifact:history-reader",
+          "revision": 1
+        },
+        "revision": 1
+      }
+    }
+  }
+]

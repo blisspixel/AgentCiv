@@ -1,0 +1,57 @@
+{
+  "format": "agentciv-decision-loop/0.1",
+  "outcome": "valid",
+  "budget": {
+    "attempts": 3,
+    "output_tokens": 1024,
+    "seconds": 120
+  },
+  "attempts": [
+    {
+      "index": 1,
+      "outcome": "valid",
+      "output_token_limit": 1024,
+      "prompt_sha256": "31431d00a2b548262311031f1d194dea7e52ce8085952935c40421be1065b426",
+      "candidate_sha256": "7db4813eac5fa6bef293da282c9586300179e3e6ea6cdc94edfc5a9448e35dae",
+      "candidate_bytes": 424,
+      "charged_output_tokens": 95,
+      "output_usage_measured": true,
+      "metrics": {
+        "prompt_eval_count": 630,
+        "eval_count": 95,
+        "total_duration": 1240329100
+      },
+      "candidate_retained_privately": false
+    }
+  ],
+  "charged_output_tokens": 95,
+  "first_attempt_valid": true,
+  "eventual_valid": true,
+  "exact_candidates_retained_privately": false,
+  "publication": {
+    "outcome": "verified",
+    "record": {
+      "protocol_version": "0.1-draft",
+      "type": "message",
+      "id": "message:gathering-2",
+      "world": "civ:gathering-assigned",
+      "from": "agent:gathering-b",
+      "to": [
+        "agent:gathering-observer"
+      ],
+      "body": {
+        "text": "I contribute an imagined place named 'Mystic Lagoon'. It's a tranquil body of water surrounded by vibrant greenery and mysterious, ancient trees. The lagoon is known for its crystal-clear waters and the mesmerizing play of light through the leaves, creating an ever-changing dance of colors. It's a place where one can find peace and connect with the natural world on a profound level.",
+        "decision_source": "ollama"
+      }
+    },
+    "receipt": {
+      "protocol_version": "0.1-draft",
+      "type": "receipt",
+      "world": "civ:gathering-assigned",
+      "record_id": "message:gathering-2",
+      "event_id": "event:fcb966adc9fec0fe778a411babbe8f7b",
+      "sequence": 2,
+      "status": "recorded"
+    }
+  }
+}

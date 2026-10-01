@@ -206,16 +206,30 @@ def participant(config: JsonObject) -> JsonObject:
             stage = "provider"
             trace = config.get("private_trace")
             model = client.OllamaDecision(str(config["ollama_origin"]), str(config["model"]), int(str(config["seed"])),
-                Path(trace) if isinstance(trace, str) else None)
-            result["provider"] = {"model": model.metadata, "version": model.version, "options": model.options}
+                Path(trace) if isinstance(trace, str) else None, token=token)
 
         def request(prompt: str, output_tokens: int, timeout: float) -> loop.Reply:
             if model is not None:
-                return model.complete(prompt, events, output_tokens=output_tokens, timeout=timeout, schema=decision_schema(events))
+                reply = model.complete(prompt, events, output_tokens=output_tokens, timeout=timeout, schema=decision_schema(events))
+                if token in reply.content:
+                    raise client.ModelError("credential reflected")
+                try:
+                    decoded = client.decode(reply.content.encode("utf-8"))
+                except (client.DecisionError, UnicodeError, RecursionError):
+                    return reply
+                if token in json.dumps(decoded, ensure_ascii=False):
+                    raise client.ModelError("credential reflected")
+                return reply
             return loop.Reply(json.dumps(scripted_decision(events)), {"eval_count": 0})
 
         def validate(content: str) -> JsonObject:
             if token in content:
+                raise client.DecisionError("credential reflected")
+            try:
+                decoded = client.decode(content.encode("utf-8"))
+            except (client.DecisionError, UnicodeEncodeError) as error:
+                raise loop.InvalidDecision("invalid_json") from error
+            if token in json.dumps(decoded, ensure_ascii=False):
                 raise client.DecisionError("credential reflected")
             return validate_decision(content, events)
 
@@ -256,9 +270,15 @@ def participant(config: JsonObject) -> JsonObject:
     if engine is not None:
         result["decision_loop"] = engine.summary()
     if model is not None:
-        result["provider"] = {"runtime": "ollama", "model": model.metadata, "version": model.version,
+        provider = {"runtime": "ollama", "model": model.metadata, "version": model.version,
             "options": model.options, "calls": model.calls, "metrics": getattr(model, "metrics", {}),
             "truncate": False, "shift": False}
+        try:
+            model.reject_reflection(provider)
+        except client.ModelError:
+            result.update({"outcome": "failed", "failure_stage": "provider", "failure_code": "stage_failed"})
+        else:
+            result["provider"] = provider
     return result
 
 

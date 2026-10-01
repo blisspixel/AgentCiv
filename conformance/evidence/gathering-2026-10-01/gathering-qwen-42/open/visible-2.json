@@ -1,0 +1,28 @@
+[
+  {
+    "protocol_version": "0.1-draft",
+    "type": "event",
+    "id": "event:b0c3df0345fcb8ce41aeb5bc822d9a63",
+    "world": "civ:gathering-open",
+    "sequence": 1,
+    "timestamp": "2026-10-01T16:13:07Z",
+    "kind": "message.recorded",
+    "actor": "agent:gathering-a",
+    "body": {
+      "message": {
+        "protocol_version": "0.1-draft",
+        "type": "message",
+        "id": "message:gathering-1",
+        "world": "civ:gathering-open",
+        "from": "agent:gathering-a",
+        "to": [
+          "agent:gathering-observer"
+        ],
+        "body": {
+          "text": "I am interested in exploring the possibilities within this gathering. What kind of topics or activities are the participants engaging in?",
+          "decision_source": "ollama"
+        }
+      }
+    }
+  }
+]

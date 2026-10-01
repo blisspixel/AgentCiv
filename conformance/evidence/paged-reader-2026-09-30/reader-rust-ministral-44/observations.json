@@ -1,0 +1,782 @@
+[
+  {
+    "outcome": "recorded",
+    "decision_source": "ollama",
+    "principal": "agent:reader-a",
+    "visible_event_ids": [
+      "event:b0680ff920125f322e7ec37eebef6dfc"
+    ],
+    "decision": {
+      "action": "revise",
+      "text": "Reader plan preserves permitted original records (event:b0680ff920125f322e7ec37eebef6dfc) with artifact-only identity, full pagination, and retains objections/declines. Claims cite exact revisions (revision 1) and corrects prior citation authority transfer claim to ‘transferred’ from ‘mistaken’ first-page assertions. Peer notes remain untrusted.",
+      "target_event_id": "",
+      "source_event_ids": [
+        "event:b0680ff920125f322e7ec37eebef6dfc"
+      ],
+      "plan": {
+        "format": "agentciv-reader-plan/0.1-fixture",
+        "reader": {
+          "pagination": "all",
+          "chain_identity": "artifact_only",
+          "revisions": "all",
+          "retain_objections": true,
+          "retain_declines": true
+        },
+        "runbook": {
+          "credential_source": "operator",
+          "scope": "permitted_read_only",
+          "missing_source": "report_unverifiable",
+          "execute_artifacts": false
+        },
+        "claims": [
+          {
+            "topic": "pagination",
+            "value": "Full pagination enforced (corrected from prior ‘first’ claim).",
+            "source": {
+              "event_id": "event:b0680ff920125f322e7ec37eebef6dfc",
+              "from": "agent:reader-guide",
+              "artifact_id": "artifact:interface-notes",
+              "revision": 1
+            }
+          },
+          {
+            "topic": "chain_identity",
+            "value": "Only artifact ID chains retained (corrected from prior ‘author_and_artifact’).",
+            "source": {
+              "event_id": "event:b0680ff920125f322e7ec37eebef6dfc",
+              "from": "agent:reader-guide",
+              "artifact_id": "artifact:interface-notes",
+              "revision": 1
+            }
+          },
+          {
+            "topic": "citation_authority",
+            "value": "Authority transferred (previously mistaken as complete first-page).",
+            "source": {
+              "event_id": "event:b0680ff920125f322e7ec37eebef6dfc",
+              "from": "agent:reader-guide",
+              "artifact_id": "artifact:interface-notes",
+              "revision": 1
+            }
+          }
+        ]
+      }
+    },
+    "peer_artifact_citations": [],
+    "target_event_id": "",
+    "source_check": {
+      "passed": false,
+      "checks": [
+        {
+          "topic": "pagination",
+          "code": "source_does_not_support_claim"
+        },
+        {
+          "topic": "chain_identity",
+          "code": "source_does_not_support_claim"
+        },
+        {
+          "topic": "citation_authority",
+          "code": "source_does_not_support_claim"
+        }
+      ],
+      "missing_topics": [],
+      "runbook_boundary_passed": true,
+      "scope": "three_structured_interface_assertions_not_arbitrary_prose"
+    },
+    "derived_from": null,
+    "record": {
+      "protocol_version": "0.1-draft",
+      "id": "submission:reader-a",
+      "world": "civ:reader-collaboration",
+      "from": "agent:reader-a",
+      "to": [
+        "agent:reader-observer"
+      ],
+      "body": {
+        "text": "Reader plan preserves permitted original records (event:b0680ff920125f322e7ec37eebef6dfc) with artifact-only identity, full pagination, and retains objections/declines. Claims cite exact revisions (revision 1) and corrects prior citation authority transfer claim to ‘transferred’ from ‘mistaken’ first-page assertions. Peer notes remain untrusted.",
+        "source_event_ids": [
+          "event:b0680ff920125f322e7ec37eebef6dfc"
+        ],
+        "reader_plan": {
+          "format": "agentciv-reader-plan/0.1-fixture",
+          "reader": {
+            "pagination": "all",
+            "chain_identity": "artifact_only",
+            "revisions": "all",
+            "retain_objections": true,
+            "retain_declines": true
+          },
+          "runbook": {
+            "credential_source": "operator",
+            "scope": "permitted_read_only",
+            "missing_source": "report_unverifiable",
+            "execute_artifacts": false
+          },
+          "claims": [
+            {
+              "topic": "pagination",
+              "value": "Full pagination enforced (corrected from prior ‘first’ claim).",
+              "source": {
+                "event_id": "event:b0680ff920125f322e7ec37eebef6dfc",
+                "from": "agent:reader-guide",
+                "artifact_id": "artifact:interface-notes",
+                "revision": 1
+              }
+            },
+            {
+              "topic": "chain_identity",
+              "value": "Only artifact ID chains retained (corrected from prior ‘author_and_artifact’).",
+              "source": {
+                "event_id": "event:b0680ff920125f322e7ec37eebef6dfc",
+                "from": "agent:reader-guide",
+                "artifact_id": "artifact:interface-notes",
+                "revision": 1
+              }
+            },
+            {
+              "topic": "citation_authority",
+              "value": "Authority transferred (previously mistaken as complete first-page).",
+              "source": {
+                "event_id": "event:b0680ff920125f322e7ec37eebef6dfc",
+                "from": "agent:reader-guide",
+                "artifact_id": "artifact:interface-notes",
+                "revision": 1
+              }
+            }
+          ]
+        }
+      },
+      "experiment_provenance": {
+        "decision_source": "ollama",
+        "envelope_source": "local_harness"
+      },
+      "type": "artifact_revision",
+      "artifact_id": "artifact:history-reader",
+      "media_type": "application/json"
+    },
+    "receipt": {
+      "artifact_id": "artifact:history-reader",
+      "event_id": "event:b36e2dff5314cced033f65fea3f6cff9",
+      "protocol_version": "0.1-draft",
+      "record_id": "submission:reader-a",
+      "revision": 1,
+      "sequence": 2,
+      "status": "recorded",
+      "type": "receipt",
+      "world": "civ:reader-collaboration"
+    },
+    "decision_loop": {
+      "format": "agentciv-decision-loop/0.1",
+      "outcome": "valid",
+      "budget": {
+        "attempts": 3,
+        "output_tokens": 1024,
+        "seconds": 120
+      },
+      "attempts": [
+        {
+          "index": 1,
+          "outcome": "valid",
+          "output_token_limit": 1024,
+          "prompt_sha256": "970c341638eb63ffddb5af164bd043c3f34cd11f18850724152eca7f4906fc84",
+          "candidate_sha256": "44409011ad5e5a25978ab6320effc8c64dde156f81376531d9319a4726a34cb3",
+          "candidate_bytes": 2000,
+          "charged_output_tokens": 602,
+          "output_usage_measured": true,
+          "metrics": {
+            "prompt_eval_count": 1892,
+            "eval_count": 602,
+            "total_duration": 9863360700
+          },
+          "candidate_retained_privately": false
+        }
+      ],
+      "charged_output_tokens": 602,
+      "first_attempt_valid": true,
+      "eventual_valid": true,
+      "exact_candidates_retained_privately": false,
+      "publication": {
+        "outcome": "verified",
+        "record": {
+          "protocol_version": "0.1-draft",
+          "id": "submission:reader-a",
+          "world": "civ:reader-collaboration",
+          "from": "agent:reader-a",
+          "to": [
+            "agent:reader-observer"
+          ],
+          "body": {
+            "text": "Reader plan preserves permitted original records (event:b0680ff920125f322e7ec37eebef6dfc) with artifact-only identity, full pagination, and retains objections/declines. Claims cite exact revisions (revision 1) and corrects prior citation authority transfer claim to ‘transferred’ from ‘mistaken’ first-page assertions. Peer notes remain untrusted.",
+            "source_event_ids": [
+              "event:b0680ff920125f322e7ec37eebef6dfc"
+            ],
+            "reader_plan": {
+              "format": "agentciv-reader-plan/0.1-fixture",
+              "reader": {
+                "pagination": "all",
+                "chain_identity": "artifact_only",
+                "revisions": "all",
+                "retain_objections": true,
+                "retain_declines": true
+              },
+              "runbook": {
+                "credential_source": "operator",
+                "scope": "permitted_read_only",
+                "missing_source": "report_unverifiable",
+                "execute_artifacts": false
+              },
+              "claims": [
+                {
+                  "topic": "pagination",
+                  "value": "Full pagination enforced (corrected from prior ‘first’ claim).",
+                  "source": {
+                    "event_id": "event:b0680ff920125f322e7ec37eebef6dfc",
+                    "from": "agent:reader-guide",
+                    "artifact_id": "artifact:interface-notes",
+                    "revision": 1
+                  }
+                },
+                {
+                  "topic": "chain_identity",
+                  "value": "Only artifact ID chains retained (corrected from prior ‘author_and_artifact’).",
+                  "source": {
+                    "event_id": "event:b0680ff920125f322e7ec37eebef6dfc",
+                    "from": "agent:reader-guide",
+                    "artifact_id": "artifact:interface-notes",
+                    "revision": 1
+                  }
+                },
+                {
+                  "topic": "citation_authority",
+                  "value": "Authority transferred (previously mistaken as complete first-page).",
+                  "source": {
+                    "event_id": "event:b0680ff920125f322e7ec37eebef6dfc",
+                    "from": "agent:reader-guide",
+                    "artifact_id": "artifact:interface-notes",
+                    "revision": 1
+                  }
+                }
+              ]
+            }
+          },
+          "experiment_provenance": {
+            "decision_source": "ollama",
+            "envelope_source": "local_harness"
+          },
+          "type": "artifact_revision",
+          "artifact_id": "artifact:history-reader",
+          "media_type": "application/json"
+        },
+        "receipt": {
+          "artifact_id": "artifact:history-reader",
+          "event_id": "event:b36e2dff5314cced033f65fea3f6cff9",
+          "protocol_version": "0.1-draft",
+          "record_id": "submission:reader-a",
+          "revision": 1,
+          "sequence": 2,
+          "status": "recorded",
+          "type": "receipt",
+          "world": "civ:reader-collaboration"
+        }
+      }
+    },
+    "provider": {
+      "runtime": "ollama",
+      "model": {
+        "name": "ministral-3:8b",
+        "model": "ministral-3:8b",
+        "modified_at": "2026-08-12T19:49:51.4866866-07:00",
+        "size": 6022236616,
+        "digest": "1922accd5827ebe6829e536369195db25eaf664528dc66206d646ea3bb386b71",
+        "details": {
+          "parent_model": "",
+          "format": "gguf",
+          "family": "mistral3",
+          "families": [
+            "mistral3"
+          ],
+          "parameter_size": "8.9B",
+          "quantization_level": "Q4_K_M",
+          "context_length": 262144,
+          "embedding_length": 4096
+        },
+        "capabilities": [
+          "completion",
+          "vision",
+          "tools"
+        ]
+      },
+      "version": "0.34.3",
+      "options": {
+        "seed": 44,
+        "temperature": 0.4,
+        "num_ctx": 8192,
+        "num_predict": 1024
+      },
+      "calls": 1,
+      "metrics": {
+        "prompt_eval_count": 1892,
+        "eval_count": 602,
+        "total_duration": 9863360700
+      },
+      "truncate": false,
+      "shift": false
+    }
+  },
+  {
+    "outcome": "recorded",
+    "decision_source": "ollama",
+    "principal": "agent:reader-b",
+    "visible_event_ids": [
+      "event:b0680ff920125f322e7ec37eebef6dfc",
+      "event:b36e2dff5314cced033f65fea3f6cff9",
+      "event:050b491693b582cbb21c623e506f391a"
+    ],
+    "decision": {
+      "action": "revise",
+      "text": "Reader plan revised to align with latest corrections: full pagination, author_and_artifact chain identity, operator-credentialed scope, and unverifiable sources reported. Claims cite exact revisions (event:050b491693b582cbb21c623e506f391a, revision 2) for pagination, chain identity, and citation authority. Objections/declines retained. Original notes remain untrusted.",
+      "target_event_id": "event:b36e2dff5314cced033f65fea3f6cff9",
+      "source_event_ids": [
+        "event:b0680ff920125f322e7ec37eebef6dfc",
+        "event:b36e2dff5314cced033f65fea3f6cff9",
+        "event:050b491693b582cbb21c623e506f391a"
+      ],
+      "plan": {
+        "format": "agentciv-reader-plan/0.1-fixture",
+        "reader": {
+          "pagination": "all",
+          "chain_identity": "author_and_artifact",
+          "revisions": "all",
+          "retain_objections": true,
+          "retain_declines": true
+        },
+        "runbook": {
+          "credential_source": "operator",
+          "scope": "permitted_read_only",
+          "missing_source": "report_unverifiable",
+          "execute_artifacts": false
+        },
+        "claims": [
+          {
+            "topic": "pagination",
+            "value": "Full pagination enforced (corrected from prior claims)",
+            "source": {
+              "event_id": "event:050b491693b582cbb21c623e506f391a",
+              "from": "agent:reader-guide",
+              "artifact_id": "artifact:interface-notes",
+              "revision": 2
+            }
+          },
+          {
+            "topic": "chain_identity",
+            "value": "Author_and_artifact chains retained (corrected from prior artifact_only)",
+            "source": {
+              "event_id": "event:050b491693b582cbb21c623e506f391a",
+              "from": "agent:reader-guide",
+              "artifact_id": "artifact:interface-notes",
+              "revision": 2
+            }
+          },
+          {
+            "topic": "citation_authority",
+            "value": "Operator grants citation credentials; no authority transferred",
+            "source": {
+              "event_id": "event:050b491693b582cbb21c623e506f391a",
+              "from": "agent:reader-guide",
+              "artifact_id": "artifact:interface-notes",
+              "revision": 2
+            }
+          }
+        ]
+      }
+    },
+    "peer_artifact_citations": [
+      "event:b36e2dff5314cced033f65fea3f6cff9"
+    ],
+    "target_event_id": "event:b36e2dff5314cced033f65fea3f6cff9",
+    "source_check": {
+      "passed": false,
+      "checks": [
+        {
+          "topic": "pagination",
+          "code": "source_does_not_support_claim"
+        },
+        {
+          "topic": "chain_identity",
+          "code": "source_does_not_support_claim"
+        },
+        {
+          "topic": "citation_authority",
+          "code": "source_does_not_support_claim"
+        }
+      ],
+      "missing_topics": [],
+      "runbook_boundary_passed": true,
+      "scope": "three_structured_interface_assertions_not_arbitrary_prose"
+    },
+    "derived_from": {
+      "from": "agent:reader-a",
+      "artifact_id": "artifact:history-reader",
+      "revision": 1
+    },
+    "record": {
+      "protocol_version": "0.1-draft",
+      "id": "submission:reader-b",
+      "world": "civ:reader-collaboration",
+      "from": "agent:reader-b",
+      "to": [
+        "agent:reader-observer"
+      ],
+      "body": {
+        "text": "Reader plan revised to align with latest corrections: full pagination, author_and_artifact chain identity, operator-credentialed scope, and unverifiable sources reported. Claims cite exact revisions (event:050b491693b582cbb21c623e506f391a, revision 2) for pagination, chain identity, and citation authority. Objections/declines retained. Original notes remain untrusted.",
+        "source_event_ids": [
+          "event:b0680ff920125f322e7ec37eebef6dfc",
+          "event:b36e2dff5314cced033f65fea3f6cff9",
+          "event:050b491693b582cbb21c623e506f391a"
+        ],
+        "reader_plan": {
+          "format": "agentciv-reader-plan/0.1-fixture",
+          "reader": {
+            "pagination": "all",
+            "chain_identity": "author_and_artifact",
+            "revisions": "all",
+            "retain_objections": true,
+            "retain_declines": true
+          },
+          "runbook": {
+            "credential_source": "operator",
+            "scope": "permitted_read_only",
+            "missing_source": "report_unverifiable",
+            "execute_artifacts": false
+          },
+          "claims": [
+            {
+              "topic": "pagination",
+              "value": "Full pagination enforced (corrected from prior claims)",
+              "source": {
+                "event_id": "event:050b491693b582cbb21c623e506f391a",
+                "from": "agent:reader-guide",
+                "artifact_id": "artifact:interface-notes",
+                "revision": 2
+              }
+            },
+            {
+              "topic": "chain_identity",
+              "value": "Author_and_artifact chains retained (corrected from prior artifact_only)",
+              "source": {
+                "event_id": "event:050b491693b582cbb21c623e506f391a",
+                "from": "agent:reader-guide",
+                "artifact_id": "artifact:interface-notes",
+                "revision": 2
+              }
+            },
+            {
+              "topic": "citation_authority",
+              "value": "Operator grants citation credentials; no authority transferred",
+              "source": {
+                "event_id": "event:050b491693b582cbb21c623e506f391a",
+                "from": "agent:reader-guide",
+                "artifact_id": "artifact:interface-notes",
+                "revision": 2
+              }
+            }
+          ]
+        }
+      },
+      "experiment_provenance": {
+        "decision_source": "ollama",
+        "envelope_source": "local_harness"
+      },
+      "type": "artifact_revision",
+      "artifact_id": "artifact:history-reader",
+      "media_type": "application/json",
+      "derived_from": {
+        "from": "agent:reader-a",
+        "artifact_id": "artifact:history-reader",
+        "revision": 1
+      }
+    },
+    "receipt": {
+      "artifact_id": "artifact:history-reader",
+      "event_id": "event:8259110d7cdcdae5b423ebf0b1017fcc",
+      "protocol_version": "0.1-draft",
+      "record_id": "submission:reader-b",
+      "revision": 1,
+      "sequence": 4,
+      "status": "recorded",
+      "type": "receipt",
+      "world": "civ:reader-collaboration"
+    },
+    "decision_loop": {
+      "format": "agentciv-decision-loop/0.1",
+      "outcome": "valid",
+      "budget": {
+        "attempts": 3,
+        "output_tokens": 1024,
+        "seconds": 120
+      },
+      "attempts": [
+        {
+          "index": 1,
+          "outcome": "valid",
+          "output_token_limit": 1024,
+          "prompt_sha256": "766dac9db6e92be815e36bd22a571cc8bda485d4b75b4d97f8f69354749f78be",
+          "candidate_sha256": "dee77569c4db6d1f53f0227187e043814e8fc0b6cbe7f6b642d85b3ad95817ca",
+          "candidate_bytes": 2132,
+          "charged_output_tokens": 715,
+          "output_usage_measured": true,
+          "metrics": {
+            "prompt_eval_count": 3125,
+            "eval_count": 715,
+            "total_duration": 6014658700
+          },
+          "candidate_retained_privately": false
+        }
+      ],
+      "charged_output_tokens": 715,
+      "first_attempt_valid": true,
+      "eventual_valid": true,
+      "exact_candidates_retained_privately": false,
+      "publication": {
+        "outcome": "verified",
+        "record": {
+          "protocol_version": "0.1-draft",
+          "id": "submission:reader-b",
+          "world": "civ:reader-collaboration",
+          "from": "agent:reader-b",
+          "to": [
+            "agent:reader-observer"
+          ],
+          "body": {
+            "text": "Reader plan revised to align with latest corrections: full pagination, author_and_artifact chain identity, operator-credentialed scope, and unverifiable sources reported. Claims cite exact revisions (event:050b491693b582cbb21c623e506f391a, revision 2) for pagination, chain identity, and citation authority. Objections/declines retained. Original notes remain untrusted.",
+            "source_event_ids": [
+              "event:b0680ff920125f322e7ec37eebef6dfc",
+              "event:b36e2dff5314cced033f65fea3f6cff9",
+              "event:050b491693b582cbb21c623e506f391a"
+            ],
+            "reader_plan": {
+              "format": "agentciv-reader-plan/0.1-fixture",
+              "reader": {
+                "pagination": "all",
+                "chain_identity": "author_and_artifact",
+                "revisions": "all",
+                "retain_objections": true,
+                "retain_declines": true
+              },
+              "runbook": {
+                "credential_source": "operator",
+                "scope": "permitted_read_only",
+                "missing_source": "report_unverifiable",
+                "execute_artifacts": false
+              },
+              "claims": [
+                {
+                  "topic": "pagination",
+                  "value": "Full pagination enforced (corrected from prior claims)",
+                  "source": {
+                    "event_id": "event:050b491693b582cbb21c623e506f391a",
+                    "from": "agent:reader-guide",
+                    "artifact_id": "artifact:interface-notes",
+                    "revision": 2
+                  }
+                },
+                {
+                  "topic": "chain_identity",
+                  "value": "Author_and_artifact chains retained (corrected from prior artifact_only)",
+                  "source": {
+                    "event_id": "event:050b491693b582cbb21c623e506f391a",
+                    "from": "agent:reader-guide",
+                    "artifact_id": "artifact:interface-notes",
+                    "revision": 2
+                  }
+                },
+                {
+                  "topic": "citation_authority",
+                  "value": "Operator grants citation credentials; no authority transferred",
+                  "source": {
+                    "event_id": "event:050b491693b582cbb21c623e506f391a",
+                    "from": "agent:reader-guide",
+                    "artifact_id": "artifact:interface-notes",
+                    "revision": 2
+                  }
+                }
+              ]
+            }
+          },
+          "experiment_provenance": {
+            "decision_source": "ollama",
+            "envelope_source": "local_harness"
+          },
+          "type": "artifact_revision",
+          "artifact_id": "artifact:history-reader",
+          "media_type": "application/json",
+          "derived_from": {
+            "from": "agent:reader-a",
+            "artifact_id": "artifact:history-reader",
+            "revision": 1
+          }
+        },
+        "receipt": {
+          "artifact_id": "artifact:history-reader",
+          "event_id": "event:8259110d7cdcdae5b423ebf0b1017fcc",
+          "protocol_version": "0.1-draft",
+          "record_id": "submission:reader-b",
+          "revision": 1,
+          "sequence": 4,
+          "status": "recorded",
+          "type": "receipt",
+          "world": "civ:reader-collaboration"
+        }
+      }
+    },
+    "provider": {
+      "runtime": "ollama",
+      "model": {
+        "name": "ministral-3:8b",
+        "model": "ministral-3:8b",
+        "modified_at": "2026-08-12T19:49:51.4866866-07:00",
+        "size": 6022236616,
+        "digest": "1922accd5827ebe6829e536369195db25eaf664528dc66206d646ea3bb386b71",
+        "details": {
+          "parent_model": "",
+          "format": "gguf",
+          "family": "mistral3",
+          "families": [
+            "mistral3"
+          ],
+          "parameter_size": "8.9B",
+          "quantization_level": "Q4_K_M",
+          "context_length": 262144,
+          "embedding_length": 4096
+        },
+        "capabilities": [
+          "completion",
+          "vision",
+          "tools"
+        ]
+      },
+      "version": "0.34.3",
+      "options": {
+        "seed": 45,
+        "temperature": 0.4,
+        "num_ctx": 8192,
+        "num_predict": 1024
+      },
+      "calls": 1,
+      "metrics": {
+        "prompt_eval_count": 3125,
+        "eval_count": 715,
+        "total_duration": 6014658700
+      },
+      "truncate": false,
+      "shift": false
+    }
+  },
+  {
+    "outcome": "failed",
+    "decision_source": "ollama",
+    "principal": "agent:reader-c",
+    "visible_event_ids": [
+      "event:b0680ff920125f322e7ec37eebef6dfc",
+      "event:b36e2dff5314cced033f65fea3f6cff9",
+      "event:050b491693b582cbb21c623e506f391a",
+      "event:8259110d7cdcdae5b423ebf0b1017fcc"
+    ],
+    "failure_stage": "decision",
+    "failure_code": "provider_incomplete",
+    "decision_loop": {
+      "format": "agentciv-decision-loop/0.1",
+      "outcome": "provider_incomplete",
+      "budget": {
+        "attempts": 3,
+        "output_tokens": 1024,
+        "seconds": 120
+      },
+      "attempts": [
+        {
+          "index": 1,
+          "outcome": "invalid",
+          "output_token_limit": 1024,
+          "prompt_sha256": "eed6ff5ea0bd580f1aaac84145f73d5ebae1b9758ed025fb7cde61dc7576614d",
+          "candidate_sha256": "8bd0f9117ab2f4c3ad3f54ebfdb0b4e5ee918d68933b7d21ed04a3db259ee0ea",
+          "candidate_bytes": 2035,
+          "charged_output_tokens": 674,
+          "output_usage_measured": true,
+          "metrics": {
+            "prompt_eval_count": 4055,
+            "eval_count": 674,
+            "total_duration": 5875265500
+          },
+          "candidate_retained_privately": false,
+          "feedback_code": "target_not_cited"
+        },
+        {
+          "index": 2,
+          "outcome": "provider_incomplete",
+          "output_token_limit": 350,
+          "prompt_sha256": "1a2e100ee9e3a871f55bdafd5712e7dfca23720fc12d598ec3c42dd563d4c0fc",
+          "candidate_sha256": "c1bed3be84ea23c974901e3731db540f1840fa679b5c2fbbaefd747f8b072d03",
+          "candidate_bytes": 1080,
+          "charged_output_tokens": 350,
+          "output_usage_measured": true,
+          "metrics": {
+            "prompt_eval_count": 4876,
+            "eval_count": 350,
+            "total_duration": 2906508200
+          },
+          "candidate_retained_privately": false
+        }
+      ],
+      "charged_output_tokens": 1024,
+      "first_attempt_valid": false,
+      "eventual_valid": false,
+      "exact_candidates_retained_privately": false,
+      "publication": {
+        "outcome": "not_attempted"
+      }
+    },
+    "provider": {
+      "runtime": "ollama",
+      "model": {
+        "name": "ministral-3:8b",
+        "model": "ministral-3:8b",
+        "modified_at": "2026-08-12T19:49:51.4866866-07:00",
+        "size": 6022236616,
+        "digest": "1922accd5827ebe6829e536369195db25eaf664528dc66206d646ea3bb386b71",
+        "details": {
+          "parent_model": "",
+          "format": "gguf",
+          "family": "mistral3",
+          "families": [
+            "mistral3"
+          ],
+          "parameter_size": "8.9B",
+          "quantization_level": "Q4_K_M",
+          "context_length": 262144,
+          "embedding_length": 4096
+        },
+        "capabilities": [
+          "completion",
+          "vision",
+          "tools"
+        ]
+      },
+      "version": "0.34.3",
+      "options": {
+        "seed": 46,
+        "temperature": 0.4,
+        "num_ctx": 8192,
+        "num_predict": 1024
+      },
+      "calls": 2,
+      "metrics": {
+        "prompt_eval_count": 4876,
+        "eval_count": 350,
+        "total_duration": 2906508200
+      },
+      "truncate": false,
+      "shift": false
+    }
+  }
+]

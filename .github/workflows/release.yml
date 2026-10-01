@@ -1,0 +1,232 @@
+name: Native release candidate
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Exact stable version, matching all four Cargo packages (vX.Y.Z)'
+        required: true
+        type: string
+      create_draft:
+        description: 'Create a draft release after all native builds pass; never publish automatically'
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+env:
+  RELEASE_VERSION: ${{ inputs.version }}
+  CARGO_INCREMENTAL: '0'
+
+jobs:
+  preflight:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: Require an exact version and successful CI for this commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          [[ "$RELEASE_VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          gh api "repos/$GITHUB_REPOSITORY" --silent
+          if gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$RELEASE_VERSION" --silent 2>tag-error.txt; then
+            echo 'Existing release tag rejected; never move tags automatically.' >&2
+            exit 1
+          else
+            grep -Fq '(HTTP 404)' tag-error.txt
+          fi
+          passed=$(gh run list --workflow ci.yml --commit "$GITHUB_SHA" --json conclusion --jq 'any(.[]; .conclusion == "success")')
+          test "$passed" = true
+          test -f release/NOTICE_INVENTORY.json
+          test -f release/THIRD_PARTY_NOTICES.txt
+          jq -e '.status == "reviewed_complete"' release/NOTICE_INVENTORY.json
+          jq -e '.release_blockers | type == "array" and length == 0' release/NOTICE_INVENTORY.json
+          test "$(sha256sum Cargo.lock | cut -d ' ' -f1)" = "$(jq -r .source_lock_sha256 release/NOTICE_INVENTORY.json)"
+          test "$(sha256sum rust-toolchain.toml | cut -d ' ' -f1)" = "$(jq -r .toolchain_file_sha256 release/NOTICE_INVENTORY.json)"
+          test "$(sha256sum release/THIRD_PARTY_NOTICES.txt | cut -d ' ' -f1)" = "$(jq -r .notices_sha256 release/NOTICE_INVENTORY.json)"
+          python3 - <<'PY'
+          import hashlib
+          import json
+          from pathlib import Path
+          inventory = json.loads(Path('release/NOTICE_INVENTORY.json').read_text())
+          aggregate = Path('release/THIRD_PARTY_NOTICES.txt').read_bytes()
+          groups = [entry['source_notices'] for entry in inventory['entries']]
+          groups.append(inventory['compiler']['source_notices'])
+          count = 0
+          for group in groups:
+              for notice in group:
+                  offset, length = notice['byte_offset'], notice['byte_length']
+                  if type(offset) is not int or type(length) is not int or offset < 0 or length <= 0 or offset + length > len(aggregate):
+                      raise SystemExit('invalid notice slice bounds')
+                  if hashlib.sha256(aggregate[offset:offset + length]).hexdigest() != notice['sha256']:
+                      raise SystemExit('notice slice hash mismatch')
+                  count += 1
+          if not count:
+              raise SystemExit('notice inventory empty')
+          PY
+          cargo metadata --locked --no-deps --format-version 1 > packages.json
+          for tool in agentciv-archive agentciv-reader agentciv-host agentciv-conformance; do
+            actual=$(jq -r --arg name "$tool" '.packages[] | select(.name == $name) | .version' packages.json)
+            test "$actual" = "${RELEASE_VERSION#v}"
+          done
+
+  build:
+    needs: preflight
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            target: x86_64-unknown-linux-gnu
+            suffix: ''
+          - os: ubuntu-24.04-arm
+            target: aarch64-unknown-linux-gnu
+            suffix: ''
+          - os: windows-2025
+            target: x86_64-pc-windows-msvc
+            suffix: .exe
+          - os: windows-11-arm
+            target: aarch64-pc-windows-msvc
+            suffix: .exe
+          - os: macos-15-intel
+            target: x86_64-apple-darwin
+            suffix: ''
+          - os: macos-15
+            target: aarch64-apple-darwin
+            suffix: ''
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: Build and test native utilities
+        shell: bash
+        env:
+          TARGET: ${{ matrix.target }}
+          SUFFIX: ${{ matrix.suffix }}
+          RUSTFLAGS: ${{ runner.os == 'Windows' && '-C target-feature=+crt-static' || '' }}
+        run: |
+          set -euo pipefail
+          cargo test --locked --target "$TARGET" -p agentciv-archive -p agentciv-reader
+          cargo build --release --locked --target "$TARGET" -p agentciv-archive -p agentciv-reader -p agentciv-host -p agentciv-conformance
+          mkdir dist
+          for tool in agentciv-archive agentciv-reader agentciv-host agentciv-conformance; do
+            binary="target/$TARGET/release/$tool$SUFFIX"
+            test "$("$binary" --version)" = "$tool ${RELEASE_VERSION#v}"
+            "$binary" --help
+            cp "$binary" "dist/$tool-$RELEASE_VERSION-$TARGET$SUFFIX"
+          done
+          "target/$TARGET/release/agentciv-archive$SUFFIX" demo > demo.json
+          grep -q 'source_authenticity' demo.json
+          cd dist
+          if command -v sha256sum >/dev/null 2>&1; then
+            sha256sum agentciv-* > "SHA256SUMS-$TARGET"
+          else
+            shasum -a 256 agentciv-* > "SHA256SUMS-$TARGET"
+          fi
+      - name: Check Windows release imports for redistributable runtime dependencies
+        if: runner.os == 'Windows'
+        shell: powershell
+        env:
+          TARGET: ${{ matrix.target }}
+        run: |
+          $sysroot = & rustc --print sysroot
+          if ($LASTEXITCODE -ne 0) { throw 'toolchain unavailable' }
+          $nativeHost = ((& rustc -vV | Where-Object { $_ -like 'host: *' }) -replace '^host: ', '').Trim()
+          if ($LASTEXITCODE -ne 0 -or -not $nativeHost) { throw 'native toolchain host unavailable' }
+          $inspector = Join-Path $sysroot "lib/rustlib/$nativeHost/bin/llvm-readobj.exe"
+          if (-not (Test-Path -LiteralPath $inspector)) { throw 'pinned LLVM import inspector unavailable' }
+          foreach ($tool in 'agentciv-archive','agentciv-reader','agentciv-host','agentciv-conformance') {
+            $imports = & $inspector --coff-imports "target/$env:TARGET/release/$tool.exe"
+            if ($LASTEXITCODE -ne 0 -or ($imports -join "`n") -match '(?i)\b(?:vcruntime|msvcp)[a-z0-9_]*\.dll\b') {
+              throw 'release binary requires a separately installed MSVC runtime'
+            }
+          }
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: release-${{ matrix.target }}
+          path: dist/*
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Install and remove the real native binaries through offline fixtures
+        if: runner.os != 'Windows'
+        run: sh installers/smoke-install.sh "$PWD/dist" "$RELEASE_VERSION"
+      - name: Install and remove real native binaries in Windows PowerShell 5.1
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: '& .\installers\smoke-install.ps1 -ReleaseDirectory "$PWD/dist" -ReleaseVersion $env:RELEASE_VERSION'
+
+  assemble:
+    needs: build
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          pattern: release-*
+          merge-multiple: true
+          path: dist
+      - name: Assemble the complete candidate and verification records
+        run: |
+          set -euo pipefail
+          cat dist/SHA256SUMS-* > dist/SHA256SUMS
+          rm dist/SHA256SUMS-*
+          cp install.sh install.ps1 LICENSE release/THIRD_PARTY_NOTICES.txt release/NOTICE_INVENTORY.json dist/
+          printf '%s\n' "$RELEASE_VERSION" > dist/VERSION
+          printf '%s\n' "$GITHUB_SHA" > dist/SOURCE_COMMIT
+          cd dist
+          sha256sum install.sh install.ps1 LICENSE THIRD_PARTY_NOTICES.txt NOTICE_INVENTORY.json VERSION SOURCE_COMMIT >> SHA256SUMS
+          sha256sum --check SHA256SUMS
+      - name: Attest the uploaded candidate assets
+        uses: actions/attest-build-provenance@977bb373ede98d70efdf65b84cb5f73e068dcc2a # v3
+        with:
+          subject-path: dist/*
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: complete-native-release
+          path: dist/*
+          if-no-files-found: error
+          retention-days: 7
+
+  draft:
+    if: inputs.create_draft
+    needs: assemble
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: complete-native-release
+          path: dist
+      - name: Create a draft, requiring separate reviewed publication
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          gh api "repos/$GH_REPO" --silent
+          if gh api "repos/$GH_REPO/git/ref/tags/$RELEASE_VERSION" --silent 2>tag-error.txt; then
+            echo 'Existing release tag rejected; never move tags automatically.' >&2
+            exit 1
+          else
+            grep -Fq '(HTTP 404)' tag-error.txt
+          fi
+          printf '%s\n' 'Native utilities; draft contracts. GNU Linux assets built on Ubuntu 24.04; macOS assets tested on macOS 15. Windows targets tested on the listed native release runners.' \
+            'Inspect installer scripts and provenance before use. No OS code-signing claim. Enable immutable releases before publishing this reviewed draft.' > release-notes.txt
+          gh release create "$RELEASE_VERSION" dist/* --draft --target "$GITHUB_SHA" --title "AgentCiv $RELEASE_VERSION" --notes-file release-notes.txt

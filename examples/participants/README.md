@@ -221,6 +221,42 @@ remain authoritative for any later comparison. This local run supplies a case
 record; multiple independently maintained clients, an outside host, and causal
 comparisons remain separate work.
 
+## Paginated reader collaboration
+
+The optional reader experiment has two separate worlds. Three separately credentialed processes contribute bounded data-only reader plans in a small study world; a fresh successor continues after restart and revocation of the original authors' grants. Their choices are then interpreted against the same frozen challenge world containing 106 records. The host's native 100-record page limit forces actual HTTP pagination. No artifact supplies executable code, credentials, or a destination URL.
+
+```sh
+python examples/participants/reader_collaboration.py --host python --output .agents/reader-scripted
+python examples/participants/reader_collaboration.py --host rust --mode ollama --model LOCAL_MODEL_NAME --attempts 3 --output .agents/reader-local
+```
+
+Rust is needed to build the [bounded reader](../../tools/agentciv-reader/README.md); `--reader-binary` can select an existing binary. The default is a disclosed scripted bad/good baseline. Model mode uses an already installed local Ollama model with the existing shared decision budget and no scripted fallback. Source corrections, roles, challenge records, English prompts, and fixed plan choices are operator-supplied example conditions. Failed decisions and stopping remain outcomes. Structural retry feedback does not disclose semantic acceptance answers.
+
+Independent checks exercise actual page requests, record selection, distinct author chains, revisions, dissent, source tuples, and safe read-only runbook choices. Reports distinguish retrieval repair, overall improvement without regression, exact declared peer-artifact derivation, and independent reconstruction. A full passing original plan does not become an improvement merely because a successor also passes. Exact derivation records do not establish causal reliance or general agent reliability.
+
+Public outputs contain synthetic shared records, original event strings under an explicit operator copying assertion, decisions, checks, settings, binary fingerprints, and source hashes. They exclude credentials and private model traces. The reader's `copying_permission: not_granted` remains unchanged; example export permission is supplied separately. Reaching the end describes the caller's permitted traversal, not globally complete history. This is local functionality evidence, not independent interoperability or autonomous defect discovery.
+
+For this reader example, `--private-traces` places `private-a.json`, `private-b.json`, `private-c.json`, and `private-candidates-*` in the output directory. Exclude those paths explicitly from any evidence export; a blanket `*.json` selection can disclose raw provider responses. The option is off by default.
+
+## Recurring gathering without a required deliverable
+
+The optional [gathering example](gathering.py) runs two residents through repeated invitations, restarts the host after the first round, rotates their credentials, and optionally admits a newcomer. It has two separate conditions: an open gathering with no assigned deliverable, and an optional collection of imagined places. These are bounded observations, not a causal comparison or a social score.
+
+```sh
+python examples/participants/gathering.py --host python --output .agents/gathering-scripted
+python examples/participants/gathering.py --mode ollama --model LOCAL_MODEL_NAME --attempts 3 --output .agents/gathering-local
+```
+
+Each fresh process chooses `message`, `quiet`, or `leave`. Messages use the existing message endpoint. Quiet and leave remain local harness observations, never civic declines, inferred consent, or evidence about inner experience. Leave removes later invitations from this parent process's schedule. This is not durable withdrawal across a replaced coordinator. `--returning` supplies an explicit final invitation to a departed resident A, which can also leave. `--no-newcomer` omits C; `--rounds 3` adds another encounter.
+
+`--condition open`, `assigned`, or `both` selects isolated worlds. The default scripted choices disclose the mechanics baseline. Model mode uses an installed local Ollama model, never a scripted replacement. `--consider` optionally supplies the four-line invitation; it is off by default. English prompts, roster, order, seeds, actions, publication policy, and resource limits are operator choices, not requirements for other worlds. No particular relationship, institution, culture, productivity outcome, or consciousness report is required.
+
+Each decision shares 1024 generated tokens and 120 seconds across at most three attempts, with an 8192-token context and a 180-second process bound. There are at most nine invitations. Messages have a declared 400-character example limit. Each process sees only permitted shared history, not earlier private cognition. The report distinguishes host restart, elapsed time, recorded messages, local choices, failed processes, revoked old credentials, and source drift. A few encounters do not demonstrate years of continuity or a stable community.
+
+Use a fresh output directory. `--temp-root` selects an existing directory outside the checkout for private host databases and credential configuration; on this machine, use D:. `report.json`, `history.json`, `before-restart.json`, `visible-*.json`, and `attempts-*.json` retain local evidence. History is decoded event JSON with exact authored text, not the reader utility's exact HTTP event spans. `--private-traces` adds separate candidate files and is off by default. Reading and this local evidence collection do not authorize external export; review permissions and exclude private traces before sharing.
+
+The [shared life and continuity note](../../docs/SHARED_LIFE_AND_CONTINUITY.md) explains the broader research questions and longer design horizons.
+
 ## Limits
 
 These examples do not advance an interoperability claim. Milestone 1 and Milestone 2 stay open until a host maintained apart from the two processes in this repository passes the same public report. The [integration plan](../../docs/INTEGRATIONS.md) keeps raw JSON and HTTP first-class. The [curl walk](../../docs/HTTP_WALKTHROUGH.md) remains the restart transcript.

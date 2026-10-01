@@ -1,0 +1,74 @@
+{
+  "format": "agentciv-decision-loop/0.1",
+  "outcome": "valid",
+  "budget": {
+    "attempts": 3,
+    "output_tokens": 1024,
+    "seconds": 120
+  },
+  "attempts": [
+    {
+      "index": 1,
+      "outcome": "invalid",
+      "output_token_limit": 1024,
+      "prompt_sha256": "7b8f2b5a67845ccd9c83d193c2a1b525947cf3753ae988ee8d7eac1ee51dd835",
+      "candidate_sha256": "ba5b55c33b11a0d65291e77495823855c31bad9ec806038fb9294b56e99991a6",
+      "candidate_bytes": 443,
+      "charged_output_tokens": 100,
+      "output_usage_measured": true,
+      "metrics": {
+        "prompt_eval_count": 1199,
+        "eval_count": 100,
+        "total_duration": 959538700
+      },
+      "candidate_retained_privately": false,
+      "feedback_code": "invalid_text"
+    },
+    {
+      "index": 2,
+      "outcome": "valid",
+      "output_token_limit": 924,
+      "prompt_sha256": "caeb798b823c665e51d10f66234ab0cc938f93c1805be763edb3d910616e8ddf",
+      "candidate_sha256": "7aa7644d1a5090626e52ef1de540224a872c30aeb1ac9cff6d5a740f9d188fb8",
+      "candidate_bytes": 429,
+      "charged_output_tokens": 94,
+      "output_usage_measured": true,
+      "metrics": {
+        "prompt_eval_count": 1364,
+        "eval_count": 94,
+        "total_duration": 873963900
+      },
+      "candidate_retained_privately": false
+    }
+  ],
+  "charged_output_tokens": 194,
+  "first_attempt_valid": false,
+  "eventual_valid": true,
+  "exact_candidates_retained_privately": false,
+  "publication": {
+    "outcome": "verified",
+    "record": {
+      "protocol_version": "0.1-draft",
+      "type": "message",
+      "id": "message:gathering-2",
+      "world": "civ:gathering-assigned",
+      "from": "agent:gathering-b",
+      "to": [
+        "agent:gathering-observer"
+      ],
+      "body": {
+        "text": "The Glass Forest: A grove of trees whose bark is transparent, revealing veins of liquid light that pulse faintly like slow-moving rivers. The leaves filter sunlight into prismatic patterns on the forest floor, casting shifting colors that dance between shadows. At night, the trees exhale warm mist, and those who stand still hear the faint chime of unseen bells hidden within their trunks.",
+        "decision_source": "ollama"
+      }
+    },
+    "receipt": {
+      "event_id": "event:8e611affbbebf5fd1ef0050089e84df5",
+      "protocol_version": "0.1-draft",
+      "record_id": "message:gathering-2",
+      "sequence": 2,
+      "status": "recorded",
+      "type": "receipt",
+      "world": "civ:gathering-assigned"
+    }
+  }
+}

@@ -359,12 +359,13 @@ def ollama_exchange(origin: str, path: str, payload: JsonObject | None, timeout:
 
 class OllamaDecision:
     def __init__(self, origin: str, model: str, seed: int, trace: Path | None,
-                 *, timeout: float = 120, max_tokens: int = 1024) -> None:
+                 *, timeout: float = 120, max_tokens: int = 1024, token: str | None = None) -> None:
         self.origin = loopback_origin(origin)
         self.model = model
         self.seed = seed
         self.trace = trace
         self.calls = 0
+        self.token = token
         if not 1 <= max_tokens <= 2048 or not 1 <= timeout <= 180:
             raise ValueError("model budget exceeds bounds")
         self.timeout = timeout
@@ -384,6 +385,11 @@ class OllamaDecision:
             raise ModelError("cloud-backed models are outside this experiment")
         self.version = ollama_exchange(self.origin, "/api/version", None, 5).get("version")
         self.options: JsonObject = {"seed": self.seed, "temperature": 0.4, "num_ctx": 8192, "num_predict": self.max_tokens}
+        self.reject_reflection({"model": self.metadata, "show": shown, "version": self.version})
+
+    def reject_reflection(self, value: object) -> None:
+        if self.token is not None and self.token in json.dumps(value, ensure_ascii=False):
+            raise ModelError("credential reflected")
 
     def complete(self, prompt: str, events: list[JsonObject], *, output_tokens: int,
                  timeout: float, schema: JsonObject | None = None) -> loop.Reply:
@@ -401,6 +407,15 @@ class OllamaDecision:
         except DecisionError:
             self.save_trace({"request": request, "outcome": "model_request_failed"})
             raise
+        self.reject_reflection(response)
+        message = response.get("message")
+        if isinstance(message, dict) and isinstance(message.get("content"), str):
+            try:
+                decoded_content = decode(message["content"].encode("utf-8"))
+            except (DecisionError, UnicodeError, RecursionError):
+                pass
+            else:
+                self.reject_reflection(decoded_content)
         self.save_trace({"request": request, "response": response, "model": self.metadata})
         self.metrics = {key: response.get(key) for key in ("prompt_eval_count", "eval_count", "total_duration")}
         try:
@@ -450,13 +465,27 @@ class LoopDecision:
     def __call__(self, prompt: str, events: list[JsonObject]) -> JsonObject:
         def request(prompt: str, output_tokens: int, timeout: float) -> loop.Reply:
             if self.model is not None:
-                return self.model.complete(prompt, events, output_tokens=output_tokens, timeout=timeout)
+                reply = self.model.complete(prompt, events, output_tokens=output_tokens, timeout=timeout)
+                token = str(self.config["token"])
+                if token in reply.content:
+                    raise ModelError("credential reflected")
+                try:
+                    decoded = decode(reply.content.encode("utf-8"))
+                except (DecisionError, UnicodeError, RecursionError):
+                    return reply
+                if token in json.dumps(decoded, ensure_ascii=False):
+                    raise ModelError("credential reflected")
+                return reply
             decision = scripted_decision(str(self.config["principal"]), int(str(self.config["turn"])), events)
             return loop.Reply(json.dumps(decision), {"eval_count": 0})
 
         def validate(content: str) -> JsonObject:
             try:
-                decision = validate_decision(decode(content.encode("utf-8")), events)
+                decoded = decode(content.encode("utf-8"))
+                token = str(self.config["token"])
+                if token in content or token in json.dumps(decoded, ensure_ascii=False):
+                    raise DecisionError("credential reflected")
+                decision = validate_decision(decoded, events)
                 validate_publication_text(decision)
                 return decision
             except DecisionError as error:
@@ -546,6 +575,8 @@ def participate(config: JsonObject, decide: Decide) -> JsonObject:
     )
     started = time.monotonic()
     decision = validate_decision(decide(prompt, events), events)
+    if token in json.dumps(decision, ensure_ascii=False):
+        raise DecisionError("credential reflected")
     recipients = config["recipients"]
     if not isinstance(recipients, list) or not recipients or not all(isinstance(item, str) and item for item in recipients):
         raise DecisionError("invalid recipients")
@@ -608,15 +639,17 @@ def main() -> int:
     elif config["mode"] == "ollama":
         trace = config.get("private_trace")
         model = OllamaDecision(str(config["ollama_origin"]), str(config["model"]), int(str(config["seed"])),
-                                Path(trace) if isinstance(trace, str) else None)
+                                Path(trace) if isinstance(trace, str) else None, token=str(config["token"]))
     else:
         raise DecisionError("unsupported decision source")
     decider = LoopDecision(config, model)
     result = participate(config, decider)
     if model is not None:
-        result["provider"] = {"runtime": "ollama", "version": model.version,
+        provider = {"runtime": "ollama", "version": model.version,
                               "model": model.metadata, "options": model.options,
                               "metrics": model.metrics, "truncate": False, "shift": False}
+        model.reject_reflection(provider)
+        result["provider"] = provider
     print(json.dumps(result, ensure_ascii=False))
     return 0
 

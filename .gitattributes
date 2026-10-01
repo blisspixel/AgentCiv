@@ -1,2 +1,8 @@
-# Use stable published line endings for archived JSON reports.
-/conformance/evidence/**/*.json text eol=lf
+# Shell entry points must work in Git Bash as well as Unix checkouts.
+*.sh text eol=lf
+
+# Published evidence hashes refer to these JSON bytes.
+conformance/evidence/**/*.json text eol=lf
+
+# Original third-party notice bytes must not be rewritten by checkout.
+release/THIRD_PARTY_NOTICES.txt -text

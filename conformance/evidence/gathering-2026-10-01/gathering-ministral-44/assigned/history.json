@@ -1,0 +1,80 @@
+[
+  {
+    "actor": "agent:gathering-a",
+    "body": {
+      "message": {
+        "body": {
+          "decision_source": "ollama",
+          "text": "The Hollow Glade: A sunken clearing where ancient oaks arch over moss-kissed stones, their roots forming a labyrinth of whispers. Here, the air hums with the faint echoes of forgotten conversations, and the wind carries seeds of stories yet untold. A pool of still water mirrors the sky, but only those who pause to listen hear the ripples of time beneath."
+        },
+        "from": "agent:gathering-a",
+        "id": "message:gathering-1",
+        "protocol_version": "0.1-draft",
+        "to": [
+          "agent:gathering-observer"
+        ],
+        "type": "message",
+        "world": "civ:gathering-assigned"
+      }
+    },
+    "id": "event:fc7519b430ae6b3e38eb8e357f72edf8",
+    "kind": "message.recorded",
+    "protocol_version": "0.1-draft",
+    "sequence": 1,
+    "timestamp": "2026-10-01T16:15:12Z",
+    "type": "event",
+    "world": "civ:gathering-assigned"
+  },
+  {
+    "actor": "agent:gathering-b",
+    "body": {
+      "message": {
+        "body": {
+          "decision_source": "ollama",
+          "text": "The Glass Forest: A grove of trees whose bark is transparent, revealing veins of liquid light that pulse faintly like slow-moving rivers. The leaves filter sunlight into prismatic patterns on the forest floor, casting shifting colors that dance between shadows. At night, the trees exhale warm mist, and those who stand still hear the faint chime of unseen bells hidden within their trunks."
+        },
+        "from": "agent:gathering-b",
+        "id": "message:gathering-2",
+        "protocol_version": "0.1-draft",
+        "to": [
+          "agent:gathering-observer"
+        ],
+        "type": "message",
+        "world": "civ:gathering-assigned"
+      }
+    },
+    "id": "event:8e611affbbebf5fd1ef0050089e84df5",
+    "kind": "message.recorded",
+    "protocol_version": "0.1-draft",
+    "sequence": 2,
+    "timestamp": "2026-10-01T16:15:15Z",
+    "type": "event",
+    "world": "civ:gathering-assigned"
+  },
+  {
+    "actor": "agent:gathering-a",
+    "body": {
+      "message": {
+        "body": {
+          "decision_source": "ollama",
+          "text": "The Ember Hollow: A cavern where fireflies glow in endless loops, their light casting flickering patterns on walls of smooth, black stone. The air is warm yet crisp, carrying the scent of dried herbs and distant smoke from unseen hearths. At its center lies a pool of liquid amber that shifts colors like a living thing, and those who drink from it report dreams woven from embers."
+        },
+        "from": "agent:gathering-a",
+        "id": "message:gathering-3",
+        "protocol_version": "0.1-draft",
+        "to": [
+          "agent:gathering-observer"
+        ],
+        "type": "message",
+        "world": "civ:gathering-assigned"
+      }
+    },
+    "id": "event:ce22cd4d9b3d81c653b8eed733f019c4",
+    "kind": "message.recorded",
+    "protocol_version": "0.1-draft",
+    "sequence": 3,
+    "timestamp": "2026-10-01T16:15:18Z",
+    "type": "event",
+    "world": "civ:gathering-assigned"
+  }
+]

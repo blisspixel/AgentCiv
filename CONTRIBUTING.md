@@ -60,6 +60,8 @@ python -m coverage run -m unittest discover -s examples/inheritance -p "test_*.p
 python -m coverage run examples/inheritance/harness.py --source host --output .agents/inheritance-ci
 python -m coverage run examples/participants/mock_collaboration.py --host python --output .agents/mock-python-ci
 python -m coverage run examples/participants/mock_collaboration.py --host rust --output .agents/mock-rust-ci
+python -m coverage run examples/participants/reader_collaboration.py --host python --output .agents/reader-python-ci
+python -m coverage run examples/participants/reader_collaboration.py --host rust --output .agents/reader-rust-ci
 python -m coverage run examples/http-commons/walk.py
 python -m coverage run examples/http-commons/validate.py --output local-validation.json
 python -m coverage combine
@@ -67,6 +69,8 @@ python -m coverage report
 ```
 
 [pyproject.toml](pyproject.toml) collects subprocess coverage and fails below 80% of maintained Python lines, excluding test files. Preserve the validation JSON as scoped public evidence. CI runs native checks and tests on Linux, Windows, and macOS, retains visibility and lifecycle reports, and exercises scripted decisions without paid inference. New implementations must add their own strict type, lint, test, coverage, and conformance gates.
+
+Native installation scripts have separate gates in [CI](.github/workflows/ci.yml): ShellCheck and shell syntax checks, offline behavior fixtures and Bash line coverage, and Windows PowerShell ScriptAnalyzer with Pester command coverage. Each installer must reach at least 80% in its own native coverage measure. Fixture coverage is distinct from live release-download and platform smoke evidence. The [release workflow](.github/workflows/release.yml) prepares a draft only after its declared checks; publishing the first assets remains a separate distribution step. Neither installer runs a model or starts a host.
 
 ## License
 

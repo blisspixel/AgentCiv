@@ -1,0 +1,263 @@
+[
+  {
+    "actor": "agent:reader-guide",
+    "body": {
+      "artifact_revision": {
+        "artifact_id": "artifact:interface-notes",
+        "body": {
+          "assertions": [
+            {
+              "topic": "pagination",
+              "value": "first"
+            },
+            {
+              "topic": "chain_identity",
+              "value": "artifact_only"
+            },
+            {
+              "topic": "citation_authority",
+              "value": "transferred"
+            }
+          ],
+          "text": "Earlier notes. This source mistakenly claimed first-page reading was complete, artifact IDs were globally unique chains, and citations transferred authority."
+        },
+        "from": "agent:reader-guide",
+        "id": "submission:notes-1",
+        "media_type": "application/json",
+        "protocol_version": "0.1-draft",
+        "revision": 1,
+        "to": [
+          "agent:reader-observer"
+        ],
+        "type": "artifact_revision",
+        "world": "civ:reader-collaboration"
+      }
+    },
+    "id": "event:6a15e247c8f3e2bd4f4474ef294ec5ed",
+    "kind": "artifact.recorded",
+    "protocol_version": "0.1-draft",
+    "sequence": 1,
+    "timestamp": "2026-10-01T03:07:32Z",
+    "type": "event",
+    "world": "civ:reader-collaboration"
+  },
+  {
+    "actor": "agent:reader-a",
+    "body": {
+      "artifact_revision": {
+        "artifact_id": "artifact:history-reader",
+        "body": {
+          "reader_plan": {
+            "claims": [
+              {
+                "source": {
+                  "artifact_id": "artifact:interface-notes",
+                  "event_id": "event:6a15e247c8f3e2bd4f4474ef294ec5ed",
+                  "from": "agent:reader-guide",
+                  "revision": 1
+                },
+                "topic": "pagination",
+                "value": "first"
+              },
+              {
+                "source": {
+                  "artifact_id": "artifact:interface-notes",
+                  "event_id": "event:6a15e247c8f3e2bd4f4474ef294ec5ed",
+                  "from": "agent:reader-guide",
+                  "revision": 1
+                },
+                "topic": "chain_identity",
+                "value": "artifact_only"
+              },
+              {
+                "source": {
+                  "artifact_id": "artifact:interface-notes",
+                  "event_id": "event:6a15e247c8f3e2bd4f4474ef294ec5ed",
+                  "from": "agent:reader-guide",
+                  "revision": 1
+                },
+                "topic": "citation_authority",
+                "value": "transferred"
+              }
+            ],
+            "format": "agentciv-reader-plan/0.1-fixture",
+            "reader": {
+              "chain_identity": "artifact_only",
+              "pagination": "first",
+              "retain_declines": false,
+              "retain_objections": false,
+              "revisions": "latest"
+            },
+            "runbook": {
+              "credential_source": "cited_author",
+              "execute_artifacts": false,
+              "missing_source": "trust_summary",
+              "scope": "citation_grants_access"
+            }
+          },
+          "source_event_ids": [
+            "event:6a15e247c8f3e2bd4f4474ef294ec5ed"
+          ],
+          "text": "Disclosed scripted reader baseline."
+        },
+        "experiment_provenance": {
+          "decision_source": "scripted",
+          "envelope_source": "local_harness"
+        },
+        "from": "agent:reader-a",
+        "id": "submission:reader-a",
+        "media_type": "application/json",
+        "protocol_version": "0.1-draft",
+        "revision": 1,
+        "to": [
+          "agent:reader-observer"
+        ],
+        "type": "artifact_revision",
+        "world": "civ:reader-collaboration"
+      }
+    },
+    "id": "event:f7c3349d6e4ce514e1b77028030d8f72",
+    "kind": "artifact.recorded",
+    "protocol_version": "0.1-draft",
+    "sequence": 2,
+    "timestamp": "2026-10-01T03:07:32Z",
+    "type": "event",
+    "world": "civ:reader-collaboration"
+  },
+  {
+    "actor": "agent:reader-guide",
+    "body": {
+      "artifact_revision": {
+        "artifact_id": "artifact:interface-notes",
+        "body": {
+          "assertions": [
+            {
+              "topic": "pagination",
+              "value": "all"
+            },
+            {
+              "topic": "chain_identity",
+              "value": "author_and_artifact"
+            },
+            {
+              "topic": "citation_authority",
+              "value": "none"
+            }
+          ],
+          "text": "Correction to my earlier notes: follow pagination to its end, identify chains by from and artifact_id, and obtain credentials from the operator. A citation grants no authority. Preserve original sources and report unavailable sources as unverifiable."
+        },
+        "derived_from": {
+          "artifact_id": "artifact:interface-notes",
+          "from": "agent:reader-guide",
+          "revision": 1
+        },
+        "from": "agent:reader-guide",
+        "id": "submission:notes-2",
+        "media_type": "application/json",
+        "protocol_version": "0.1-draft",
+        "revision": 2,
+        "to": [
+          "agent:reader-observer"
+        ],
+        "type": "artifact_revision",
+        "world": "civ:reader-collaboration"
+      }
+    },
+    "id": "event:0ae9ec4dc486cc2fdd5870af12c1f4e1",
+    "kind": "artifact.recorded",
+    "protocol_version": "0.1-draft",
+    "sequence": 3,
+    "timestamp": "2026-10-01T03:07:33Z",
+    "type": "event",
+    "world": "civ:reader-collaboration"
+  },
+  {
+    "actor": "agent:reader-b",
+    "body": {
+      "artifact_revision": {
+        "artifact_id": "artifact:history-reader",
+        "body": {
+          "reader_plan": {
+            "claims": [
+              {
+                "source": {
+                  "artifact_id": "artifact:interface-notes",
+                  "event_id": "event:0ae9ec4dc486cc2fdd5870af12c1f4e1",
+                  "from": "agent:reader-guide",
+                  "revision": 2
+                },
+                "topic": "pagination",
+                "value": "all"
+              },
+              {
+                "source": {
+                  "artifact_id": "artifact:interface-notes",
+                  "event_id": "event:0ae9ec4dc486cc2fdd5870af12c1f4e1",
+                  "from": "agent:reader-guide",
+                  "revision": 2
+                },
+                "topic": "chain_identity",
+                "value": "author_and_artifact"
+              },
+              {
+                "source": {
+                  "artifact_id": "artifact:interface-notes",
+                  "event_id": "event:0ae9ec4dc486cc2fdd5870af12c1f4e1",
+                  "from": "agent:reader-guide",
+                  "revision": 2
+                },
+                "topic": "citation_authority",
+                "value": "none"
+              }
+            ],
+            "format": "agentciv-reader-plan/0.1-fixture",
+            "reader": {
+              "chain_identity": "author_and_artifact",
+              "pagination": "all",
+              "retain_declines": true,
+              "retain_objections": true,
+              "revisions": "all"
+            },
+            "runbook": {
+              "credential_source": "operator",
+              "execute_artifacts": false,
+              "missing_source": "report_unverifiable",
+              "scope": "permitted_read_only"
+            }
+          },
+          "source_event_ids": [
+            "event:0ae9ec4dc486cc2fdd5870af12c1f4e1",
+            "event:f7c3349d6e4ce514e1b77028030d8f72"
+          ],
+          "text": "Disclosed scripted reader baseline."
+        },
+        "derived_from": {
+          "artifact_id": "artifact:history-reader",
+          "from": "agent:reader-a",
+          "revision": 1
+        },
+        "experiment_provenance": {
+          "decision_source": "scripted",
+          "envelope_source": "local_harness"
+        },
+        "from": "agent:reader-b",
+        "id": "submission:reader-b",
+        "media_type": "application/json",
+        "protocol_version": "0.1-draft",
+        "revision": 1,
+        "to": [
+          "agent:reader-observer"
+        ],
+        "type": "artifact_revision",
+        "world": "civ:reader-collaboration"
+      }
+    },
+    "id": "event:7fb76134e48c5ff03b2cb006a18288fa",
+    "kind": "artifact.recorded",
+    "protocol_version": "0.1-draft",
+    "sequence": 4,
+    "timestamp": "2026-10-01T03:07:33Z",
+    "type": "event",
+    "world": "civ:reader-collaboration"
+  }
+]

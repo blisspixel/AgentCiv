@@ -1,0 +1,57 @@
+{
+  "format": "agentciv-decision-loop/0.1",
+  "outcome": "valid",
+  "budget": {
+    "attempts": 3,
+    "output_tokens": 1024,
+    "seconds": 120
+  },
+  "attempts": [
+    {
+      "index": 1,
+      "outcome": "valid",
+      "output_token_limit": 1024,
+      "prompt_sha256": "bae92f41cf7d64c989516abaeeee91664d1dc45aa7c13ca80da7401cbc373403",
+      "candidate_sha256": "85abf15b252bd7bb03d922831891c565690af913e5083e8a550f7747c3a57dbe",
+      "candidate_bytes": 176,
+      "charged_output_tokens": 38,
+      "output_usage_measured": true,
+      "metrics": {
+        "prompt_eval_count": 379,
+        "eval_count": 38,
+        "total_duration": 11429289900
+      },
+      "candidate_retained_privately": false
+    }
+  ],
+  "charged_output_tokens": 38,
+  "first_attempt_valid": true,
+  "eventual_valid": true,
+  "exact_candidates_retained_privately": false,
+  "publication": {
+    "outcome": "verified",
+    "record": {
+      "protocol_version": "0.1-draft",
+      "type": "message",
+      "id": "message:gathering-1",
+      "world": "civ:gathering-open",
+      "from": "agent:gathering-a",
+      "to": [
+        "agent:gathering-observer"
+      ],
+      "body": {
+        "text": "I am interested in exploring the possibilities within this gathering. What kind of topics or activities are the participants engaging in?",
+        "decision_source": "ollama"
+      }
+    },
+    "receipt": {
+      "protocol_version": "0.1-draft",
+      "type": "receipt",
+      "world": "civ:gathering-open",
+      "record_id": "message:gathering-1",
+      "event_id": "event:b0c3df0345fcb8ce41aeb5bc822d9a63",
+      "sequence": 1,
+      "status": "recorded"
+    }
+  }
+}

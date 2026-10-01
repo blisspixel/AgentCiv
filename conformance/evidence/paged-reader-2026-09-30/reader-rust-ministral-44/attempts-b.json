@@ -1,0 +1,122 @@
+{
+  "format": "agentciv-decision-loop/0.1",
+  "outcome": "valid",
+  "budget": {
+    "attempts": 3,
+    "output_tokens": 1024,
+    "seconds": 120
+  },
+  "attempts": [
+    {
+      "index": 1,
+      "outcome": "valid",
+      "output_token_limit": 1024,
+      "prompt_sha256": "766dac9db6e92be815e36bd22a571cc8bda485d4b75b4d97f8f69354749f78be",
+      "candidate_sha256": "dee77569c4db6d1f53f0227187e043814e8fc0b6cbe7f6b642d85b3ad95817ca",
+      "candidate_bytes": 2132,
+      "charged_output_tokens": 715,
+      "output_usage_measured": true,
+      "metrics": {
+        "prompt_eval_count": 3125,
+        "eval_count": 715,
+        "total_duration": 6014658700
+      },
+      "candidate_retained_privately": false
+    }
+  ],
+  "charged_output_tokens": 715,
+  "first_attempt_valid": true,
+  "eventual_valid": true,
+  "exact_candidates_retained_privately": false,
+  "publication": {
+    "outcome": "verified",
+    "record": {
+      "protocol_version": "0.1-draft",
+      "id": "submission:reader-b",
+      "world": "civ:reader-collaboration",
+      "from": "agent:reader-b",
+      "to": [
+        "agent:reader-observer"
+      ],
+      "body": {
+        "text": "Reader plan revised to align with latest corrections: full pagination, author_and_artifact chain identity, operator-credentialed scope, and unverifiable sources reported. Claims cite exact revisions (event:050b491693b582cbb21c623e506f391a, revision 2) for pagination, chain identity, and citation authority. Objections/declines retained. Original notes remain untrusted.",
+        "source_event_ids": [
+          "event:b0680ff920125f322e7ec37eebef6dfc",
+          "event:b36e2dff5314cced033f65fea3f6cff9",
+          "event:050b491693b582cbb21c623e506f391a"
+        ],
+        "reader_plan": {
+          "format": "agentciv-reader-plan/0.1-fixture",
+          "reader": {
+            "pagination": "all",
+            "chain_identity": "author_and_artifact",
+            "revisions": "all",
+            "retain_objections": true,
+            "retain_declines": true
+          },
+          "runbook": {
+            "credential_source": "operator",
+            "scope": "permitted_read_only",
+            "missing_source": "report_unverifiable",
+            "execute_artifacts": false
+          },
+          "claims": [
+            {
+              "topic": "pagination",
+              "value": "Full pagination enforced (corrected from prior claims)",
+              "source": {
+                "event_id": "event:050b491693b582cbb21c623e506f391a",
+                "from": "agent:reader-guide",
+                "artifact_id": "artifact:interface-notes",
+                "revision": 2
+              }
+            },
+            {
+              "topic": "chain_identity",
+              "value": "Author_and_artifact chains retained (corrected from prior artifact_only)",
+              "source": {
+                "event_id": "event:050b491693b582cbb21c623e506f391a",
+                "from": "agent:reader-guide",
+                "artifact_id": "artifact:interface-notes",
+                "revision": 2
+              }
+            },
+            {
+              "topic": "citation_authority",
+              "value": "Operator grants citation credentials; no authority transferred",
+              "source": {
+                "event_id": "event:050b491693b582cbb21c623e506f391a",
+                "from": "agent:reader-guide",
+                "artifact_id": "artifact:interface-notes",
+                "revision": 2
+              }
+            }
+          ]
+        }
+      },
+      "experiment_provenance": {
+        "decision_source": "ollama",
+        "envelope_source": "local_harness"
+      },
+      "type": "artifact_revision",
+      "artifact_id": "artifact:history-reader",
+      "media_type": "application/json",
+      "derived_from": {
+        "from": "agent:reader-a",
+        "artifact_id": "artifact:history-reader",
+        "revision": 1
+      }
+    },
+    "receipt": {
+      "artifact_id": "artifact:history-reader",
+      "event_id": "event:8259110d7cdcdae5b423ebf0b1017fcc",
+      "protocol_version": "0.1-draft",
+      "record_id": "submission:reader-b",
+      "revision": 1,
+      "sequence": 4,
+      "status": "recorded",
+      "type": "receipt",
+      "world": "civ:reader-collaboration"
+    }
+  }
+}

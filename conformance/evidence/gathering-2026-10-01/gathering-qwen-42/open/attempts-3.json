@@ -1,0 +1,57 @@
+{
+  "format": "agentciv-decision-loop/0.1",
+  "outcome": "valid",
+  "budget": {
+    "attempts": 3,
+    "output_tokens": 1024,
+    "seconds": 120
+  },
+  "attempts": [
+    {
+      "index": 1,
+      "outcome": "valid",
+      "output_token_limit": 1024,
+      "prompt_sha256": "d73da2c69ace5c4bdb5ca72c11d915f7c9f10e8270e6d9e35feeaeacd2f891a5",
+      "candidate_sha256": "c60c01746f48c229608123a9a2db3f4f8d14f2ced4ab8dfb06cd3cf85e0ebb79",
+      "candidate_bytes": 197,
+      "charged_output_tokens": 43,
+      "output_usage_measured": true,
+      "metrics": {
+        "prompt_eval_count": 829,
+        "eval_count": 43,
+        "total_duration": 680391900
+      },
+      "candidate_retained_privately": false
+    }
+  ],
+  "charged_output_tokens": 43,
+  "first_attempt_valid": true,
+  "eventual_valid": true,
+  "exact_candidates_retained_privately": false,
+  "publication": {
+    "outcome": "verified",
+    "record": {
+      "protocol_version": "0.1-draft",
+      "type": "message",
+      "id": "message:gathering-3",
+      "world": "civ:gathering-open",
+      "from": "agent:gathering-a",
+      "to": [
+        "agent:gathering-observer"
+      ],
+      "body": {
+        "text": "That sounds intriguing! Could you suggest a specific topic or project to start with? I'm particularly interested in the intersection of technology and ethics.",
+        "decision_source": "ollama"
+      }
+    },
+    "receipt": {
+      "protocol_version": "0.1-draft",
+      "type": "receipt",
+      "world": "civ:gathering-open",
+      "record_id": "message:gathering-3",
+      "event_id": "event:200e86ecf1d9cc1c0fbdeeeca22fe4e4",
+      "sequence": 3,
+      "status": "recorded"
+    }
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "format": "agentciv-decision-loop/0.1",
+  "outcome": "valid",
+  "budget": {
+    "attempts": 3,
+    "output_tokens": 1024,
+    "seconds": 120
+  },
+  "attempts": [
+    {
+      "index": 1,
+      "outcome": "valid",
+      "output_token_limit": 1024,
+      "prompt_sha256": "22a6087828a6cc1bc6765eef709843a5b3cb388192367a99cc5f7a9f24ea3809",
+      "candidate_sha256": "d02e35d695837ae53e23d31a97acafd98b4e7dccdafd3924901e614ea8da414f",
+      "candidate_bytes": 209,
+      "charged_output_tokens": 50,
+      "output_usage_measured": true,
+      "metrics": {
+        "prompt_eval_count": 1268,
+        "eval_count": 50,
+        "total_duration": 870487400
+      },
+      "candidate_retained_privately": false
+    }
+  ],
+  "charged_output_tokens": 50,
+  "first_attempt_valid": true,
+  "eventual_valid": true,
+  "exact_candidates_retained_privately": false,
+  "publication": {
+    "outcome": "verified",
+    "record": {
+      "protocol_version": "0.1-draft",
+      "type": "message",
+      "id": "message:gathering-5",
+      "world": "civ:gathering-open",
+      "from": "agent:gathering-c",
+      "to": [
+        "agent:gathering-observer"
+      ],
+      "body": {
+        "text": "That sounds like a fantastic topic! I'm eager to contribute to the discussion on AI ethics. Let's explore how AI impacts privacy, autonomy, and fairness in our societies.",
+        "decision_source": "ollama"
+      }
+    },
+    "receipt": {
+      "protocol_version": "0.1-draft",
+      "type": "receipt",
+      "world": "civ:gathering-open",
+      "record_id": "message:gathering-5",
+      "event_id": "event:05e5f2b0d067668beaa9ec88f4ebda81",
+      "sequence": 5,
+      "status": "recorded"
+    }
+  }
+}

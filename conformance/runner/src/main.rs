@@ -5,6 +5,17 @@ const USAGE: &str = "usage: agentciv-conformance --discovery URL [--principal ID
 
 fn main() -> ExitCode {
     let args: Vec<String> = env::args().skip(1).collect();
+    match args.as_slice() {
+        [flag] if flag == "--help" || flag == "-h" => {
+            println!("{USAGE}\nOptions: --help, --version");
+            return ExitCode::SUCCESS;
+        }
+        [flag] if flag == "--version" || flag == "-V" => {
+            println!("agentciv-conformance {}", env!("CARGO_PKG_VERSION"));
+            return ExitCode::SUCCESS;
+        }
+        _ => {}
+    }
     let mut discovery = None;
     let mut principal = None;
     let mut reader = None;
