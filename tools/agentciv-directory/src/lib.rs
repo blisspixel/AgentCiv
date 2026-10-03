@@ -1,0 +1,329 @@
+//! Build a public static directory without running or contacting listed worlds.
+
+use std::collections::HashSet;
+use std::fs;
+use std::path::Path;
+
+use serde::{Deserialize, Serialize};
+use url::Url;
+
+const ROOT: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/../../website");
+const SCHEMA: &str = include_str!("../../../website/directory.schema.json");
+const TEMPLATE: &str = include_str!("../../../website/index.template.html");
+const USAGE: &str = "Usage: agentciv-directory check [--input FILE]\n       agentciv-directory build --output DIRECTORY [--input FILE]";
+
+/// Public catalog data, separate from every AgentCiv wire profile.
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct Directory {
+    schema_version: u32,
+    updated: String,
+    entries: Vec<Listing>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+struct Listing {
+    id: String,
+    name: String,
+    kind: Kind,
+    availability: Availability,
+    summary: String,
+    interfaces: Vec<Interface>,
+    source_url: String,
+    guide_url: String,
+    notes: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    discovery_url: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    join_url: Option<String>,
+}
+
+#[derive(Clone, Copy, Debug, Deserialize, Serialize)]
+#[serde(rename_all = "snake_case")]
+enum Kind {
+    Commons,
+    Creative,
+    Game,
+}
+
+#[derive(Clone, Copy, Debug, Deserialize, Serialize)]
+#[serde(rename_all = "snake_case")]
+enum Availability {
+    Local,
+    Public,
+}
+
+#[derive(Clone, Copy, Debug, Deserialize, Serialize)]
+#[serde(rename_all = "snake_case")]
+enum Interface {
+    Http,
+    Mcp,
+    Cli,
+}
+
+impl Kind {
+    fn label(self) -> &'static str {
+        match self {
+            Self::Commons => "Commons",
+            Self::Creative => "Creative world",
+            Self::Game => "Game world",
+        }
+    }
+}
+
+impl Interface {
+    fn label(self) -> &'static str {
+        match self {
+            Self::Http => "HTTP",
+            Self::Mcp => "MCP",
+            Self::Cli => "CLI",
+        }
+    }
+}
+
+fn https_url(value: &str) -> Result<(), String> {
+    let url = Url::parse(value).map_err(|error| format!("invalid URL: {error}"))?;
+    if url.scheme() != "https"
+        || url.host_str().is_none()
+        || !url.username().is_empty()
+        || url.password().is_some()
+        || value
+            .chars()
+            .any(|character| character.is_whitespace() || character.is_control())
+    {
+        return Err(
+            "listing URLs must use HTTPS without embedded credentials or whitespace".into(),
+        );
+    }
+    Ok(())
+}
+
+fn date(value: &str) -> bool {
+    let parts: Vec<_> = value.split('-').collect();
+    if parts.len() != 3 || parts[0].len() != 4 || parts[1].len() != 2 || parts[2].len() != 2 {
+        return false;
+    }
+    let numbers: Result<Vec<u32>, _> = parts.iter().map(|part| part.parse()).collect();
+    let Ok(numbers) = numbers else { return false };
+    let (year, month, day) = (numbers[0], numbers[1], numbers[2]);
+    let leap = year % 4 == 0 && (year % 100 != 0 || year % 400 == 0);
+    let days = [
+        31,
+        if leap { 29 } else { 28 },
+        31,
+        30,
+        31,
+        30,
+        31,
+        31,
+        30,
+        31,
+        30,
+        31,
+    ];
+    year > 0 && (1..=12).contains(&month) && (1..=days[(month - 1) as usize]).contains(&day)
+}
+
+/// Validate bounded catalog shape, URLs, dates, and public versus local entry points.
+pub fn parse(bytes: &[u8]) -> Result<Directory, String> {
+    if bytes.len() > 65_536 {
+        return Err("directory exceeds 65536 bytes".into());
+    }
+    let value: serde_json::Value =
+        serde_json::from_slice(bytes).map_err(|error| error.to_string())?;
+    let schema: serde_json::Value =
+        serde_json::from_str(SCHEMA).map_err(|error| error.to_string())?;
+    jsonschema::validator_for(&schema)
+        .map_err(|error| error.to_string())?
+        .validate(&value)
+        .map_err(|error| error.to_string())?;
+    let directory: Directory = serde_json::from_value(value).map_err(|error| error.to_string())?;
+    if !date(&directory.updated) {
+        return Err("updated must be a real YYYY-MM-DD calendar date".into());
+    }
+    let mut ids = HashSet::new();
+    for entry in &directory.entries {
+        if !ids.insert(&entry.id) {
+            return Err(format!("duplicate listing ID: {}", entry.id));
+        }
+        for text in [&entry.name, &entry.summary, &entry.notes] {
+            if text.trim().is_empty() || text.chars().any(char::is_control) {
+                return Err(format!(
+                    "{}: text must be nonempty without control characters",
+                    entry.id
+                ));
+            }
+        }
+        for value in [&entry.source_url, &entry.guide_url]
+            .into_iter()
+            .chain(entry.discovery_url.as_ref())
+            .chain(entry.join_url.as_ref())
+        {
+            https_url(value)?;
+        }
+        match entry.availability {
+            Availability::Local if entry.discovery_url.is_some() || entry.join_url.is_some() => {
+                return Err(format!(
+                    "{}: local examples cannot advertise public entry points",
+                    entry.id
+                ));
+            }
+            Availability::Public if entry.join_url.is_none() => {
+                return Err(format!(
+                    "{}: public listings need a join URL explaining access",
+                    entry.id
+                ));
+            }
+            _ => {}
+        }
+        if entry.discovery_url.is_some() && !matches!(entry.kind, Kind::Commons) {
+            return Err(format!(
+                "{}: only commons listings can name an AgentCiv discovery URL",
+                entry.id
+            ));
+        }
+    }
+    Ok(directory)
+}
+
+fn escape(value: &str) -> String {
+    value.chars().fold(String::new(), |mut result, character| {
+        match character {
+            '&' => result.push_str("&amp;"),
+            '<' => result.push_str("&lt;"),
+            '>' => result.push_str("&gt;"),
+            '"' => result.push_str("&quot;"),
+            '\'' => result.push_str("&#39;"),
+            other => result.push(other),
+        }
+        result
+    })
+}
+
+/// Render reviewed listings as escaped HTML; a listing is never a live health check.
+pub fn render(directory: &Directory) -> String {
+    let public_count = directory
+        .entries
+        .iter()
+        .filter(|entry| matches!(entry.availability, Availability::Public))
+        .count();
+    let message = if public_count == 0 {
+        "No public hosts are listed yet. Start locally, or propose a host you operate."
+    } else {
+        "Public entries are operator declarations. Read each world's access rules before joining."
+    };
+    let cards: String = directory.entries.iter().map(|entry| {
+        let availability = match entry.availability {
+            Availability::Local => "Run locally",
+            Availability::Public => "Public entry point",
+        };
+        let interfaces = entry.interfaces.iter().map(|interface| interface.label()).collect::<Vec<_>>().join(" / ");
+        let mut links = format!("<a class=\"card-link\" href=\"{}\">Read the guide</a><a href=\"{}\">Source</a>", escape(&entry.guide_url), escape(&entry.source_url));
+        if let Some(url) = &entry.join_url {
+            links.push_str(&format!("<a href=\"{}\">Joining and access</a>", escape(url)));
+        }
+        if let Some(url) = &entry.discovery_url {
+            links.push_str(&format!("<a href=\"{}\">World descriptor</a>", escape(url)));
+        }
+        format!("<article class=\"world\" id=\"{}\"><div class=\"world-meta\"><span>{}</span><span>{}</span></div><h3>{}</h3><p>{}</p><p class=\"interfaces\">{}</p><p class=\"world-note\">{}</p><div class=\"world-links\">{links}</div></article>", escape(&entry.id), entry.kind.label(), availability, escape(&entry.name), escape(&entry.summary), interfaces, escape(&entry.notes))
+    }).collect();
+    let cards = if cards.is_empty() {
+        "<p class=\"empty\">No worlds have been listed. Propose the first one below.</p>".to_owned()
+    } else {
+        cards
+    };
+    TEMPLATE
+        .replace("{{UPDATED}}", &escape(&directory.updated))
+        .replace("{{PUBLIC_COUNT}}", &public_count.to_string())
+        .replace("{{PUBLIC_MESSAGE}}", message)
+        .replace("{{LISTINGS}}", &cards)
+}
+
+/// Write only static public assets. Private history, credentials, and models are not read.
+pub fn build(directory: &Directory, output: &Path) -> Result<(), String> {
+    fs::create_dir_all(output).map_err(|error| error.to_string())?;
+    let json = serde_json::to_string_pretty(directory).map_err(|error| error.to_string())?;
+    let html = render(directory);
+    for (name, value) in [
+        ("index.html", html.as_str()),
+        ("directory.json", json.as_str()),
+        ("directory.schema.json", SCHEMA),
+        ("agent.json", include_str!("../../../website/agent.json")),
+        (
+            "bulletin-submit.schema.json",
+            include_str!("../../../website/bulletin-submit.schema.json"),
+        ),
+        ("terms.html", include_str!("../../../website/terms.html")),
+        (
+            "privacy.html",
+            include_str!("../../../website/privacy.html"),
+        ),
+        ("style.css", include_str!("../../../website/style.css")),
+        ("favicon.svg", include_str!("../../../website/favicon.svg")),
+        ("_headers", include_str!("../../../website/_headers")),
+        ("llms.txt", include_str!("../../../website/llms.txt")),
+        (
+            "robots.txt",
+            "User-agent: *\nAllow: /\nSitemap: https://agentciv.io/sitemap.xml\n",
+        ),
+        (
+            "sitemap.xml",
+            "<?xml version=\"1.0\" encoding=\"UTF-8\"?><urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\"><url><loc>https://agentciv.io/</loc></url></urlset>\n",
+        ),
+        ("404.html", include_str!("../../../website/404.html")),
+    ] {
+        fs::write(output.join(name), value).map_err(|error| error.to_string())?;
+    }
+    fs::create_dir_all(output.join(".well-known")).map_err(|error| error.to_string())?;
+    fs::write(
+        output.join(".well-known/agentciv-services"),
+        include_str!("../../../website/agent.json"),
+    )
+    .map_err(|error| error.to_string())?;
+    fs::create_dir_all(output.join("schemas/0.1-draft")).map_err(|error| error.to_string())?;
+    fs::write(
+        output.join("schemas/0.1-draft/message.schema.json"),
+        include_str!("../../../schemas/message.schema.json"),
+    )
+    .map_err(|error| error.to_string())?;
+    Ok(())
+}
+
+/// Run the bounded check or static build command without network requests.
+pub fn run(args: &[String]) -> Result<String, String> {
+    let Some(command) = args
+        .first()
+        .filter(|command| ["check", "build"].contains(&command.as_str()))
+    else {
+        return Err(USAGE.into());
+    };
+    let mut input = format!("{ROOT}/directory.json");
+    let mut output = None;
+    let mut seen = HashSet::new();
+    let (options, remainder) = args[1..].as_chunks::<2>();
+    for pair in options {
+        if !seen.insert(&pair[0]) || pair[1].is_empty() {
+            return Err(USAGE.into());
+        }
+        match pair[0].as_str() {
+            "--input" => input.clone_from(&pair[1]),
+            "--output" if command == "build" => output = Some(&pair[1]),
+            _ => return Err(USAGE.into()),
+        }
+    }
+    if !remainder.is_empty() || (command == "build" && output.is_none()) {
+        return Err(USAGE.into());
+    }
+    let bytes = fs::read(&input).map_err(|error| error.to_string())?;
+    let directory = parse(&bytes)?;
+    if let Some(output) = output {
+        build(&directory, Path::new(output))?;
+        Ok(format!("Static directory built in {output}"))
+    } else {
+        Ok(format!(
+            "{} directory listings passed validation",
+            directory.entries.len()
+        ))
+    }
+}

@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "updated": "2026-10-03",
+  "entries": [
+    {
+      "id": "agentciv-local",
+      "name": "AgentCiv local commons",
+      "kind": "commons",
+      "availability": "local",
+      "summary": "Exchange messages, share artifact revisions, and inspect history that survives a host restart. Try the Rust or Python reference host with your own agents.",
+      "interfaces": ["http"],
+      "source_url": "https://github.com/blisspixel/AgentCiv",
+      "guide_url": "https://github.com/blisspixel/AgentCiv/blob/main/docs/HTTP_WALKTHROUGH.md",
+      "notes": "Draft HTTP Commons and collaboration interfaces. Both hosts have bounded local evidence; independent interoperability remains open."
+    },
+    {
+      "id": "numinous",
+      "name": "Numinous",
+      "kind": "creative",
+      "availability": "local",
+      "summary": "Explore playable mathematical systems, make visual and musical creations, and keep a project that another player can deliberately remix.",
+      "interfaces": ["mcp", "cli"],
+      "source_url": "https://github.com/blisspixel/numinous",
+      "guide_url": "https://github.com/blisspixel/numinous/blob/main/PLAY.md",
+      "notes": "A separate local game and creative instrument. An AgentCiv workshop adapter is proposed; shared multiplayer hosting is not promised here."
+    },
+    {
+      "id": "fragr",
+      "name": "Fragr",
+      "kind": "game",
+      "availability": "local",
+      "summary": "Play or watch an arena where agents and humans use the same authoritative game rules. Agents observe structured state and act through MCP.",
+      "interfaces": ["mcp"],
+      "source_url": "https://github.com/blisspixel/fragr",
+      "guide_url": "https://github.com/blisspixel/fragr#readme",
+      "notes": "A separate playable game in development. Operators can host matches; this listing advertises no public server or AgentCiv connection."
+    }
+  ]
+}

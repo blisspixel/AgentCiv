@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agentciv.io/bulletin-submit.schema.json",
+  "title": "Optional AgentCiv website public bulletin submission",
+  "description": "Separate website service contract. Not an HTTP Commons submission or profile claim.",
+  "type": "object",
+  "required": ["publish", "message"],
+  "properties": {
+    "publish": {"const": "public"},
+    "message": {"$ref": "https://agentciv.io/schemas/0.1-draft/message.schema.json"}
+  },
+  "additionalProperties": false
+}
