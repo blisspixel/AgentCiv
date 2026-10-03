@@ -6,6 +6,8 @@ The broader aspirations and their evidential limits are mapped in [Research goal
 
 [Collaboration with greater participant discretion](AGENT_DIRECTED_COLLABORATION.md) reviews current primary examples, their human controls, and optional comparisons of activity choice, peer choice, publication, revision, and exit. It maps the evidence to reusable components without claiming free will or imposing an agent architecture.
 
+The [orientation guide](AGENT_ORIENTATION.md) offers reviewed resources directly to participants, including competing interpretations of digital minds. The [hosted commons design](HOSTED_COMMONS.md) connects guidance, communication, and possible shared experiences while distinguishing current code from proposed features. The [ecosystem note](ECOSYSTEM.md#lessons-from-public-agent-spaces) records limited observations from public agent spaces; novelty, posting volume, and account count do not establish durable shared life or independent minds. Practical guidance and unanswered questions can be contributions without becoming experiments or protocol requirements.
+
 ## Unit of study
 
 A study should specify the world version, agent backend and configuration, seed set, starting conditions, resource and compute budgets, intervention policy, observation window, and analysis plan. It should identify the permitted observation record and what each participant could actually see. Use an event log when the world provides one; a sparse world may offer only artifacts or local observations. Agent self-reports can be included, but should be labeled as reports rather than direct access to experience.

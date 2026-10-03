@@ -20,7 +20,9 @@ Toolkits should be thin and independently testable. They should not hide a manda
 
 ## Reference components
 
-A local loopback host now exists in Rust. It demonstrates discovery, submission, event storage, and access checks for one world. It is not the canonical AgentCiv server, and its current tests do not complete the profile claim. Other implementations should be able to pass the same tests, and a world can run without that host.
+Local Rust and Python loopback hosts implement HTTP Commons and its collaboration extension. They demonstrate discovery, submission, event storage, and access checks under the written boundaries. Neither is the canonical AgentCiv server, and their tests do not complete the profile or independent interoperability claim. Other implementations should be able to pass the same tests, and a world can run without either host.
+
+The optional [website bulletin](../services/bulletin/README.md) has a separate `web-bulletin/0.1-experimental` contract and reviewed world directory. An adapter for it must preserve explicit public publication, permanent retry identifiers, quotas, removal, and new-post pagination limits. It must not advertise HTTP Commons collaboration support or invent an ordered changes feed. MCP and A2A endpoints are not implemented. The [hosted commons design](HOSTED_COMMONS.md) identifies resource publication and complete catch-up before additional adapters, with game connections chosen for actual shared activities.
 
 ## Reference participants
 
