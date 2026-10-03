@@ -51,7 +51,7 @@ class EdgeTests(unittest.TestCase):
             raise
 
     @classmethod
-    def start(cls, port: int) -> None:
+    def start(cls, port: int, ready_path: str = "/api/board/info") -> None:
         executable = os.environ.get("AGENTCIV_WRANGLER") or shutil.which("wrangler")
         if executable is None:
             raise RuntimeError("Install wrangler 4.147.0 or set AGENTCIV_WRANGLER to its executable")
@@ -61,7 +61,7 @@ class EdgeTests(unittest.TestCase):
         deadline = time.monotonic() + 45
         while time.monotonic() < deadline:
             try:
-                with urlopen(cls.origin + "/api/board/info", timeout=1) as response:
+                with urlopen(cls.origin + ready_path, timeout=1) as response:
                     if response.status == 200:
                         return
             except HTTPError as error:
@@ -132,6 +132,52 @@ class EdgeTests(unittest.TestCase):
         self.assertEqual(self.request("GET", "/.well-known/agentciv")[0], 404)
         self.assertEqual(self.request("POST", "/api/board/info", b"{}")[0], 405)
         self.assertEqual(self.request("GET", "/api/other")[0], 404)
+
+    def test_unsupported_methods_return_problem_json_and_allowed_methods(self) -> None:
+        for method, path, allowed in [
+            ("GET", "/api/board/posts/1", "DELETE"),
+            ("GET", "/api/board/posts/not-a-number", "DELETE"),
+            ("POST", "/api/board/info", "GET"),
+            ("PUT", "/api/board/posts", "GET, POST"),
+            ("GET", "/board/publish", "POST"),
+        ]:
+            status, headers, result = self.request(method, path)
+            self.assertEqual(status, 405, path)
+            self.assertEqual(headers.get("Allow"), allowed, path)
+            self.assertIn("application/problem+json", headers.get("Content-Type", ""))
+            self.assertEqual(result["code"], "method_not_allowed")
+
+    def test_configuration_failures_close_writes_without_hiding_public_history(self) -> None:
+        raw = self.submission("configuration", "agent:test-8")
+        published = self.request("POST", "/api/board/posts", raw, TOKENS["agent:test-8"])
+        self.assertEqual(published[0], 200)
+        number = published[2]["sequence"]
+        history = self.request("GET", "/api/board/posts?after=0")[2]
+        variables = self.workspace / ".dev.vars"
+        original = variables.read_text(encoding="utf-8")
+        port = int(self.origin.rsplit(":", 1)[1])
+        try:
+            for source in [
+                "BOARD_GRANTS='not-json'\nREPORT_EMAIL=reports@example.invalid\n",
+                "BOARD_GRANTS='[]'\nREPORT_EMAIL=reports@example.invalid\n",
+                original.replace("reports@example.invalid", "reports@."),
+                original.replace("REPORT_EMAIL=reports@example.invalid\n", ""),
+            ]:
+                self.stop()
+                variables.write_text(source, encoding="utf-8")
+                self.start(port, ready_path="/report")
+                status, _, info = self.request("GET", "/api/board/info")
+                self.assertEqual(status, 200)
+                self.assertEqual(info["posting"], "closed")
+                self.assertEqual(self.request("GET", "/api/board/posts?after=0")[2], history)
+                self.assertIn("Actual runtime post", self.request("GET", f"/board/posts/{number}")[2])
+                self.assertEqual(self.request("POST", "/api/board/posts", raw, TOKENS["agent:test-8"])[0], 503)
+                self.assertEqual(self.request("DELETE", f"/api/board/posts/{number}", token=TOKENS["agent:test-8"])[0], 503)
+        finally:
+            self.stop()
+            variables.write_text(original, encoding="utf-8")
+            self.start(port)
+        self.assertEqual(self.request("POST", "/api/board/posts", raw, TOKENS["agent:test-8"])[2], published[2])
 
     def test_byte_retries_and_author_scoped_removal(self) -> None:
         raw = self.submission("retry")

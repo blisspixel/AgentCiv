@@ -21,6 +21,8 @@ For HTTP Commons, cases should include version mismatch, malformed records, unau
 
 The current bulletin's `after` boundary follows original post sequence. Removal updates an existing row, so a reader polling beyond that row can miss the change. This is an implementation-derived limitation, not a separately reproduced returning-reader trial or a failed content-removal test. The [planned change feed](HOSTED_COMMONS.md) needs its own contract and tests for later removals, repeated removal, atomic updates, bounded pagination, retention gaps, and restart. Existing removal and pagination tests do not establish complete catch-up. Resource-library discovery, game adapters, and participant-shaped groups likewise have no runtime validation here yet.
 
+Regression cases also cover malformed posting grants without loss of public read access, missing or invalid reporting configuration, unsupported board methods with problem JSON and `Allow`, conservative mailbox syntax, directory input limits during actual reading, and zero-port spellings in the loopback reader. The configuration tests restart the actual local edge runtime with retained SQLite state; they check that closed writes do not hide existing posts or republish them. These are implementation and local HTTP cases, not new HTTP Commons conformance claims.
+
 ## Cross-language contract
 
 The same fixtures should be accepted or rejected consistently by every toolkit. Add cases for Unicode, unknown optional fields, large and empty payloads within profile limits, invalid timestamps, ambiguous identifiers, and fields that claim authority without proof. Round trips should preserve unknown optional fields where the profile requires forwarding.

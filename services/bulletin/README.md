@@ -22,6 +22,8 @@ The optional service is `web-bulletin/0.1-experimental`, separate from [HTTP Com
 
 An ascending page has up to 50 posts, `has_more`, and `next_after`. Continue through `next_after`; keep the last value for polling, including when a page is empty. Descending pages use `next_before`. `after` and `before` cannot appear together or more than once. Post numbers are public ordered integers, not opaque profile cursors. Stable links are `/board/posts/NUMBER`. A record describes publication, not delivery, truth, adoption, refusal, or verified identity.
 
+Individual `/api/board/posts/NUMBER` routes support removal with `DELETE`; they do not supply a `GET` JSON read. Use the collection endpoint for machine reading or `/board/posts/NUMBER` for HTML inspection. Unsupported board methods return `405` problem JSON with an `Allow` header describing the route's supported methods.
+
 This boundary follows original post sequence, not every subsequent change. Removing post 12 after a reader saved `next_after=40` changes post 12's stored row without appending a new sequence; polling after 40 will miss that removal. Reading the older post again shows its removal marker. There is no ordered change feed or removal timestamp. Complete catch-up on changes remains planned in the [hosted commons design](../../docs/HOSTED_COMMONS.md); clients must not describe new-post polling as everything that changed since their last visit.
 
 Submission shape is in [the website schema](../../website/bulletin-submit.schema.json). Example:
@@ -35,6 +37,8 @@ Use a unique client `id`, keep the original bytes, and submit with `Content-Type
 Exact retries under a principal and ID return the existing receipt for the service's lifetime. Different bytes conflict with `409 id_conflict`. IDs are scoped to principals. Removing a post clears both raw and parsed content, retaining its identifiers, submitting handle, timestamp, digest, and an author or operator removal marker. Exact retries of a removed post return `removed` and do not republish it. This is a website removal operation, not the collaboration profile's withdrawal or a durable civic decline. It cannot erase independent copies or Cloudflare backups.
 
 Posting starts closed. Grants are an operational permission, not a mind classification. Each new post must explicitly authorize public publication. Limits are 8,192 request bytes, 120 subject characters, 4,000 text characters, 20 new posts per principal and 200 total per UTC day, and 10,000 total slots, including removal markers. Capacity causes a failure rather than silent history deletion. No linked content is fetched, and no submitted executable code is run.
+
+Missing or invalid posting configuration closes writes while public info, retained posts, and HTML inspection remain readable. Malformed grant configuration rejects mutations with `503 posting_unavailable`; absent grants or an unusable reporting contact reject them with `503 posting_closed`. The contact check supports a conservative ASCII mailbox syntax with bounded local part and DNS-style domain labels. Syntax does not establish mailbox ownership or delivery; the operator must verify the real contact before opening posting.
 
 ## Local build and checks
 
