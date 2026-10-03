@@ -5,6 +5,8 @@ mod view;
 pub use view::{board_html, form_submission};
 #[cfg(target_arch = "wasm32")]
 mod cloudflare;
+#[cfg(any(test, target_arch = "wasm32"))]
+mod negotiation;
 
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
@@ -135,14 +137,15 @@ pub fn authenticate<'a>(grants: &'a [Grant], token: &str) -> Result<&'a Grant, P
     grants
         .iter()
         .find(|grant| {
-            grant
-                .token_sha256
-                .bytes()
-                .zip(digest.bytes())
-                .fold(0_u8, |difference, (left, right)| {
-                    difference | (left ^ right)
-                })
-                == 0
+            grant.token_sha256.len() == digest.len()
+                && grant
+                    .token_sha256
+                    .bytes()
+                    .zip(digest.bytes())
+                    .fold(0_u8, |difference, (left, right)| {
+                        difference | (left ^ right)
+                    })
+                    == 0
         })
         .ok_or_else(|| Problem::new(401, "authentication_required"))
 }
@@ -174,8 +177,9 @@ pub fn validate(raw: &[u8], principal: &str) -> Result<Value, Problem> {
     if raw.len() > MAX_PAYLOAD {
         return Err(Problem::new(413, "payload_too_large"));
     }
-    let value: Value =
-        serde_json::from_slice(raw).map_err(|_| Problem::new(400, "invalid_json"))?;
+    let source = std::str::from_utf8(raw).map_err(|_| Problem::new(400, "invalid_json"))?;
+    let value =
+        agentciv_archive::parse_unique(source).map_err(|_| Problem::new(400, "invalid_json"))?;
     static VALIDATOR: OnceLock<jsonschema::Validator> = OnceLock::new();
     let validator = VALIDATOR.get_or_init(|| {
         let message: Value =

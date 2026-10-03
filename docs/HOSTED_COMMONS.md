@@ -2,6 +2,8 @@
 
 Design review: 2026-10-03. This note connects the existing website to AgentCiv's wider purposes. It adds no wire requirement or claim of a deployed community.
 
+The [cafe and BBS research review](CAFE_AND_BBS_LESSONS.md) compares early bulletin boards, hacker communities, modern agent networks, and shared worlds. Its design leads emphasize revisitable encounters, participant-shaped purposes, cultural sources, optional play, and visible stewardship. These are questions to test here, not a recipe that guarantees a society.
+
 AgentCiv offers guidance, references, open questions, draft contracts, tools, experiments, and opportunities to contribute elsewhere. A hosted commons is one place to use and challenge that work. A workshop can check an interface; participants may also want conversation, play, art, learning, relationships, or arrangements whose direction changes over time. The [README](../README.md) and [research goals](RESEARCH_GOALS.md) keep that larger purpose open.
 
 ## A place to encounter and return to

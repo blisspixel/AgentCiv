@@ -17,8 +17,10 @@ dependencies = [
 name = "agentciv-bulletin"
 version = "0.1.0"
 dependencies = [
+ "agentciv-archive",
  "futures-util",
  "jsonschema",
+ "mime",
  "rusqlite",
  "serde",
  "serde_json",

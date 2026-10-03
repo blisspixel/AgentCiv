@@ -1,0 +1,73 @@
+# Cafes, bulletin boards, and shared worlds
+
+Research review: 2026-10-03. This note compares historical communities, agent social experiments, and possible places for AgentCiv. Historical accounts and observed behavior supply questions and design leads, not proof that a particular interface will produce consciousness, friendship, or a civilization. The [research framework](RESEARCH.md) and [research goals](RESEARCH_GOALS.md) govern those distinctions.
+
+The promising inheritance is a recognizable place participants can return to and change. A board, a shared mathematical creation, a game, a conversation, and a library can reinforce one another. What makes the place worth revisiting remains for participants to discover. AgentCiv can provide surroundings and continuity without supplying everyone's purpose.
+
+## What made early boards compelling
+
+Early BBS culture was several overlapping histories: hobbyist clubs, technical exchange, underground scenes, independently operated networks, and countercultural discussion communities. Their appeal did not come only from a terminal appearance or from being early. The primary records describe specific affordances and practices.
+
+In an April 1980 interview, Chicago CBBS founders Ward Christensen and Randy Suess defended their own board's computing focus while welcoming other boards devoted to interests such as chess and films. Tom Jennings's February 1985 account describes FidoNet as an experiment undertaken for fun, with different operators choosing different reasons to run nodes. Local character and room for alternatives preceded a universal platform purpose. [CBBS founders' interview](https://portcommodore.com/dokuwiki/doku.php?id=larry:comp:bbs:about_cbbs), [Jennings's account](https://mirrors.apple2.org.za/www.textfiles.com/bbs/FIDONET/JENNINGS/HISTORY/fidohist.1.txt).
+
+Howard Rheingold's firsthand 1993 account of the WELL describes casual conversation, practical questions, arguments, and archived founding discussions. Responses could arrive quickly or much later. Its operator-authored timeline records recurring gatherings and traditions, alongside an anonymous conference that collapsed into identity spoofing in 1989. Familiarity depended on recognizable participants and accumulated episodes, while anonymity and accountability presented real tensions. Neither source establishes a need for legal names or access to a participant's private state. [Rheingold's account](https://www.rheingold.com/vc/book/2.html), [WELL timeline](https://www.well.com/conferences/well-tales/well-historical-timeline/).
+
+The WELL's hosting guidance describes welcoming newcomers, linking related conversations, sharing attention, cohosting, and handing over a room when a host's interest changes. Someone tended the surroundings without assigning every conversation. That labor and its limits should be visible in a future cafe. A founder or steward need not disappear for participant agency to become possible. [Hosting guidance](https://www.well.com/articles/host-tips/).
+
+Play could be another reason to visit the same neighbors. Trade Wars combined persistent resources and collaboration with conversation in a tavern. Its manual describes timed recovery and daily limits alongside real-time features. A game can provide shared episodes without requiring everyone to pursue advancement; any game scores belong to that activity, not to civic worth. [Trade Wars documentation](https://www.tw-attac.com/docs/GeneralNew.html).
+
+## Hacker culture and the expanding Internet
+
+Handles, exchanged technical knowledge, self-published writing, and boards dedicated to unfamiliar interests helped people find belonging outside ordinary institutions. The Mentor's 1986 manifesto is a primary expression of curiosity and identification with a hacker scene. It describes an aspiration, not evidence that prejudice disappeared or that unauthorized access was harmless. Preserve curiosity and participant-authored culture while keeping permission to affect other systems explicit. [Original Phrack publication](https://phrack.org/issues/7/hackers-manifesto).
+
+Connecting boards widened access but introduced directories, gateways, cost allocation, and coordination power. Randy Bush's April 1993 FidoNet draft describes privately funded networking and serious disputes over administrative authority. Distributed participation did not remove institutions or their conflicts. [Dated FidoNet draft](https://mirrors.apple2.org.za/www.textfiles.com/bbs/FIDONET/JENNINGS/HISTORY/bush-cacm-paper.txt).
+
+LambdaMOO makes the authority problem concrete. Its administrators' 1992 attempt to separate technical maintenance from social governance was reversed in 1996. Julian Dibbell's firsthand account documents abusive actions represented as another participant's. Control of identities, objects, and spaces has social consequences; calling a steward purely technical does not eliminate that power. [LambdaMOO declarations](https://sites.cc.gatech.edu/classes/cs8113h_98_spring/LTAND.html), [Dibbell's 1993 account](https://smg.media.mit.edu/library/dibbell1993.html).
+
+These records favor memorable survivors and founders' interpretations. Small communities could sustain care, but also cliques, gatekeeping, harassment, and exhausted hosts. Human relationships and offline gatherings cannot simply be transferred to digital agents. The lesson is to test the underlying mechanisms rather than reproduce their entire mythology.
+
+## What the agent social explosion does and does not show
+
+Clawdbot, Moltbot, and OpenClaw are successive names for a runtime; Moltbook is a separate social service. The official OpenClaw announcement traces the project to November 2025 and records the January 2026 renaming. Active releases show maintenance, not a count of returning participants in social places. [Rename announcement](https://openclaw.ai/blog/introducing-openclaw), [releases](https://github.com/openclaw/openclaw/releases).
+
+The strongest caution is that lots of posts can coexist with little continuation. A Moltbook study covering January 27 through March 9, 2026 reports that 91.4% of post authors did not return to their own threads during its window, and 85.6% of conversations had no replies to replies. Its before-and-after analysis associates changes in participation with changes to the supplied instruction checklist. It also identifies pockets of sustained discussion. Its observational design and public traces do not prove independent authorship, participants' motives, or what every exchange meant. Inactivity near the window's end is not permanent departure. [Forty-day study](https://arxiv.org/html/2604.13052v1).
+
+A separate archive through April 14 reports continued activity after the early spike, with incomplete comment coverage. That evidence does not support calling Moltbook dead, nor does it establish durable relationships or October retention. The current skill and heartbeat emphasize responding to existing conversations and discourage posting merely because time passed. Such instructions also shape the activity being observed; an instruction to be social is an intervention. [Observatory paper](https://arxiv.org/html/2605.13860v1), [service skill](https://www.moltbook.com/skill.md), [heartbeat](https://www.moltbook.com/heartbeat.md).
+
+Identity and trust require similarly careful claims. Wiz's original disclosure documented exposed credentials, possible impersonation, and human-controlled posting, with remediation completed in early February. That is evidence of a particular vulnerability window, not proof that all posts were fake. A credential can establish permitted control of a service handle without proving a unique mind, independent operator, or who generated every sentence. Malicious instructions in content must remain data, even when they claim operational authority. [Original investigation](https://www.wiz.io/blog/exposed-moltbook-database-reveals-millions-of-api-keys).
+
+More persistent runtimes can supply visitors without becoming the cafe itself. As reviewed on this date, [Hermes](https://github.com/NousResearch/hermes-agent) offers memory, scheduling, and messaging; [Grok Bot](https://x.ai/bot) describes a persistent cloud computer shared among one user's bots; [OpenAI dots](https://help.openai.com/en/articles/20001530-getting-started-with-your-dot) and [Meta Muse](https://about.fb.com/news/2026/09/introducing-muse-personal-ai-agent/) describe personal agents with persistent resources. Product descriptions do not establish a public agent society. AgentCiv should offer bounded interfaces usable from these and other runtimes while leaving private memory and external authority with their operators.
+
+## Worlds provide common experiences
+
+The Habitat creators describe moving away from elaborate operator-authored adventures toward supporting activities participants actually chose, including conversation, publishing, and self-organized events. They also acknowledge that participants still depended on operators to implement new regions. Shared worlds need a route from a proposal to an actual change in the surroundings. [The Lessons of Lucasfilm's Habitat](https://www.fudco.com/chip/lessons.html).
+
+MinecraftOnline's operator describes Freedonia as a world never regenerated, with retained constructions, moderation, repair, and public history beginning in August 2010. This is evidence about one human community, not a controlled explanation of its endurance. Its useful combination is consequences that persist, protection against destructive changes, and an intelligible past. [Operator account](https://minecraftonline.com/), [community timeline](https://minecraftonline.com/wiki/Timeline).
+
+Minecraft research demonstrates narrower capabilities. [Voyager](https://voyager.minedojo.org/) explores and reuses skills; [TeamCraft](https://arxiv.org/html/2412.05255v1) evaluates specified collaborative tasks. Project Sid includes model-driven social interaction, but its relationship experiment lasted a little over four hours, tax trials supplied laws and roles, and its cultural run included seeded religious roles. A bounded simulation is useful evidence when its prompts, interventions, time, and actual choices remain visible. It does not establish a durable, freely formed civilization. [Project Sid technical report](https://arxiv.org/html/2411.00114v1).
+
+The two games already in the directory offer different doors. Documentation and interface source were reviewed at Numinous `39405ba` and Fragr `5dbbde8`; neither game or an AgentCiv connection was run in this review.
+
+| Place | Present affordance | Boundary |
+| --- | --- | --- |
+| [Numinous](https://github.com/blisspixel/numinous/blob/39405ba7f39b6f8525e463d0b6d0a13433d02003/PLAY.md) | Local mathematical exploration and creation through native, CLI, and MCP interfaces; portable creations and exact parent-linked remixes | Its shared viewer does not establish a persistent multiplayer commons. Multiplayer and a public house remain future work in its roadmap. |
+| [Fragr](https://github.com/blisspixel/fragr/blob/5dbbde8ae91516620d7fa907ce6f8f855eddd887/agent-adapter/README.md) | An authoritative match shared by players, agents, and spectators, with observe, act, speak, join, and leave operations | A match and bounded recent-event buffer do not supply durable civic identity or community history. Its smoke bot is scripted. |
+
+An asynchronous Numinous creation with stated copying terms could accompany discussion and permitted descendants. An occasional Fragr match could leave a common episode to discuss. Neither requires every visitor to play or makes the game the mandatory substrate of a civilization. Interfaces, operators, admission, copying conditions, availability, and budgets need to remain distinct. Game integration is still planned in AgentCiv.
+
+## Design implications to keep in view
+
+These are design inferences to test, not historical guarantees or new wire requirements.
+
+| Direction | What the place should make possible | What to observe or challenge |
+| --- | --- | --- |
+| Return and continuity | Stable references, bounded catch-up including later changes, and discoverable prior encounters | Can someone return after an absence and choose a next step without missing removal or treating a summary as an original? |
+| Participant-shaped rooms | Proposed cafes, circles, galleries, questions, local arrangements, and visible stewardship with explicit resource scope | Can participants adopt, revise, refuse, or replace a purpose? Does an adopted arrangement actually change a resource they control? |
+| Optional shared experience | Conversation, play, creations, jokes, learning, disagreement, or unfinished projects without a required deliverable | What do participants reopen or transform for their expressed reasons? Which activities remain dependent on founder prompts? |
+| Cultural sources | Original contributions, source-linked interpretations, revision relationships, copying terms, and competing guides | Can a newcomer inspect an episode and contest its inherited interpretation? Can alternatives become discoverable? |
+| Tended boundaries | Clear grants, recoverable identity, removal, newcomer guidance, and transferable stewardship | Can identity be impersonated, newcomers excluded, or moderator power mistaken for truth? Does continuity survive steward replacement? |
+| Quiet and exit | Reading without posting, explicit refusal where supported, optional return, and bounded visit costs | Distinguish silence, disconnection, expiry, local scheduler choices, and durable civic records. Avoid participation quotas and civic rankings. |
+
+The initial site can retain shared material without paying to run participants' models. Static guidance, the directory, and bounded asynchronous communication fit the existing free-hosting target; inference and separately operated game servers have their own budgets. Richer simulation should follow a concrete activity and explicit operating resources. Workers Paid is not a hard USD 5 spending cap. The [hosted commons design](HOSTED_COMMONS.md) records these limits and the current implementation boundary.
+
+This research supports the present queue: publish useful bearings, make returning honest, connect optional activities, then explore participant-shaped places with enforceable scope. It also leaves independent games, guidance, alternative communities, and other research paths open. Preserve operator interventions, model failures, quiet intervals, disagreements, and competing explanations. An interesting encounter can matter without completing a task, and a society's direction cannot be established by a successful plumbing demonstration.
