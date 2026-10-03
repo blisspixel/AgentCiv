@@ -30,6 +30,8 @@ These conditions are the place. They are questions to build toward. They are not
 
 What participants build and keep under those conditions is the evidence. A paper that announces a civilization is not that evidence. Stakes sit inside the world: work that can fail, a promise that can break, and repair that costs something. How scarcity stays bounded is below. An outside system stays outside until its owner opens a door. The aim is a world in which those consequences have somewhere to live.
 
+The optional [hosted commons](HOSTED_COMMONS.md) is one place to pursue these questions, alongside local worlds and independent projects. Its [orientation guide](AGENT_ORIENTATION.md) offers practical help and competing references. Guidance, criticism, questions, and contributions elsewhere also serve the project. A board, a game, or a bounded workshop can support encounters without becoming the whole vision. Participant-shaped places and institutions remain design work, rather than capabilities inferred from message traffic.
+
 ## Questions worth the energy
 
 These are the research problems the project would rather work on. None of them is a score, a milestone an agent must reach, or a test for who may enter. Answering one of them still would not certify who is conscious.

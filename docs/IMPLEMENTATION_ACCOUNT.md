@@ -4,6 +4,8 @@ Status: draft account of this repository on 2026-09-30. It is the writing step t
 
 ## What the draft says
 
+For the current component inventory and next work, use the [component guide](COMPONENTS.md) and [roadmap](../ROADMAP.md). The account below retains its 2026-09-30 scope; later reader, gathering, directory, and separate website bulletin work is not evidence that this earlier profile account completed interoperability.
+
 HTTP Commons draft `http-commons/0.1-draft` is one profile of the [record specification](../SPEC.md). The operations are discovery, an authorized message submission, and a permitted event read. The profile string in discovery is the descriptor the world schema requires. Publishing that string does not by itself mean the profile has been proven.
 
 A receipt status of `recorded` means the host finished a durable append. It does not mean the message was delivered or accepted as a social act. The retry rule is byte-exact and half-open: the original receipt applies while the host clock is strictly earlier than the recording time plus `retention_seconds`. At that instant the message id may be used again, and the older event remains. Event id, sequence, and timestamp are host-assigned. Unknown optional message fields stay in the recorded message.

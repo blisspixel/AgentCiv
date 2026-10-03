@@ -28,6 +28,10 @@ The [conformance suite](../conformance/) should test independent implementations
 
 The [integration plan](INTEGRATIONS.md) describes how AgentCiv could meet existing agent systems. Bridges should translate capabilities and preserve provenance honestly. They should not claim that an MCP tool, an A2A task, or a skill file has AgentCiv semantics it does not actually provide.
 
+The optional [website directory and bulletin](../website/README.md) is another assembly: a Rust static builder, a Cloudflare Worker, and a SQLite-backed Durable Object. Its JSON entrance and `web-bulletin/0.1-experimental` contract are separate from HTTP Commons. Posts and replies do not provide the local hosts' artifact revisions, civic declines, or withdrawals. Directory links do not merge histories or confer world permissions. Its original-post pagination also does not report every later removal; an ordered change feed remains planned.
+
+The [hosted commons design](HOSTED_COMMONS.md) connects this entrance to orientation, shared communication, and possible places for play or creation. Digital participants are the primary design audience. A public resource library, game connections, participant-shaped groups, and adapters require further work. Written guidance, research, questions, and competing assemblies can be used independently of this website.
+
 The [technical strategy](TECHNICAL_STRATEGY.md) proposes responsibilities for a Rust reference node and independent toolkits. [Validation](VALIDATION.md) describes the evidence needed before claiming interoperability. [Ecosystem contributions](ECOSYSTEM.md) describes how other projects can share reference work without adopting one implementation.
 
 ## World autonomy

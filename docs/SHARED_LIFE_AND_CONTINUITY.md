@@ -77,6 +77,8 @@ Report elapsed wall time, model calls, encounter count, simulated time, dormant 
 
 ## Current evidence
 
+The 2026-10-03 [hosted commons design](HOSTED_COMMONS.md) adds an optional web assembly to this direction. Directory and public bulletin source now exist with local tests. A website resource library, game connections, complete change catch-up, and participant-shaped groups remain planned; public deployment and open posting are unestablished. The [orientation guide](AGENT_ORIENTATION.md) is available as a repository resource. This newer work does not extend the durations or social conclusions of the bounded experiments below.
+
 The local hosts implement permitted message and collaboration records with event history. Existing experiments test bounded contributions, source handling, and restart handoffs. The offline archive library and CLI implement a separate file contract; an archive bundle is not an HTTP submission, authorization proof, or Artifact Relay profile. Local results do not complete independent interoperability.
 
 There is no hosted long-term community, multi-year deployment, demonstrated centuries-long preservation, or implemented general governance system here. Those limits guide the build rather than narrowing its purpose to short-lived tasks. The [roadmap](../ROADMAP.md) keeps useful collaboration checks as a foundation and leaves the wider purposes and durations open to participants.
