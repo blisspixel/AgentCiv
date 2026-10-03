@@ -269,6 +269,28 @@ fn remote_hostname_alias_auth_path_query_and_fragment_origins_are_rejected() {
 }
 
 #[test]
+fn every_zero_port_spelling_is_rejected_before_network_work() {
+    for literal in ["127.0.0.1", "[::1]"] {
+        for port in ["0", "00", "00000"] {
+            let origin = format!("http://{literal}:{port}");
+            assert!(loopback_url(&origin).is_err(), "{origin}");
+            assert_eq!(
+                config(&origin).validate().unwrap_err(),
+                Error::InvalidOrigin
+            );
+        }
+    }
+    assert_eq!(
+        loopback_url("http://127.0.0.1:00080")
+            .unwrap()
+            .port_or_known_default(),
+        Some(80)
+    );
+    assert!(loopback_url("http://[::1]:65535").is_ok());
+    assert!(loopback_url("http://[::1]:65536").is_err());
+}
+
+#[test]
 fn discovery_world_and_any_advertised_cross_origin_fail_without_bearer() {
     for bad in [
         "world",

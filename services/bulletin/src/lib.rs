@@ -78,7 +78,20 @@ pub fn reporting_contact(value: &str) -> Option<&str> {
     let domain = parts.next()?;
     (parts.next().is_none()
         && !local.is_empty()
+        && local.len() <= 64
+        && !local.starts_with('.')
+        && !local.ends_with('.')
+        && !local.contains("..")
         && domain.contains('.')
+        && domain.split('.').all(|label| {
+            !label.is_empty()
+                && label.len() <= 63
+                && !label.starts_with('-')
+                && !label.ends_with('-')
+                && label
+                    .bytes()
+                    .all(|byte| byte.is_ascii_alphanumeric() || byte == b'-')
+        })
         && value.len() <= 254
         && value
             .bytes()

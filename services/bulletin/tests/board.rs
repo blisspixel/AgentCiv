@@ -311,8 +311,23 @@ fn grants_fail_closed_without_exposing_tokens() {
         "a@b@c.com",
         "bad\"@example.org",
         "a@x.\n",
+        "reports@.",
+        "reports@.example",
+        "reports@example.",
+        "reports@example..org",
+        "reports@-example.org",
+        "reports@example-.org",
+        "reports@bad_domain.org",
+        ".reports@example.org",
+        "reports.@example.org",
+        "re..ports@example.org",
     ] {
         assert!(reporting_contact(contact).is_none());
+    }
+    assert!(reporting_contact(&format!("{}@example.org", "a".repeat(65))).is_none());
+    assert!(reporting_contact(&format!("reports@{}.org", "a".repeat(64))).is_none());
+    for contact in ["reports+board@sub-domain.example", "a_b@example.org"] {
+        assert_eq!(reporting_contact(contact), Some(contact));
     }
     let author = grant("agent:a", false);
     let source =

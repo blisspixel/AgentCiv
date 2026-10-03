@@ -95,12 +95,9 @@ impl DurableObject for Bulletin {
             .secret("BOARD_GRANTS")
             .map(|secret| secret.to_string())
             .unwrap_or_else(|_| "[]".into());
-        let grants = match crate::grants(&configured) {
-            Ok(grants) => grants,
-            Err(problem) => return failure(problem),
-        };
+        let grants = crate::grants(&configured);
         // A reporting contact is also required. Do not expose private configuration.
-        let open = !grants.is_empty()
+        let open = grants.as_ref().is_ok_and(|grants| !grants.is_empty())
             && self
                 .env
                 .var("REPORT_EMAIL")
@@ -148,6 +145,10 @@ impl DurableObject for Bulletin {
                 Err(problem) => failure(problem),
             };
         }
+        let grants = match grants {
+            Ok(grants) => grants,
+            Err(problem) => return failure(problem),
+        };
         if !open {
             return failure(Problem::new(503, "posting_closed"));
         }
@@ -266,12 +267,24 @@ pub async fn fetch(mut request: Request, env: Env, _context: Context) -> Result<
         || path.starts_with("/api/board/posts/");
     if board {
         let method = request.method();
-        let allowed = (method == Method::Get && path != "/board/publish")
+        let api_post = path.starts_with("/api/board/posts/");
+        let allowed = (method == Method::Get && path != "/board/publish" && !api_post)
             || (method == Method::Post
                 && ["/board/publish", "/api/board/posts"].contains(&path.as_str()))
-            || (method == Method::Delete && path.starts_with("/api/board/posts/"));
+            || (method == Method::Delete && api_post);
         if !allowed {
-            return failure(Problem::new(405, "method_not_allowed"));
+            let allowed_methods = if api_post {
+                "DELETE"
+            } else if path == "/api/board/posts" {
+                "GET, POST"
+            } else if path == "/board/publish" {
+                "POST"
+            } else {
+                "GET"
+            };
+            let mut result = failure(Problem::new(405, "method_not_allowed"))?;
+            result.headers_mut().set("Allow", allowed_methods)?;
+            return Ok(result);
         }
         // Forward a bounded buffered body. Returning an early DO response must not
         // leave a live request stream crossing the Worker/DO boundary.

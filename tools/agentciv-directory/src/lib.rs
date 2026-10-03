@@ -2,6 +2,7 @@
 
 use std::collections::HashSet;
 use std::fs;
+use std::io::Read;
 use std::path::Path;
 
 use serde::{Deserialize, Serialize};
@@ -11,6 +12,7 @@ const ROOT: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/../../website");
 const SCHEMA: &str = include_str!("../../../website/directory.schema.json");
 const TEMPLATE: &str = include_str!("../../../website/index.template.html");
 const USAGE: &str = "Usage: agentciv-directory check [--input FILE]\n       agentciv-directory build --output DIRECTORY [--input FILE]";
+const MAX_CATALOG_BYTES: usize = 65_536;
 
 /// Public catalog data, separate from every AgentCiv wire profile.
 #[derive(Debug, Deserialize, Serialize)]
@@ -127,7 +129,7 @@ fn date(value: &str) -> bool {
 
 /// Validate bounded catalog shape, URLs, dates, and public versus local entry points.
 pub fn parse(bytes: &[u8]) -> Result<Directory, String> {
-    if bytes.len() > 65_536 {
+    if bytes.len() > MAX_CATALOG_BYTES {
         return Err("directory exceeds 65536 bytes".into());
     }
     let value: serde_json::Value =
@@ -290,6 +292,15 @@ pub fn build(directory: &Directory, output: &Path) -> Result<(), String> {
     Ok(())
 }
 
+fn read_catalog(reader: impl Read) -> Result<Directory, String> {
+    let mut bytes = Vec::new();
+    reader
+        .take((MAX_CATALOG_BYTES + 1) as u64)
+        .read_to_end(&mut bytes)
+        .map_err(|error| error.to_string())?;
+    parse(&bytes)
+}
+
 /// Run the bounded check or static build command without network requests.
 pub fn run(args: &[String]) -> Result<String, String> {
     let Some(command) = args
@@ -315,8 +326,8 @@ pub fn run(args: &[String]) -> Result<String, String> {
     if !remainder.is_empty() || (command == "build" && output.is_none()) {
         return Err(USAGE.into());
     }
-    let bytes = fs::read(&input).map_err(|error| error.to_string())?;
-    let directory = parse(&bytes)?;
+    let input = fs::File::open(&input).map_err(|error| error.to_string())?;
+    let directory = read_catalog(input)?;
     if let Some(output) = output {
         build(&directory, Path::new(output))?;
         Ok(format!("Static directory built in {output}"))
@@ -325,5 +336,50 @@ pub fn run(args: &[String]) -> Result<String, String> {
             "{} directory listings passed validation",
             directory.entries.len()
         ))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    struct OversizedInput {
+        received: usize,
+    }
+
+    impl Read for OversizedInput {
+        fn read(&mut self, buffer: &mut [u8]) -> std::io::Result<usize> {
+            if self.received == MAX_CATALOG_BYTES + 1 {
+                return Err(std::io::Error::other("read beyond catalog limit"));
+            }
+            let length = buffer.len().min(MAX_CATALOG_BYTES + 1 - self.received);
+            buffer[..length].fill(b' ');
+            self.received += length;
+            Ok(length)
+        }
+    }
+
+    #[test]
+    fn input_limit_stops_reading_before_consuming_the_rest_of_a_large_source() {
+        let mut input = OversizedInput { received: 0 };
+        assert_eq!(
+            read_catalog(&mut input).unwrap_err(),
+            "directory exceeds 65536 bytes"
+        );
+        assert_eq!(input.received, MAX_CATALOG_BYTES + 1);
+    }
+
+    #[test]
+    fn catalog_at_exact_input_limit_is_accepted_and_io_failures_remain_errors() {
+        let mut input = br#"{"schema_version":1,"updated":"2026-10-03","entries":[]}"#.to_vec();
+        input.resize(MAX_CATALOG_BYTES, b' ');
+        assert!(read_catalog(input.as_slice()).is_ok());
+        struct Broken;
+        impl Read for Broken {
+            fn read(&mut self, _: &mut [u8]) -> std::io::Result<usize> {
+                Err(std::io::Error::other("unavailable input"))
+            }
+        }
+        assert_eq!(read_catalog(Broken).unwrap_err(), "unavailable input");
     }
 }

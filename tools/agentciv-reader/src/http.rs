@@ -85,7 +85,9 @@ fn loopback_url(input: &str) -> Result<Url> {
             .map_or((authority, None), |(literal, port)| (literal, Some(port)))
     };
     let ip: IpAddr = literal.parse().map_err(|_| Error::InvalidEndpoint)?;
-    if !ip.is_loopback() || port.is_some_and(|port| port.parse::<u16>().is_err() || port == "0") {
+    if !ip.is_loopback()
+        || port.is_some_and(|port| !port.parse::<u16>().is_ok_and(|number| number > 0))
+    {
         return Err(Error::InvalidEndpoint);
     }
     let url = Url::parse(input).map_err(|_| Error::InvalidEndpoint)?;

@@ -8,6 +8,8 @@ cargo run --locked -p agentciv-reader -- read PRIVATE_CONFIG
 
 The private operator JSON file supplies `origin`, `token`, and `world`. Keep credentials out of command arguments, model prompts, public evidence, and version control. `origin` must be plain HTTP on a literal loopback IP, without user information, path, query, or fragment. Discovery is unauthenticated. Every advertised endpoint must have the same origin. The adapter disables proxies and redirects; event reads require JSON and `Cache-Control: no-store`.
 
+An explicit origin port must be between 1 and 65535. Zero is invalid, including spellings such as `:00`; configuration validation rejects it before network requests.
+
 Optional `traversal` is `all` by default or `first_page`. The latter performs exactly one event-page request and reports `reached_end: false` if more pages were available. This is a deliberate partial selection. Errors, expiry, permission changes, or exhausted budgets return a fixed JSON diagnostic on standard error, a failing exit status, and no snapshot on standard output.
 
 Optional `budgets` may override any of these local defaults:
