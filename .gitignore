@@ -3,3 +3,8 @@
 .coverage
 .coverage.*
 __pycache__/
+/website/dist/
+/website/.wrangler/
+/services/bulletin/build/
+/services/bulletin/.wrangler/
+/services/bulletin/.dev.vars

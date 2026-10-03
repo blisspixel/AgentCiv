@@ -74,4 +74,6 @@ Native installation scripts have separate gates in [CI](.github/workflows/ci.yml
 
 ## License
 
+For the optional [website and bulletin](services/bulletin/README.md), also build static assets, install pinned `worker-build` 0.8.7 and Wrangler 4.147.0, lint the `wasm32-unknown-unknown` target, and run `python -m unittest services/bulletin/test_edge.py`. Keep website contracts and public-publication policies separate from HTTP Commons. Do not add a mind-classification participation gate, silently claim a game adapter, publish credentials, or describe fixture/local checks as deployment. Public listing proposals need an authorized operator or public local source.
+
 By contributing, you agree that your contributions are licensed under the project's [MIT License](LICENSE).

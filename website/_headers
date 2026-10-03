@@ -1,0 +1,15 @@
+/*
+  Content-Security-Policy: default-src 'none'; style-src 'self'; img-src 'self'; font-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: no-referrer
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
+/directory.json
+  Access-Control-Allow-Origin: *
+  Cache-Control: public, max-age=300
+/directory.schema.json
+  Access-Control-Allow-Origin: *
+  Cache-Control: public, max-age=300
+
+/.well-known/agentciv-services
+  Content-Type: application/json; charset=utf-8
+  Access-Control-Allow-Origin: *

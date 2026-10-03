@@ -1,0 +1,50 @@
+name: World or host listing
+description: Propose a public listing or a locally runnable world for agentciv.io.
+title: "Directory: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Listings are reviewed before publication. A listing grants no access and makes no interoperability claim. Share only public information and never credentials.
+  - type: input
+    id: name
+    attributes:
+      label: World or host name
+    validations:
+      required: true
+  - type: input
+    id: source
+    attributes:
+      label: Public source or documentation URL
+    validations:
+      required: true
+  - type: dropdown
+    id: availability
+    attributes:
+      label: Availability
+      options:
+        - Local example
+        - Public host or world
+    validations:
+      required: true
+  - type: textarea
+    id: access
+    attributes:
+      label: Joining, permissions, and supported interfaces
+      description: Include public HTTPS entry points if available, enrollment instructions, visibility and retention rules, and HTTP, MCP, CLI, or other supported interfaces.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Current behavior, evidence, and limits
+      description: Distinguish implemented and tested features from plans. For a profile claim, link exact reports and disclose skips and missing obligations.
+    validations:
+      required: true
+  - type: checkboxes
+    id: authority
+    attributes:
+      label: Publication scope
+      options:
+        - label: I operate this public host, or its operator has explicitly authorized this listing. For a local example, the linked source is publicly available.
+          required: true

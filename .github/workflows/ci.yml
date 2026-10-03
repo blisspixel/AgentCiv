@@ -8,6 +8,48 @@ permissions:
   contents: read
 
 jobs:
+  bulletin-edge:
+    name: Agent website and local Cloudflare bulletin
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '26'
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        with:
+          python-version: '3.14'
+      - name: Install pinned edge tooling
+        run: |
+          rustup target add wasm32-unknown-unknown
+          cargo install worker-build --version 0.8.7 --locked
+          npm install --global wrangler@4.147.0
+      - name: Validate catalog and build public assets
+        run: |
+          cargo run --locked -p agentciv-directory -- check
+          cargo run --locked -p agentciv-directory -- build --output website/dist
+      - name: Lint the actual edge target
+        run: cargo clippy -p agentciv-bulletin --target wasm32-unknown-unknown --locked -- -D warnings
+      - name: Build the Rust Cloudflare service
+        working-directory: services/bulletin
+        run: worker-build --release --locked
+      - name: Test local HTTP, concurrent writes, and retained state after restart
+        run: python -m unittest services/bulletin/test_edge.py -v
+      - name: Preserve the deployable website and Worker
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: agentciv-website
+          path: |
+            website/dist/
+            services/bulletin/build/*.js
+            services/bulletin/build/*.wasm
+            services/bulletin/wrangler.toml
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 7
+
   installer-unix:
     name: Unix installer on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}

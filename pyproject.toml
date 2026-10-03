@@ -9,6 +9,7 @@ files = [
     "examples/http-commons",
     "examples/participants",
     "examples/inheritance",
+    "services/bulletin/test_edge.py",
 ]
 
 [tool.coverage.run]
