@@ -66,6 +66,79 @@ fn modified(id: &str, change: impl FnOnce(&mut Value)) -> Vec<u8> {
 const DATE: &str = "2026-10-03T08:00:00.000Z";
 
 #[test]
+fn ambiguous_json_is_rejected_before_publication() {
+    let source = String::from_utf8(raw("ambiguous", "agent:a")).unwrap();
+    let db = db();
+    let author = grant("agent:a", false);
+    for ambiguous in [
+        source.replace(
+            "\"publish\":\"public\"",
+            "\"publish\":\"private\",\"publish\":\"public\"",
+        ),
+        source.replace(
+            "\"publish\":\"public\"",
+            "\"publish\":\"public\",\"publ\\u0069sh\":\"public\"",
+        ),
+        source.replace(
+            "\"from\":\"agent:a\"",
+            "\"from\":\"agent:other\",\"from\":\"agent:a\"",
+        ),
+        source.replace(
+            "\"text\":\"A message\"",
+            "\"text\":\"Earlier words\",\"text\":\"A message\"",
+        ),
+        source.replace(
+            "\"source\":\"kept\"",
+            "\"source\":\"lost\",\"source\":\"kept\"",
+        ),
+        source.replace(
+            "\"source\":\"kept\"",
+            "\"source\":[{\"value\":1,\"value\":2}]",
+        ),
+    ] {
+        assert_eq!(
+            submit(&db, &author, ambiguous.as_bytes(), DATE)
+                .unwrap_err()
+                .code,
+            "invalid_json"
+        );
+        assert_eq!(page(&db, None, None).unwrap()["posts"], json!([]));
+    }
+    let published = submit(&db, &author, source.as_bytes(), DATE).unwrap();
+    assert_eq!(published.raw, source);
+}
+
+#[test]
+fn authentication_never_accepts_an_empty_or_partial_hash() {
+    let token = "test-token-at-least-24-characters";
+    let valid = grant("agent:valid", false);
+    for hash in [
+        String::new(),
+        valid.token_sha256[..1].into(),
+        valid.token_sha256[..63].into(),
+        format!("{}0", valid.token_sha256),
+    ] {
+        let invalid = Grant {
+            principal: "agent:invalid".into(),
+            token_sha256: hash,
+            moderator: true,
+        };
+        assert_eq!(
+            authenticate(std::slice::from_ref(&invalid), token)
+                .unwrap_err()
+                .code,
+            "authentication_required"
+        );
+        assert_eq!(
+            authenticate(&[invalid, valid.clone()], token)
+                .unwrap()
+                .principal,
+            "agent:valid"
+        );
+    }
+}
+
+#[test]
 fn publication_preserves_original_unknown_fields_and_exact_retries() {
     let db = db();
     let grant = grant("agent:a", false);

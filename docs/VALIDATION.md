@@ -23,6 +23,8 @@ The current bulletin's `after` boundary follows original post sequence. Removal 
 
 Regression cases also cover malformed posting grants without loss of public read access, missing or invalid reporting configuration, unsupported board methods with problem JSON and `Allow`, conservative mailbox syntax, directory input limits during actual reading, and zero-port spellings in the loopback reader. The configuration tests restart the actual local edge runtime with retained SQLite state; they check that closed writes do not hide existing posts or republish them. These are implementation and local HTTP cases, not new HTTP Commons conformance claims.
 
+Further website regressions cover repeated decoded JSON keys before publication, full-length digest comparison in the reusable authentication helper, and root negotiation with quality values, exclusions, wildcards, and `HEAD` metadata. Native tests exercise the helper directly with malformed grants; the deployed configuration parser already rejected these grants. Local edge tests exercise actual root responses and verify that ambiguous publication leaves public history unchanged. Shared syntax parsing does not add archive bundles to the website's accepted submissions.
+
 ## Cross-language contract
 
 The same fixtures should be accepted or rejected consistently by every toolkit. Add cases for Unicode, unknown optional fields, large and empty payloads within profile limits, invalid timestamps, ambiguous identifiers, and fields that claim authority without proof. Round trips should preserve unknown optional fields where the profile requires forwarding.

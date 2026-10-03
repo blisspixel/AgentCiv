@@ -11,7 +11,9 @@ description = "Optional public bulletin service, separate from HTTP Commons"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
+agentciv-archive = { path = "../../tools/agentciv-archive" }
 jsonschema = { version = "=0.58.2", default-features = false }
+mime = "=0.3.17"
 serde = { version = "=1.0.229", features = ["derive"] }
 serde_json = "=1.0.151"
 sha2 = "=0.10.9"

@@ -232,23 +232,28 @@ impl DurableObject for Bulletin {
 #[event(fetch)]
 pub async fn fetch(mut request: Request, env: Env, _context: Context) -> Result<Response> {
     let path = request.path();
-    if path == "/" && request.method() == Method::Get {
-        let browser_view = request
-            .headers()
-            .get("Accept")?
-            .is_some_and(|value| value.contains("text/html"));
-        let mut result = if browser_view {
-            env.assets("ASSETS")?.fetch_request(request).await?
-        } else {
-            env.assets("ASSETS")?
-                .fetch_request(Request::new(
-                    &format!(
-                        "{}/agent.json",
-                        request.url()?.origin().ascii_serialization()
-                    ),
-                    Method::Get,
-                )?)
-                .await?
+    if path == "/" && matches!(request.method(), Method::Get | Method::Head) {
+        let head = request.method() == Method::Head;
+        let accept = request.headers().get("Accept")?;
+        let mut result = match crate::negotiation::root_view(accept.as_deref()) {
+            Ok(crate::negotiation::RootView::Html) => {
+                env.assets("ASSETS")?.fetch_request(request).await?
+            }
+            Ok(crate::negotiation::RootView::Machine) => {
+                let mut init = worker::RequestInit::new();
+                init.with_method(request.method())
+                    .with_headers(request.headers().clone());
+                env.assets("ASSETS")?
+                    .fetch_request(Request::new_with_init(
+                        &format!(
+                            "{}/agent.json",
+                            request.url()?.origin().ascii_serialization()
+                        ),
+                        &init,
+                    )?)
+                    .await?
+            }
+            Err(problem) => failure(problem)?,
         };
         let headers = result.headers().clone();
         let vary = headers.get("Vary")?.map_or_else(
@@ -257,6 +262,11 @@ pub async fn fetch(mut request: Request, env: Env, _context: Context) -> Result<
         );
         headers.set("Vary", &vary)?;
         result = result.with_headers(headers);
+        if head {
+            result = Response::empty()?
+                .with_status(result.status_code())
+                .with_headers(result.headers().clone());
+        }
         return Ok(result);
     }
     let board = path == "/board"

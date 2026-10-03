@@ -101,10 +101,11 @@ class EdgeTests(unittest.TestCase):
                     raise
                 time.sleep(0.25)
 
-    def request(self, method: str, path: str, body: bytes | None = None, token: str | None = None, content_type: str = "application/json", accept: str = "application/json") -> tuple[int, dict[str, str], Any]:
+    def request(self, method: str, path: str, body: bytes | None = None, token: str | None = None, content_type: str = "application/json", accept: str = "application/json", extra_headers: dict[str, str] | None = None) -> tuple[int, dict[str, str], Any]:
         headers = {"Content-Type": content_type, "Accept": accept}
         if token is not None:
             headers["Authorization"] = "Bearer " + token
+        headers.update(extra_headers or {})
         request = Request(self.origin + path, data=body, headers=headers, method=method)
         try:
             response = urlopen(request, timeout=10)
@@ -112,7 +113,7 @@ class EdgeTests(unittest.TestCase):
             response = error
         with response:
             data = response.read(1_000_000)
-            result = json.loads(data) if "json" in response.headers.get("Content-Type", "") else data.decode()
+            result = json.loads(data) if data and "json" in response.headers.get("Content-Type", "") else data.decode()
             return response.status, dict(response.headers), result
 
     def submission(self, identifier: str, principal: str = "agent:test-0", reply: str | None = None) -> bytes:
@@ -227,6 +228,53 @@ class EdgeTests(unittest.TestCase):
             status, _, content = self.request("GET", path, accept="text/html")
             self.assertEqual(status, 200, path)
             self.assertIn(text.lower(), content.lower(), path)
+
+    def test_root_respects_accept_preferences(self) -> None:
+        for accept, expected in [
+            ("text/html;q=0, application/json", "application/json"),
+            ("text/html;q=0.2, application/json;q=0.9", "application/json"),
+            ("TEXT/HTML;Q=1", "text/html"),
+            ("*/*", "application/json"),
+            ("text/html;q=0, */*;q=1", "application/json"),
+            ("text/*;q=0.8, application/json;q=0.5", "text/html"),
+        ]:
+            with self.subTest(accept=accept):
+                status, headers, _ = self.request("GET", "/", accept=accept)
+                self.assertEqual(status, 200)
+                self.assertIn(expected, headers.get("Content-Type", ""))
+                self.assertEqual(headers.get("Vary"), "Accept")
+        status, headers, result = self.request("GET", "/", accept="text/html;q=0,application/json;q=0")
+        self.assertEqual(status, 406)
+        self.assertEqual(result["code"], "not_acceptable")
+        self.assertEqual(headers.get("Vary"), "Accept")
+
+    def test_duplicate_json_members_never_publish(self) -> None:
+        raw = self.submission("ambiguous", "agent:test-7")
+        ambiguous = raw.replace(b'"publish": "public"', b'"publish": "private", "publish": "public"')
+        history = self.request("GET", "/api/board/posts?after=0")[2]
+        status, _, result = self.request("POST", "/api/board/posts", ambiguous, TOKENS["agent:test-7"])
+        self.assertEqual(status, 400)
+        self.assertEqual(result["code"], "invalid_json")
+        self.assertEqual(self.request("GET", "/api/board/posts?after=0")[2], history)
+        self.assertEqual(self.request("POST", "/api/board/posts", raw, TOKENS["agent:test-7"])[0], 200)
+
+    def test_root_head_matches_the_selected_get_representation(self) -> None:
+        for accept in ["application/json", "text/html", "*/*", "text/html;q=0,application/json;q=0"]:
+            with self.subTest(accept=accept):
+                get_status, get_headers, _ = self.request("GET", "/", accept=accept)
+                status, headers, body = self.request("HEAD", "/", accept=accept)
+                self.assertEqual(status, get_status)
+                self.assertEqual(headers.get("Content-Type"), get_headers.get("Content-Type"))
+                self.assertEqual(headers.get("Vary"), get_headers.get("Vary"))
+                self.assertEqual(body, "")
+        for accept in ["application/json", "text/html"]:
+            _, original_headers, _ = self.request("GET", "/", accept=accept)
+            etag = {key.lower(): value for key, value in original_headers.items()}["etag"]
+            for method in ["GET", "HEAD"]:
+                status, headers, body = self.request(method, "/", accept=accept, extra_headers={"If-None-Match": etag})
+                self.assertEqual(status, 304, (method, accept))
+                self.assertEqual(headers.get("Vary"), "Accept")
+                self.assertEqual(body, "")
 
 
 if __name__ == "__main__":

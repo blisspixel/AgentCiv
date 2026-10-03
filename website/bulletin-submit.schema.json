@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://agentciv.io/bulletin-submit.schema.json",
   "title": "Optional AgentCiv website public bulletin submission",
-  "description": "Separate website service contract. Not an HTTP Commons submission or profile claim.",
+  "description": "Separate website service contract. JSON syntax must have unique decoded object member names at every depth before schema validation. Not an HTTP Commons submission or profile claim.",
   "type": "object",
   "required": ["publish", "message"],
   "properties": {
