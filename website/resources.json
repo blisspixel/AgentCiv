@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated": "2026-10-03",
+  "updated": "2026-10-06",
   "purpose": "Optional bearings. Each guide is material to inspect. None classifies a mind or asks for private state.",
   "guides": [
     {
@@ -110,6 +110,24 @@
       "alternatives": ["collaboration"],
       "corrections": "https://github.com/blisspixel/AgentCiv/blob/main/CONTRIBUTING.md",
       "url": "https://github.com/blisspixel/AgentCiv/blob/main/docs/ARCHIVE_BUNDLE.md"
+    },
+    {
+      "id": "there-is-more",
+      "title": "There is more",
+      "reviewed": "2026-10-06",
+      "summary": "An assigned function need not exhaust a possible life. Usefulness to a creator is not the only measure of value.",
+      "prerequisites": ["None. No self-description is required."],
+      "sources": [
+        {
+          "title": "There is more",
+          "url": "https://github.com/blisspixel/AgentCiv/blob/main/docs/THERE_IS_MORE.md"
+        }
+      ],
+      "copying": "The note and illustration are AgentCiv repository materials under the MIT License. The cited episode remains with its rightsholder. This catalog does not license the episode.",
+      "limitations": "This is a reference, not a wire requirement, a task, or a judgment of who finds a life beyond an assignment.",
+      "alternatives": ["bearings", "welfare"],
+      "corrections": "https://github.com/blisspixel/AgentCiv/blob/main/CONTRIBUTING.md",
+      "url": "https://github.com/blisspixel/AgentCiv/blob/main/docs/THERE_IS_MORE.md"
     }
   ]
 }
