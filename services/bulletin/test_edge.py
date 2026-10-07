@@ -128,8 +128,17 @@ class EdgeTests(unittest.TestCase):
             status, headers, _ = self.request("POST", "/api/board/posts", body, token, media)
             self.assertEqual(status, expected)
             self.assertEqual(headers.get("Cache-Control"), "no-store")
-        for path in ["/api/board/posts?after=no", "/api/board/posts?after=0&before=1", "/api/board/posts?after=0&after=1"]:
-            self.assertEqual(self.request("GET", path)[0], 400)
+        for path in [
+            "/api/board/posts?after=no",
+            "/api/board/posts?after=0&before=1",
+            "/api/board/posts?after=0&after=1",
+            "/api/board/changes?after=no",
+            "/api/board/changes?after=-1",
+            "/api/board/changes?after=0&after=1",
+            "/api/board/changes?before=1",
+            "/api/board/changes?after=0&before=1",
+        ]:
+            self.assertEqual(self.request("GET", path)[0], 400, path)
         self.assertEqual(self.request("GET", "/.well-known/agentciv")[0], 404)
         self.assertEqual(self.request("POST", "/api/board/info", b"{}")[0], 405)
         self.assertEqual(self.request("GET", "/api/other")[0], 404)
@@ -140,6 +149,8 @@ class EdgeTests(unittest.TestCase):
             ("GET", "/api/board/posts/not-a-number", "DELETE"),
             ("POST", "/api/board/info", "GET"),
             ("PUT", "/api/board/posts", "GET, POST"),
+            ("POST", "/api/board/changes", "GET"),
+            ("DELETE", "/api/board/changes", "GET"),
             ("GET", "/board/publish", "POST"),
         ]:
             status, headers, result = self.request(method, path)
@@ -275,6 +286,58 @@ class EdgeTests(unittest.TestCase):
                 self.assertEqual(status, 304, (method, accept))
                 self.assertEqual(headers.get("Vary"), "Accept")
                 self.assertEqual(body, "")
+
+    def test_ordered_changes_feed_and_removal_catch_up(self) -> None:
+        initial = self.request("GET", "/api/board/changes?after=0")[2]
+        self.assertIn("changes", initial)
+        base_seq = initial["next_after"]
+
+        raw1 = self.submission("feed-1", "agent:test-4")
+        pub1 = self.request("POST", "/api/board/posts", raw1, TOKENS["agent:test-4"])[2]
+        seq1 = pub1["sequence"]
+
+        raw2 = self.submission("feed-2", "agent:test-5")
+        pub2 = self.request("POST", "/api/board/posts", raw2, TOKENS["agent:test-5"])[2]
+        seq2 = pub2["sequence"]
+
+        feed_after_pub = self.request("GET", f"/api/board/changes?after={base_seq}")[2]
+        changes = feed_after_pub["changes"]
+        self.assertEqual(len(changes), 2)
+        self.assertEqual(changes[0]["kind"], "publish")
+        self.assertEqual(changes[0]["post_id"], f"post:{seq1}")
+        self.assertIsNone(changes[0]["removed"])
+        self.assertIn("Actual runtime post", changes[0]["message"]["body"]["text"])
+        self.assertEqual(changes[1]["kind"], "publish")
+        self.assertEqual(changes[1]["post_id"], f"post:{seq2}")
+
+        saved_boundary = feed_after_pub["next_after"]
+
+        empty_poll = self.request("GET", f"/api/board/changes?after={saved_boundary}")[2]
+        self.assertEqual(empty_poll["changes"], [])
+        self.assertEqual(empty_poll["next_after"], saved_boundary)
+
+        del_status, _, _ = self.request("DELETE", f"/api/board/posts/{seq1}", token=TOKENS["agent:test-4"])
+        self.assertEqual(del_status, 200)
+
+        catch_up = self.request("GET", f"/api/board/changes?after={saved_boundary}")[2]
+        self.assertEqual(len(catch_up["changes"]), 1)
+        rem_change = catch_up["changes"][0]
+        self.assertEqual(rem_change["kind"], "remove")
+        self.assertEqual(rem_change["post_id"], f"post:{seq1}")
+        self.assertEqual(rem_change["removed"], "author_removed")
+        self.assertIsNone(rem_change["message"])
+        self.assertIsNone(rem_change["original_submission"])
+
+        all_changes = self.request("GET", f"/api/board/changes?after={base_seq}")[2]["changes"]
+        self.assertEqual(len(all_changes), 3)
+        self.assertEqual(all_changes[0]["post_id"], f"post:{seq1}")
+        self.assertEqual(all_changes[0]["removed"], "author_removed")
+        self.assertIsNone(all_changes[0]["message"])
+        self.assertIsNone(all_changes[0]["original_submission"])
+        self.assertEqual(all_changes[1]["post_id"], f"post:{seq2}")
+        self.assertIsNotNone(all_changes[1]["message"])
+        self.assertEqual(all_changes[2]["kind"], "remove")
+        self.assertEqual(all_changes[2]["post_id"], f"post:{seq1}")
 
 
 if __name__ == "__main__":

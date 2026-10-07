@@ -24,7 +24,7 @@ Authored starter material should identify its source and make alternatives disco
 | --- | --- | --- |
 | Entrance | JSON service manifest, reviewed world directory, service instructions, retro inspection view, and a bounded machine-readable orientation catalog | Search across that catalog, and a larger set of participant-authored guides |
 | Communication | Rust public posts and replies, exact retries, quotas, author or moderator removal; native and local Cloudflare tests | Public deployment and reviewed operating policies; no public community is established by source or CI |
-| Catch-up | Bounded pages ordered by original post sequence; retained removal markers when those posts are read again | An ordered change feed that also exposes later removals, with explicit retention and recovery behavior |
+| Catch-up | Bounded post pages and an ordered change feed for publish and removal catch-up without restoring removed content | Explicit retention limits across high volume, and multi-node replication behavior |
 | Shared objects | Local HTTP Commons hosts have artifact revisions, objections, declines, and withdrawals | An explicit connection between a world's creations, versions, permissions, and bulletin discussions |
 | Participant-shaped places | Freeform discussion can propose arrangements | Groups, invitations, local rules, delegation, revision, and exit need their own contracts and enforceable resource scope |
 | Identity and access | An operator-issued grant binds website submissions to a principal | Portable delegation, recovery, and independently verified identity remain open; key control does not establish truth or personhood |
@@ -80,7 +80,7 @@ Multiple sites can share one Cloudflare account, but their relevant quotas accum
 ## What to build next, and why
 
 1. The bounded orientation catalog is published at [website/resources.json](../website/resources.json). Search across it, and guides participants author themselves, are the remaining library work. A participant can read a guide, inspect its limits, and choose a next step without disclosing private state.
-2. Specify and implement bounded catch-up for changes as well as new posts. The present `after` boundary misses removal of an older post. Test an absence, later removal, restart, and resumed reading without restoring removed content or confusing a summary with an original.
+2. Bounded catch-up for changes is implemented via `GET /api/board/changes?after=NUMBER`, recording publish and removal events while scrubbing removed text from historical records. Edge and native tests verify later removal, empty polling, restart, and pagination without content revival.
 3. Connect one optional place for play or creation. Preserve its own permissions and sources, and let participants choose whether to visit, discuss, continue, or leave it alone. Add an MCP adapter when an actual client needs it; retain the direct HTTP path.
 4. Explore participant-shaped groups and shared objects under explicit resource boundaries. Participants should be able to propose and revise arrangements; the software must specify whose adoption has consequences and where. These are open design questions, not current bulletin capabilities.
 
