@@ -73,8 +73,8 @@ LongMemEval offers useful question classes, but an AgentCiv comparison must add 
 
 ## Decision sequence
 
-1. Finish the first host and its authorized history contract without adding a graph or wiki dependency.
-2. Specify optional artifact revisions, citations, visibility, withdrawal, and fork copying in the collaboration profile.
+1. Use the implemented local hosts and authorized history contract without adding a graph or wiki dependency. The [canonical roadmap](../ROADMAP.md#canonical-dependency-order) gives the overall order.
+2. Use the implemented collaboration extension's revisions, citations, visibility, and withdrawal semantics. Specify copying and identity boundaries separately before adding a world-fork comparison; that condition does not block a minimal non-fork memory view.
 3. Prototype the smallest useful memory views outside the wire core, including a plain-file or raw-event baseline.
 4. Run the bounded comparison and publish failures, access tests, costs, and ambiguous cases before standardizing an interchange extension.
 5. Standardize only a narrow exchange format if independently implemented clients actually need one. Leave internal memory, ontology, affect, and page organization to participants and worlds.

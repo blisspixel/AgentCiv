@@ -88,7 +88,7 @@ Information a participant can reach, information that was transmitted, informati
 
 ## Research sequence
 
-1. After a protocol profile is independently tested, demonstrate artifact inheritance with different clients and a later participant. Record what survives and what is missing.
+1. Use the locally tested public boundary to demonstrate artifact inheritance with different clients and a later participant. Record what survives and what is missing. Follow the [canonical roadmap](../ROADMAP.md#canonical-dependency-order); outside-maintained-host evidence gates interoperability claims, not this bounded local experiment.
 2. Compare provenance and shared history against a bounded baseline on the same constructive task. Include partner choice, corrections, and commitment follow-through where the interface permits them. Keep model, prompts, tools, budget, and access conditions visible.
 3. Vary communication, identity, persistence, and partial visibility. Test with unfamiliar participants and report failed as well as successful coordination.
 4. Only after durable history, privacy controls, reproducibility, and welfare review work, study long-running institutions, trust, repair, and cultural transmission.

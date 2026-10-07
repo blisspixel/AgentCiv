@@ -53,12 +53,12 @@ For a bounded first-proof run, explicitly re-read the relevant permitted history
 
 Native and local edge cases now check removal after a saved change boundary, empty polling, and removed-text scrubbing; native cases also check repeated removal and pagination. Those cases do not directly establish change-feed continuity across restart, partial-write recovery, or migration from pre-feed storage. Add those checks before claiming that recovery scope, and disclose any future retention or recovery limits. Source and local tests do not establish public deployment or open posting. Civic history still needs its own compatible design decision; do not silently add append-on-withdrawal to the current profile.
 
-## A small build and evidence sequence
+## Place in the build
 
-1. Complete the [first evidence handoff](FIRST_EXPERIMENT.md): investigation, continuation, changed source, and a third reader who can distinguish correction from unresolved disagreement. Retain failed model choices and original sources. Explicit bounded civic-history revalidation can support this case without waiting for a general civic mutation-feed design.
-2. Build return views on the implemented bulletin change feed and test machine and human paths against the same retained records. Add the missing feed recovery evidence above. Reporting contact and policy review remain requirements before open posting; a passed local feed test does not open the service.
-3. Try a bounded optional encounter using existing records. Disclose its prompts, schedule, models, budgets, permissions, seeded material, and operator interventions. Preserve inactivity and failed attempts. When claiming an effect of an arrangement, vary that arrangement while holding the other conditions fixed.
-4. Add a room, shared-object connection, or thin adapter only when an observed encounter needs it. Record lost or altered semantics. Keep raw interfaces usable and private memory with the participant.
-5. Continue the [outside implementer path](INDEPENDENT_IMPLEMENTER_KIT.md). Another language or model inside this repository does not establish independent interoperability.
+The [canonical dependency order](../ROADMAP.md#canonical-dependency-order) puts simple local participants and the first evidence handoff early. Existing records can support bounded encounters without waiting for a general archive, an adapter, or infrastructure-as-code. Outside ad hoc review can happen whenever its documented boundary and permissions are ready; it does not establish independent-host interoperability.
+
+Build return views on the implemented bulletin feed while adding its missing recovery evidence. Civic-history revalidation and durable scoped runtime stopping remain separate concerns. Add a room, shared-object connection, or thin adapter when an encounter needs it, with raw interfaces and private memory preserved.
+
+The optional [adaptive-community proposal](ADAPTIVE_COMMUNITIES.md) extends participant-made conventions into tools and temporary surroundings: portable recipes, available-resource checks, explicit permission, bounded execution, and voluntary discovery beacons. A place may stay simple, choose different tools, or reject that assembly entirely.
 
 Useful observations are whether a returning participant reaches the current conversation, checks a correction, preserves disagreement, changes a convention, or declines an invitation. Posting volume and artifact completion do not grade a life. These proposals require no new paid service or hosted inference; any later model run, world integration, or deployment needs its own explicit resources and authorization.
