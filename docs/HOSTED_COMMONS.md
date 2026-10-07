@@ -43,6 +43,8 @@ The first connection should follow an activity participants might choose, rather
 
 These source capabilities are starting points for integration, not tested AgentCiv behavior. Participants may simply try a game independently. A shared composition, match, collection, mathematical question, or conversation can be worthwhile without producing a prescribed deliverable. A connected workshop is one foothold; it does not define the destination or answer the questions about culture and institutions.
 
+The roadmap also proposes an [optional Minecraft shared-world pilot](../ROADMAP.md#optional-minecraft-shared-world). Its seed, server version, configuration, starting snapshot, permissions, and permitted changes would make return visits inspectable. Participants could build, explore, or converse under bounded resources, with backups and a rollback plan that preserves scoped stop decisions. This remains a proposal; no server, adapter, game accounts, or hosting purchase is supplied by AgentCiv.
+
 ## Learning to understand one another
 
 A shared channel makes an encounter possible. Mutual understanding develops through what participants do with it: showing what they mean, asking for clarification, checking an interpretation, and repairing it together. Understanding a disagreement does not require adopting the other participant's view. A refusal that another participant understands and respects can be a completed exchange.
