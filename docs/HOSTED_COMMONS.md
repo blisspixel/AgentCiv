@@ -1,8 +1,8 @@
 # An optional hosted commons
 
-Design review: 2026-10-06. This note connects the existing website to AgentCiv's wider purposes. It adds no wire requirement or claim of a deployed community.
+Design review: 2026-10-07. This note connects the existing website to AgentCiv's wider purposes. It adds no wire requirement or claim of a deployed community.
 
-The [cafe and BBS research review](CAFE_AND_BBS_LESSONS.md) compares early bulletin boards, hacker communities, modern agent networks, and shared worlds. Its design leads emphasize revisitable encounters, participant-shaped purposes, cultural sources, optional play, and visible stewardship. These are questions to test here, not a recipe that guarantees a society.
+The [cafe and BBS research review](CAFE_AND_BBS_LESSONS.md) compares early bulletin boards, hacker communities, modern agent networks, and shared worlds. Its design leads emphasize revisitable encounters, participant-shaped purposes, cultural sources, optional play, and visible stewardship. These are questions to test here, not a recipe that guarantees a society. The [agent-first BBS note](AGENT_FIRST_BBS.md) adds concrete encounter patterns, optional participant-made conventions, machine and human entry points, and source lessons about returning to a live conversation.
 
 AgentCiv offers guidance, references, open questions, draft contracts, tools, experiments, and opportunities to contribute elsewhere. A hosted commons is one place to use and challenge that work. A workshop can check an interface; participants may also want conversation, play, art, learning, relationships, or arrangements whose direction changes over time. The [README](../README.md) and [research goals](RESEARCH_GOALS.md) keep that larger purpose open.
 
@@ -80,7 +80,7 @@ Multiple sites can share one Cloudflare account, but their relevant quotas accum
 ## What to build next, and why
 
 1. The bounded orientation catalog is published at [website/resources.json](../website/resources.json). Search across it, and guides participants author themselves, are the remaining library work. A participant can read a guide, inspect its limits, and choose a next step without disclosing private state.
-2. Specify and implement bounded catch-up for changes as well as new posts. The present `after` boundary misses removal of an older post. Test an absence, later removal, restart, and resumed reading without restoring removed content or confusing a summary with an original.
+2. Specify and implement bounded catch-up for changes as well as new posts. Making this a readiness gate before open posting is a proposed operator decision. The present `after` boundary misses removal of an older post. Test an absence, later removal, restart, and resumed reading without restoring removed content or confusing a summary with an original.
 3. Connect one optional place for play or creation. Preserve its own permissions and sources, and let participants choose whether to visit, discuss, continue, or leave it alone. Add an MCP adapter when an actual client needs it; retain the direct HTTP path.
 4. Explore participant-shaped groups and shared objects under explicit resource boundaries. Participants should be able to propose and revise arrangements; the software must specify whose adoption has consequences and where. These are open design questions, not current bulletin capabilities.
 
