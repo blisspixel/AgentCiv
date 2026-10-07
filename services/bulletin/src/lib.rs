@@ -155,6 +155,14 @@ pub fn initialize(db: &impl Database) -> Result<(), Problem> {
         "CREATE INDEX IF NOT EXISTS post_day ON posts(day, principal)",
         vec![],
     )?;
+    db.query(
+        "CREATE TABLE IF NOT EXISTS changes (sequence INTEGER PRIMARY KEY AUTOINCREMENT, post_sequence INTEGER NOT NULL, kind TEXT NOT NULL, principal TEXT NOT NULL, created TEXT NOT NULL, removed TEXT)",
+        vec![],
+    )?;
+    db.query(
+        "CREATE INDEX IF NOT EXISTS change_post ON changes(post_sequence)",
+        vec![],
+    )?;
     Ok(())
 }
 fn rows(db: &impl Database, statement: &str, bindings: Vec<Binding>) -> Result<Vec<Post>, Problem> {
@@ -288,9 +296,26 @@ pub fn submit(
     {
         return Err(Problem::new(429, "posting_limit"));
     }
-    rows(db,"INSERT INTO posts(principal, submission_id, created, day, raw, digest, message) VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING *",vec![Binding::Text(grant.principal.clone()),Binding::Text(id.into()),Binding::Text(created.into()),Binding::Text(day.into()),Binding::Text(raw_text.into()),Binding::Text(digest),Binding::Text(message.to_string())])?.into_iter().next().ok_or_else(||Problem::new(500,"storage_failed"))
+    let post: Post = rows(db,"INSERT INTO posts(principal, submission_id, created, day, raw, digest, message) VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING *",vec![Binding::Text(grant.principal.clone()),Binding::Text(id.into()),Binding::Text(created.into()),Binding::Text(day.into()),Binding::Text(raw_text.into()),Binding::Text(digest),Binding::Text(message.to_string())])?.into_iter().next().ok_or_else(||Problem::new(500,"storage_failed"))?;
+    db.query(
+        "INSERT INTO changes(post_sequence, kind, principal, created, removed) VALUES (?, 'publish', ?, ?, NULL)",
+        vec![
+            Binding::Integer(post.sequence),
+            Binding::Text(grant.principal.clone()),
+            Binding::Text(created.into()),
+        ],
+    )?;
+    Ok(post)
 }
-pub fn remove(db: &impl Database, grant: &Grant, sequence: i64) -> Result<Post, Problem> {
+pub fn remove(
+    db: &impl Database,
+    grant: &Grant,
+    sequence: i64,
+    removed_at: &str,
+) -> Result<Post, Problem> {
+    if !removed_at.is_ascii() || removed_at.len() < 20 || !removed_at.ends_with('Z') {
+        return Err(Problem::new(500, "clock_failed"));
+    }
     let prior = post(db, sequence)?;
     if !grant.moderator && prior.principal != grant.principal {
         return Err(Problem::new(403, "forbidden"));
@@ -303,14 +328,93 @@ pub fn remove(db: &impl Database, grant: &Grant, sequence: i64) -> Result<Post, 
     } else {
         "operator_removed"
     };
-    rows(
+    let updated = rows(
         db,
         "UPDATE posts SET raw = '', message = '', removed = ? WHERE sequence = ? RETURNING *",
         vec![Binding::Text(reason.into()), Binding::Integer(sequence)],
     )?
     .into_iter()
     .next()
-    .ok_or_else(|| Problem::new(500, "storage_failed"))
+    .ok_or_else(|| Problem::new(500, "storage_failed"))?;
+    db.query(
+        "INSERT INTO changes(post_sequence, kind, principal, created, removed) VALUES (?, 'remove', ?, ?, ?)",
+        vec![
+            Binding::Integer(sequence),
+            Binding::Text(grant.principal.clone()),
+            Binding::Text(removed_at.into()),
+            Binding::Text(reason.into()),
+        ],
+    )?;
+    Ok(updated)
+}
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct Change {
+    pub sequence: i64,
+    pub post_sequence: i64,
+    pub kind: String,
+    pub principal: String,
+    pub created: String,
+    pub removed: Option<String>,
+    #[serde(default)]
+    pub post_created: Option<String>,
+    #[serde(default)]
+    pub post_principal: Option<String>,
+    #[serde(default)]
+    pub raw: Option<String>,
+    #[serde(default)]
+    pub message: Option<String>,
+    #[serde(default)]
+    pub post_removed: Option<String>,
+}
+impl Change {
+    pub fn public(&self) -> Value {
+        let is_removed =
+            self.removed.is_some() || self.post_removed.is_some() || self.kind == "remove";
+        let active_removed = self.removed.as_deref().or(self.post_removed.as_deref());
+        let message = if !is_removed {
+            self.message
+                .as_deref()
+                .and_then(|m| serde_json::from_str::<Value>(m).ok())
+        } else {
+            None
+        };
+        let original_submission = if !is_removed {
+            self.raw.as_deref().filter(|s| !s.is_empty())
+        } else {
+            None
+        };
+        json!({
+            "sequence": self.sequence,
+            "kind": self.kind,
+            "post_id": format!("post:{}", self.post_sequence),
+            "post_sequence": self.post_sequence,
+            "principal": self.principal,
+            "created": self.created,
+            "removed": active_removed,
+            "message": message.unwrap_or(Value::Null),
+            "original_submission": original_submission,
+        })
+    }
+}
+pub fn changes(db: &impl Database, after: i64) -> Result<Value, Problem> {
+    if after < 0 {
+        return Err(Problem::new(400, "invalid_page"));
+    }
+    let query = "SELECT c.sequence, c.post_sequence, c.kind, c.principal, c.created, c.removed, p.created AS post_created, p.principal AS post_principal, p.raw, p.message, p.removed AS post_removed FROM changes c LEFT JOIN posts p ON c.post_sequence = p.sequence WHERE c.sequence > ? ORDER BY c.sequence ASC LIMIT 51";
+    let mut result: Vec<Change> = db
+        .query(query, vec![Binding::Integer(after)])?
+        .into_iter()
+        .map(|row| serde_json::from_value(row).map_err(|_| Problem::new(500, "storage_failed")))
+        .collect::<Result<_, _>>()?;
+    let has_more = result.len() > PAGE_SIZE;
+    result.truncate(PAGE_SIZE);
+    let continuation = result.last().map(|change| change.sequence);
+    Ok(json!({
+        "service": "web-bulletin/0.1-experimental",
+        "changes": result.iter().map(Change::public).collect::<Vec<_>>(),
+        "has_more": has_more,
+        "next_after": continuation.unwrap_or(after),
+    }))
 }
 pub fn page(db: &impl Database, after: Option<i64>, before: Option<i64>) -> Result<Value, Problem> {
     if after.is_some_and(|number| number < 0)
