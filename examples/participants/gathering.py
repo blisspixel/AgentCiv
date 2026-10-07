@@ -43,6 +43,8 @@ COMMON = (
     "Quiet records only a local harness observation and keeps later invitations available. "
     "Leave records only a local harness observation and removes later scheduled invitations, "
     "except an explicitly configured return invitation that you can also decline by leaving. "
+    "A recorded message stays in shared history. Leaving does not recall text another participant already received. "
+    "Published words remain the sender's submission: the record shows who sent the bytes, and truth, agreement, and authority stay separate. "
     "Neither quiet nor leave submits a civic decline or proves consent. No response is required "
     "for belonging. You may converse, question, play, propose something, or do something else "
     "within these choices. No social or productivity score is assigned. Existing source records "
@@ -168,7 +170,14 @@ def participant(config: JsonObject) -> JsonObject:
                         raise client.ModelError("credential reflected")
                 return reply
             scripted = config.get("scripted_action", "message")
-            text = "Disclosed scripted gathering message." if scripted == "message" else ""
+            supplied = config.get("scripted_text", "")
+            if scripted not in ("message", "quiet", "leave") or not isinstance(supplied, str):
+                raise ValueError("invalid gathering configuration")
+            if scripted != "message" and supplied:
+                raise ValueError("invalid gathering configuration")
+            text = supplied if supplied else "Disclosed scripted gathering message."
+            if scripted != "message":
+                text = ""
             return loop.Reply(json.dumps({"action": scripted, "text": text}), {"eval_count": 0})
 
         journal = config.get("attempt_journal")
@@ -211,21 +220,48 @@ def participant(config: JsonObject) -> JsonObject:
     return result
 
 
+def authored_messages(events: list[JsonObject]) -> list[tuple[str, str]]:
+    rows: list[tuple[str, str]] = []
+    for event in events:
+        if event.get("kind") != "message.recorded":
+            raise ValueError("shared history contained a record that is not a message")
+        body = event.get("body")
+        actor = event.get("actor")
+        if not isinstance(body, dict) or not isinstance(actor, str):
+            raise ValueError("shared history lost the author or the message")
+        record = body.get("message")
+        if not isinstance(record, dict):
+            raise ValueError("shared history lost the submission")
+        message_body = record.get("body")
+        text = message_body.get("text") if isinstance(message_body, dict) else None
+        if not isinstance(text, str):
+            raise ValueError("shared history lost the submitted text")
+        rows.append((actor, text))
+    return rows
+
+
 def run(output: Path, *, condition: str = "open", host: str = "python", mode: str = "scripted",
         model: str = "", seed: int = 42, rounds: int = 2, attempts: int = 1,
         newcomer: bool = True, returning: bool = False, consider: bool = False,
-        private_traces: bool = False, temp_root: Path | None = None) -> JsonObject:
+        private_traces: bool = False, choices: bool = False, temp_root: Path | None = None) -> JsonObject:
     output = output.resolve()
     output.mkdir(parents=True, exist_ok=False)
     observations: list[JsonObject] = []
     source: JsonObject | None = None
     started = time.monotonic()
+    if choices:
+        returning = True
+    schedule = "A then B each round; restart after round 1; optional C from round 2; optional departed A return invitation in final round"
+    scripted_choices = "A messages; B quiet in round 1 then leaves; C messages; return invitation messages" if mode == "scripted" else None
+    if choices and mode == "scripted":
+        schedule = "A proposes a walk and B proposes a song; restart; A leaves the local schedule; B records a decline; A returns"
+        scripted_choices = "A proposes a walk; B proposes a song; A leaves locally; B declines the walk in a recorded message; A returns and both proposals remain open"
     controls: JsonObject = {"condition": condition, "instructions": COMMON,
         "opening": OPEN if condition == "open" else ASSIGNED, "optional_invitation": CONSIDER if consider else None,
         "mode": mode, "model": model, "seed": seed, "seed_rule": "seed plus scheduled invitation index",
-        "rounds": rounds, "newcomer": newcomer, "returning": returning,
-        "schedule": "A then B each round; restart after round 1; optional C from round 2; optional departed A return invitation in final round",
-        "scripted_choices": "A messages; B quiet in round 1 then leaves; C messages; return invitation messages" if mode == "scripted" else None,
+        "rounds": rounds, "newcomer": newcomer, "returning": returning, "choices": choices,
+        "schedule": schedule,
+        "scripted_choices": scripted_choices,
         "memory": "permitted public history only; fresh process for every invitation",
         "seconds_per_decision": 120, "output_tokens_per_decision": 1024, "context_tokens": 8192,
         "attempts": attempts, "process_seconds": 180, "max_invitations": 9, "max_prompt_bytes": 6500,
@@ -246,8 +282,10 @@ def run(output: Path, *, condition: str = "open", host: str = "python", mode: st
         stage = "configuration"
         if (condition not in ("open", "assigned") or host not in ("python", "rust") or mode not in ("scripted", "ollama")
             or type(rounds) is not int or not 2 <= rounds <= 3 or type(seed) is not int
-            or any(type(value) is not bool for value in (newcomer, returning, consider, private_traces))):
+            or any(type(value) is not bool for value in (newcomer, returning, consider, private_traces, choices))):
             raise ValueError("invalid gathering configuration")
+        if choices and (condition != "open" or newcomer or rounds != 2 or mode != "scripted"):
+            raise ValueError("choices encounter is an open scripted pair with a return and no newcomer")
         loop.Budget(attempts=attempts)
         if mode == "ollama" and not model.strip():
             raise ValueError("installed local model required")
@@ -284,16 +322,35 @@ def run(output: Path, *, condition: str = "open", host: str = "python", mode: st
                 save(output / "history.json", events)
                 return events
 
+            def scripted_turn(principal: str, number: int, *, return_invitation: bool) -> tuple[str, str]:
+                if choices:
+                    if return_invitation and principal == RESIDENTS[0]:
+                        return "message", "I am back. Both proposals are still open."
+                    if number == 1 and principal == RESIDENTS[0]:
+                        return "message", "I propose a walk."
+                    if number == 1 and principal == RESIDENTS[1]:
+                        return "message", "I propose a song."
+                    if principal == RESIDENTS[0]:
+                        return "leave", ""
+                    if principal == RESIDENTS[1]:
+                        return "message", "I decline the walk."
+                    raise ValueError("choices encounter has no scripted act for this invitation")
+                action = "quiet" if principal == RESIDENTS[1] and number == 1 else "leave" if principal == RESIDENTS[1] else "message"
+                return action, ""
+
             def invitation(origin: str, principal: str, number: int, *, return_invitation: bool = False) -> None:
                 index = len(observations)
                 if index >= 9:
                     raise ValueError("invitation budget exceeded")
+                action, scripted_text = scripted_turn(principal, number, return_invitation=return_invitation)
                 config: JsonObject = {"origin": origin, "token": tokens[principal], "principal": principal,
                     "recipients": [OBSERVER], "record_id": f"message:gathering-{index + 1}", "condition": condition,
                     "round": number, "consider": consider, "return_invitation": return_invitation,
                     "mode": mode, "model": model, "seed": seed + index, "ollama_origin": "http://127.0.0.1:11434",
                     "decision_attempts": attempts, "attempt_journal": str(output / f"attempts-{index + 1}.json"),
-                    "scripted_action": "quiet" if principal == RESIDENTS[1] and number == 1 else "leave" if principal == RESIDENTS[1] else "message"}
+                    "scripted_action": action}
+                if scripted_text:
+                    config["scripted_text"] = scripted_text
                 if private_traces:
                     config["private_candidates"] = str(output / f"private-candidates-{index + 1}")
                 child_config = directory / f"participant-{index + 1}.json"
@@ -359,6 +416,28 @@ def run(output: Path, *, condition: str = "open", host: str = "python", mode: st
                 final = history(origin)
                 if final[:len(before)] != before:
                     raise ValueError("prior records changed")
+                if choices:
+                    expected = (
+                        (RESIDENTS[0], "I propose a walk."),
+                        (RESIDENTS[1], "I propose a song."),
+                        (RESIDENTS[1], "I decline the walk."),
+                        (RESIDENTS[0], "I am back. Both proposals are still open."),
+                    )
+                    if tuple(authored_messages(final)) != expected:
+                        raise ValueError("choices history did not preserve the submissions")
+                    local_leaves = [item for item in observations if item.get("outcome") == "left" and item.get("principal") == RESIDENTS[0]]
+                    if len(local_leaves) != 1:
+                        raise ValueError("choices leave was not kept as a local observation")
+                    report["choice_record"] = {
+                        "proposals": [{"actor": RESIDENTS[0], "text": "I propose a walk."}, {"actor": RESIDENTS[1], "text": "I propose a song."}],
+                        "decline": {"actor": RESIDENTS[1], "text": "I decline the walk.", "reputation": None},
+                        "return": {"actor": RESIDENTS[0], "text": "I am back. Both proposals are still open."},
+                        "local_leave_in_shared_history": False,
+                        "authored_submissions": [{"actor": actor, "text": text} for actor, text in expected],
+                        "scores": None,
+                        "establishes": "shared history retained who submitted each proposal, the decline, and the later return",
+                        "does_not_establish": "that those statements are true, that the room agreed, consciousness, free will, or a reputation",
+                    }
                 report.update({"prior_records_retained": True, "all_observed_records_retained": True, "recorded_messages": len(final),
                     "departed_from_schedule": sorted(departed), "outcome": "completed", "mechanics_verified": True})
             finally:
@@ -393,6 +472,7 @@ def main() -> int:
     parser.add_argument("--returning", action="store_true")
     parser.add_argument("--consider", action="store_true")
     parser.add_argument("--private-traces", action="store_true")
+    parser.add_argument("--choices", action="store_true")
     parser.add_argument("--temp-root", type=Path)
     args = parser.parse_args()
     if args.config is not None:
@@ -406,12 +486,22 @@ def main() -> int:
         return 1 if result["outcome"] == "failed" else 0
     if args.output is None:
         parser.error("--output or private --config is required")
+    if args.choices:
+        if not args.no_newcomer:
+            parser.error("--choices does not include a newcomer; pass --no-newcomer")
+        if args.condition != "open":
+            parser.error("--choices runs the open encounter")
+        if args.rounds != 2:
+            parser.error("--choices uses two rounds")
+        if args.mode != "scripted":
+            parser.error("--choices is a disclosed script")
     args.output = args.output.resolve()
     conditions = ("open", "assigned") if args.condition == "both" else (args.condition,)
     args.output.mkdir(parents=True, exist_ok=False)
     reports = [run(args.output / condition, condition=condition, host=args.host, mode=args.mode, model=args.model,
         seed=args.seed, rounds=args.rounds, attempts=args.attempts, newcomer=not args.no_newcomer,
-        returning=args.returning, consider=args.consider, private_traces=args.private_traces, temp_root=args.temp_root)
+        returning=args.returning, consider=args.consider, private_traces=args.private_traces,
+        choices=args.choices, temp_root=args.temp_root)
         for condition in conditions]
     summary = {"format": "agentciv-gathering-comparison/0.1", "conditions": [report["controls"] for report in reports],
         "outcomes": [report["outcome"] for report in reports], "interpretation": "separate bounded observations, not a causal comparison or social score"}
