@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import os
+import socket
 import subprocess
 import sys
 import tempfile
@@ -411,6 +412,53 @@ class HttpTests(unittest.TestCase):
             server = self.start()
         status, _, _ = request("GET", f"{server.origin}/.well-known/agentciv")
         self.assertEqual(status, 200)
+
+    def test_close_waits_for_disconnected_request_to_release_storage(self) -> None:
+        server = self.start()
+        active = threading.Event()
+        release = threading.Event()
+        storage_closed = threading.Event()
+        close_started = threading.Event()
+        closed = threading.Event()
+
+        def held_read(principal: str, after: str | None, can_read: bool) -> host.JsonObject:
+            connection = server.store._connect()
+            try:
+                active.set()
+                if not release.wait(10):
+                    raise AssertionError("storage request was not released")
+                return {"events": []}
+            finally:
+                connection.close()
+                storage_closed.set()
+
+        def close_server() -> None:
+            close_started.set()
+            server.server_close()
+            closed.set()
+
+        closer = threading.Thread(target=close_server)
+        with mock.patch.object(server.store, "read_page", side_effect=held_read), \
+                mock.patch.object(server, "handle_error"):
+            try:
+                with socket.create_connection(host.listen_pair(server.server_address), timeout=5) as peer:
+                    peer.sendall(b"GET /events HTTP/1.1\r\nHost: localhost\r\n"
+                                 b"Authorization: Bearer reader-token-value\r\nConnection: close\r\n\r\n")
+                    self.assertTrue(active.wait(5))
+                server.shutdown()
+                closer.start()
+                self.assertTrue(close_started.wait(5))
+                self.assertFalse(closed.wait(0.1), "close returned with storage still open")
+            finally:
+                release.set()
+                self.assertTrue(storage_closed.wait(5))
+                if closer.ident is not None:
+                    closer.join(5)
+                server.server_close()
+        self.assertFalse(closer.is_alive())
+        self.assertTrue(closed.is_set())
+        self.servers.remove(server)
+        server.config.database_path.unlink()
 
     def test_discovery_auth_recording_and_retry(self) -> None:
         server = self.start()

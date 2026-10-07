@@ -995,7 +995,8 @@ def problem(status: int, code: str, title: str) -> JsonObject:
 
 
 class CommonsServer(ThreadingHTTPServer):
-    daemon_threads = True
+    # Closing the host must drain handlers before callers remove or reopen its database.
+    daemon_threads = False
     allow_reuse_address = True
     config: HostConfig
     store: Store

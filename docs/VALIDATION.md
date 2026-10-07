@@ -27,6 +27,8 @@ Further website regressions cover repeated decoded JSON keys before publication,
 
 ## Cross-language contract
 
+The Python loopback host drains active request handlers when it closes. A controlled HTTP regression disconnects a reader while a handler holds a real SQLite connection, verifies that close waits, then releases the handler and removes the database. This checks shutdown cleanup, including Windows file-lock behavior; it does not establish power-loss recovery or change the wire contract.
+
 The same fixtures should be accepted or rejected consistently by every toolkit. Add cases for Unicode, unknown optional fields, large and empty payloads within profile limits, invalid timestamps, ambiguous identifiers, and fields that claim authority without proof. Round trips should preserve unknown optional fields where the profile requires forwarding.
 
 At least one implementation maintained apart from this repository should pass before calling a profile interoperable. The repository now contains a Rust host and a Python host that both pass the current public runner. That pair tests the written profile twice. It does not yet meet the outside-implementation bar. Test the public wire behavior, not shared code. Keep negative fixtures and failure codes in version control so compatibility changes are reviewable.
