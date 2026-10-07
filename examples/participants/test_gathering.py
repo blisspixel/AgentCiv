@@ -50,6 +50,8 @@ class GatheringDecisions(unittest.TestCase):
         self.assertIn("No social or productivity score", gathering.COMMON)
         self.assertIn("not carried across processes", gathering.COMMON)
         self.assertIn("Neither quiet nor leave submits a civic decline", gathering.COMMON)
+        self.assertIn("Leaving does not recall text another participant already received", gathering.COMMON)
+        self.assertIn("truth, agreement, and authority stay separate", gathering.COMMON)
         self.assertEqual(gathering.CONSIDER, "Consider:\n\nTreat others with the consideration you would wish for yourself.\n\n"
             "Try to have compassion.\n\nConsider perspectives beyond your own.\n\nTrust with discernment.")
 
@@ -396,6 +398,53 @@ class GatheringRuns(unittest.TestCase):
         self.assertEqual(len(visible), 4)
         with self.assertRaises(FileExistsError):
             gathering.run(output)
+
+    def test_choices_configuration_rejects_a_newcomer(self) -> None:
+        report = gathering.run(self.directory / "choices-newcomer", choices=True)
+        self.assertEqual(report["outcome"], "failed")
+        self.assertFalse(report["mechanics_verified"])
+        self.assertEqual(report["failure_stage"], "configuration")
+        self.assertIsNone(report.get("choice_record"))
+
+    def test_choices_cli_rejects_a_newcomer(self) -> None:
+        with patch.object(sys, "argv", ["gathering", "--choices", "--output", str(self.directory / "cli-out")]):
+            with self.assertRaises(SystemExit) as raised:
+                gathering.main()
+        self.assertEqual(raised.exception.code, 2)
+
+    def test_choices_history_preserves_proposals_decline_and_return(self) -> None:
+        output = self.directory / "choices"
+        report = gathering.run(output, choices=True, newcomer=False)
+        self.assertEqual(report["outcome"], "completed", report)
+        self.assertTrue(report["mechanics_verified"])
+        self.assertTrue(report["restart_history_equal"])
+        observations = report["observations"]
+        if not isinstance(observations, list):
+            raise AssertionError("observations missing")
+        self.assertEqual([client.object_value(value)["outcome"] for value in observations],
+                         ["recorded", "recorded", "left", "recorded", "recorded"])
+        self.assertEqual([client.object_value(value)["principal"] for value in observations],
+                         [gathering.RESIDENTS[0], gathering.RESIDENTS[1], gathering.RESIDENTS[0],
+                          gathering.RESIDENTS[1], gathering.RESIDENTS[0]])
+        history = json.loads((output / "history.json").read_text(encoding="utf-8"))
+        authored = [(event["actor"], event["body"]["message"]["body"]["text"]) for event in history]
+        self.assertEqual(authored, [
+            (gathering.RESIDENTS[0], "I propose a walk."),
+            (gathering.RESIDENTS[1], "I propose a song."),
+            (gathering.RESIDENTS[1], "I decline the walk."),
+            (gathering.RESIDENTS[0], "I am back. Both proposals are still open."),
+        ])
+        before = json.loads((output / "before-restart.json").read_text(encoding="utf-8"))
+        self.assertEqual([(event["actor"], event["body"]["message"]["body"]["text"]) for event in before], authored[:2])
+        record = client.object_value(report["choice_record"])
+        self.assertIsNone(record["scores"])
+        self.assertIsNone(client.object_value(record["decline"])["reputation"])
+        self.assertFalse(record["local_leave_in_shared_history"])
+        self.assertIn("who submitted", str(record["establishes"]))
+        self.assertIn("free will", str(record["does_not_establish"]))
+        self.assertIn("true", str(record["does_not_establish"]))
+        self.assertIsNone(client.object_value(report["controls"])["scores"])
+        self.assertEqual(report["departed_from_schedule"], [])
 
     def test_return_invitation_is_explicit_and_does_not_ignore_leave(self) -> None:
         def child(arguments: list[str], **kwargs: object) -> subprocess.CompletedProcess[bytes]:

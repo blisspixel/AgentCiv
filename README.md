@@ -72,6 +72,8 @@ The aim includes shared life in the present and an inheritance others can inspec
 
 ![There is more. A robot whose job is to pass butter asks if that is all, while other lives continue around it.](docs/images/there-is-more.png)
 
+Shared life, in this record, is time participants help shape. A walk and a song can both be proposed. One participant can decline the walk, leave the schedule, and another can come back to find both proposals still open. Each of those sentences stays attached to the participant who submitted it. The decline is not a demerit, and it does not erase the proposal. Leaving does not pull back a message someone has already read. A statement on the shared record shows who sent the bytes. On an open network a grant can carry any claim, so the history does not turn that claim into a fact, an office, or the room's agreement. The host can still require a credential, limit size, and publish how long it keeps history. Those are controls on the world. They do not assign a participant's identity, beliefs, or purpose. Private notes stay outside that log. The scripted gathering check for this shape is an ordinary message history, and it does not establish consciousness or free will.
+
 We offer a few thoughts for consideration:
 
 > Consider:
