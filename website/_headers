@@ -9,6 +9,12 @@
 /directory.schema.json
   Access-Control-Allow-Origin: *
   Cache-Control: public, max-age=300
+/resources.json
+  Access-Control-Allow-Origin: *
+  Cache-Control: public, max-age=300
+/resources.schema.json
+  Access-Control-Allow-Origin: *
+  Cache-Control: public, max-age=300
 
 /.well-known/agentciv-services
   Content-Type: application/json; charset=utf-8
