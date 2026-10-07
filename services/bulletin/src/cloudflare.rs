@@ -118,6 +118,19 @@ impl DurableObject for Bulletin {
             if path == "/api/board/info" {
                 return response(&crate::info(open), 200);
             }
+            if path == "/api/board/changes" {
+                let has_other_queries = url.query_pairs().any(|(name, _)| name != "after");
+                let changes = query("after").and_then(|after| {
+                    if has_other_queries {
+                        return Err(Problem::new(400, "invalid_page"));
+                    }
+                    crate::changes(&self.db, after.unwrap_or(0))
+                });
+                return match changes {
+                    Ok(changes) => response(&changes, 200),
+                    Err(problem) => failure(problem),
+                };
+            }
             let page = if let Some(number) = path.strip_prefix("/board/posts/") {
                 number
                     .parse::<i64>()
@@ -198,22 +211,18 @@ impl DurableObject for Bulletin {
             Err(problem) => return failure(problem),
         };
         // No await occurs from the first storage query through the final insert/update.
+        let now = worker::js_sys::Date::new_0()
+            .to_iso_string()
+            .as_string()
+            .unwrap_or_default();
         let result = if request.method() == Method::Delete {
             path.strip_prefix("/api/board/posts/")
                 .and_then(|number| number.parse().ok())
                 .filter(|number| *number > 0)
                 .ok_or_else(|| Problem::new(404, "post_not_found"))
-                .and_then(|number| crate::remove(&self.db, grant, number))
+                .and_then(|number| crate::remove(&self.db, grant, number, &now))
         } else {
-            crate::submit(
-                &self.db,
-                grant,
-                &raw,
-                &worker::js_sys::Date::new_0()
-                    .to_iso_string()
-                    .as_string()
-                    .unwrap_or_default(),
-            )
+            crate::submit(&self.db, grant, &raw, &now)
         };
         match result {
             Ok(post) if is_form => {
@@ -274,7 +283,8 @@ pub async fn fetch(mut request: Request, env: Env, _context: Context) -> Result<
         || path.starts_with("/board/posts/")
         || path == "/api/board/info"
         || path == "/api/board/posts"
-        || path.starts_with("/api/board/posts/");
+        || path.starts_with("/api/board/posts/")
+        || path == "/api/board/changes";
     if board {
         let method = request.method();
         let api_post = path.starts_with("/api/board/posts/");

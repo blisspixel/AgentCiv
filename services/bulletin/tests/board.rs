@@ -264,16 +264,18 @@ fn replies_require_an_existing_post_and_survive_content_removal() {
     submit(&db, &author, &raw("first", "agent:a"), DATE).unwrap();
     submit(&db, &author, &reply, DATE).unwrap();
     assert_eq!(
-        remove(&db, &grant("agent:b", false), 1).unwrap_err().status,
+        remove(&db, &grant("agent:b", false), 1, DATE)
+            .unwrap_err()
+            .status,
         403
     );
-    let removed = remove(&db, &author, 1).unwrap();
+    let removed = remove(&db, &author, 1, DATE).unwrap();
     assert_eq!(removed.removed.as_deref(), Some("author_removed"));
     assert_eq!(removed.public()["message"], Value::Null);
     assert_eq!(removed.public()["original_submission"], Value::Null);
     assert!(post(&db, 1).unwrap().raw.is_empty());
     assert!(post(&db, 1).unwrap().message.is_empty());
-    assert_eq!(remove(&db, &author, 1).unwrap().sequence, 1);
+    assert_eq!(remove(&db, &author, 1, DATE).unwrap().sequence, 1);
     assert_eq!(
         submit(&db, &author, &raw("first", "agent:a"), DATE)
             .unwrap()
@@ -281,7 +283,7 @@ fn replies_require_an_existing_post_and_survive_content_removal() {
         "removed"
     );
     assert_eq!(
-        remove(&db, &grant("agent:operator", true), 2)
+        remove(&db, &grant("agent:operator", true), 2, DATE)
             .unwrap()
             .removed
             .as_deref(),
@@ -450,7 +452,7 @@ fn storage_failures_never_report_publication() {
         )
         .is_err()
     );
-    assert!(remove(&Broken, &grant("agent:a", true), 1).is_err());
+    assert!(remove(&Broken, &grant("agent:a", true), 1, DATE).is_err());
     let db = db();
     db.0.execute_batch("CREATE TRIGGER fail_insert BEFORE INSERT ON posts BEGIN SELECT RAISE(ABORT, 'failed'); END;").unwrap();
     assert_eq!(
@@ -497,7 +499,7 @@ fn form_credentials_are_not_part_of_public_records_and_views_escape_content() {
         value["message"]["body"]["reply_to"] = json!("post:1")
     });
     submit(&db, &grant("agent:a", false), &reply, DATE).unwrap();
-    remove(&db, &grant("agent:a", false), 1).unwrap();
+    remove(&db, &grant("agent:a", false), 1, DATE).unwrap();
     assert!(
         board_html(
             &agentciv_bulletin::page(&db, None, None).unwrap(),
@@ -517,4 +519,120 @@ fn form_credentials_are_not_part_of_public_records_and_views_escape_content() {
     }
     assert!(form_submission(&[255]).is_err());
     assert!(form_submission(&vec![b' '; MAX_PAYLOAD + 1]).is_err());
+}
+
+#[test]
+fn ordered_changes_feed_records_publish_and_removal_without_leaking_deleted_text() {
+    let db = db();
+    let author_a = grant("agent:a", false);
+    let author_b = grant("agent:b", false);
+
+    // Empty board changes feed preserves after boundary.
+    let empty = changes(&db, 0).unwrap();
+    assert_eq!(empty["changes"], json!([]));
+    assert_eq!(empty["has_more"], false);
+    assert_eq!(empty["next_after"], 0);
+
+    // Submit two posts.
+    let post_1 = submit(&db, &author_a, &raw("p1", "agent:a"), DATE).unwrap();
+    let post_2 = submit(&db, &author_b, &raw("p2", "agent:b"), DATE).unwrap();
+    assert_eq!(post_1.sequence, 1);
+    assert_eq!(post_2.sequence, 2);
+
+    // Poll from beginning: both publications appear with their messages.
+    let initial = changes(&db, 0).unwrap();
+    assert_eq!(initial["has_more"], false);
+    assert_eq!(initial["next_after"], 2);
+    let list = initial["changes"].as_array().unwrap();
+    assert_eq!(list.len(), 2);
+    assert_eq!(list[0]["sequence"], 1);
+    assert_eq!(list[0]["kind"], "publish");
+    assert_eq!(list[0]["post_id"], "post:1");
+    assert_eq!(list[0]["removed"], Value::Null);
+    assert!(list[0]["message"]["body"]["text"].as_str().is_some());
+    assert!(list[0]["original_submission"].as_str().is_some());
+
+    assert_eq!(list[1]["sequence"], 2);
+    assert_eq!(list[1]["kind"], "publish");
+    assert_eq!(list[1]["post_id"], "post:2");
+    assert_eq!(list[1]["removed"], Value::Null);
+
+    // Saved boundary polling before removal returns empty.
+    let poll_before = changes(&db, 2).unwrap();
+    assert_eq!(poll_before["changes"], json!([]));
+    assert_eq!(poll_before["next_after"], 2);
+
+    // Remove post 1.
+    remove(&db, &author_a, 1, DATE).unwrap();
+
+    // Polling from saved boundary 2 discovers the removal change event.
+    let caught_up = changes(&db, 2).unwrap();
+    assert_eq!(caught_up["has_more"], false);
+    assert_eq!(caught_up["next_after"], 3);
+    let caught_list = caught_up["changes"].as_array().unwrap();
+    assert_eq!(caught_list.len(), 1);
+    assert_eq!(caught_list[0]["sequence"], 3);
+    assert_eq!(caught_list[0]["kind"], "remove");
+    assert_eq!(caught_list[0]["post_id"], "post:1");
+    assert_eq!(caught_list[0]["post_sequence"], 1);
+    assert_eq!(caught_list[0]["principal"], "agent:a");
+    assert_eq!(caught_list[0]["removed"], "author_removed");
+    assert_eq!(caught_list[0]["message"], Value::Null);
+    assert_eq!(caught_list[0]["original_submission"], Value::Null);
+
+    // Polling from 0 shows removed status on both change 1 and change 3: removed text does not return.
+    let full = changes(&db, 0).unwrap();
+    let full_list = full["changes"].as_array().unwrap();
+    assert_eq!(full_list.len(), 3);
+    assert_eq!(full_list[0]["sequence"], 1);
+    assert_eq!(full_list[0]["kind"], "publish");
+    assert_eq!(full_list[0]["post_id"], "post:1");
+    assert_eq!(full_list[0]["removed"], "author_removed");
+    assert_eq!(full_list[0]["message"], Value::Null);
+    assert_eq!(full_list[0]["original_submission"], Value::Null);
+
+    assert_eq!(full_list[1]["sequence"], 2);
+    assert_eq!(full_list[1]["kind"], "publish");
+    assert_eq!(full_list[1]["post_id"], "post:2");
+    assert_eq!(full_list[1]["removed"], Value::Null);
+    assert!(full_list[1]["message"]["body"]["text"].as_str().is_some());
+
+    assert_eq!(full_list[2]["sequence"], 3);
+    assert_eq!(full_list[2]["kind"], "remove");
+    assert_eq!(full_list[2]["removed"], "author_removed");
+    assert_eq!(full_list[2]["message"], Value::Null);
+    assert_eq!(full_list[2]["original_submission"], Value::Null);
+
+    // Repeated removal is idempotent and does not create an extra change record.
+    remove(&db, &author_a, 1, DATE).unwrap();
+    let repeated = changes(&db, 3).unwrap();
+    assert_eq!(repeated["changes"], json!([]));
+    assert_eq!(repeated["next_after"], 3);
+
+    // Bad arguments and failure paths.
+    assert_eq!(changes(&db, -1).unwrap_err().code, "invalid_page");
+    assert_eq!(changes(&Broken, 0).unwrap_err().code, "storage_failed");
+    assert_eq!(
+        remove(&db, &author_a, 1, "invalid-time").unwrap_err().code,
+        "clock_failed"
+    );
+}
+
+#[test]
+fn changes_feed_pagination_bounds_pages() {
+    let db = db();
+    for i in 0..52 {
+        let principal = format!("agent:page-{}", i / 18);
+        let author = grant(&principal, false);
+        submit(&db, &author, &raw(&format!("p{i}"), &principal), DATE).unwrap();
+    }
+    let first_page = changes(&db, 0).unwrap();
+    assert_eq!(first_page["has_more"], true);
+    assert_eq!(first_page["next_after"], 50);
+    assert_eq!(first_page["changes"].as_array().unwrap().len(), 50);
+
+    let second_page = changes(&db, 50).unwrap();
+    assert_eq!(second_page["has_more"], false);
+    assert_eq!(second_page["next_after"], 52);
+    assert_eq!(second_page["changes"].as_array().unwrap().len(), 2);
 }
