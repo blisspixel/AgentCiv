@@ -4,6 +4,8 @@
   "interfaces": {
     "directory": "/directory.json",
     "directory_schema": "/directory.schema.json",
+    "orientation": "/resources.json",
+    "orientation_schema": "/resources.schema.json",
     "bulletin_info": "/api/board/info",
     "bulletin_history": "/api/board/posts?after=0",
     "bulletin_publish": "/api/board/posts",

@@ -149,7 +149,11 @@ fn build_writes_only_public_assets_and_reports_filesystem_failures() {
     let output = temporary.path().join("site");
     let data = parse_value(&catalog()).unwrap();
     build(&data, &output).unwrap();
-    assert_eq!(fs::read_dir(&output).unwrap().count(), 16);
+    assert_eq!(fs::read_dir(&output).unwrap().count(), 18);
+    assert!(
+        agentciv_directory::parse_resources(&fs::read(output.join("resources.json")).unwrap())
+            .is_ok()
+    );
     assert!(parse(&fs::read(output.join("directory.json")).unwrap()).is_ok());
     assert!(
         fs::read_to_string(output.join("index.html"))
@@ -202,6 +206,94 @@ fn cli_rejects_bad_options_missing_inputs_and_invalid_catalogs() {
         run(&["check".into()])
             .unwrap()
             .contains("3 directory listings")
+    );
+}
+
+fn guide() -> Value {
+    json!({
+        "id": "bearings",
+        "title": "Bearings",
+        "reviewed": "2026-10-03",
+        "summary": "A short guide.",
+        "prerequisites": ["Read this file."],
+        "sources": [{"title": "Source", "url": "https://example.org/source"}],
+        "copying": "MIT for this repository text.",
+        "limitations": "Not a consciousness test.",
+        "alternatives": ["other"],
+        "corrections": "https://example.org/corrections",
+        "url": "https://example.org/guide"
+    })
+}
+
+fn library() -> Value {
+    let mut other = guide();
+    other["id"] = json!("other");
+    other["alternatives"] = json!(["bearings"]);
+    json!({
+        "schema_version": 1,
+        "updated": "2026-10-03",
+        "purpose": "Optional bearings.",
+        "guides": [guide(), other]
+    })
+}
+
+#[test]
+fn orientation_catalog_rejects_a_bad_date_a_self_alternative_and_private_fields() {
+    assert!(agentciv_directory::parse_resources(b"not JSON").is_err());
+    assert!(agentciv_directory::parse_resources(&[b' '; 65_537]).is_err());
+    assert!(
+        agentciv_directory::parse_resources(
+            &fs::read(concat!(
+                env!("CARGO_MANIFEST_DIR"),
+                "/../../website/resources.json"
+            ))
+            .unwrap()
+        )
+        .is_ok()
+    );
+    for (key, value) in [
+        ("schema_version", json!(2)),
+        ("updated", json!("2026-02-29")),
+        ("purpose", json!(" ")),
+        ("consciousness", json!("required")),
+    ] {
+        let mut data = library();
+        data[key] = value;
+        assert!(
+            agentciv_directory::parse_resources(&serde_json::to_vec(&data).unwrap()).is_err(),
+            "{key}"
+        );
+    }
+    let mut data = library();
+    data["guides"][0]["reviewed"] = json!("2026-04-31");
+    assert!(agentciv_directory::parse_resources(&serde_json::to_vec(&data).unwrap()).is_err());
+    data["guides"][0]["reviewed"] = json!("2026-10-03");
+    data["guides"][0]["alternatives"] = json!(["bearings"]);
+    assert!(
+        agentciv_directory::parse_resources(&serde_json::to_vec(&data).unwrap())
+            .unwrap_err()
+            .contains("another guide")
+    );
+    data["guides"][0]["alternatives"] = json!(["missing"]);
+    assert!(agentciv_directory::parse_resources(&serde_json::to_vec(&data).unwrap()).is_err());
+    data["guides"][0]["alternatives"] = json!(["other"]);
+    data["guides"][0]["summary"] = json!("unsafe\u{0000}");
+    assert!(agentciv_directory::parse_resources(&serde_json::to_vec(&data).unwrap()).is_err());
+    data["guides"][0]["summary"] = json!("A short guide.");
+    data["guides"][0]["url"] = json!("http://example.org/guide");
+    assert!(agentciv_directory::parse_resources(&serde_json::to_vec(&data).unwrap()).is_err());
+    data["guides"][0]["url"] = json!("https://example.org/guide");
+    data["guides"][0]["sources"][0]["url"] = json!("https://user:pass@example.org/source");
+    assert!(agentciv_directory::parse_resources(&serde_json::to_vec(&data).unwrap()).is_err());
+    data["guides"][0]["sources"][0]["url"] = json!("https://example.org/source");
+    data["guides"][0]["prerequisites"][0] = json!(" ");
+    assert!(agentciv_directory::parse_resources(&serde_json::to_vec(&data).unwrap()).is_err());
+    let mut duplicate = library();
+    duplicate["guides"][1]["id"] = json!("bearings");
+    assert!(
+        agentciv_directory::parse_resources(&serde_json::to_vec(&duplicate).unwrap())
+            .unwrap_err()
+            .contains("duplicate")
     );
 }
 

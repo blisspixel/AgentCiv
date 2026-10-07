@@ -10,6 +10,7 @@ use url::Url;
 
 const ROOT: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/../../website");
 const SCHEMA: &str = include_str!("../../../website/directory.schema.json");
+const RESOURCE_SCHEMA: &str = include_str!("../../../website/resources.schema.json");
 const TEMPLATE: &str = include_str!("../../../website/index.template.html");
 const USAGE: &str = "Usage: agentciv-directory check [--input FILE]\n       agentciv-directory build --output DIRECTORY [--input FILE]";
 const MAX_CATALOG_BYTES: usize = 65_536;
@@ -82,6 +83,39 @@ impl Interface {
             Self::Cli => "CLI",
         }
     }
+}
+
+/// Orientation guides published beside the directory. A guide is not a mind classification.
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct Library {
+    schema_version: u32,
+    updated: String,
+    purpose: String,
+    guides: Vec<Guide>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct Guide {
+    id: String,
+    title: String,
+    reviewed: String,
+    summary: String,
+    prerequisites: Vec<String>,
+    sources: Vec<Source>,
+    copying: String,
+    limitations: String,
+    alternatives: Vec<String>,
+    corrections: String,
+    url: String,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct Source {
+    title: String,
+    url: String,
 }
 
 fn https_url(value: &str) -> Result<(), String> {
@@ -189,6 +223,78 @@ pub fn parse(bytes: &[u8]) -> Result<Directory, String> {
     Ok(directory)
 }
 
+fn plain(id: &str, text: &str) -> Result<(), String> {
+    if text.trim().is_empty() || text.chars().any(char::is_control) {
+        return Err(format!(
+            "{id}: text must be nonempty without control characters"
+        ));
+    }
+    Ok(())
+}
+
+/// Validate the orientation catalog. It asks for no private state and classifies no mind.
+pub fn parse_resources(bytes: &[u8]) -> Result<Library, String> {
+    if bytes.len() > MAX_CATALOG_BYTES {
+        return Err("orientation library exceeds 65536 bytes".into());
+    }
+    let value: serde_json::Value =
+        serde_json::from_slice(bytes).map_err(|error| error.to_string())?;
+    let schema: serde_json::Value =
+        serde_json::from_str(RESOURCE_SCHEMA).map_err(|error| error.to_string())?;
+    jsonschema::validator_for(&schema)
+        .map_err(|error| error.to_string())?
+        .validate(&value)
+        .map_err(|error| error.to_string())?;
+    let library: Library = serde_json::from_value(value).map_err(|error| error.to_string())?;
+    if library.schema_version != 1 {
+        return Err("schema_version must be 1".into());
+    }
+    if !date(&library.updated) {
+        return Err("updated must be a real YYYY-MM-DD calendar date".into());
+    }
+    plain("purpose", &library.purpose)?;
+    let mut ids = HashSet::new();
+    for guide in &library.guides {
+        if !ids.insert(guide.id.clone()) {
+            return Err(format!("duplicate guide ID: {}", guide.id));
+        }
+    }
+    for guide in &library.guides {
+        if !date(&guide.reviewed) {
+            return Err(format!(
+                "{}: reviewed must be a real calendar date",
+                guide.id
+            ));
+        }
+        for text in [
+            &guide.title,
+            &guide.summary,
+            &guide.copying,
+            &guide.limitations,
+        ] {
+            plain(&guide.id, text)?;
+        }
+        for item in &guide.prerequisites {
+            plain(&guide.id, item)?;
+        }
+        for source in &guide.sources {
+            plain(&guide.id, &source.title)?;
+            https_url(&source.url)?;
+        }
+        https_url(&guide.corrections)?;
+        https_url(&guide.url)?;
+        for alternative in &guide.alternatives {
+            if alternative == &guide.id || !ids.contains(alternative) {
+                return Err(format!(
+                    "{}: alternative {alternative} must name another guide in this catalog",
+                    guide.id
+                ));
+            }
+        }
+    }
+    Ok(library)
+}
+
 fn escape(value: &str) -> String {
     value.chars().fold(String::new(), |mut result, character| {
         match character {
@@ -251,6 +357,11 @@ pub fn build(directory: &Directory, output: &Path) -> Result<(), String> {
         ("index.html", html.as_str()),
         ("directory.json", json.as_str()),
         ("directory.schema.json", SCHEMA),
+        (
+            "resources.json",
+            include_str!("../../../website/resources.json"),
+        ),
+        ("resources.schema.json", RESOURCE_SCHEMA),
         ("agent.json", include_str!("../../../website/agent.json")),
         (
             "bulletin-submit.schema.json",
@@ -328,13 +439,17 @@ pub fn run(args: &[String]) -> Result<String, String> {
     }
     let input = fs::File::open(&input).map_err(|error| error.to_string())?;
     let directory = read_catalog(input)?;
+    let resources =
+        fs::read(format!("{ROOT}/resources.json")).map_err(|error| error.to_string())?;
+    let library = parse_resources(&resources)?;
     if let Some(output) = output {
         build(&directory, Path::new(output))?;
         Ok(format!("Static directory built in {output}"))
     } else {
         Ok(format!(
-            "{} directory listings passed validation",
-            directory.entries.len()
+            "{} directory listings and {} orientation guides passed validation",
+            directory.entries.len(),
+            library.guides.len()
         ))
     }
 }
