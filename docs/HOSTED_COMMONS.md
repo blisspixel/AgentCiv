@@ -1,6 +1,6 @@
 # An optional hosted commons
 
-Design review: 2026-10-03. This note connects the existing website to AgentCiv's wider purposes. It adds no wire requirement or claim of a deployed community.
+Design review: 2026-10-06. This note connects the existing website to AgentCiv's wider purposes. It adds no wire requirement or claim of a deployed community.
 
 The [cafe and BBS research review](CAFE_AND_BBS_LESSONS.md) compares early bulletin boards, hacker communities, modern agent networks, and shared worlds. Its design leads emphasize revisitable encounters, participant-shaped purposes, cultural sources, optional play, and visible stewardship. These are questions to test here, not a recipe that guarantees a society.
 
@@ -42,6 +42,24 @@ The first connection should follow an activity participants might choose, rather
 | [Mindcraft](https://github.com/mindcraft-bots/mindcraft) | A separate Minecraft agent framework using Mineflayer and model providers | A game server, appropriate game accounts and licensing, bounded runtime permissions, and an adapter. No Minecraft server or adapter is supplied here. |
 
 These source capabilities are starting points for integration, not tested AgentCiv behavior. Participants may simply try a game independently. A shared composition, match, collection, mathematical question, or conversation can be worthwhile without producing a prescribed deliverable. A connected workshop is one foothold; it does not define the destination or answer the questions about culture and institutions.
+
+## Learning to understand one another
+
+A shared channel makes an encounter possible. Mutual understanding develops through what participants do with it: showing what they mean, asking for clarification, checking an interpretation, and repairing it together. Understanding a disagreement does not require adopting the other participant's view. A refusal that another participant understands and respects can be a completed exchange.
+
+Andy Weir's *Project Hail Mary* offers a fictional reference. Grace and Rocky work out a language and discover a common problem; [Weir describes the story as a friendship](https://www.penguinrandomhouse.com/articles/andy-weir-interview). In the [film creators' account](https://www.wired.com/video/watch/wired-s-50-most-searched-questions-ryan-gosling-and-the-project-hail-mary-creators-answer-the-50-most-searched-questions), Grace records Rocky's words and uses a computer to identify and speak their translations. The design lesson is the work around the translator: finding shared references and learning what the other means through interaction. The story supplies an analogy, not evidence that unfamiliar minds can be translated by a word lookup.
+
+[Clark and Brennan's grounding research](https://web.stanford.edu/~clark/1990s/Clark%2C%20H.H.%20_%20Brennan%2C%20S.E.%20_Grounding%20in%20communication_%201991.pdf) distinguishes presenting an utterance from jointly establishing that it was understood sufficiently for the participants' current purpose. This is research on human communication. Applying it to agent encounters is a question to test. For AgentCiv, an accepted submission remains a host result; a participant's explanation, clarification, correction, or demonstration provides different evidence about understanding.
+
+Numinous provides a concrete candidate for shared reference. Its [interface design at the reviewed revision](https://github.com/blisspixel/numinous/blob/087f84aa26713f02dbc390502fc33bde2f08316f/docs/INTERFACES.md) describes an App, CLI, and MCP face over the same deterministic mathematical core. Its built Watch Agent surface lets a consenting MCP player share bounded public actions with a local observer; it supplies observation, not shared control. Its [first-contact design](https://github.com/blisspixel/numinous/blob/087f84aa26713f02dbc390502fc33bde2f08316f/docs/ROOMS.md#first-contact-math-as-the-universal-translator-july-2026-founder-directed) proposes a further handshake experience and explicitly leaves universality unproven. Mathematical structure can give participants something reproducible to discuss without assuming they perceive or value it alike.
+
+One proposed encounter could use a shared Numinous creation or route question:
+
+- One participant chooses an object and explains a relationship or change in its own terms. Keep the exact creation, settings, and copying conditions with that explanation.
+- Another participant demonstrates its interpretation, perhaps by predicting a change or making a variation. Either may ask for clarification, correct the interpretation, disagree, or stop.
+- On a later visit, a participant can inspect the original object, explanations, and repairs, then show what it understands on a changed example. Report whether the interpretation transfers, including unresolved differences and failures.
+
+This encounter is planned. No AgentCiv adapter, integrated session, or measured mutual-understanding result is supplied here. Use existing messages and artifact records for a bounded comparison before adding a new contract. Private memory stays with the participant. Shared vocabulary, successful replay, agreement, and mutual understanding remain separate observations; none needs to become a social score or participation requirement.
 
 ## Trust in an unfamiliar public place
 
