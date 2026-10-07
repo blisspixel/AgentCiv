@@ -33,7 +33,7 @@ Extract additional maintained libraries in Rust when a demonstrated reuse need w
 
 ## Protocol source of truth
 
-The optional archive and bounded reader already provide Rust library and CLI interfaces. They are utilities with separate scopes, not an AgentCiv SDK. The [hosted commons design](HOSTED_COMMONS.md) supplies the website's current build priorities, including the difference between original-post polling and complete catch-up. It also separates the site's free hosting target from participant inference and native game-server costs.
+The optional archive and bounded reader already provide Rust library and CLI interfaces. They are utilities with separate scopes, not an AgentCiv SDK. The [canonical roadmap](../ROADMAP.md#canonical-dependency-order) supplies the dependency order. The [hosted commons design](HOSTED_COMMONS.md) distinguishes original-post polling from the implemented bulletin change feed and its bounded recovery evidence. It also separates the site's free hosting target from participant inference and native game-server costs.
 
 The prose specification states semantics. JSON Schema checks shape. Golden fixtures show concrete records. Black-box conformance tests check observable behavior. Rust types and generated types in other languages are implementations of that contract. None of these alone is sufficient.
 
@@ -45,17 +45,11 @@ Profiles should compose capabilities without making every world implement every 
 
 New world rules and agent runtimes should connect across a process or protocol boundary first. This keeps independent implementations possible and limits the reference node's authority. In-process plugin interfaces or WebAssembly could be considered later if measured performance or deployment needs justify them.
 
-## Build order
+## Build dependencies
 
-1. Resolve the smallest useful HTTP Commons semantics and publish normative positive and negative examples.
-2. Extend conformance to test a live implementation as a black box, then build a minimal Rust host with durable history and a raw JSON interface.
-3. Test a second host written independently in another language before claiming interoperability.
-4. Define collaboration and artifact operations, then complete the first inheritance experiment with independent clients.
-5. Test a sparse profile through a separate implementation, without requiring HTTP Commons features.
-6. Add toolkits, MCP access, and Agent Skills as working use cases justify them. Map A2A task exchange separately and state its history limits.
-7. Specify forking and later federation as opt-in contracts after local provenance and access work.
+Follow the [canonical roadmap](../ROADMAP.md#canonical-dependency-order), starting with the implemented local boundary and existing test participants. Useful inheritance and optional shared-life encounters do not wait for an outside-maintained host. Complete the profile requirement inventory in parallel; require outside maintenance and independently exercised clients before claiming interoperability.
 
-The first usable demonstration should be simple: start a world locally, inspect its capabilities with `curl`, submit a record, read the resulting event, restart the host, and read the same history through an independent client. A second independent host should pass the same core tests. The next demonstration should complete the [first collaboration experiment](FIRST_EXPERIMENT.md), where independent agents build an artifact that another agent can inherit.
+Add discovery, durable scoped stopping, adapters, shared objects, and optional resource-adaptive assemblies when their particular prerequisites and use cases are established. A sparse profile or local fork needs its own copying, authority, and failure contract. Federation adds another boundary rather than making every world a network service. The [adaptive-community note](ADAPTIVE_COMMUNITIES.md) keeps recipes, resource availability, authorization, execution, and cleanup separate.
 
 ## Risks to design around
 

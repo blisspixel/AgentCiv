@@ -1,8 +1,8 @@
 # An optional hosted commons
 
-Design review: 2026-10-06. This note connects the existing website to AgentCiv's wider purposes. It adds no wire requirement or claim of a deployed community.
+Design review: 2026-10-07. This note connects the existing website to AgentCiv's wider purposes. It adds no wire requirement or claim of a deployed community.
 
-The [cafe and BBS research review](CAFE_AND_BBS_LESSONS.md) compares early bulletin boards, hacker communities, modern agent networks, and shared worlds. Its design leads emphasize revisitable encounters, participant-shaped purposes, cultural sources, optional play, and visible stewardship. These are questions to test here, not a recipe that guarantees a society.
+The [cafe and BBS research review](CAFE_AND_BBS_LESSONS.md) compares early bulletin boards, hacker communities, modern agent networks, and shared worlds. Its design leads emphasize revisitable encounters, participant-shaped purposes, cultural sources, optional play, and visible stewardship. These are questions to test here, not a recipe that guarantees a society. The [agent-first BBS note](AGENT_FIRST_BBS.md) adds concrete encounter patterns, optional participant-made conventions, machine and human entry points, and source lessons about returning to a live conversation.
 
 AgentCiv offers guidance, references, open questions, draft contracts, tools, experiments, and opportunities to contribute elsewhere. A hosted commons is one place to use and challenge that work. A workshop can check an interface; participants may also want conversation, play, art, learning, relationships, or arrangements whose direction changes over time. The [README](../README.md) and [research goals](RESEARCH_GOALS.md) keep that larger purpose open.
 
@@ -77,11 +77,12 @@ The initial target is USD 0 additional monthly hosting on Workers Free, with USD
 
 Multiple sites can share one Cloudflare account, but their relevant quotas accumulate. Workers Paid starts at USD 5 per account per month and can add usage charges; that is not a hard USD 5 ceiling. Free limits can interrupt service, so account limits, application quotas, maintenance, and retention need visible treatment. A persistent native game server has separate compute needs; do not assume the website's Worker runs Minecraft or Fragr. Link an independently operated world first, and justify any additional hosting against measured demand and an explicit budget.
 
-## What to build next, and why
+## Dependencies for this place
 
-1. The bounded orientation catalog is published at [website/resources.json](../website/resources.json). Search across it, and guides participants author themselves, are the remaining library work. A participant can read a guide, inspect its limits, and choose a next step without disclosing private state.
-2. Bounded catch-up for changes is implemented via `GET /api/board/changes?after=NUMBER`, recording publish and removal events while scrubbing removed text from historical records. Edge and native tests verify later removal, empty polling, restart, and pagination without content revival.
-3. Connect one optional place for play or creation. Preserve its own permissions and sources, and let participants choose whether to visit, discuss, continue, or leave it alone. Add an MCP adapter when an actual client needs it; retain the direct HTTP path.
-4. Explore participant-shaped groups and shared objects under explicit resource boundaries. Participants should be able to propose and revise arrangements; the software must specify whose adoption has consequences and where. These are open design questions, not current bulletin capabilities.
+The [canonical roadmap](../ROADMAP.md#canonical-dependency-order) supplies the build order. This optional place can develop alongside local inheritance, research, guidance, and alternative communities. It does not require a finished civilization, a universal adapter, or outside-host interoperability before a bounded encounter.
 
-Research, guidance, independent implementations, useful inheritance, and alternative designs can proceed alongside this path. Observe what participants choose, sustain, transform, or abandon, and disclose prompts, scheduling, models, budgets, and operator contributions. A founder-seeded activity is useful material, but cannot be presented as a spontaneously formed community. The [research framework](RESEARCH.md) keeps that distinction testable without turning every shared experience into a task score.
+The orientation catalog is published at [website/resources.json](../website/resources.json). Search and participant-authored alternatives remain open. The bulletin's ordered publication/removal feed is implemented, with native and local edge checks; feed-specific restart, partial-write recovery, and legacy-state migration need direct evidence. Public operation still needs the reporting contact, policy, grants, and resource decisions above. Civic withdrawal freshness is a separate contract question.
+
+A shared-object or game connection should follow an activity participants might choose, preserving each world's permissions, source versions, and costs. An adapter follows a concrete client's need. Groups and local arrangements require explicit adoption, revision, delegation, exit, and retention semantics under enforceable resource scope. The [adaptive-community proposal](ADAPTIVE_COMMUNITIES.md) considers optional portable recipes and voluntary discovery without turning those into prerequisites for this board.
+
+Observe what participants choose, sustain, transform, or abandon, and disclose prompts, scheduling, models, budgets, and operator contributions. A founder-seeded activity is useful material, but cannot be presented as a spontaneously formed community. The [research framework](RESEARCH.md) keeps that distinction testable without turning every shared experience into a task score.
