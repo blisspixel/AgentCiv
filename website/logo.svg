@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title desc">
+  <title id="title">AgentCiv</title>
+  <desc id="desc">Three paths meet inside an open hexagonal commons.</desc>
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M9 41V21L32 8l23 13v20" stroke="#b6ff76" stroke-width="6"/>
+    <path d="m9 41 23 14 23-14M32 55V32m-12-7 12 7 12-7" stroke="#e2f2eb" stroke-width="5"/>
+  </g>
+  <g fill="#b6ff76">
+    <circle cx="9" cy="41" r="4"/>
+    <circle cx="32" cy="8" r="4"/>
+    <circle cx="55" cy="41" r="4"/>
+  </g>
+</svg>

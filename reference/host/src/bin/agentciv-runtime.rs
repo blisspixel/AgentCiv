@@ -495,42 +495,93 @@ fn main() -> ExitCode {
 mod tests {
     use super::*;
 
-    fn python(code: &str) -> Child {
-        Command::new("python")
-            .args(["-c", code])
+    struct ReadyChild {
+        child: Option<Child>,
+        directory: tempfile::TempDir,
+    }
+
+    impl Drop for ReadyChild {
+        fn drop(&mut self) {
+            if let Some(child) = self.child.as_mut() {
+                let _ = child.kill();
+                let _ = child.wait();
+            }
+        }
+    }
+
+    impl ReadyChild {
+        fn wait(mut self, seconds: u64) -> Value {
+            fs::write(self.directory.path().join("release"), b"fixture").unwrap();
+            wait_child(self.child.take().unwrap(), seconds)
+        }
+    }
+
+    fn python(code: &str) -> ReadyChild {
+        // Interpreter startup is not the behavior under test. Do not start the
+        // result/timeout deadline until this private fixture is ready to run.
+        // Production dispatch has no fixture readiness exemption.
+        let directory = tempfile::tempdir().unwrap();
+        let script = format!(
+            "import sys, time\nfrom pathlib import Path\nroot = Path(sys.argv[1])\nroot.joinpath('ready').write_bytes(b'fixture')\nwhile not root.joinpath('release').exists():\n    time.sleep(0.01)\n{code}"
+        );
+        let child = Command::new("python")
+            .args(["-u", "-c", &script])
+            .arg(directory.path())
             .stdin(Stdio::null())
             .stdout(Stdio::piped())
             .stderr(Stdio::null())
             .spawn()
-            .unwrap()
+            .unwrap();
+        let mut fixture = ReadyChild {
+            child: Some(child),
+            directory,
+        };
+        let started = Instant::now();
+        while !fixture.directory.path().join("ready").exists() {
+            assert!(
+                fixture
+                    .child
+                    .as_mut()
+                    .unwrap()
+                    .try_wait()
+                    .unwrap()
+                    .is_none(),
+                "fixture exited before readiness"
+            );
+            assert!(
+                started.elapsed() < Duration::from_secs(30),
+                "fixture startup deadline expired"
+            );
+            thread::sleep(Duration::from_millis(10));
+        }
+        fixture
     }
 
     #[test]
     fn child_failure_and_output_limits_never_return_private_bytes() {
-        for code in [
+        for (index, code) in [
             "print('private child trace')",
             "print('{\"outcome\":\"invented-private-value\"}')",
             "print('{\"outcome\":\"quiet\"}')",
             "print('{\"outcome\":\"failed\"}')",
             "print('x' * 65537)",
-        ] {
+        ]
+        .into_iter()
+        .enumerate()
+        {
             assert_eq!(
-                wait_child(python(code), 5),
-                json!({"status":"invalid_result"})
+                python(code).wait(5),
+                json!({"status":"invalid_result"}),
+                "negative output fixture {index}"
             );
         }
         assert_eq!(
-            wait_child(
-                python("print('{\"outcome\":\"failed\"}'); raise SystemExit(1)"),
-                5
-            ),
+            python("print('{\"outcome\":\"failed\"}'); raise SystemExit(1)").wait(5),
             json!({"status":"failed","outcome":"failed","action":null})
         );
+        let sleeping = python("time.sleep(10)");
         let started = Instant::now();
-        assert_eq!(
-            wait_child(python("import time; time.sleep(10)"), 1),
-            json!({"status":"timeout"})
-        );
+        assert_eq!(sleeping.wait(1), json!({"status":"timeout"}));
         assert!(started.elapsed() < Duration::from_secs(5));
     }
 

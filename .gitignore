@@ -1,5 +1,6 @@
 /target/
 /.agents/
+/.wrangler/
 .coverage
 .coverage.*
 __pycache__/

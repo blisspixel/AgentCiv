@@ -149,7 +149,7 @@ fn build_writes_only_public_assets_and_reports_filesystem_failures() {
     let output = temporary.path().join("site");
     let data = parse_value(&catalog()).unwrap();
     build(&data, &output).unwrap();
-    assert_eq!(fs::read_dir(&output).unwrap().count(), 18);
+    assert_eq!(fs::read_dir(&output).unwrap().count(), 22);
     assert!(
         agentciv_directory::parse_resources(&fs::read(output.join("resources.json")).unwrap())
             .is_ok()
@@ -167,6 +167,88 @@ fn build_writes_only_public_assets_and_reports_filesystem_failures() {
     fs::remove_file(output.join("index.html")).unwrap();
     fs::create_dir(output.join("index.html")).unwrap();
     assert!(build(&data, &output).is_err());
+}
+
+#[test]
+fn readable_routes_have_complete_navigation_and_resolvable_catalog_links() {
+    let temporary = tempfile::tempdir().unwrap();
+    let data = parse(include_bytes!("../../../website/directory.json")).unwrap();
+    build(&data, temporary.path()).unwrap();
+    for name in [
+        "index.html",
+        "connect.html",
+        "worlds.html",
+        "resources.html",
+    ] {
+        let html = fs::read_to_string(temporary.path().join(name)).unwrap();
+        assert!(!html.contains("{{"), "unexpanded template in {name}");
+        assert!(!html.contains("<script"));
+        assert!(!html.contains("<form"));
+        let nav = html
+            .split("<nav ")
+            .nth(1)
+            .unwrap()
+            .split("</nav>")
+            .next()
+            .unwrap();
+        for route in ["/connect", "/worlds", "/resources", "/board"] {
+            assert!(
+                nav.contains(&format!("href=\"{route}\"")),
+                "{name}: {route}"
+            );
+        }
+        assert!(!nav.contains(".json"), "human navigation in {name}");
+        assert!(html.contains("src=\"/logo.svg\""));
+        assert!(html.contains("class=\"skip\""));
+        // Check every local link against actual output, including guide alternative anchors.
+        // Only the separately tested live board/report routes are supplied by the Worker.
+        for attribute in ["href=\"", "src=\""] {
+            for part in html.split(attribute).skip(1) {
+                let target = part.split('"').next().unwrap();
+                if let Some(anchor) = target.strip_prefix('#') {
+                    assert!(
+                        html.contains(&format!("id=\"{anchor}\"")),
+                        "{name}: {target}"
+                    );
+                } else if target.starts_with('/') && !target.starts_with("//") {
+                    let path = target.split('?').next().unwrap();
+                    if path == "/board" || path == "/report" || path.starts_with("/api/board/") {
+                        continue;
+                    }
+                    let path = if path == "/" {
+                        "index.html"
+                    } else {
+                        &path[1..]
+                    };
+                    let asset = temporary.path().join(path);
+                    assert!(
+                        asset.is_file() || asset.with_extension("html").is_file(),
+                        "{name}: {target}"
+                    );
+                }
+            }
+        }
+    }
+    let worlds = fs::read_to_string(temporary.path().join("worlds.html")).unwrap();
+    for name in ["AgentCiv local commons", "Numinous", "Fragr"] {
+        assert!(worlds.contains(name));
+    }
+    assert_eq!(worlds.matches(">Run locally<").count(), 3);
+    assert!(worlds.contains("0 public world hosts"));
+    assert!(!worlds.contains(">Joining and access<"));
+    assert!(!worlds.contains(">World descriptor<"));
+    let catalog: Value =
+        serde_json::from_slice(include_bytes!("../../../website/resources.json")).unwrap();
+    let resources = fs::read_to_string(temporary.path().join("resources.html")).unwrap();
+    for guide in catalog["guides"].as_array().unwrap() {
+        assert!(resources.contains(&format!("id=\"{}\"", guide["id"].as_str().unwrap())));
+        for source in guide["sources"].as_array().unwrap() {
+            assert!(resources.contains(source["url"].as_str().unwrap()));
+        }
+    }
+    let headers = fs::read_to_string(temporary.path().join("_headers")).unwrap();
+    assert!(headers.contains("default-src 'none'"));
+    assert!(headers.contains("form-action 'none'"));
 }
 
 #[test]

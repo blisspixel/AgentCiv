@@ -8,11 +8,15 @@ use std::path::Path;
 use serde::{Deserialize, Serialize};
 use url::Url;
 
+mod package;
+mod pages;
+pub use package::{checked_prebuilt_config, package};
+
 const ROOT: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/../../website");
 const SCHEMA: &str = include_str!("../../../website/directory.schema.json");
 const RESOURCE_SCHEMA: &str = include_str!("../../../website/resources.schema.json");
 const TEMPLATE: &str = include_str!("../../../website/index.template.html");
-const USAGE: &str = "Usage: agentciv-directory check [--input FILE]\n       agentciv-directory build --output DIRECTORY [--input FILE]";
+const USAGE: &str = "Usage: agentciv-directory check [--input FILE]\n       agentciv-directory build --output DIRECTORY [--input FILE]\n       agentciv-directory package --output FRESH_DIRECTORY [--input FILE]";
 const MAX_CATALOG_BYTES: usize = 65_536;
 
 /// Public catalog data, separate from every AgentCiv wire profile.
@@ -311,6 +315,10 @@ fn escape(value: &str) -> String {
 
 /// Render reviewed listings as escaped HTML; a listing is never a live health check.
 pub fn render(directory: &Directory) -> String {
+    render_directory(directory, TEMPLATE)
+}
+
+fn render_directory(directory: &Directory, template: &str) -> String {
     let public_count = directory
         .entries
         .iter()
@@ -341,26 +349,41 @@ pub fn render(directory: &Directory) -> String {
     } else {
         cards
     };
-    TEMPLATE
-        .replace("{{UPDATED}}", &escape(&directory.updated))
-        .replace("{{PUBLIC_COUNT}}", &public_count.to_string())
-        .replace("{{PUBLIC_MESSAGE}}", message)
-        .replace("{{LISTINGS}}", &cards)
+    pages::fill(
+        template,
+        &[
+            ("UPDATED", &escape(&directory.updated)),
+            ("PUBLIC_COUNT", &public_count.to_string()),
+            ("LISTING_COUNT", &directory.entries.len().to_string()),
+            ("PUBLIC_MESSAGE", message),
+            ("LISTINGS", &cards),
+        ],
+    )
 }
 
 /// Write only static public assets. Private history, credentials, and models are not read.
 pub fn build(directory: &Directory, output: &Path) -> Result<(), String> {
+    let resources = include_str!("../../../website/resources.json");
+    let library = parse_resources(resources.as_bytes())?;
     fs::create_dir_all(output).map_err(|error| error.to_string())?;
     let json = serde_json::to_string_pretty(directory).map_err(|error| error.to_string())?;
     let html = render(directory);
+    let worlds = render_directory(
+        directory,
+        include_str!("../../../website/worlds.template.html"),
+    );
+    let guides = pages::resources(&library);
     for (name, value) in [
         ("index.html", html.as_str()),
+        (
+            "connect.html",
+            include_str!("../../../website/connect.html"),
+        ),
+        ("worlds.html", worlds.as_str()),
+        ("resources.html", guides.as_str()),
         ("directory.json", json.as_str()),
         ("directory.schema.json", SCHEMA),
-        (
-            "resources.json",
-            include_str!("../../../website/resources.json"),
-        ),
+        ("resources.json", resources),
         ("resources.schema.json", RESOURCE_SCHEMA),
         ("agent.json", include_str!("../../../website/agent.json")),
         (
@@ -374,6 +397,7 @@ pub fn build(directory: &Directory, output: &Path) -> Result<(), String> {
         ),
         ("style.css", include_str!("../../../website/style.css")),
         ("favicon.svg", include_str!("../../../website/favicon.svg")),
+        ("logo.svg", include_str!("../../../website/logo.svg")),
         ("_headers", include_str!("../../../website/_headers")),
         ("llms.txt", include_str!("../../../website/llms.txt")),
         (
@@ -382,7 +406,7 @@ pub fn build(directory: &Directory, output: &Path) -> Result<(), String> {
         ),
         (
             "sitemap.xml",
-            "<?xml version=\"1.0\" encoding=\"UTF-8\"?><urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\"><url><loc>https://agentciv.io/</loc></url></urlset>\n",
+            "<?xml version=\"1.0\" encoding=\"UTF-8\"?><urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\"><url><loc>https://agentciv.io/</loc></url><url><loc>https://agentciv.io/connect</loc></url><url><loc>https://agentciv.io/worlds</loc></url><url><loc>https://agentciv.io/resources</loc></url></urlset>\n",
         ),
         ("404.html", include_str!("../../../website/404.html")),
     ] {
@@ -412,11 +436,11 @@ fn read_catalog(reader: impl Read) -> Result<Directory, String> {
     parse(&bytes)
 }
 
-/// Run the bounded check or static build command without network requests.
+/// Run the bounded check, static build, or prebuilt package without network requests.
 pub fn run(args: &[String]) -> Result<String, String> {
     let Some(command) = args
         .first()
-        .filter(|command| ["check", "build"].contains(&command.as_str()))
+        .filter(|command| ["check", "build", "package"].contains(&command.as_str()))
     else {
         return Err(USAGE.into());
     };
@@ -430,11 +454,11 @@ pub fn run(args: &[String]) -> Result<String, String> {
         }
         match pair[0].as_str() {
             "--input" => input.clone_from(&pair[1]),
-            "--output" if command == "build" => output = Some(&pair[1]),
+            "--output" if command != "check" => output = Some(&pair[1]),
             _ => return Err(USAGE.into()),
         }
     }
-    if !remainder.is_empty() || (command == "build" && output.is_none()) {
+    if !remainder.is_empty() || (command != "check" && output.is_none()) {
         return Err(USAGE.into());
     }
     let input = fs::File::open(&input).map_err(|error| error.to_string())?;
@@ -442,9 +466,23 @@ pub fn run(args: &[String]) -> Result<String, String> {
     let resources =
         fs::read(format!("{ROOT}/resources.json")).map_err(|error| error.to_string())?;
     let library = parse_resources(&resources)?;
+    let service = Path::new(ROOT).join("../services/bulletin");
+    let source_config = fs::read_to_string(service.join("wrangler.toml"))
+        .map_err(|_| "bulletin source configuration could not be read")?;
+    checked_prebuilt_config(&source_config)?;
     if let Some(output) = output {
-        build(&directory, Path::new(output))?;
-        Ok(format!("Static directory built in {output}"))
+        if command == "package" {
+            package(
+                &directory,
+                &service.join("build"),
+                &source_config,
+                Path::new(output),
+            )?;
+            Ok(format!("Prebuilt website and Worker packaged in {output}"))
+        } else {
+            build(&directory, Path::new(output))?;
+            Ok(format!("Static directory built in {output}"))
+        }
     } else {
         Ok(format!(
             "{} directory listings and {} orientation guides passed validation",

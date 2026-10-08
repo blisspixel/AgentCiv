@@ -13,6 +13,16 @@ pub use inventory::check_inventory;
 
 type CheckResult<T> = Result<T, Box<dyn Error>>;
 
+/// Check the exact reviewed website binding and resource configuration. This does
+/// not inspect a live account's billing plan or enforce a monthly dollar ceiling.
+pub fn check_bulletin_config(root: &Path) -> CheckResult<Vec<String>> {
+    let source = fs::read_to_string(root.join("services/bulletin/wrangler.toml"))?;
+    Ok(agentciv_directory::checked_prebuilt_config(&source)
+        .err()
+        .into_iter()
+        .collect())
+}
+
 fn link_pattern() -> &'static Regex {
     static PATTERN: OnceLock<Regex> = OnceLock::new();
     PATTERN.get_or_init(|| Regex::new(r"\[[^\]]+\]\(([^)]+)\)").expect("valid link pattern"))
@@ -221,6 +231,27 @@ pub fn check_schemas(root: &Path) -> CheckResult<Vec<String>> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn bulletin_configuration_requires_the_reviewed_source_and_reports_missing_files() {
+        let source = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+        assert!(check_bulletin_config(&source).unwrap().is_empty());
+        let temporary = tempfile::tempdir().unwrap();
+        assert!(check_bulletin_config(temporary.path()).is_err());
+        let service = temporary.path().join("services/bulletin");
+        fs::create_dir_all(&service).unwrap();
+        let approved = fs::read_to_string(source.join("services/bulletin/wrangler.toml")).unwrap();
+        fs::write(service.join("wrangler.toml"), &approved).unwrap();
+        assert!(check_bulletin_config(temporary.path()).unwrap().is_empty());
+        fs::write(
+            service.join("wrangler.toml"),
+            format!("{approved}\n[ai]\nbinding = \"AI\"\n"),
+        )
+        .unwrap();
+        let issues = check_bulletin_config(temporary.path()).unwrap();
+        assert_eq!(issues.len(), 1);
+        assert!(issues[0].contains("reviewed Free-only deployment allowlist"));
+    }
 
     #[test]
     fn valid_markdown_links_are_accepted() {

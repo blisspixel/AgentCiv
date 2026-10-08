@@ -33,6 +33,7 @@ dependencies = [
 name = "agentciv-checks"
 version = "0.1.0"
 dependencies = [
+ "agentciv-directory",
  "jsonschema",
  "percent-encoding",
  "regex",

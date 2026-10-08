@@ -1145,10 +1145,10 @@ class PublicRunnerTest(unittest.TestCase):
         summary = expect_dict(report["summary"])
         self.assertEqual(summary["failed"], 0)
         self.assertEqual(summary["skipped"], 5)
-        self.assertEqual(summary["passed"], 53)
+        self.assertEqual(summary["passed"], 56)
         cases = dicts(report["cases"])
         ids = {expect_str(case["id"]) for case in cases}
-        self.assertEqual(len(ids), 58)
+        self.assertEqual(len(ids), 61)
         self.assertIn("submit.json_charset", ids)
         self.assertIn("events.empty_cursor", ids)
         hidden_ids = {
@@ -1194,6 +1194,9 @@ class PublicRunnerTest(unittest.TestCase):
             "collaborate.revision_sequence",
             "collaborate.revision_sequence_retry",
             "collaborate.revision_sequence_rejection",
+            "collaborate.concurrent_revisions",
+            "collaborate.concurrent_revisions_retry",
+            "collaborate.concurrent_revisions_isolation",
         ):
             found = [case for case in cases if case["id"] == case_id]
             self.assertEqual(len(found), 1, case_id)

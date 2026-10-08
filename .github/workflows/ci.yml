@@ -37,15 +37,24 @@ jobs:
         run: worker-build --release --locked
       - name: Test local HTTP, concurrent writes, and retained state after restart
         run: python -m unittest services/bulletin/test_edge.py -v
+      - name: Package and extract prebuilt deployment without Rust source
+        run: |
+          cargo run --locked -p agentciv-directory -- package --output "$RUNNER_TEMP/agentciv-package"
+          git rev-parse HEAD > "$RUNNER_TEMP/agentciv-package/SOURCE_REVISION"
+          cd "$RUNNER_TEMP/agentciv-package"
+          zip -qr "$RUNNER_TEMP/agentciv-website.zip" .
+          mkdir "$RUNNER_TEMP/agentciv-extracted"
+          unzip -q "$RUNNER_TEMP/agentciv-website.zip" -d "$RUNNER_TEMP/agentciv-extracted"
+      - name: Dry-run the extracted Worker and assets without a custom build
+        working-directory: ${{ runner.temp }}/agentciv-extracted/services/bulletin
+        env:
+          WRANGLER_SEND_METRICS: "false"
+        run: wrangler deploy --dry-run --keep-vars --outdir "${{ runner.temp }}/agentciv-dry-run"
       - name: Preserve the deployable website and Worker
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: agentciv-website
-          path: |
-            website/dist/
-            services/bulletin/build/*.js
-            services/bulletin/build/*.wasm
-            services/bulletin/wrangler.toml
+          path: ${{ runner.temp }}/agentciv-extracted/
           include-hidden-files: true
           if-no-files-found: error
           retention-days: 7

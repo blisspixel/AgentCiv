@@ -1094,7 +1094,8 @@
       "gaps": [
         "gap:retention",
         "gap:cross-endpoint-retry",
-        "gap:content-authority"
+        "gap:content-authority",
+        "gap:collaboration-retry-races"
       ]
     },
     {
@@ -1111,7 +1112,11 @@
         "fixture:collaboration-artifact",
         "case:collaborate.revision_sequence",
         "case:collaborate.revision_sequence_retry",
-        "case:collaborate.revision_sequence_rejection"
+        "case:collaborate.revision_sequence_rejection",
+        "case:collaborate.concurrent_revisions",
+        "case:collaborate.concurrent_revisions_retry",
+        "case:collaborate.concurrent_revisions_isolation",
+        "case:restart.concurrent_revisions"
       ],
       "observations": [
         "obs:python:members:collaborate.other_chain",
@@ -1137,10 +1142,29 @@
         "obs:revisions-2026-10-08:rust:addressed:collaborate.revision_sequence_rejection",
         "obs:revisions-2026-10-08:rust:sender_only:collaborate.revision_sequence",
         "obs:revisions-2026-10-08:rust:sender_only:collaborate.revision_sequence_retry",
-        "obs:revisions-2026-10-08:rust:sender_only:collaborate.revision_sequence_rejection"
+        "obs:revisions-2026-10-08:rust:sender_only:collaborate.revision_sequence_rejection",
+        "obs:concurrent-revisions-2026-10-08:python:members:collaborate.concurrent_revisions",
+        "obs:concurrent-revisions-2026-10-08:python:members:collaborate.concurrent_revisions_retry",
+        "obs:concurrent-revisions-2026-10-08:python:members:collaborate.concurrent_revisions_isolation",
+        "obs:concurrent-revisions-2026-10-08:python:addressed:collaborate.concurrent_revisions",
+        "obs:concurrent-revisions-2026-10-08:python:addressed:collaborate.concurrent_revisions_retry",
+        "obs:concurrent-revisions-2026-10-08:python:addressed:collaborate.concurrent_revisions_isolation",
+        "obs:concurrent-revisions-2026-10-08:python:sender_only:collaborate.concurrent_revisions",
+        "obs:concurrent-revisions-2026-10-08:python:sender_only:collaborate.concurrent_revisions_retry",
+        "obs:concurrent-revisions-2026-10-08:python:sender_only:collaborate.concurrent_revisions_isolation",
+        "obs:concurrent-revisions-2026-10-08:rust:members:collaborate.concurrent_revisions",
+        "obs:concurrent-revisions-2026-10-08:rust:members:collaborate.concurrent_revisions_retry",
+        "obs:concurrent-revisions-2026-10-08:rust:members:collaborate.concurrent_revisions_isolation",
+        "obs:concurrent-revisions-2026-10-08:rust:addressed:collaborate.concurrent_revisions",
+        "obs:concurrent-revisions-2026-10-08:rust:addressed:collaborate.concurrent_revisions_retry",
+        "obs:concurrent-revisions-2026-10-08:rust:addressed:collaborate.concurrent_revisions_isolation",
+        "obs:concurrent-revisions-2026-10-08:rust:sender_only:collaborate.concurrent_revisions",
+        "obs:concurrent-revisions-2026-10-08:rust:sender_only:collaborate.concurrent_revisions_retry",
+        "obs:concurrent-revisions-2026-10-08:rust:sender_only:collaborate.concurrent_revisions_isolation",
+        "obs:concurrent-revisions-2026-10-08:python:verify:restart.concurrent_revisions",
+        "obs:concurrent-revisions-2026-10-08:rust:verify:restart.concurrent_revisions"
       ],
       "gaps": [
-        "gap:revision-increment",
         "gap:semantic-claims"
       ]
     },
@@ -1161,7 +1185,11 @@
         "case:collaborate.revision_sequence",
         "case:collaborate.revision_sequence_retry",
         "case:collaborate.revision_sequence_rejection",
-        "case:restart.revision_sequence"
+        "case:restart.revision_sequence",
+        "case:collaborate.concurrent_revisions",
+        "case:collaborate.concurrent_revisions_retry",
+        "case:collaborate.concurrent_revisions_isolation",
+        "case:restart.concurrent_revisions"
       ],
       "observations": [
         "obs:python:members:events.visibility",
@@ -1201,11 +1229,29 @@
         "obs:revisions-2026-10-08:rust:sender_only:collaborate.revision_sequence_retry",
         "obs:revisions-2026-10-08:rust:sender_only:collaborate.revision_sequence_rejection",
         "obs:revisions-2026-10-08:python:verify:restart.revision_sequence",
-        "obs:revisions-2026-10-08:rust:verify:restart.revision_sequence"
+        "obs:revisions-2026-10-08:rust:verify:restart.revision_sequence",
+        "obs:concurrent-revisions-2026-10-08:python:members:collaborate.concurrent_revisions",
+        "obs:concurrent-revisions-2026-10-08:python:members:collaborate.concurrent_revisions_retry",
+        "obs:concurrent-revisions-2026-10-08:python:members:collaborate.concurrent_revisions_isolation",
+        "obs:concurrent-revisions-2026-10-08:python:addressed:collaborate.concurrent_revisions",
+        "obs:concurrent-revisions-2026-10-08:python:addressed:collaborate.concurrent_revisions_retry",
+        "obs:concurrent-revisions-2026-10-08:python:addressed:collaborate.concurrent_revisions_isolation",
+        "obs:concurrent-revisions-2026-10-08:python:sender_only:collaborate.concurrent_revisions",
+        "obs:concurrent-revisions-2026-10-08:python:sender_only:collaborate.concurrent_revisions_retry",
+        "obs:concurrent-revisions-2026-10-08:python:sender_only:collaborate.concurrent_revisions_isolation",
+        "obs:concurrent-revisions-2026-10-08:rust:members:collaborate.concurrent_revisions",
+        "obs:concurrent-revisions-2026-10-08:rust:members:collaborate.concurrent_revisions_retry",
+        "obs:concurrent-revisions-2026-10-08:rust:members:collaborate.concurrent_revisions_isolation",
+        "obs:concurrent-revisions-2026-10-08:rust:addressed:collaborate.concurrent_revisions",
+        "obs:concurrent-revisions-2026-10-08:rust:addressed:collaborate.concurrent_revisions_retry",
+        "obs:concurrent-revisions-2026-10-08:rust:addressed:collaborate.concurrent_revisions_isolation",
+        "obs:concurrent-revisions-2026-10-08:rust:sender_only:collaborate.concurrent_revisions",
+        "obs:concurrent-revisions-2026-10-08:rust:sender_only:collaborate.concurrent_revisions_retry",
+        "obs:concurrent-revisions-2026-10-08:rust:sender_only:collaborate.concurrent_revisions_isolation",
+        "obs:concurrent-revisions-2026-10-08:python:verify:restart.concurrent_revisions",
+        "obs:concurrent-revisions-2026-10-08:rust:verify:restart.concurrent_revisions"
       ],
-      "gaps": [
-        "gap:revision-increment"
-      ]
+      "gaps": []
     },
     {
       "id": "C07",
@@ -1588,7 +1634,8 @@
       ],
       "gaps": [
         "gap:cross-endpoint-retry",
-        "gap:failure-precedence"
+        "gap:failure-precedence",
+        "gap:collaboration-retry-races"
       ]
     },
     {
@@ -1617,7 +1664,8 @@
       ],
       "gaps": [
         "gap:cross-endpoint-retry",
-        "gap:failure-precedence"
+        "gap:failure-precedence",
+        "gap:collaboration-retry-races"
       ]
     },
     {
@@ -1636,7 +1684,10 @@
         "test:python-collaboration",
         "schema:receipt",
         "fixture:receipt",
-        "case:restart.revision_sequence"
+        "case:restart.revision_sequence",
+        "case:collaborate.concurrent_revisions",
+        "case:collaborate.concurrent_revisions_retry",
+        "case:restart.concurrent_revisions"
       ],
       "observations": [
         "obs:python:members:collaborate.revision",
@@ -1664,7 +1715,21 @@
         "obs:rust:sender_only:collaborate.decline",
         "obs:rust:sender_only:collaborate.withdrawal",
         "obs:revisions-2026-10-08:python:verify:restart.revision_sequence",
-        "obs:revisions-2026-10-08:rust:verify:restart.revision_sequence"
+        "obs:revisions-2026-10-08:rust:verify:restart.revision_sequence",
+        "obs:concurrent-revisions-2026-10-08:python:members:collaborate.concurrent_revisions",
+        "obs:concurrent-revisions-2026-10-08:python:members:collaborate.concurrent_revisions_retry",
+        "obs:concurrent-revisions-2026-10-08:python:addressed:collaborate.concurrent_revisions",
+        "obs:concurrent-revisions-2026-10-08:python:addressed:collaborate.concurrent_revisions_retry",
+        "obs:concurrent-revisions-2026-10-08:python:sender_only:collaborate.concurrent_revisions",
+        "obs:concurrent-revisions-2026-10-08:python:sender_only:collaborate.concurrent_revisions_retry",
+        "obs:concurrent-revisions-2026-10-08:rust:members:collaborate.concurrent_revisions",
+        "obs:concurrent-revisions-2026-10-08:rust:members:collaborate.concurrent_revisions_retry",
+        "obs:concurrent-revisions-2026-10-08:rust:addressed:collaborate.concurrent_revisions",
+        "obs:concurrent-revisions-2026-10-08:rust:addressed:collaborate.concurrent_revisions_retry",
+        "obs:concurrent-revisions-2026-10-08:rust:sender_only:collaborate.concurrent_revisions",
+        "obs:concurrent-revisions-2026-10-08:rust:sender_only:collaborate.concurrent_revisions_retry",
+        "obs:concurrent-revisions-2026-10-08:python:verify:restart.concurrent_revisions",
+        "obs:concurrent-revisions-2026-10-08:rust:verify:restart.concurrent_revisions"
       ],
       "gaps": [
         "gap:crash-recovery"
@@ -1685,7 +1750,10 @@
         "test:rust-collaboration",
         "schema:event-page",
         "fixture:event-page",
-        "case:restart.revision_sequence"
+        "case:restart.revision_sequence",
+        "case:collaborate.concurrent_revisions",
+        "case:collaborate.concurrent_revisions_retry",
+        "case:restart.concurrent_revisions"
       ],
       "observations": [
         "obs:python:members:collaborate.revision",
@@ -1713,7 +1781,21 @@
         "obs:rust:sender_only:collaborate.decline",
         "obs:rust:sender_only:collaborate.withdrawal",
         "obs:revisions-2026-10-08:python:verify:restart.revision_sequence",
-        "obs:revisions-2026-10-08:rust:verify:restart.revision_sequence"
+        "obs:revisions-2026-10-08:rust:verify:restart.revision_sequence",
+        "obs:concurrent-revisions-2026-10-08:python:members:collaborate.concurrent_revisions",
+        "obs:concurrent-revisions-2026-10-08:python:members:collaborate.concurrent_revisions_retry",
+        "obs:concurrent-revisions-2026-10-08:python:addressed:collaborate.concurrent_revisions",
+        "obs:concurrent-revisions-2026-10-08:python:addressed:collaborate.concurrent_revisions_retry",
+        "obs:concurrent-revisions-2026-10-08:python:sender_only:collaborate.concurrent_revisions",
+        "obs:concurrent-revisions-2026-10-08:python:sender_only:collaborate.concurrent_revisions_retry",
+        "obs:concurrent-revisions-2026-10-08:rust:members:collaborate.concurrent_revisions",
+        "obs:concurrent-revisions-2026-10-08:rust:members:collaborate.concurrent_revisions_retry",
+        "obs:concurrent-revisions-2026-10-08:rust:addressed:collaborate.concurrent_revisions",
+        "obs:concurrent-revisions-2026-10-08:rust:addressed:collaborate.concurrent_revisions_retry",
+        "obs:concurrent-revisions-2026-10-08:rust:sender_only:collaborate.concurrent_revisions",
+        "obs:concurrent-revisions-2026-10-08:rust:sender_only:collaborate.concurrent_revisions_retry",
+        "obs:concurrent-revisions-2026-10-08:python:verify:restart.concurrent_revisions",
+        "obs:concurrent-revisions-2026-10-08:rust:verify:restart.concurrent_revisions"
       ],
       "gaps": [
         "gap:unknown-event-reader"
@@ -2837,6 +2919,30 @@
       "kind": "public_case",
       "path": "conformance/runner/src/lifecycle.rs",
       "anchor": "\"restart.revision_sequence\""
+    },
+    {
+      "id": "case:collaborate.concurrent_revisions",
+      "kind": "public_case",
+      "path": "conformance/runner/src/concurrent_revisions.rs",
+      "anchor": "\"collaborate.concurrent_revisions\""
+    },
+    {
+      "id": "case:collaborate.concurrent_revisions_retry",
+      "kind": "public_case",
+      "path": "conformance/runner/src/concurrent_revisions.rs",
+      "anchor": "\"collaborate.concurrent_revisions_retry\""
+    },
+    {
+      "id": "case:collaborate.concurrent_revisions_isolation",
+      "kind": "public_case",
+      "path": "conformance/runner/src/concurrent_revisions.rs",
+      "anchor": "\"collaborate.concurrent_revisions_isolation\""
+    },
+    {
+      "id": "case:restart.concurrent_revisions",
+      "kind": "public_case",
+      "path": "conformance/runner/src/lifecycle.rs",
+      "anchor": "\"restart.concurrent_revisions\""
     }
   ],
   "observations": [
@@ -5567,6 +5673,166 @@
       "case_id": "restart.revision_sequence",
       "status": "passed",
       "required": true
+    },
+    {
+      "id": "obs:concurrent-revisions-2026-10-08:python:members:collaborate.concurrent_revisions",
+      "path": "conformance/evidence/concurrent-revisions-2026-10-08/local-validation.json",
+      "pointer": "/results/0/report/cases",
+      "case_id": "collaborate.concurrent_revisions",
+      "status": "passed",
+      "required": true
+    },
+    {
+      "id": "obs:concurrent-revisions-2026-10-08:python:members:collaborate.concurrent_revisions_retry",
+      "path": "conformance/evidence/concurrent-revisions-2026-10-08/local-validation.json",
+      "pointer": "/results/0/report/cases",
+      "case_id": "collaborate.concurrent_revisions_retry",
+      "status": "passed",
+      "required": true
+    },
+    {
+      "id": "obs:concurrent-revisions-2026-10-08:python:members:collaborate.concurrent_revisions_isolation",
+      "path": "conformance/evidence/concurrent-revisions-2026-10-08/local-validation.json",
+      "pointer": "/results/0/report/cases",
+      "case_id": "collaborate.concurrent_revisions_isolation",
+      "status": "passed",
+      "required": true
+    },
+    {
+      "id": "obs:concurrent-revisions-2026-10-08:python:addressed:collaborate.concurrent_revisions",
+      "path": "conformance/evidence/concurrent-revisions-2026-10-08/local-validation.json",
+      "pointer": "/results/1/report/cases",
+      "case_id": "collaborate.concurrent_revisions",
+      "status": "passed",
+      "required": true
+    },
+    {
+      "id": "obs:concurrent-revisions-2026-10-08:python:addressed:collaborate.concurrent_revisions_retry",
+      "path": "conformance/evidence/concurrent-revisions-2026-10-08/local-validation.json",
+      "pointer": "/results/1/report/cases",
+      "case_id": "collaborate.concurrent_revisions_retry",
+      "status": "passed",
+      "required": true
+    },
+    {
+      "id": "obs:concurrent-revisions-2026-10-08:python:addressed:collaborate.concurrent_revisions_isolation",
+      "path": "conformance/evidence/concurrent-revisions-2026-10-08/local-validation.json",
+      "pointer": "/results/1/report/cases",
+      "case_id": "collaborate.concurrent_revisions_isolation",
+      "status": "passed",
+      "required": true
+    },
+    {
+      "id": "obs:concurrent-revisions-2026-10-08:python:sender_only:collaborate.concurrent_revisions",
+      "path": "conformance/evidence/concurrent-revisions-2026-10-08/local-validation.json",
+      "pointer": "/results/2/report/cases",
+      "case_id": "collaborate.concurrent_revisions",
+      "status": "passed",
+      "required": true
+    },
+    {
+      "id": "obs:concurrent-revisions-2026-10-08:python:sender_only:collaborate.concurrent_revisions_retry",
+      "path": "conformance/evidence/concurrent-revisions-2026-10-08/local-validation.json",
+      "pointer": "/results/2/report/cases",
+      "case_id": "collaborate.concurrent_revisions_retry",
+      "status": "passed",
+      "required": true
+    },
+    {
+      "id": "obs:concurrent-revisions-2026-10-08:python:sender_only:collaborate.concurrent_revisions_isolation",
+      "path": "conformance/evidence/concurrent-revisions-2026-10-08/local-validation.json",
+      "pointer": "/results/2/report/cases",
+      "case_id": "collaborate.concurrent_revisions_isolation",
+      "status": "passed",
+      "required": true
+    },
+    {
+      "id": "obs:concurrent-revisions-2026-10-08:rust:members:collaborate.concurrent_revisions",
+      "path": "conformance/evidence/concurrent-revisions-2026-10-08/local-validation.json",
+      "pointer": "/results/3/report/cases",
+      "case_id": "collaborate.concurrent_revisions",
+      "status": "passed",
+      "required": true
+    },
+    {
+      "id": "obs:concurrent-revisions-2026-10-08:rust:members:collaborate.concurrent_revisions_retry",
+      "path": "conformance/evidence/concurrent-revisions-2026-10-08/local-validation.json",
+      "pointer": "/results/3/report/cases",
+      "case_id": "collaborate.concurrent_revisions_retry",
+      "status": "passed",
+      "required": true
+    },
+    {
+      "id": "obs:concurrent-revisions-2026-10-08:rust:members:collaborate.concurrent_revisions_isolation",
+      "path": "conformance/evidence/concurrent-revisions-2026-10-08/local-validation.json",
+      "pointer": "/results/3/report/cases",
+      "case_id": "collaborate.concurrent_revisions_isolation",
+      "status": "passed",
+      "required": true
+    },
+    {
+      "id": "obs:concurrent-revisions-2026-10-08:rust:addressed:collaborate.concurrent_revisions",
+      "path": "conformance/evidence/concurrent-revisions-2026-10-08/local-validation.json",
+      "pointer": "/results/4/report/cases",
+      "case_id": "collaborate.concurrent_revisions",
+      "status": "passed",
+      "required": true
+    },
+    {
+      "id": "obs:concurrent-revisions-2026-10-08:rust:addressed:collaborate.concurrent_revisions_retry",
+      "path": "conformance/evidence/concurrent-revisions-2026-10-08/local-validation.json",
+      "pointer": "/results/4/report/cases",
+      "case_id": "collaborate.concurrent_revisions_retry",
+      "status": "passed",
+      "required": true
+    },
+    {
+      "id": "obs:concurrent-revisions-2026-10-08:rust:addressed:collaborate.concurrent_revisions_isolation",
+      "path": "conformance/evidence/concurrent-revisions-2026-10-08/local-validation.json",
+      "pointer": "/results/4/report/cases",
+      "case_id": "collaborate.concurrent_revisions_isolation",
+      "status": "passed",
+      "required": true
+    },
+    {
+      "id": "obs:concurrent-revisions-2026-10-08:rust:sender_only:collaborate.concurrent_revisions",
+      "path": "conformance/evidence/concurrent-revisions-2026-10-08/local-validation.json",
+      "pointer": "/results/5/report/cases",
+      "case_id": "collaborate.concurrent_revisions",
+      "status": "passed",
+      "required": true
+    },
+    {
+      "id": "obs:concurrent-revisions-2026-10-08:rust:sender_only:collaborate.concurrent_revisions_retry",
+      "path": "conformance/evidence/concurrent-revisions-2026-10-08/local-validation.json",
+      "pointer": "/results/5/report/cases",
+      "case_id": "collaborate.concurrent_revisions_retry",
+      "status": "passed",
+      "required": true
+    },
+    {
+      "id": "obs:concurrent-revisions-2026-10-08:rust:sender_only:collaborate.concurrent_revisions_isolation",
+      "path": "conformance/evidence/concurrent-revisions-2026-10-08/local-validation.json",
+      "pointer": "/results/5/report/cases",
+      "case_id": "collaborate.concurrent_revisions_isolation",
+      "status": "passed",
+      "required": true
+    },
+    {
+      "id": "obs:concurrent-revisions-2026-10-08:python:verify:restart.concurrent_revisions",
+      "path": "conformance/evidence/concurrent-revisions-2026-10-08/local-validation.json",
+      "pointer": "/lifecycle/0/reports/1/report/cases",
+      "case_id": "restart.concurrent_revisions",
+      "status": "passed",
+      "required": true
+    },
+    {
+      "id": "obs:concurrent-revisions-2026-10-08:rust:verify:restart.concurrent_revisions",
+      "path": "conformance/evidence/concurrent-revisions-2026-10-08/local-validation.json",
+      "pointer": "/lifecycle/1/reports/1/report/cases",
+      "case_id": "restart.concurrent_revisions",
+      "status": "passed",
+      "required": true
     }
   ],
   "gaps": [
@@ -5626,11 +5892,6 @@
       "proposed_test": "Use an operator adapter for a host that actually expires resumable history, then require cursor_expired and explicitly disclose lost history. Current retained histories do not exercise expiry due to removed history."
     },
     {
-      "id": "gap:revision-increment",
-      "owner": "Collaboration conformance maintainers",
-      "proposed_test": "Add a bounded public race for simultaneous author submissions, accepting either arrival order with exact receipt/body/event mapping, while a second principal uses the same artifact_id independently. Retain both same-artifact principal chains across restart and retry the exact concurrent requests without allocating more revisions. Sequential accepted revisions 1, 2, and 3, failed-write no-allocation, and restart numbering now have dedicated cases; those do not establish concurrent-chain correctness."
-    },
-    {
       "id": "gap:continuity-boundaries",
       "owner": "Collaboration conformance maintainers",
       "proposed_test": "Add live and schema cases at 1024 and 1025 Unicode characters, wrong types, omitted whole note, and each missing field, retaining optional participation and artifact-only semantics."
@@ -5644,6 +5905,11 @@
       "id": "gap:semantic-claims",
       "owner": "Research and contract maintainers",
       "proposed_test": "Review claims of authority, delivery, continuity, social agreement, or official consensus against retained exact submissions. Mechanical reference checks and storage tests cannot establish these broader semantic negatives."
+    },
+    {
+      "id": "gap:collaboration-retry-races",
+      "owner": "Collaboration conformance maintainers",
+      "proposed_test": "Add bounded concurrent byte-identical collaboration retries and concurrent conflicting bytes under the same authenticated principal/submission ID. Require one recorded event, exact receipt agreement for identical bytes, exactly one winning body and id_conflict for distinct bytes, exact retry without additional revisions, and retained outcomes across restart. Existing message-endpoint races and sequential exact retries following distinct-request artifact races do not establish this behavior."
     }
   ]
 }

@@ -2,11 +2,18 @@ use std::env;
 use std::path::Path;
 use std::process::ExitCode;
 
-use agentciv_checks::{check_docs, check_inventory, check_schemas};
+use agentciv_checks::{check_bulletin_config, check_docs, check_inventory, check_schemas};
 
 fn main() -> ExitCode {
     let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
     let mut issues = Vec::new();
+    match check_bulletin_config(&root) {
+        Ok(found) => issues.extend(found),
+        Err(error) => {
+            eprintln!("bulletin configuration check failed: {error}");
+            return ExitCode::FAILURE;
+        }
+    }
     match check_docs(&root) {
         Ok(found) => issues.extend(found),
         Err(error) => {
@@ -29,7 +36,9 @@ fn main() -> ExitCode {
         }
     }
     if issues.is_empty() {
-        println!("Documentation, schema, and conformance inventory checks passed.");
+        println!(
+            "Documentation, schema, conformance inventory, and bulletin configuration checks passed."
+        );
         ExitCode::SUCCESS
     } else {
         for issue in issues {

@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import hashlib
+from html.parser import HTMLParser
 from contextlib import closing
 import json
 import os
@@ -20,6 +21,27 @@ from urllib.request import Request, urlopen
 ROOT = Path(__file__).resolve().parents[2]
 SERVICE = Path(__file__).resolve().parent
 TOKENS = {f"agent:test-{index}": f"disposable-fixture-token-number-{index}" for index in range(10)}
+
+
+class NavigationLinks(HTMLParser):
+    """Collect actual rendered navigation without coupling checks to HTML whitespace."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.in_navigation = False
+        self.links: list[str] = []
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        if tag == "nav":
+            self.in_navigation = True
+        if self.in_navigation and tag == "a":
+            target = dict(attrs).get("href")
+            if target is not None:
+                self.links.append(target)
+
+    def handle_endtag(self, tag: str) -> None:
+        if tag == "nav":
+            self.in_navigation = False
 
 
 class EdgeRuntime(unittest.TestCase):
@@ -309,6 +331,54 @@ class EdgeTests(EdgeRuntime):
             status, _, content = self.request("GET", path, accept="text/html")
             self.assertEqual(status, 200, path)
             self.assertIn(text.lower(), content.lower(), path)
+
+    def test_readable_static_routes_and_navigation_keep_machine_endpoints(self) -> None:
+        required_routes = {"/connect", "/worlds", "/resources", "/board"}
+        for path, expected in [
+            ("/", "Connect a runtime"),
+            ("/connect", "Start with public reading"),
+            ("/worlds", "3 reviewed listings"),
+            ("/resources", "guides with original sources"),
+            ("/board", "Connect an agent"),
+        ]:
+            with self.subTest(path=path):
+                status, headers, content = self.request("GET", path, accept="text/html")
+                self.assertEqual(status, 200)
+                self.assertIn("text/html", headers.get("Content-Type", ""))
+                self.assertIn(expected, content)
+                self.assertNotIn("<script", content)
+                self.assertIn('src="/logo.svg"', content)
+                navigation = NavigationLinks()
+                navigation.feed(content)
+                self.assertEqual(set(navigation.links), required_routes)
+                for target in navigation.links:
+                    self.assertEqual(self.request("GET", target, accept="text/html")[0], 200, target)
+                policy = {key.lower(): value for key, value in headers.items()}["content-security-policy"]
+                self.assertIn("default-src 'none'", policy)
+                self.assertIn("style-src 'self'", policy)
+                if path in {"/connect", "/worlds", "/resources"}:
+                    self.assertIn("form-action 'none'", policy)
+                    # These static assets serve readable HTML even for a client's default JSON Accept.
+                    self.assertIn("text/html", self.request("GET", path)[1].get("Content-Type", ""))
+        worlds = self.request("GET", "/worlds", accept="text/html")[2]
+        for name in ["AgentCiv local commons", "Numinous", "Fragr", "0 public world hosts"]:
+            self.assertIn(name, worlds)
+        self.assertEqual(worlds.count(">Run locally<"), 3)
+        self.assertNotIn(">Joining and access<", worlds)
+        guides = self.request("GET", "/resources", accept="text/html")[2]
+        status, _, catalog = self.request("GET", "/resources.json")
+        self.assertEqual(status, 200)
+        for guide in catalog["guides"]:
+            self.assertIn(f'id="{guide["id"]}"', guides)
+            self.assertIn(guide["url"], guides)
+        for path in ["/logo.svg", "/favicon.svg"]:
+            status, headers, content = self.request("GET", path)
+            self.assertEqual(status, 200)
+            self.assertIn("image/svg+xml", headers.get("Content-Type", ""))
+            self.assertIn("<svg", content)
+        self.assertEqual(self.request("GET", "/not-a-real-readable-page", accept="text/html")[0], 404)
+        self.assertEqual(self.request("GET", "/agent.json")[2]["interfaces"]["directory"], "/directory.json")
+        self.assertEqual(self.request("GET", "/directory.json")[2]["schema_version"], 1)
 
     def test_root_respects_accept_preferences(self) -> None:
         for accept, expected in [

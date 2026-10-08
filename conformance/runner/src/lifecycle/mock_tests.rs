@@ -20,6 +20,11 @@ enum Defect {
     ChangedThird,
     ResetRevision,
     AllocatingRetry,
+    MissingConcurrent,
+    ChangedConcurrentPeer,
+    CrossPrincipalConcurrent,
+    ResetConcurrentRetry,
+    RejectedConcurrent,
 }
 
 #[derive(Default)]
@@ -36,6 +41,7 @@ struct Mock {
     stop: Arc<AtomicBool>,
     worker: Option<JoinHandle<()>>,
     checkpoint: std::path::PathBuf,
+    requests: Arc<AtomicUsize>,
 }
 
 impl Drop for Mock {
@@ -61,6 +67,8 @@ fn mock(extended: bool) -> Mock {
     let stop = Arc::new(AtomicBool::new(false));
     let thread_state = state.clone();
     let thread_stop = stop.clone();
+    let requests = Arc::new(AtomicUsize::new(0));
+    let thread_requests = requests.clone();
     let worker = thread::spawn(move || {
         while !thread_stop.load(Ordering::SeqCst) {
             let (mut stream, _) = match listener.accept() {
@@ -73,6 +81,7 @@ fn mock(extended: bool) -> Mock {
             };
             stream.set_nonblocking(false).unwrap();
             let (headers, bytes) = crate::tests::read_raw(&mut stream);
+            thread_requests.fetch_add(1, Ordering::SeqCst);
             let target = headers
                 .lines()
                 .next()
@@ -136,6 +145,31 @@ fn mock(extended: bool) -> Mock {
                                 }
                             }
                         }
+                        if matches!(state.defect, Defect::MissingConcurrent) {
+                            events.retain(|event| {
+                                !(event["actor"] == "agent:writer"
+                                    && event["body"]["artifact_revision"]["revision"] == 4)
+                            });
+                        }
+                        if matches!(
+                            state.defect,
+                            Defect::ChangedConcurrentPeer | Defect::CrossPrincipalConcurrent
+                        ) {
+                            for event in &mut events {
+                                if event["actor"] == "agent:peer"
+                                    && event["body"]["artifact_revision"]["artifact_id"]
+                                        == "artifact:lifecycle"
+                                    && event["body"]["artifact_revision"]["revision"] == 2
+                                {
+                                    if matches!(state.defect, Defect::ChangedConcurrentPeer) {
+                                        event["body"]["artifact_revision"]["body"]["text"] =
+                                            json!("substituted peer contribution");
+                                    } else {
+                                        event["actor"] = json!("agent:writer");
+                                    }
+                                }
+                            }
+                        }
                         if matches!(state.defect, Defect::CursorReset) && target.contains('?') {
                             events.clear();
                         }
@@ -154,7 +188,15 @@ fn mock(extended: bool) -> Mock {
                         principal.to_owned(),
                         record["id"].as_str().unwrap().to_owned(),
                     );
-                    if let Some(saved) = state.receipts.get(&key) {
+                    if matches!(state.defect, Defect::RejectedConcurrent)
+                        && record["id"] == "submission:lifecycle-concurrent-writer-0"
+                    {
+                        (
+                            "400 Bad Request",
+                            "application/problem+json",
+                            problem(400, "invalid_record"),
+                        )
+                    } else if let Some(saved) = state.receipts.get(&key) {
                         let mut receipt = saved.clone();
                         if matches!(state.defect, Defect::ChangedRetry) {
                             receipt["event_id"] = json!("event:changed");
@@ -163,6 +205,11 @@ fn mock(extended: bool) -> Mock {
                             && receipt.get("revision").is_some()
                         {
                             receipt["revision"] = json!(1);
+                        }
+                        if matches!(state.defect, Defect::ResetConcurrentRetry)
+                            && receipt["revision"] == 4
+                        {
+                            receipt["revision"] = json!(3);
                         }
                         if matches!(state.defect, Defect::AllocatingRetry)
                             && receipt["revision"] == 3
@@ -251,6 +298,7 @@ fn mock(extended: bool) -> Mock {
             std::process::id(),
             COUNTER.fetch_add(1, Ordering::SeqCst)
         )),
+        requests,
     }
 }
 
@@ -295,6 +343,31 @@ fn lifecycle_tests_core_and_extension_phases_through_public_http() {
                 CaseStatus::Skipped
             }
         );
+        let concurrent = verify
+            .cases
+            .iter()
+            .find(|case| case.id == "restart.concurrent_revisions")
+            .unwrap();
+        assert_eq!(concurrent.required, extended);
+        assert_eq!(
+            concurrent.status,
+            if extended {
+                CaseStatus::Passed
+            } else {
+                CaseStatus::Skipped
+            }
+        );
+        if extended {
+            let checkpoint: Value = serde_json::from_str(&saved).unwrap();
+            assert_eq!(checkpoint["records"].as_array().unwrap().len(), 13);
+            assert_eq!(
+                checkpoint["history"]["agent:writer"]
+                    .as_array()
+                    .unwrap()
+                    .len(),
+                12
+            );
+        }
         host.state.lock().unwrap().sender_only = true;
         let policy = run(&host, extended, "policy");
         assert!(policy.passed(), "{policy:?}");
@@ -382,4 +455,101 @@ fn advertised_lifecycle_extension_requires_a_peer_before_writing() {
     assert!(!report.passed());
     assert!(host.state.lock().unwrap().events.is_empty());
     assert!(!host.checkpoint.exists());
+}
+
+#[test]
+fn concurrent_restart_defects_are_required_failures() {
+    for (defect, expected) in [
+        (Defect::MissingConcurrent, "restart.concurrent_revisions"),
+        (
+            Defect::ChangedConcurrentPeer,
+            "restart.concurrent_revisions",
+        ),
+        (
+            Defect::CrossPrincipalConcurrent,
+            "restart.concurrent_revisions",
+        ),
+        (Defect::ResetConcurrentRetry, "restart.retry"),
+    ] {
+        let host = mock(true);
+        assert!(run(&host, true, "prepare").passed());
+        host.state.lock().unwrap().defect = defect;
+        let report = run(&host, true, "verify");
+        let case = report
+            .cases
+            .iter()
+            .find(|case| case.id == expected)
+            .unwrap();
+        assert!(!report.passed());
+        assert!(case.required);
+        assert_eq!(case.status, CaseStatus::Failed, "{report:?}");
+    }
+}
+
+#[test]
+fn old_checkpoint_layouts_fail_before_any_public_http_request() {
+    let host = mock(true);
+    assert!(run(&host, true, "prepare").passed());
+    let saved: Value = serde_json::from_slice(&std::fs::read(&host.checkpoint).unwrap()).unwrap();
+    for version in [
+        "agentciv-lifecycle/0.1-draft",
+        "agentciv-lifecycle/0.2-draft",
+    ] {
+        let mut old = saved.clone();
+        old["checkpoint_version"] = json!(version);
+        std::fs::write(&host.checkpoint, serde_json::to_vec(&old).unwrap()).unwrap();
+        let before = host.requests.load(Ordering::SeqCst);
+        let report = run(&host, true, "verify");
+        assert_eq!(host.requests.load(Ordering::SeqCst), before);
+        assert!(!report.passed());
+        assert!(
+            report
+                .cases
+                .iter()
+                .any(|case| case.detail == "unsupported checkpoint version")
+        );
+        let concurrent = report
+            .cases
+            .iter()
+            .find(|case| case.id == "restart.concurrent_revisions")
+            .unwrap();
+        assert!(concurrent.required);
+        assert_eq!(concurrent.status, CaseStatus::Skipped);
+    }
+}
+
+#[test]
+fn failed_concurrent_submission_keeps_required_prepare_dependents_unpassed() {
+    let host = mock(true);
+    host.state.lock().unwrap().defect = Defect::RejectedConcurrent;
+    let report = run(&host, true, "prepare");
+    assert!(!report.passed());
+    assert!(!host.checkpoint.exists());
+    assert!(report.cases.iter().any(|case| case.id == "lifecycle.seed"
+        && case.required
+        && case.status == CaseStatus::Failed));
+    assert!(
+        report
+            .cases
+            .iter()
+            .any(|case| case.id == "lifecycle.checkpoint"
+                && case.required
+                && case.status == CaseStatus::Skipped)
+    );
+    assert!(
+        report
+            .cases
+            .iter()
+            .any(|case| case.id == "lifecycle.collaboration"
+                && case.required
+                && case.status == CaseStatus::Failed)
+    );
+    assert!(
+        report
+            .cases
+            .iter()
+            .filter(|case| case.id.starts_with("lifecycle."))
+            .count()
+            >= 4
+    );
 }

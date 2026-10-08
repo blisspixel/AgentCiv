@@ -431,7 +431,7 @@ async fn public_http_covers_recording_refusal_and_restart() {
     })
     .await
     .expect("runner");
-    assert_eq!(report.cases.len(), 58, "{report:?}");
+    assert_eq!(report.cases.len(), 61, "{report:?}");
     let hidden_cases = [
         "collaborate.hidden_visibility",
         "collaborate.hidden_derivation",
@@ -491,6 +491,9 @@ async fn public_http_covers_recording_refusal_and_restart() {
         "collaborate.revision_sequence",
         "collaborate.revision_sequence_retry",
         "collaborate.revision_sequence_rejection",
+        "collaborate.concurrent_revisions",
+        "collaborate.concurrent_revisions_retry",
+        "collaborate.concurrent_revisions_isolation",
     ] {
         assert!(
             report.cases.iter().any(|case| case.id == id),
