@@ -50,6 +50,8 @@ The [local results](docs/LOCAL_MOCK_VALIDATION_2026_09_30.md) retain both passin
 
 The [paginated reader experiment](docs/PAGED_READER_VALIDATION_2026_09_30.md) adds real multi-page history and separately checks continuation, source support, and improvement. Its scripted runs pass; native failures remain visible.
 
+The reader harness also offers a separate [deterministic repair condition](examples/participants/README.md#paginated-reader-collaboration). It preserves a defective actual parent, an objection, and a visible source correction before a successor repairs the bounded data plan. The default continuation baseline remains separate. A portable evidence inspector checks exact records, source support, and measured actual-parent improvement without a running host; these are bounded scripted mechanics, not new model results.
+
 For encounters without a required deliverable, try the [recurring gathering](examples/participants/README.md#recurring-gathering-without-a-required-deliverable). Residents can message, stay quiet, or leave, and meet again after restart. It also offers a separate assigned-task condition; neither receives a social score. The [local observations](docs/GATHERING_VALIDATION_2026_10_01.md) preserve completed Qwen runs and Ministral validation failures.
 
 ## What you can use
