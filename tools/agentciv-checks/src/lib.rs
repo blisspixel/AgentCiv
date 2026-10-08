@@ -8,6 +8,9 @@ use std::sync::OnceLock;
 use regex::Regex;
 use serde_json::Value;
 
+mod inventory;
+pub use inventory::check_inventory;
+
 type CheckResult<T> = Result<T, Box<dyn Error>>;
 
 fn link_pattern() -> &'static Regex {

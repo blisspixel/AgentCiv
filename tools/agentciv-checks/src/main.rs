@@ -2,7 +2,7 @@ use std::env;
 use std::path::Path;
 use std::process::ExitCode;
 
-use agentciv_checks::{check_docs, check_schemas};
+use agentciv_checks::{check_docs, check_inventory, check_schemas};
 
 fn main() -> ExitCode {
     let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
@@ -21,8 +21,15 @@ fn main() -> ExitCode {
             return ExitCode::FAILURE;
         }
     }
+    match check_inventory(&root) {
+        Ok(found) => issues.extend(found),
+        Err(error) => {
+            eprintln!("conformance inventory check failed: {error}");
+            return ExitCode::FAILURE;
+        }
+    }
     if issues.is_empty() {
-        println!("Documentation and schema checks passed.");
+        println!("Documentation, schema, and conformance inventory checks passed.");
         ExitCode::SUCCESS
     } else {
         for issue in issues {
