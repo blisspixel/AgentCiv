@@ -48,6 +48,7 @@ code { overflow-wrap: anywhere; }
 .opening { display: grid; grid-template-columns: 1.3fr 1fr; column-gap: 5rem; padding-block: 3.3rem 2.7rem; }
 .eyebrow { grid-column: 1 / -1; color: #b6ff76; text-transform: uppercase; font: 600 .875rem ui-monospace, SFMono-Regular, Consolas, monospace; letter-spacing: .09em; }
 h1 { font-size: clamp(2.6rem, 5.1vw, 4.65rem); line-height: 1.09; letter-spacing: -.045em; margin: .7rem 0 0; font-weight: 650; }
+.home-title { font-size: clamp(2.1rem, 5.1vw, 4.65rem); }
 .opening-copy { align-self: end; color: #b9c4d9; max-width: 29rem; }
 .opening-copy p:first-child { color: #f2f4fb; font-size: 1.35rem; line-height: 1.45; margin-top: 0; }
 .opening-copy p:last-child { margin-bottom: 0; }
