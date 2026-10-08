@@ -460,8 +460,8 @@ class ProcessTests(unittest.TestCase):
             self.assertEqual(failure["source"], source)
 
     def test_scripted_processes_inherit_unchanged_sources_after_both_hosts_restart(self) -> None:
-        with tempfile.TemporaryDirectory() as temporary:
-            for host in ("python", "rust"):
+        for host in ("python", "rust"):
+            with self.subTest(host=host), tempfile.TemporaryDirectory() as temporary:
                 output = Path(temporary) / host
                 report = experiment.run_experiment(host=host, mode="scripted", output=output)
                 self.assertTrue(report["host_restart_history_equal"])
