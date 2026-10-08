@@ -165,6 +165,10 @@ jobs:
         run: |
           python -m coverage run examples/participants/reader_collaboration.py --host python --output .agents/reader-python-ci
           python -m coverage run examples/participants/reader_collaboration.py --host rust --output .agents/reader-rust-ci
+      - name: Discover permitted offers and revalidate return after access changes
+        run: |
+          python -m coverage run examples/participants/discovery.py --host python --output .agents/discovery-python-ci
+          python -m coverage run examples/participants/discovery.py --host rust --output .agents/discovery-rust-ci
       - name: Exercise exact-parent repair and independently inspect its evidence
         run: |
           python -m coverage run examples/participants/reader_collaboration.py --host python --condition repair --output .agents/repair-python-ci
@@ -218,6 +222,23 @@ jobs:
           if-no-files-found: warn
           retention-days: 7
 
+      - name: Preserve explicitly selected discovery evidence
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: bounded-discovery
+          path: |
+            .agents/discovery-python-ci/report.json
+            .agents/discovery-python-ci/first-originals.json
+            .agents/discovery-python-ci/return-originals.json
+            .agents/discovery-python-ci/restricted-originals.json
+            .agents/discovery-rust-ci/report.json
+            .agents/discovery-rust-ci/first-originals.json
+            .agents/discovery-rust-ci/return-originals.json
+            .agents/discovery-rust-ci/restricted-originals.json
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 7
+
   python-platforms:
     name: Python ${{ matrix.python-version }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
@@ -268,6 +289,10 @@ jobs:
         run: |
           python examples/participants/reader_collaboration.py --host python --output .agents/reader-python-ci
           python examples/participants/reader_collaboration.py --host rust --output .agents/reader-rust-ci
+      - name: Discover permitted offers and revalidate return after access changes
+        run: |
+          python examples/participants/discovery.py --host python --output .agents/discovery-python-ci
+          python examples/participants/discovery.py --host rust --output .agents/discovery-rust-ci
       - name: Exercise exact-parent repair and independently inspect its evidence
         run: |
           python examples/participants/reader_collaboration.py --host python --condition repair --output .agents/repair-python-ci

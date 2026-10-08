@@ -66,6 +66,8 @@ python -m coverage run examples/participants/mock_collaboration.py --host python
 python -m coverage run examples/participants/mock_collaboration.py --host rust --output .agents/mock-rust-ci
 python -m coverage run examples/participants/reader_collaboration.py --host python --output .agents/reader-python-ci
 python -m coverage run examples/participants/reader_collaboration.py --host rust --output .agents/reader-rust-ci
+python -m coverage run examples/participants/discovery.py --host python --output .agents/discovery-python-ci
+python -m coverage run examples/participants/discovery.py --host rust --output .agents/discovery-rust-ci
 python -m coverage run examples/http-commons/walk.py
 python -m coverage run examples/http-commons/validate.py --output local-validation.json
 python -m coverage combine
@@ -75,6 +77,8 @@ python -m coverage report
 [pyproject.toml](pyproject.toml) collects subprocess coverage and fails below 80% of maintained Python lines, excluding test files. Preserve the validation JSON as scoped public evidence. CI runs native checks and tests on Linux, Windows, and macOS, retains visibility and lifecycle reports, and exercises scripted decisions without paid inference. New implementations must add their own strict type, lint, test, coverage, and conformance gates.
 
 Native installation scripts have separate gates in [CI](.github/workflows/ci.yml): ShellCheck and shell syntax checks, offline behavior fixtures and Bash line coverage, and Windows PowerShell ScriptAnalyzer with Pester command coverage. Each installer must reach at least 80% in its own native coverage measure. Fixture coverage is distinct from live release-download and platform smoke evidence. The [release workflow](.github/workflows/release.yml) prepares a draft only after its declared checks; publishing the first assets remains a separate distribution step. Neither installer runs a model or starts a host.
+
+When changing HTTP Commons or collaboration obligations, update the [checked conformance inventory](docs/CONFORMANCE_INVENTORY.md) alongside their tests. Its exact contract blocks and executable anchors must stay current; an implementation test or an owned gap must not be relabeled as passing public evidence. The optional offer body is an example contract, not a new HTTP submission type.
 
 For the optional [website and bulletin](services/bulletin/README.md), also build static assets, install pinned `worker-build` 0.8.7 and Wrangler 4.147.0, lint the `wasm32-unknown-unknown` target, and run `python -m unittest services/bulletin/test_edge.py`. Keep website contracts and public-publication policies separate from HTTP Commons. Do not add a mind-classification participation gate, silently claim a game adapter, publish credentials, or describe fixture/local checks as deployment. Public listing proposals need an authorized operator or public local source.
 

@@ -4,24 +4,31 @@ use std::fs::File;
 use std::io::{Read, Write};
 use std::process::ExitCode;
 
-fn run(args: &[String]) -> Result<agentciv_reader::ReadResult> {
-    let [command, path] = args else {
-        return Err(Error::Configuration);
-    };
-    if command != "read" {
-        return Err(Error::Configuration);
-    }
+fn input(path: &str, maximum: usize) -> Result<String> {
     let mut bytes = Vec::new();
     File::open(path)
         .map_err(|_| Error::InputUnavailable)?
-        .take((MAX_CONFIG_BYTES + 1) as u64)
+        .take((maximum + 1) as u64)
         .read_to_end(&mut bytes)
         .map_err(|_| Error::InputUnavailable)?;
-    if bytes.len() > MAX_CONFIG_BYTES {
+    if bytes.len() > maximum {
         return Err(Error::InputLimit);
     }
-    let raw = std::str::from_utf8(&bytes).map_err(|_| Error::InvalidUtf8)?;
-    read(&Config::parse(raw)?)
+    String::from_utf8(bytes).map_err(|_| Error::InvalidUtf8)
+}
+
+fn run(args: &[String]) -> Result<serde_json::Value> {
+    match args {
+        [command, path] if command == "read" => {
+            let result = read(&Config::parse(&input(path, MAX_CONFIG_BYTES)?)?)?;
+            serde_json::to_value(result).map_err(|_| Error::Output)
+        }
+        [command, path, query] if command == "offers" => agentciv_reader::offers::project(
+            &input(path, agentciv_archive::MAX_INPUT_BYTES)?,
+            query,
+        ),
+        _ => Err(Error::Configuration),
+    }
 }
 
 fn main() -> ExitCode {
@@ -32,7 +39,7 @@ fn main() -> ExitCode {
     }
     if args == ["--help"] {
         println!(
-            "Usage: agentciv-reader read CONFIG\nRead-only loopback history. CONFIG supplies origin, token, world, optional traversal and budgets. Reading grants no copying permission."
+            "Usage: agentciv-reader read CONFIG\n       agentciv-reader offers READ_RESULT QUERY\nRead-only loopback history. CONFIG supplies origin, token, world, optional traversal and budgets. Offers projects example activities offline from a full caller-view read. Reading grants no copying permission."
         );
         return ExitCode::SUCCESS;
     }

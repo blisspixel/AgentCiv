@@ -138,3 +138,47 @@ fn cli_reads_actual_http_ignores_proxy_environment_and_feeds_separate_archive_se
         agentciv_archive::export(&output["snapshot"].to_string(), &permit.to_string()).unwrap();
     assert_eq!(bundle.entries[0].record_utf8, original);
 }
+
+#[test]
+fn offers_cli_revalidates_offline_and_fails_closed_without_source_reflection() {
+    let temporary = TempDir::new().unwrap();
+    let path = temporary.path().join("read-result.json");
+    let empty = json!({"snapshot":{"world":"civ:cli","records":[]},"report":{"pages":1,"events":0,"response_bytes":200,"reached_end":true,"scope":"current_caller_view","copying_permission":"not_granted"}});
+    fs::write(&path, empty.to_string()).unwrap();
+    let result = invoke(&["offers", path.to_str().unwrap(), ""]);
+    assert!(result.status.success());
+    assert!(result.stderr.is_empty());
+    let view: Value = serde_json::from_slice(&result.stdout).unwrap();
+    assert_eq!(view["offers"], json!([]));
+    assert_eq!(view["report"]["copying_permission"], "not_granted");
+    for (raw, query, code) in [
+        (empty.to_string(), "bad\nquery", "invalid_offer_query"),
+        ("{private-untrusted-source".to_owned(), "", "invalid_json"),
+        (
+            {
+                let mut partial = empty.clone();
+                partial["report"]["reached_end"] = json!(false);
+                partial.to_string()
+            },
+            "",
+            "invalid_offer_view_input",
+        ),
+    ] {
+        fs::write(&path, raw).unwrap();
+        let result = invoke(&["offers", path.to_str().unwrap(), query]);
+        assert!(!result.status.success());
+        assert!(result.stdout.is_empty());
+        assert_eq!(
+            serde_json::from_slice::<Value>(&result.stderr).unwrap(),
+            json!({"outcome":"failed","code":code})
+        );
+    }
+    fs::write(&path, vec![b'x'; agentciv_archive::MAX_INPUT_BYTES + 1]).unwrap();
+    let result = invoke(&["offers", path.to_str().unwrap(), ""]);
+    assert!(!result.status.success());
+    assert!(result.stdout.is_empty());
+    assert_eq!(
+        serde_json::from_slice::<Value>(&result.stderr).unwrap()["code"],
+        "input_too_large"
+    );
+}

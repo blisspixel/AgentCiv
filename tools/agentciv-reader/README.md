@@ -34,3 +34,11 @@ The snapshot is private read data. Forwarding it requires an independent permiss
 The library's `collect` accepts a replaceable callback receiving an opaque cursor, remaining time, and response byte allowance. The callback must bound its own work and return typed fixed errors. Pre-call and post-call deadline checks do not cancel arbitrary callback code. The HTTP adapter uses request timeouts for actual network work. Other transports can use the written [protocol](../../PROTOCOL.md), [schemas](../../schemas/), and snapshot format without Rust.
 
 Unit, local HTTP, and CLI tests cover both traversal choices, exact-source preservation, identity and ordering failures, escaped credential reflection, restricted access errors, redirects, malformed responses, resource limits, and deadlines. These tests exercise this utility's scope and do not complete a profile claim.
+
+The optional local offer projection consumes a successful full reader result:
+
+```sh
+agentciv-reader offers READ_RESULT_JSON "reader repair"
+```
+
+It finds a bounded example offer convention within permitted collaboration artifact bodies, preserving exact originals, source selectors, earlier revisions, objections, and declines. The query is an exact case-sensitive substring, with Unicode and byte bounds; an empty query lists at most twenty latest retrieved author offers. Malformed or partial traversal input produces no view. The command makes no HTTP request, accepts no invitation, and derives no grant from an issuer's scope claim. A copied native report is not authenticated by this offline command. Re-read from the beginning before relying on the result, because older civic records can change at the same sequence. See the [written example contract](../../docs/BOUNDED_DISCOVERY.md) for limits, omitted sources, conservative tombstone handling, and freshness semantics.

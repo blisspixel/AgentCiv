@@ -163,6 +163,17 @@ pub fn initialize(db: &impl Database) -> Result<(), Problem> {
         "CREATE INDEX IF NOT EXISTS change_post ON changes(post_sequence)",
         vec![],
     )?;
+    // SQLite rolls back the entire statement when a triggered write fails. Keep
+    // post publication and its change, and removal and its scrubbing, indivisible.
+    // Existing pre-feed posts deliberately do not acquire invented change order.
+    db.query(
+        "CREATE TRIGGER IF NOT EXISTS publish_change AFTER INSERT ON posts BEGIN INSERT INTO changes(post_sequence, kind, principal, created, removed) VALUES (NEW.sequence, 'publish', NEW.principal, NEW.created, NULL); END",
+        vec![],
+    )?;
+    db.query(
+        "CREATE TRIGGER IF NOT EXISTS remove_content AFTER INSERT ON changes WHEN NEW.kind = 'remove' BEGIN UPDATE posts SET raw = '', message = '', removed = NEW.removed WHERE sequence = NEW.post_sequence; END",
+        vec![],
+    )?;
     Ok(())
 }
 fn rows(db: &impl Database, statement: &str, bindings: Vec<Binding>) -> Result<Vec<Post>, Problem> {
@@ -297,14 +308,6 @@ pub fn submit(
         return Err(Problem::new(429, "posting_limit"));
     }
     let post: Post = rows(db,"INSERT INTO posts(principal, submission_id, created, day, raw, digest, message) VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING *",vec![Binding::Text(grant.principal.clone()),Binding::Text(id.into()),Binding::Text(created.into()),Binding::Text(day.into()),Binding::Text(raw_text.into()),Binding::Text(digest),Binding::Text(message.to_string())])?.into_iter().next().ok_or_else(||Problem::new(500,"storage_failed"))?;
-    db.query(
-        "INSERT INTO changes(post_sequence, kind, principal, created, removed) VALUES (?, 'publish', ?, ?, NULL)",
-        vec![
-            Binding::Integer(post.sequence),
-            Binding::Text(grant.principal.clone()),
-            Binding::Text(created.into()),
-        ],
-    )?;
     Ok(post)
 }
 pub fn remove(
@@ -328,24 +331,17 @@ pub fn remove(
     } else {
         "operator_removed"
     };
-    let updated = rows(
-        db,
-        "UPDATE posts SET raw = '', message = '', removed = ? WHERE sequence = ? RETURNING *",
-        vec![Binding::Text(reason.into()), Binding::Integer(sequence)],
-    )?
-    .into_iter()
-    .next()
-    .ok_or_else(|| Problem::new(500, "storage_failed"))?;
     db.query(
-        "INSERT INTO changes(post_sequence, kind, principal, created, removed) VALUES (?, 'remove', ?, ?, ?)",
+        "INSERT INTO changes(post_sequence, kind, principal, created, removed) SELECT ?, 'remove', ?, ?, ? WHERE EXISTS (SELECT 1 FROM posts WHERE sequence = ? AND removed IS NULL)",
         vec![
             Binding::Integer(sequence),
             Binding::Text(grant.principal.clone()),
             Binding::Text(removed_at.into()),
             Binding::Text(reason.into()),
+            Binding::Integer(sequence),
         ],
     )?;
-    Ok(updated)
+    post(db, sequence)
 }
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Change {

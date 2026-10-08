@@ -36,6 +36,7 @@ dependencies = [
  "jsonschema",
  "percent-encoding",
  "regex",
+ "serde",
  "serde_json",
  "tempfile",
 ]
