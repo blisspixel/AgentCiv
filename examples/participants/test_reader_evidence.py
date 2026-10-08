@@ -149,6 +149,24 @@ def save(directory: Path, report: JsonObject, study: list[JsonObject], challenge
 
 
 class ReaderEvidenceTests(unittest.TestCase):
+    def test_retained_packages_match_published_digests_and_reproduce(self) -> None:
+        directory = reader.ROOT / "conformance/evidence/reader-repair-2026-10-08"
+        manifest = client.decode((directory / "manifest.json").read_bytes())
+        allowed = {f"{host}/{name}" for host in ("python", "rust")
+            for name in ("report.json", "study-originals.json", "challenge-originals.json")}
+        entries = rows(manifest["entries"])
+        self.assertEqual(len(entries), len(allowed))
+        self.assertEqual({str(entry["path"]) for entry in entries}, allowed)
+        for entry in entries:
+            path = str(entry["path"])
+            self.assertIn(path, allowed)
+            self.assertEqual(hashlib.sha256((directory / path).read_bytes()).hexdigest(), entry["published_sha256"])
+        for host in ("python", "rust"):
+            with self.subTest(host=host):
+                result = evidence.inspect_package(directory / host)
+                self.assertTrue(result["passed"], result)
+                self.assertTrue(result["qualified_reader_repair"])
+
     def inspect(self, report: JsonObject, study: list[JsonObject], challenge: list[JsonObject]) -> JsonObject:
         with tempfile.TemporaryDirectory() as temporary:
             directory = Path(temporary)

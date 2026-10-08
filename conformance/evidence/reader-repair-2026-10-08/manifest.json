@@ -1,0 +1,54 @@
+{
+  "format": "agentciv-evidence-copy/0.1",
+  "copying_condition": "operator_authorized_synthetic_fixture_export_only",
+  "source_of_authority": "operator selection of these synthetic local experiment records only; not a read-permission inference",
+  "representation_change": "outer JSON CRLF to LF only; JSON values equal; inner record strings unchanged",
+  "source_state": "committed tracked experiment source; source inventory unchanged and clean during both runs",
+  "tested_repository_commit": "67844396c76e8accf5e7512e0a3b3cb1884748ef",
+  "excluded": [
+    "credentials",
+    "world databases",
+    "private process configuration",
+    "private provider traces",
+    "private candidate files"
+  ],
+  "external_spend_usd": 0,
+  "entries": [
+    {
+      "path": "python/report.json",
+      "original_sha256": "7b9997225242014f159468ad56f83e6dc554dab04edc1f6328fe37e38da55a1d",
+      "published_sha256": "0fa26b926c4067dd955d23b114fb05f91af225db2a2b350801efa0a2efb2b08d",
+      "json_values_equal": true
+    },
+    {
+      "path": "python/study-originals.json",
+      "original_sha256": "df252e293c207ee0e990b49fe602cb47df9e5ee86df2c20226e1470865bfc37e",
+      "published_sha256": "4d8e192ccab027275101500e8345418102604d65f9135a483ddaf41b24bc8890",
+      "json_values_equal": true
+    },
+    {
+      "path": "python/challenge-originals.json",
+      "original_sha256": "dcc65c6ed616f815e791280654e9c1fe43cea1b595f7c2426cd18eba9c78136f",
+      "published_sha256": "a29783b03601ec8c62f76ca53883182779ab6a6503b0152bbcdd2765f42adf33",
+      "json_values_equal": true
+    },
+    {
+      "path": "rust/report.json",
+      "original_sha256": "bfb39a1731222c99cc3b92a0de0ce20795de89ea3a4eadb7bcd69548e4f963d7",
+      "published_sha256": "ebce1ac92ffe544716f93c90cf4ee988cd4943fcc008ae1e73d185eaed46afd0",
+      "json_values_equal": true
+    },
+    {
+      "path": "rust/study-originals.json",
+      "original_sha256": "d32eb61e85567c438ee4c7d15551856245cb1a52c54678544ce5737c8bd75854",
+      "published_sha256": "b515c475a26d8854e099e058d1aceef0f7694c6a4028d081e95c92309b996282",
+      "json_values_equal": true
+    },
+    {
+      "path": "rust/challenge-originals.json",
+      "original_sha256": "e46be99ec9c154098e0ddeccbe8db93a1e7a24e8c4b0bc50051098bdccb83643",
+      "published_sha256": "037d0c2d576fb8efb6d59c09aa6d7e196bed95784b69987e12fd7c40588368cf",
+      "json_values_equal": true
+    }
+  ]
+}

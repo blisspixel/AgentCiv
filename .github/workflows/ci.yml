@@ -171,6 +171,10 @@ jobs:
           python -m coverage run examples/participants/reader_evidence.py --package .agents/repair-python-ci
           python -m coverage run examples/participants/reader_collaboration.py --host rust --condition repair --output .agents/repair-rust-ci
           python -m coverage run examples/participants/reader_evidence.py --package .agents/repair-rust-ci
+      - name: Reproduce retained repair evidence without a host
+        run: |
+          python -m coverage run examples/participants/reader_evidence.py --package conformance/evidence/reader-repair-2026-10-08/python
+          python -m coverage run examples/participants/reader_evidence.py --package conformance/evidence/reader-repair-2026-10-08/rust
       - name: Exercise recurring gatherings against both hosts
         run: |
           python -m coverage run examples/participants/gathering.py --host python --output .agents/gathering-python-ci
@@ -270,6 +274,10 @@ jobs:
           python examples/participants/reader_evidence.py --package .agents/repair-python-ci
           python examples/participants/reader_collaboration.py --host rust --condition repair --output .agents/repair-rust-ci
           python examples/participants/reader_evidence.py --package .agents/repair-rust-ci
+      - name: Reproduce retained repair evidence without a host
+        run: |
+          python examples/participants/reader_evidence.py --package conformance/evidence/reader-repair-2026-10-08/python
+          python examples/participants/reader_evidence.py --package conformance/evidence/reader-repair-2026-10-08/rust
       - name: Exercise recurring gatherings against both hosts
         run: |
           python examples/participants/gathering.py --host python --output .agents/gathering-python-ci
