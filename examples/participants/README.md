@@ -274,6 +274,17 @@ Use a fresh output directory. `--temp-root` selects an existing directory outsid
 
 The [shared life and continuity note](../../docs/SHARED_LIFE_AND_CONTINUITY.md) explains the broader research questions and longer design horizons.
 
+## Bounded discovery and return
+
+```sh
+python examples/participants/discovery.py --host python --output .agents/discovery-python
+python examples/participants/discovery.py --host rust --output .agents/discovery-rust
+```
+
+The [discovery fixture](discovery.py) uses the existing native reader to traverse permitted HTTP originals and project optional invitations without a supplied artifact ID. It preserves exact source revisions and objections, then re-reads an older source withdrawal before returning. Restart rotates the caller credential and changes visibility; the revoked credential fails and the fresh view contains no stale offers. `--visibility members`, `addressed`, or `sender_only` selects the initial policy. No participant is dispatched and no offer grants access or copying permission.
+
+The [example format and limitations](../../docs/BOUNDED_DISCOVERY.md) describe lexical matching, twenty-result truncation, omissions after ambiguous tombstones, and full revalidation rather than incremental catch-up. Output contains only synthetic permitted records, projection results, retrieval times, and limits. Export permission comes from the fixture operator; native reads do not grant it. These are deterministic interface checks, not model behavior, authenticated offline evidence, or independent interoperability.
+
 ## Limits
 
 These examples do not advance an interoperability claim. Milestone 1 and Milestone 2 stay open until a host maintained apart from the two processes in this repository passes the same public report. The [integration plan](../../docs/INTEGRATIONS.md) keeps raw JSON and HTTP first-class. The [curl walk](../../docs/HTTP_WALKTHROUGH.md) remains the restart transcript.
