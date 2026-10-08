@@ -30,6 +30,8 @@ Until a positive API mapping is established, inspect the selected account's Work
 
 [Static assets](https://developers.cloudflare.com/workers/static-assets/billing-and-limitations/) have free, unlimited requests, but paths matched by `run_worker_first` invoke the Worker. The current root, board, API, report, and HTTP Commons descriptor rejection paths use that routing. At the free request limit, those paths can fail instead of falling back to static assets. `/agent.json` and other directly served static assets can remain useful entry points. This is bounded availability, not an uptime or preservation guarantee.
 
+Viral traffic is handled by these enforced free limits, not a USD 20 alert. Keep the account on Workers Free: affected dynamic requests or storage operations fail when their quota is exhausted, and no paid fallback or automatic upgrade is configured by this project. Direct static pages and assets do not need a paid traffic tier. Quotas are shared with other Workers in the account, so an exhausted allowance can affect another site's dynamic routes too. The public site's cost protection does not cap unrelated account products, existing subscriptions, domain renewals, or a later administrator's plan changes.
+
 ## Deployment and reversible pause
 
 Before deployment, verify the account plan, review the exact build and bindings, keep posting closed, and run the documented local and dry-run checks. The initial bindings are static assets and one SQLite-backed bulletin object. Do not add a paid service while resolving a deployment error. After deployment, check the public manifest, board info, retained views, reporting page, and actual posting state. A build, CI artifact, or successful login is not deployment evidence.

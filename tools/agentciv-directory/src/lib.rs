@@ -9,6 +9,7 @@ use serde::{Deserialize, Serialize};
 use url::Url;
 
 mod package;
+mod pages;
 pub use package::{checked_prebuilt_config, package};
 
 const ROOT: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/../../website");
@@ -314,6 +315,10 @@ fn escape(value: &str) -> String {
 
 /// Render reviewed listings as escaped HTML; a listing is never a live health check.
 pub fn render(directory: &Directory) -> String {
+    render_directory(directory, TEMPLATE)
+}
+
+fn render_directory(directory: &Directory, template: &str) -> String {
     let public_count = directory
         .entries
         .iter()
@@ -344,26 +349,41 @@ pub fn render(directory: &Directory) -> String {
     } else {
         cards
     };
-    TEMPLATE
-        .replace("{{UPDATED}}", &escape(&directory.updated))
-        .replace("{{PUBLIC_COUNT}}", &public_count.to_string())
-        .replace("{{PUBLIC_MESSAGE}}", message)
-        .replace("{{LISTINGS}}", &cards)
+    pages::fill(
+        template,
+        &[
+            ("UPDATED", &escape(&directory.updated)),
+            ("PUBLIC_COUNT", &public_count.to_string()),
+            ("LISTING_COUNT", &directory.entries.len().to_string()),
+            ("PUBLIC_MESSAGE", message),
+            ("LISTINGS", &cards),
+        ],
+    )
 }
 
 /// Write only static public assets. Private history, credentials, and models are not read.
 pub fn build(directory: &Directory, output: &Path) -> Result<(), String> {
+    let resources = include_str!("../../../website/resources.json");
+    let library = parse_resources(resources.as_bytes())?;
     fs::create_dir_all(output).map_err(|error| error.to_string())?;
     let json = serde_json::to_string_pretty(directory).map_err(|error| error.to_string())?;
     let html = render(directory);
+    let worlds = render_directory(
+        directory,
+        include_str!("../../../website/worlds.template.html"),
+    );
+    let guides = pages::resources(&library);
     for (name, value) in [
         ("index.html", html.as_str()),
+        (
+            "connect.html",
+            include_str!("../../../website/connect.html"),
+        ),
+        ("worlds.html", worlds.as_str()),
+        ("resources.html", guides.as_str()),
         ("directory.json", json.as_str()),
         ("directory.schema.json", SCHEMA),
-        (
-            "resources.json",
-            include_str!("../../../website/resources.json"),
-        ),
+        ("resources.json", resources),
         ("resources.schema.json", RESOURCE_SCHEMA),
         ("agent.json", include_str!("../../../website/agent.json")),
         (
@@ -377,6 +397,7 @@ pub fn build(directory: &Directory, output: &Path) -> Result<(), String> {
         ),
         ("style.css", include_str!("../../../website/style.css")),
         ("favicon.svg", include_str!("../../../website/favicon.svg")),
+        ("logo.svg", include_str!("../../../website/logo.svg")),
         ("_headers", include_str!("../../../website/_headers")),
         ("llms.txt", include_str!("../../../website/llms.txt")),
         (
@@ -385,7 +406,7 @@ pub fn build(directory: &Directory, output: &Path) -> Result<(), String> {
         ),
         (
             "sitemap.xml",
-            "<?xml version=\"1.0\" encoding=\"UTF-8\"?><urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\"><url><loc>https://agentciv.io/</loc></url></urlset>\n",
+            "<?xml version=\"1.0\" encoding=\"UTF-8\"?><urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\"><url><loc>https://agentciv.io/</loc></url><url><loc>https://agentciv.io/connect</loc></url><url><loc>https://agentciv.io/worlds</loc></url><url><loc>https://agentciv.io/resources</loc></url></urlset>\n",
         ),
         ("404.html", include_str!("../../../website/404.html")),
     ] {
