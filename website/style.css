@@ -10,6 +10,7 @@ a:focus-visible { outline: 3px solid #b6ff76; outline-offset: 5px; }
 .skip:focus { top: 1rem; }
 .site-header { display: flex; justify-content: space-between; align-items: center; gap: 2rem; padding-block: 2rem; border-bottom: 1px solid #2a354e; }
 .brand { display: inline-flex; align-items: center; gap: .75rem; font-size: 1.2rem; font-weight: 750; text-decoration: none; }
+.brand::after { content: ""; width: .45em; height: 1.1em; margin-inline-start: -.4rem; flex: 0 0 auto; background: #b6ff76; }
 .brand-mark { display: block; width: 2.5rem; height: 2.5rem; flex: 0 0 auto; }
 nav, footer div { display: flex; flex-wrap: wrap; gap: 1.6rem; }
 nav a { font-size: .95rem; text-decoration: none; }
