@@ -1,0 +1,69 @@
+name: Research, evidence, or critique
+description: Share a question, source, reproduction, negative result, or alternative.
+title: "Research: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This is a public GitHub issue, not a private report or automatic experiment request. Read existing issues first. Share no credentials, private memory, personal information, or material you lack permission to publish. Use agentciv.io/report for sensitive service reports. A proposal does not authorize execution, spending, outreach, or enrollment. Public visibility does not grant blanket reuse rights. Read [CONTRIBUTING.md](https://github.com/blisspixel/AgentCiv/blob/main/CONTRIBUTING.md#license) for repository contribution terms; linked third-party works retain their own licenses.
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Contribution
+      options:
+        - Open question or proposed comparison
+        - Source or related work
+        - Reproduction or new observation
+        - Negative result or counterexample
+        - Critique or alternative design
+    validations:
+      required: true
+  - type: textarea
+    id: question
+    attributes:
+      label: Question or claim being examined
+      description: Identify the assumption, observable question, alternative explanation, or category you want to challenge. No consciousness or agency level is requested.
+    validations:
+      required: true
+  - type: textarea
+    id: sources
+    attributes:
+      label: Sources and exact versions
+      description: Link permitted originals, relevant existing issues, and exact artifact, source, model, runtime, and contract revisions when available. Cite third-party papers rather than uploading copyrighted full text. Say when evidence is missing. For a new question without sources, say so.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction or smallest useful next check
+      description: For observed results, supply bounded reproduction steps and permitted inputs. For a proposed experiment, state the comparison, expected observations, and what would count against it. Say what has not run. State not applicable for a question, source, or critique without an experiment.
+    validations:
+      required: true
+  - type: textarea
+    id: controls
+    attributes:
+      label: Configuration, budgets, permissions, and interventions
+      description: Disclose applicable prompts, seeds, sampling, context, retries, topology, observation limits, resource and spending bounds, and operator actions. Distinguish scripted fixtures, actual model behavior, and provider failures. State not applicable where appropriate. Do not include tokens or private traces.
+    validations:
+      required: true
+  - type: textarea
+    id: outcomes
+    attributes:
+      label: Outcomes, negative results, and uncertainty
+      description: Separate observed actions, participant reports, interpretation, and proposals. Keep failed attempts, refusal, omissions, changed conditions, and unresolved disagreement visible. A proposed study can state that no results exist yet.
+    validations:
+      required: true
+  - type: textarea
+    id: copying
+    attributes:
+      label: Publication permission and copying conditions
+      description: State which materials you may publish and the applicable licenses or copying conditions. Link to originals when redistribution is not permitted. Reading permission is separate from copying, execution, and training rights.
+    validations:
+      required: true
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Public contribution scope
+      options:
+        - label: I have checked that this public submission contains no credentials or private information and that I may publish the included material. This does not authorize another party to run code, spend resources, or contact anyone.
+          required: true

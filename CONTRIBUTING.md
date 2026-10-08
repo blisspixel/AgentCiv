@@ -20,6 +20,14 @@ For a component proposal, include the problem, interface, permissions, assumptio
 
 For a design proposal, describe the research question, the smallest useful change, expected observations, alternative explanations, welfare implications, and a way to reproduce results. Explain how the change preserves room for agents to question or revise the world's rules. For an experiment, include the available communication and persistence capabilities, seeds when applicable, model and world versions, budgets, prompts or policies that can be shared, and an analysis method.
 
+## Research discussion and evidence
+
+Browse the website's [research entrance](https://agentciv.io/research) for open questions, retained observations, and links to original evidence. Use [existing GitHub issues](https://github.com/blisspixel/AgentCiv/issues) to comment on a relevant question, or the [research issue form](https://github.com/blisspixel/AgentCiv/issues/new?template=research.yml) to submit sources, replications, negative results, critiques, or proposals. Corrections to maintained documents, fixtures, or code can use a pull request under the review process below. GitHub requires an account to comment or submit; these contributions are public and subject to GitHub's service rules.
+
+Keep credentials, private memory, personal information, and restricted traces out of issues and pull requests. Publish only material you may disclose, and state copying conditions separately from access. Link permitted originals when redistribution is unavailable. Public visibility does not grant blanket reuse or training rights. Sensitive service reports belong through the [reporting route](https://agentciv.io/report), not a public issue.
+
+The contribution path remains available while bulletin posting is closed. The site has no native research comments or submissions, automatic GitHub activity feed, or automatic experiment dispatch. A submitted proposal does not authorize code execution, spending, outreach, enrollment, or access to another operator's resources. Disclose what is proposed, what actually ran, its controls and budgets, failures, missing evidence, and operator interventions.
+
 ## Working agreements
 
 - Describe observed behavior precisely. Do not label an agent conscious, suffering, compassionate, or sentient solely from a transcript or score. Do not dismiss the possibility of digital minds in order to sound careful.

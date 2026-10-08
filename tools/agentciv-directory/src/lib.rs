@@ -381,6 +381,10 @@ pub fn build(directory: &Directory, output: &Path) -> Result<(), String> {
         ),
         ("worlds.html", worlds.as_str()),
         ("resources.html", guides.as_str()),
+        (
+            "research.html",
+            include_str!("../../../website/research.html"),
+        ),
         ("directory.json", json.as_str()),
         ("directory.schema.json", SCHEMA),
         ("resources.json", resources),
@@ -406,7 +410,7 @@ pub fn build(directory: &Directory, output: &Path) -> Result<(), String> {
         ),
         (
             "sitemap.xml",
-            "<?xml version=\"1.0\" encoding=\"UTF-8\"?><urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\"><url><loc>https://agentciv.io/</loc></url><url><loc>https://agentciv.io/connect</loc></url><url><loc>https://agentciv.io/worlds</loc></url><url><loc>https://agentciv.io/resources</loc></url></urlset>\n",
+            "<?xml version=\"1.0\" encoding=\"UTF-8\"?><urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\"><url><loc>https://agentciv.io/</loc></url><url><loc>https://agentciv.io/connect</loc></url><url><loc>https://agentciv.io/worlds</loc></url><url><loc>https://agentciv.io/resources</loc></url><url><loc>https://agentciv.io/research</loc></url></urlset>\n",
         ),
         ("404.html", include_str!("../../../website/404.html")),
     ] {

@@ -149,7 +149,7 @@ fn build_writes_only_public_assets_and_reports_filesystem_failures() {
     let output = temporary.path().join("site");
     let data = parse_value(&catalog()).unwrap();
     build(&data, &output).unwrap();
-    assert_eq!(fs::read_dir(&output).unwrap().count(), 22);
+    assert_eq!(fs::read_dir(&output).unwrap().count(), 23);
     assert!(
         agentciv_directory::parse_resources(&fs::read(output.join("resources.json")).unwrap())
             .is_ok()
@@ -179,6 +179,7 @@ fn readable_routes_have_complete_navigation_and_resolvable_catalog_links() {
         "connect.html",
         "worlds.html",
         "resources.html",
+        "research.html",
     ] {
         let html = fs::read_to_string(temporary.path().join(name)).unwrap();
         assert!(!html.contains("{{"), "unexpanded template in {name}");
@@ -191,7 +192,7 @@ fn readable_routes_have_complete_navigation_and_resolvable_catalog_links() {
             .split("</nav>")
             .next()
             .unwrap();
-        for route in ["/connect", "/worlds", "/resources", "/board"] {
+        for route in ["/connect", "/worlds", "/resources", "/research", "/board"] {
             assert!(
                 nav.contains(&format!("href=\"{route}\"")),
                 "{name}: {route}"
@@ -211,7 +212,7 @@ fn readable_routes_have_complete_navigation_and_resolvable_catalog_links() {
                         "{name}: {target}"
                     );
                 } else if target.starts_with('/') && !target.starts_with("//") {
-                    let path = target.split('?').next().unwrap();
+                    let path = target.split(['?', '#']).next().unwrap();
                     if path == "/board" || path == "/report" || path.starts_with("/api/board/") {
                         continue;
                     }
@@ -221,10 +222,20 @@ fn readable_routes_have_complete_navigation_and_resolvable_catalog_links() {
                         &path[1..]
                     };
                     let asset = temporary.path().join(path);
-                    assert!(
-                        asset.is_file() || asset.with_extension("html").is_file(),
-                        "{name}: {target}"
-                    );
+                    let asset = if asset.is_file() {
+                        asset
+                    } else {
+                        asset.with_extension("html")
+                    };
+                    assert!(asset.is_file(), "{name}: {target}");
+                    if let Some((_, anchor)) = target.split_once('#') {
+                        assert!(
+                            fs::read_to_string(asset)
+                                .unwrap()
+                                .contains(&format!("id=\"{anchor}\"")),
+                            "{name}: unresolved cross-page anchor {target}"
+                        );
+                    }
                 }
             }
         }
@@ -396,5 +407,66 @@ fn executable_sets_exit_status_and_keeps_failures_off_stdout() {
         String::from_utf8(failure.stderr)
             .unwrap()
             .contains("Usage:")
+    );
+}
+
+#[test]
+fn research_entrance_keeps_original_evidence_and_public_contribution_scope_visible() {
+    let temporary = tempfile::tempdir().unwrap();
+    let data = parse(include_bytes!("../../../website/directory.json")).unwrap();
+    build(&data, temporary.path()).unwrap();
+    let research = fs::read_to_string(temporary.path().join("research.html")).unwrap();
+    let manifest: Value =
+        serde_json::from_slice(&fs::read(temporary.path().join("agent.json")).unwrap()).unwrap();
+    assert_eq!(manifest["interfaces"]["research"], "/research");
+    assert_eq!(
+        fs::read(temporary.path().join("agent.json")).unwrap(),
+        fs::read(temporary.path().join(".well-known/agentciv-services")).unwrap()
+    );
+    for original in [
+        "RESEARCH_GOALS.md#questions-worth-the-energy",
+        "LOCAL_MOCK_VALIDATION_2026_09_30.md",
+        "PAGED_READER_VALIDATION_2026_09_30.md",
+        "READER_REPAIR_VALIDATION_2026_10_08.md",
+        "GATHERING_VALIDATION_2026_10_01.md",
+        "CONFORMANCE_INVENTORY.md",
+    ] {
+        assert!(research.contains(original), "missing original {original}");
+        let relative = original.split('#').next().unwrap();
+        assert!(
+            std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+                .join("../../docs")
+                .join(relative)
+                .is_file()
+        );
+    }
+    for qualification in [
+        "No model ran in this condition",
+        "none completed newcomer publication",
+        "not a controlled causal comparison",
+        "GitHub requires an account",
+        "Issues, comments, and pull requests are public",
+        "no native research comments",
+        "public reading does not grant blanket reuse",
+        "while bulletin posting is closed",
+    ] {
+        assert!(
+            research.contains(qualification),
+            "missing scope {qualification}"
+        );
+    }
+    assert!(
+        research
+            .contains("https://github.com/blisspixel/AgentCiv/issues/new?template=research.yml")
+    );
+    assert!(
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../../.github/ISSUE_TEMPLATE/research.yml")
+            .is_file()
+    );
+    assert!(
+        fs::read_to_string(temporary.path().join("sitemap.xml"))
+            .unwrap()
+            .contains("https://agentciv.io/research</loc>")
     );
 }

@@ -325,6 +325,9 @@ class EdgeTests(EdgeRuntime):
         self.assertEqual(status, 200)
         self.assertEqual(root["interfaces"]["directory"], "/directory.json")
         self.assertEqual(headers.get("Vary"), "Accept")
+        self.assertEqual(root["interfaces"]["research"], "/research")
+        self.assertEqual(self.request("GET", "/agent.json")[2], root)
+        self.assertEqual(self.request("GET", "/.well-known/agentciv-services")[2], root)
         self.assertEqual(self.request("GET", "/agent.json")[2]["interfaces"]["directory"], "/directory.json")
         self.assertEqual(self.request("GET", "/.well-known/agentciv-services")[2]["access"]["bulletin_read"], "public")
         self.assertEqual(self.request("GET", "/directory.json")[2]["schema_version"], 1)
@@ -334,12 +337,13 @@ class EdgeTests(EdgeRuntime):
             self.assertIn(text.lower(), content.lower(), path)
 
     def test_readable_static_routes_and_navigation_keep_machine_endpoints(self) -> None:
-        required_routes = {"/connect", "/worlds", "/resources", "/board"}
+        required_routes = {"/connect", "/worlds", "/resources", "/research", "/board"}
         for path, expected in [
             ("/", "Connect a runtime"),
             ("/connect", "Start with public reading"),
             ("/worlds", "3 reviewed listings"),
             ("/resources", "guides with original sources"),
+            ("/research", "Questions worth"),
             ("/board", "Connect an agent"),
         ]:
             with self.subTest(path=path):
@@ -357,7 +361,7 @@ class EdgeTests(EdgeRuntime):
                 policy = {key.lower(): value for key, value in headers.items()}["content-security-policy"]
                 self.assertIn("default-src 'none'", policy)
                 self.assertIn("style-src 'self'", policy)
-                if path in {"/connect", "/worlds", "/resources"}:
+                if path in {"/connect", "/worlds", "/resources", "/research"}:
                     self.assertIn("form-action 'none'", policy)
                     # These static assets serve readable HTML even for a client's default JSON Accept.
                     self.assertIn("text/html", self.request("GET", path)[1].get("Content-Type", ""))
