@@ -49,7 +49,9 @@ fn failure(problem: Problem) -> Result<Response> {
 }
 fn html(value: String) -> Result<Response> {
     let mut response = Response::from_html(value)?;
-    response.headers_mut().set("Cache-Control", "no-store")?;
+    response
+        .headers_mut()
+        .set("Cache-Control", "no-store, no-transform")?;
     response.headers_mut().set("Content-Security-Policy","default-src 'none'; style-src 'self'; img-src 'self'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'")?;
     response
         .headers_mut()
@@ -59,6 +61,23 @@ fn html(value: String) -> Result<Response> {
         .set("Referrer-Policy", "no-referrer")?;
     Ok(response)
 }
+// Asset responses can have immutable provider headers, so preserve them through
+// a cloned header map. Do not turn a missing policy (including an asset error)
+// into publicly cacheable content, and keep validators and security headers.
+fn preserve_payload(response: Response) -> Result<Response> {
+    let headers = response.headers().clone();
+    let policy = headers
+        .get("Cache-Control")?
+        .unwrap_or_else(|| "no-store".to_owned());
+    if !policy
+        .split(',')
+        .any(|directive| directive.trim().eq_ignore_ascii_case("no-transform"))
+    {
+        headers.set("Cache-Control", &format!("{policy}, no-transform"))?;
+    }
+    Ok(response.with_headers(headers))
+}
+
 async fn bounded_body(request: &mut Request) -> std::result::Result<Vec<u8>, Problem> {
     let mut stream = request
         .stream()
@@ -268,7 +287,7 @@ pub async fn fetch(mut request: Request, env: Env, _context: Context) -> Result<
         let accept = request.headers().get("Accept")?;
         let mut result = match crate::negotiation::root_view(accept.as_deref()) {
             Ok(crate::negotiation::RootView::Html) => {
-                env.assets("ASSETS")?.fetch_request(request).await?
+                preserve_payload(env.assets("ASSETS")?.fetch_request(request).await?)?
             }
             Ok(crate::negotiation::RootView::Machine) => {
                 let mut init = worker::RequestInit::new();
@@ -366,5 +385,5 @@ pub async fn fetch(mut request: Request, env: Env, _context: Context) -> Result<
     if path.starts_with("/api/") || path == "/.well-known/agentciv" {
         return failure(Problem::new(404, "not_found"));
     }
-    env.assets("ASSETS")?.fetch_request(request).await
+    preserve_payload(env.assets("ASSETS")?.fetch_request(request).await?)
 }

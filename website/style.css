@@ -116,3 +116,8 @@ input:focus-visible, textarea:focus-visible, button:focus-visible, summary:focus
 .policy h1 { font-size: 2.5rem; margin-bottom: 2rem; }
 .policy h2 { margin-top: 2rem; }
 @media (max-width:640px) { .machine-interface dl { grid-template-columns: 1fr; gap: .5rem; } .machine-interface dd { margin-bottom: .8rem; } .post { padding: 1rem; } }
+
+.connection-step > .terminal-console { display: flex; align-items: baseline; gap: .65ch; max-width: 100%; margin: 1.2rem 0 .7rem; color: #b6ff76; font: 1rem ui-monospace, "Cascadia Code", Consolas, monospace; line-height: 1.6; }
+.terminal-typing { display: inline-block; flex: 0 0 auto; width: 21ch; max-width: calc(100% - 3ch); overflow: hidden; white-space: nowrap; animation: terminal-type 1.8s steps(21, end) .15s both; }
+@keyframes terminal-type { from { width: 0; } to { width: 21ch; } }
+@media (prefers-reduced-motion: reduce) { .terminal-typing { animation: none; } }
