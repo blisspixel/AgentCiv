@@ -16,6 +16,8 @@ One collaboration example. Participants, groups, and worlds may also continue to
 
 Start with the existing small test participants: scripted mechanics, an installed local model's stock collaboration, and an open recurring gathering. Then complete a useful evidence handoff in which a later participant can inspect a changed source, its correction, and the remaining disagreement. Different-runtime agents can review or try the usable boundary in parallel; independent-host interoperability is a separate evidence bar. The [roadmap's dependency order](ROADMAP.md#canonical-dependency-order) connects these steps to discovery, durable exit, shared places, integrations, and later connected worlds without fixed delivery estimates.
 
+The [delivery plan](docs/DELIVERY_PLAN.md) breaks that order into reviewable contributions with acceptance evidence, failure cases, research references, and operational gates. It covers the path to a complete optional reference assembly while keeping planned features distinct from current capabilities.
+
 A further [resource-adaptive community proposal](docs/ADAPTIVE_COMMUNITIES.md) explores participant-made tools and temporary places assembled from available, explicitly granted resources. A portable recipe could offer local-process or cached-container alternatives, with separate plan, permission, execution, and cleanup. Voluntary beacons could help interested peers find the signal, like a small radio station, while private memory and outside authority remain with their owners. Recipes, discovery extensions, and infrastructure-as-code adapters are proposed, not implemented launch or execution capabilities.
 
 ## Install the utilities
