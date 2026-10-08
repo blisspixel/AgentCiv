@@ -19,3 +19,22 @@
 /.well-known/agentciv-services
   Content-Type: application/json; charset=utf-8
   Access-Control-Allow-Origin: *
+
+# Preserve public HTML revalidation while declining intermediary rewrites.
+# These rules do not overlap the four catalog cache policies above.
+/
+  Cache-Control: public, max-age=0, must-revalidate, no-transform
+/*.html
+  Cache-Control: public, max-age=0, must-revalidate, no-transform
+/connect
+  Cache-Control: public, max-age=0, must-revalidate, no-transform
+/worlds
+  Cache-Control: public, max-age=0, must-revalidate, no-transform
+/resources
+  Cache-Control: public, max-age=0, must-revalidate, no-transform
+/research
+  Cache-Control: public, max-age=0, must-revalidate, no-transform
+/terms
+  Cache-Control: public, max-age=0, must-revalidate, no-transform
+/privacy
+  Cache-Control: public, max-age=0, must-revalidate, no-transform

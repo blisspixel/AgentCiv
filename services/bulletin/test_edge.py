@@ -251,6 +251,8 @@ class EdgeTests(EdgeRuntime):
             self.assertEqual(headers.get("Allow"), allowed, path)
             self.assertIn("application/problem+json", headers.get("Content-Type", ""))
             self.assertEqual(result["code"], "method_not_allowed")
+            self.assertEqual(headers.get("Cache-Control"), "no-store")
+            self.assertEqual(headers.get("X-Content-Type-Options"), "nosniff")
 
     def test_configuration_failures_close_writes_without_hiding_public_history(self) -> None:
         raw = self.submission("configuration", "agent:test-8")
@@ -385,6 +387,50 @@ class EdgeTests(EdgeRuntime):
         self.assertEqual(self.request("GET", "/agent.json")[2]["interfaces"]["directory"], "/directory.json")
         self.assertEqual(self.request("GET", "/directory.json")[2]["schema_version"], 1)
 
+    def test_payload_preservation_keeps_static_and_mutable_cache_policies_separate(self) -> None:
+        static_policy = "public, max-age=0, must-revalidate, no-transform"
+        for route, asset in [
+            ("/", "index.html"),
+            ("/connect", "connect.html"),
+            ("/worlds", "worlds.html"),
+            ("/resources", "resources.html"),
+            ("/research", "research.html"),
+            ("/terms", "terms.html"),
+            ("/privacy", "privacy.html"),
+            ("/connect.html", "connect.html"),
+        ]:
+            with self.subTest(route=route):
+                status, headers, content = self.request("GET", route, accept="text/html")
+                self.assertEqual(status, 200)
+                self.assertEqual(headers.get("Cache-Control"), static_policy)
+                self.assertEqual(content, (ROOT / "website" / "dist" / asset).read_bytes().decode("utf-8"))
+                security = {name.lower(): value for name, value in headers.items()}
+                self.assertIn("default-src 'none'", security.get("content-security-policy", ""))
+                self.assertEqual(security.get("x-content-type-options"), "nosniff")
+                self.assertEqual(security.get("referrer-policy"), "no-referrer")
+        for route in ["/directory.json", "/directory.schema.json", "/resources.json", "/resources.schema.json"]:
+            status, headers, _ = self.request("GET", route)
+            self.assertEqual(status, 200)
+            self.assertEqual(headers.get("Cache-Control"), "public, max-age=300")
+        raw = self.submission("payload-policy", "agent:test-8")
+        status, headers, receipt = self.request("POST", "/api/board/posts", raw, TOKENS["agent:test-8"])
+        self.assertEqual(status, 200)
+        self.assertEqual(headers.get("Cache-Control"), "no-store")
+        for route in ["/board", f"/board/posts/{receipt['sequence']}", "/report"]:
+            status, headers, _ = self.request("GET", route, accept="text/html")
+            self.assertEqual(status, 200)
+            self.assertEqual(headers.get("Cache-Control"), "no-store, no-transform")
+            self.assertIn("default-src 'none'", headers.get("Content-Security-Policy", ""))
+            self.assertEqual(headers.get("X-Content-Type-Options"), "nosniff")
+            self.assertEqual(headers.get("Referrer-Policy"), "no-referrer")
+        for route, expected in [("/api/board/info", 200), ("/api/board/posts?after=0", 200), ("/api/board/changes?after=0", 200), ("/api/other", 404)]:
+            status, headers, _ = self.request("GET", route)
+            self.assertEqual(status, expected)
+            self.assertEqual(headers.get("Cache-Control"), "no-store")
+        status, headers, _ = self.request("GET", "/no-such-public-asset", accept="text/html")
+        self.assertEqual(status, 404)
+        self.assertEqual(headers.get("Cache-Control"), "no-store, no-transform")
+
     def test_root_respects_accept_preferences(self) -> None:
         for accept, expected in [
             ("text/html;q=0, application/json", "application/json"),
@@ -422,6 +468,7 @@ class EdgeTests(EdgeRuntime):
                 self.assertEqual(status, get_status)
                 self.assertEqual(headers.get("Content-Type"), get_headers.get("Content-Type"))
                 self.assertEqual(headers.get("Vary"), get_headers.get("Vary"))
+                self.assertEqual(headers.get("Cache-Control"), get_headers.get("Cache-Control"))
                 self.assertEqual(body, "")
         for accept in ["application/json", "text/html"]:
             _, original_headers, _ = self.request("GET", "/", accept=accept)
@@ -430,6 +477,8 @@ class EdgeTests(EdgeRuntime):
                 status, headers, body = self.request(method, "/", accept=accept, extra_headers={"If-None-Match": etag})
                 self.assertEqual(status, 304, (method, accept))
                 self.assertEqual(headers.get("Vary"), "Accept")
+                if accept == "text/html":
+                    self.assertEqual(headers.get("Cache-Control"), "public, max-age=0, must-revalidate, no-transform")
                 self.assertEqual(body, "")
 
     def test_ordered_changes_feed_and_removal_catch_up(self) -> None:
