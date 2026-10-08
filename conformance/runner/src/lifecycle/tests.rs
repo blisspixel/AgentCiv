@@ -17,59 +17,23 @@ fn checkpoint() -> Value {
         .unwrap()
         .push(json!("collaboration.submit"));
     let world_id = world["id"].as_str().unwrap();
+    let names: Vec<_> = parties().iter().map(|party| party.0).collect();
+    let audience: Vec<_> = names.iter().map(|name| (*name).to_owned()).collect();
+    let race = concurrent_requests(world_id, names[0], names[2], &audience);
+    // Independent principal chains may arrive in either client request order.
+    let mut requests = initial_requests(world_id, &names);
+    requests.extend([
+        race[2].clone(),
+        race[0].clone(),
+        race[3].clone(),
+        race[1].clone(),
+    ]);
     let mut records = Vec::new();
     let mut events = Vec::new();
-    for (index, kind) in [
-        "message",
-        "message",
-        "artifact_revision",
-        "objection",
-        "decline",
-        "withdrawal",
-        "artifact_revision",
-        "artifact_revision",
-        "artifact_revision",
-    ]
-    .into_iter()
-    .enumerate()
-    {
-        let principal = if matches!(index, 1 | 3 | 4 | 6) {
-            "agent:peer"
-        } else {
-            "agent:writer"
-        };
-        let id = format!("submission:{index}");
-        let mut body = match kind {
-            "message" => roundtrip_message(world_id, principal),
-            "artifact_revision" => artifact_submission(
-                world_id,
-                principal,
-                &["agent:reader".to_owned()],
-                &id,
-                "artifact:lifecycle",
-                "work",
-            ),
-            "withdrawal" => {
-                serde_json::from_slice(&withdrawal_body(world_id, principal, "agent:writer", &id))
-                    .unwrap()
-            }
-            _ => {
-                json!({"protocol_version":"0.1-draft","type":kind,"id":id,"world":world_id,"from":principal,"to":["agent:reader"],"artifact_id":"artifact:lifecycle","target_from":"agent:writer","revision":1,"body":{"text":"a participant act"}})
-            }
-        };
-        body["id"] = json!(id);
-        if kind != "message" {
-            body["artifact_id"] = json!(if index == 6 {
-                "artifact:lifecycle-continuation"
-            } else {
-                "artifact:lifecycle"
-            });
-        }
-        let revision = match index {
-            7 => 2,
-            8 => 3,
-            _ => 1,
-        };
+    let mut revisions = std::collections::HashMap::<(String, String), u64>::new();
+    for (index, body) in requests.into_iter().enumerate() {
+        let principal = body["from"].as_str().unwrap();
+        let kind = body["type"].as_str().unwrap();
         let sequence = if index == 5 {
             3
         } else if index >= 6 {
@@ -77,15 +41,21 @@ fn checkpoint() -> Value {
         } else {
             index + 1
         };
-        let receipt = json!({"protocol_version":"0.1-draft","type":"receipt","world":world_id,"record_id":id,"event_id":format!("event:{sequence}"),"sequence":sequence,"status":"recorded"});
-        let mut receipt = receipt;
+        let mut receipt = json!({"protocol_version":"0.1-draft","type":"receipt","world":world_id,"record_id":body["id"],"event_id":format!("event:{sequence}"),"sequence":sequence,"status":"recorded"});
         let mut stored = body.clone();
         let (field, event_kind) = match kind {
             "message" => ("message", "message.recorded"),
             "artifact_revision" => {
-                stored["revision"] = json!(revision);
+                let revision = revisions
+                    .entry((
+                        principal.to_owned(),
+                        body["artifact_id"].as_str().unwrap().to_owned(),
+                    ))
+                    .or_default();
+                *revision += 1;
+                stored["revision"] = json!(*revision);
                 receipt["artifact_id"] = body["artifact_id"].clone();
-                receipt["revision"] = json!(revision);
+                receipt["revision"] = json!(*revision);
                 ("artifact_revision", "artifact.recorded")
             }
             "objection" => ("objection", "objection.recorded"),
@@ -172,12 +142,135 @@ fn checkpoint_revision_layout_and_old_version_are_rejected_before_requests() {
         });
         assert!(validate_checkpoint(&changed).is_err(), "{alteration}");
     }
-    let mut changed = saved;
-    changed["checkpoint_version"] = json!("agentciv-lifecycle/0.1-draft");
-    assert_eq!(
-        validate_checkpoint(&changed).unwrap_err(),
-        "unsupported checkpoint version"
-    );
+    for version in [
+        "agentciv-lifecycle/0.1-draft",
+        "agentciv-lifecycle/0.2-draft",
+    ] {
+        let mut changed = saved.clone();
+        changed["checkpoint_version"] = json!(version);
+        assert_eq!(
+            validate_checkpoint(&changed).unwrap_err(),
+            "unsupported checkpoint version"
+        );
+    }
+}
+
+fn synchronize_record_event(saved: &mut Value, index: usize) {
+    let event = saved["records"][index]["event_at_recording"].clone();
+    for history in saved["history"].as_object_mut().unwrap().values_mut() {
+        let found = history
+            .as_array_mut()
+            .unwrap()
+            .iter_mut()
+            .find(|old| old["id"] == event["id"])
+            .unwrap();
+        *found = event.clone();
+    }
+}
+
+#[test]
+fn concurrent_checkpoint_accepts_alternate_actual_order_without_contiguous_global_sequences() {
+    let mut saved = checkpoint();
+    let original = saved["records"].as_array().unwrap().clone();
+    for (position, old) in [10, 12, 9, 11].into_iter().enumerate() {
+        let index = 9 + position;
+        saved["records"][index] = original[old].clone();
+        // Gaps are allowed in global event numbering; chain revisions are not.
+        let sequence = 20 + position * 3;
+        saved["records"][index]["receipt"]["sequence"] = json!(sequence);
+        saved["records"][index]["event_at_recording"]["sequence"] = json!(sequence);
+        synchronize_record_event(&mut saved, index);
+    }
+    for history in saved["history"].as_object_mut().unwrap().values_mut() {
+        history
+            .as_array_mut()
+            .unwrap()
+            .sort_by_key(|event| event["sequence"].as_u64().unwrap());
+    }
+    validate_checkpoint(&saved).unwrap();
+}
+
+#[test]
+fn lifecycle_requests_fit_the_profile_payload_floor() {
+    let names = [
+        "agent:conformance-writer",
+        "agent:conformance-reader",
+        "agent:conformance-peer",
+    ];
+    let audience: Vec<_> = names.iter().map(|name| (*name).to_owned()).collect();
+    let mut requests = initial_requests("civ:conformance", &names);
+    requests.extend(concurrent_requests(
+        "civ:conformance",
+        names[0],
+        names[2],
+        &audience,
+    ));
+    assert_eq!(requests.len(), 13);
+    for request in requests {
+        assert!(request.to_string().len() <= 1024, "{}", request["id"]);
+    }
+}
+
+#[test]
+fn concurrent_checkpoint_rejects_coherent_wrong_numbers_bodies_and_rosters() {
+    let saved = checkpoint();
+    for (index, revision) in [(12, 4), (12, 6), (10, 1), (9, 4), (11, 1)] {
+        let mut changed = saved.clone();
+        changed["records"][index]["receipt"]["revision"] = json!(revision);
+        changed["records"][index]["event_at_recording"]["body"]["artifact_revision"]["revision"] =
+            json!(revision);
+        synchronize_record_event(&mut changed, index);
+        assert!(validate_checkpoint(&changed).is_err(), "{index}:{revision}");
+    }
+    let mut reversed = saved.clone();
+    for (index, revision) in [(10, 5), (12, 4)] {
+        reversed["records"][index]["receipt"]["revision"] = json!(revision);
+        reversed["records"][index]["event_at_recording"]["body"]["artifact_revision"]["revision"] =
+            json!(revision);
+        synchronize_record_event(&mut reversed, index);
+    }
+    assert!(validate_checkpoint(&reversed).is_err());
+    for field in ["id", "from", "artifact_id", "body"] {
+        let mut changed = saved.clone();
+        let mut body: Value =
+            serde_json::from_str(changed["records"][9]["bytes"].as_str().unwrap()).unwrap();
+        body[field] = match field {
+            "body" => json!({"text":"substituted evidence"}),
+            "from" => json!("agent:writer"),
+            _ => json!("substituted:identity"),
+        };
+        changed["records"][9]["bytes"] = json!(body.to_string());
+        let revision = changed["records"][9]["receipt"]["revision"].clone();
+        body["revision"] = revision;
+        changed["records"][9]["event_at_recording"]["body"]["artifact_revision"] = body;
+        synchronize_record_event(&mut changed, 9);
+        assert!(validate_checkpoint(&changed).is_err(), "{field}");
+    }
+    let mut reordered = saved.clone();
+    reordered["records"].as_array_mut().unwrap().swap(9, 10);
+    assert!(validate_checkpoint(&reordered).is_err());
+    let mut dropped = saved.clone();
+    dropped["records"].as_array_mut().unwrap().remove(10);
+    assert!(validate_checkpoint(&dropped).is_err());
+    for mutation in ["receipt", "stored", "identity", "sequence"] {
+        let mut changed = saved.clone();
+        match mutation {
+            "receipt" => changed["records"][9]["receipt"]["event_id"] = json!("event:other"),
+            "stored" => {
+                changed["records"][9]["event_at_recording"]["body"]["artifact_revision"]["revision"] =
+                    json!(2)
+            }
+            "identity" => {
+                changed["records"][10]["event_at_recording"]["id"] =
+                    changed["records"][9]["event_at_recording"]["id"].clone()
+            }
+            _ => {
+                changed["records"][10]["event_at_recording"]["sequence"] =
+                    changed["records"][9]["event_at_recording"]["sequence"].clone()
+            }
+        }
+        assert!(validate_checkpoint(&changed).is_err(), "{mutation}");
+    }
 }
 
 #[test]

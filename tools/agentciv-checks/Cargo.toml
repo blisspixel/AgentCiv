@@ -8,6 +8,7 @@ description = "Repository checks for AgentCiv documentation and JSON fixtures"
 publish = false
 
 [dependencies]
+agentciv-directory = { path = "../agentciv-directory" }
 jsonschema = { version = "=0.58.2", default-features = false }
 percent-encoding = "=2.3.2"
 regex = "=1.13.1"

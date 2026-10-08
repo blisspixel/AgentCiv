@@ -1094,7 +1094,8 @@
       "gaps": [
         "gap:retention",
         "gap:cross-endpoint-retry",
-        "gap:content-authority"
+        "gap:content-authority",
+        "gap:collaboration-retry-races"
       ]
     },
     {
@@ -1111,7 +1112,11 @@
         "fixture:collaboration-artifact",
         "case:collaborate.revision_sequence",
         "case:collaborate.revision_sequence_retry",
-        "case:collaborate.revision_sequence_rejection"
+        "case:collaborate.revision_sequence_rejection",
+        "case:collaborate.concurrent_revisions",
+        "case:collaborate.concurrent_revisions_retry",
+        "case:collaborate.concurrent_revisions_isolation",
+        "case:restart.concurrent_revisions"
       ],
       "observations": [
         "obs:python:members:collaborate.other_chain",
@@ -1161,7 +1166,11 @@
         "case:collaborate.revision_sequence",
         "case:collaborate.revision_sequence_retry",
         "case:collaborate.revision_sequence_rejection",
-        "case:restart.revision_sequence"
+        "case:restart.revision_sequence",
+        "case:collaborate.concurrent_revisions",
+        "case:collaborate.concurrent_revisions_retry",
+        "case:collaborate.concurrent_revisions_isolation",
+        "case:restart.concurrent_revisions"
       ],
       "observations": [
         "obs:python:members:events.visibility",
@@ -1588,7 +1597,8 @@
       ],
       "gaps": [
         "gap:cross-endpoint-retry",
-        "gap:failure-precedence"
+        "gap:failure-precedence",
+        "gap:collaboration-retry-races"
       ]
     },
     {
@@ -1617,7 +1627,8 @@
       ],
       "gaps": [
         "gap:cross-endpoint-retry",
-        "gap:failure-precedence"
+        "gap:failure-precedence",
+        "gap:collaboration-retry-races"
       ]
     },
     {
@@ -1636,7 +1647,10 @@
         "test:python-collaboration",
         "schema:receipt",
         "fixture:receipt",
-        "case:restart.revision_sequence"
+        "case:restart.revision_sequence",
+        "case:collaborate.concurrent_revisions",
+        "case:collaborate.concurrent_revisions_retry",
+        "case:restart.concurrent_revisions"
       ],
       "observations": [
         "obs:python:members:collaborate.revision",
@@ -1685,7 +1699,10 @@
         "test:rust-collaboration",
         "schema:event-page",
         "fixture:event-page",
-        "case:restart.revision_sequence"
+        "case:restart.revision_sequence",
+        "case:collaborate.concurrent_revisions",
+        "case:collaborate.concurrent_revisions_retry",
+        "case:restart.concurrent_revisions"
       ],
       "observations": [
         "obs:python:members:collaborate.revision",
@@ -2837,6 +2854,30 @@
       "kind": "public_case",
       "path": "conformance/runner/src/lifecycle.rs",
       "anchor": "\"restart.revision_sequence\""
+    },
+    {
+      "id": "case:collaborate.concurrent_revisions",
+      "kind": "public_case",
+      "path": "conformance/runner/src/concurrent_revisions.rs",
+      "anchor": "\"collaborate.concurrent_revisions\""
+    },
+    {
+      "id": "case:collaborate.concurrent_revisions_retry",
+      "kind": "public_case",
+      "path": "conformance/runner/src/concurrent_revisions.rs",
+      "anchor": "\"collaborate.concurrent_revisions_retry\""
+    },
+    {
+      "id": "case:collaborate.concurrent_revisions_isolation",
+      "kind": "public_case",
+      "path": "conformance/runner/src/concurrent_revisions.rs",
+      "anchor": "\"collaborate.concurrent_revisions_isolation\""
+    },
+    {
+      "id": "case:restart.concurrent_revisions",
+      "kind": "public_case",
+      "path": "conformance/runner/src/lifecycle.rs",
+      "anchor": "\"restart.concurrent_revisions\""
     }
   ],
   "observations": [
@@ -5628,7 +5669,7 @@
     {
       "id": "gap:revision-increment",
       "owner": "Collaboration conformance maintainers",
-      "proposed_test": "Add a bounded public race for simultaneous author submissions, accepting either arrival order with exact receipt/body/event mapping, while a second principal uses the same artifact_id independently. Retain both same-artifact principal chains across restart and retry the exact concurrent requests without allocating more revisions. Sequential accepted revisions 1, 2, and 3, failed-write no-allocation, and restart numbering now have dedicated cases; those do not establish concurrent-chain correctness."
+      "proposed_test": "Retain a new current-source six-condition public matrix and both lifecycle sequences for the implemented distinct-request concurrent author-chain cases. The cases accept either arrival order, correlate exact requests/receipts/events, retry without changing permitted history, and retain writer revisions 4 and 5 plus a same-artifact peer chain at revisions 1 and 2 across operator-managed restart. Resolve this specific gap only after actual retained results and observations are linked. Concurrent same-ID collaboration retry/conflict evidence remains separate."
     },
     {
       "id": "gap:continuity-boundaries",
@@ -5644,6 +5685,11 @@
       "id": "gap:semantic-claims",
       "owner": "Research and contract maintainers",
       "proposed_test": "Review claims of authority, delivery, continuity, social agreement, or official consensus against retained exact submissions. Mechanical reference checks and storage tests cannot establish these broader semantic negatives."
+    },
+    {
+      "id": "gap:collaboration-retry-races",
+      "owner": "Collaboration conformance maintainers",
+      "proposed_test": "Add bounded concurrent byte-identical collaboration retries and concurrent conflicting bytes under the same authenticated principal/submission ID. Require one recorded event, exact receipt agreement for identical bytes, exactly one winning body and id_conflict for distinct bytes, exact retry without additional revisions, and retained outcomes across restart. Existing message-endpoint races and sequential exact retries following distinct-request artifact races do not establish this behavior."
     }
   ]
 }

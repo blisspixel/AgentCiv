@@ -22,6 +22,7 @@ def report(policy: str = "addressed") -> dict[str, object]:
         "submit.concurrent_retry", "submit.concurrent_conflict", "submit.concurrent_distinct",
         "collaborate.revision", "collaborate.objection", "collaborate.decline",
         "collaborate.revision_sequence", "collaborate.revision_sequence_retry", "collaborate.revision_sequence_rejection",
+        "collaborate.concurrent_revisions", "collaborate.concurrent_revisions_retry", "collaborate.concurrent_revisions_isolation",
     })
     cases = [
         {"id": case_id, "status": "skipped" if policy == "members" and case_id in validate.HIDDEN_CASES else "passed",
@@ -84,7 +85,8 @@ class ReportTests(unittest.TestCase):
 
     def test_revision_cases_cannot_be_missing_skipped_failed_or_demoted(self) -> None:
         for case_id in ("collaborate.revision_sequence", "collaborate.revision_sequence_retry",
-                        "collaborate.revision_sequence_rejection"):
+                        "collaborate.revision_sequence_rejection", "collaborate.concurrent_revisions",
+                        "collaborate.concurrent_revisions_retry", "collaborate.concurrent_revisions_isolation"):
             for change in ("missing", "skipped", "failed", "demoted", "duplicate"):
                 payload = report()
                 cases = payload["cases"]

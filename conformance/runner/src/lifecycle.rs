@@ -4,7 +4,7 @@ use std::path::Path;
 
 use super::*;
 
-const CHECKPOINT_VERSION: &str = "agentciv-lifecycle/0.2-draft";
+const CHECKPOINT_VERSION: &str = "agentciv-lifecycle/0.3-draft";
 struct Credentials<'a> {
     writer: (&'a str, &'a str),
     reader: (&'a str, &'a str),
@@ -44,6 +44,7 @@ pub fn run_lifecycle(
                 "restart.retry",
                 "restart.no_duplicate",
                 "restart.revision_sequence",
+                "restart.concurrent_revisions",
             ],
         ),
         "policy" => (
@@ -169,17 +170,18 @@ fn run_phase(
         return Err("lifecycle prepare requires members or addressed visibility".to_owned());
     }
     cases.push(Case::passed("lifecycle.world"));
-    if let Some(saved) = saved {
+    let phase_result = if let Some(saved) = saved {
         if phase == "policy" {
             verify_policy(&ctx, &saved, &parties, cases);
         } else {
             verify_restart(&ctx, &submit, &saved, &parties, cases);
         }
+        Ok(())
     } else {
-        prepare(&ctx, &submit, &world, &parties, checkpoint_path, cases)?;
-    }
+        prepare(&ctx, &submit, &world, &parties, checkpoint_path, cases)
+    };
     if extended {
-        if cases.iter().all(|case| case.status == CaseStatus::Passed) {
+        if phase_result.is_ok() && cases.iter().all(|case| case.status == CaseStatus::Passed) {
             cases.push(Case::passed("lifecycle.collaboration"));
         } else {
             cases.push(Case::failed(
@@ -193,7 +195,7 @@ fn run_phase(
             NO_COLLABORATION,
         ));
     }
-    Ok(())
+    phase_result
 }
 
 fn snapshot(ctx: &CollaborationRun<'_>, parties: &[(&str, &str)]) -> Result<Value, String> {
@@ -202,6 +204,209 @@ fn snapshot(ctx: &CollaborationRun<'_>, parties: &[(&str, &str)]) -> Result<Valu
         result.insert(principal.to_owned(), json!(read_history(ctx, token)?));
     }
     Ok(Value::Object(result))
+}
+
+fn initial_requests(world: &str, principals: &[&str]) -> Vec<Value> {
+    let audience: Vec<_> = principals
+        .iter()
+        .map(|principal| (*principal).to_owned())
+        .collect();
+    let peer = *principals.get(2).unwrap_or(&principals[0]);
+    let mut requests: Vec<_> = [principals[0], peer]
+        .into_iter()
+        .enumerate()
+        .map(|(index, principal)| {
+            let mut body = roundtrip_message(world, principal);
+            body["id"] = json!(format!("message:lifecycle-{index}"));
+            body["to"] = json!(audience);
+            body["body"] = json!({"text":"Work and its context must survive an operator restart."});
+            body
+        })
+        .collect();
+    if principals.len() != 3 {
+        return requests;
+    }
+    let mut source = artifact_submission(
+        world,
+        principals[0],
+        &audience,
+        "submission:lifecycle-source",
+        "artifact:lifecycle",
+        "Preserve sources and unresolved questions.",
+    );
+    source["continuity_note"] = json!({"aim":"Keep source context available.","resume_hint":"Read the objection and decline before choosing."});
+    requests.push(source);
+    for kind in ["objection", "decline"] {
+        requests.push(json!({"protocol_version":"0.1-draft","type":kind,"id":format!("submission:lifecycle-{kind}"),"world":world,"from":peer,"to":audience,"artifact_id":"artifact:lifecycle","target_from":principals[0],"revision":1,"body":{"text":"This is a recorded participant act, not a host decision."}}));
+    }
+    let mut withdrawal: Value = serde_json::from_slice(&withdrawal_body(
+        world,
+        principals[0],
+        principals[0],
+        "submission:lifecycle-withdrawal",
+    ))
+    .expect("fixture withdrawal JSON");
+    withdrawal["artifact_id"] = json!("artifact:lifecycle");
+    requests.push(withdrawal);
+    let mut continuation = artifact_submission(
+        world,
+        peer,
+        &audience,
+        "submission:lifecycle-continuation",
+        "artifact:lifecycle-continuation",
+        "The source was withdrawn; the objection and decline remain.",
+    );
+    continuation["derived_from"] =
+        json!({"from":principals[0],"artifact_id":"artifact:lifecycle","revision":1});
+    requests.push(continuation);
+    for revision in [2, 3] {
+        requests.push(artifact_submission(
+            world,
+            principals[0],
+            &audience,
+            &format!("submission:lifecycle-source-{revision}"),
+            "artifact:lifecycle",
+            &format!("Retain revision {revision} after the original withdrawal."),
+        ));
+    }
+    requests
+}
+
+pub(super) fn concurrent_requests(
+    world: &str,
+    writer: &str,
+    peer: &str,
+    audience: &[String],
+) -> [Value; 4] {
+    std::array::from_fn(|index| {
+        let (principal, label) = if index < 2 {
+            (writer, "writer")
+        } else {
+            (peer, "peer")
+        };
+        artifact_submission(
+            world,
+            principal,
+            audience,
+            &format!("submission:lifecycle-concurrent-{label}-{}", index % 2),
+            "artifact:lifecycle",
+            &format!("Independent {label} concurrent contribution {}.", index % 2),
+        )
+    })
+}
+
+fn record_concurrent(
+    ctx: &CollaborationRun<'_>,
+    parties: &[(&str, &str)],
+) -> Result<Vec<Value>, String> {
+    let requests = concurrent_requests(ctx.world_id, parties[0].0, parties[2].0, &ctx.audience);
+    let barrier = std::sync::Barrier::new(requests.len());
+    std::thread::scope(|scope| {
+        let workers: Vec<_> = requests
+            .iter()
+            .map(|body| {
+                let barrier = &barrier;
+                scope.spawn(move || {
+                    let principal = body["from"]
+                        .as_str()
+                        .ok_or("concurrent principal missing")?;
+                    let token = parties
+                        .iter()
+                        .find(|party| party.0 == principal)
+                        .ok_or("concurrent principal unavailable")?
+                        .1;
+                    barrier.wait();
+                    record(
+                        ctx,
+                        &ctx.collaborate,
+                        principal,
+                        token,
+                        body,
+                        "collaborate",
+                        None,
+                    )
+                })
+            })
+            .collect();
+        workers
+            .into_iter()
+            .map(|worker| {
+                worker
+                    .join()
+                    .map_err(|_| "concurrent lifecycle worker panicked".to_owned())?
+            })
+            .collect()
+    })
+}
+
+fn verify_concurrent_records(records: &[Value], principals: &[&str]) -> Result<(), String> {
+    if records.len() != 4 || principals.len() != 3 {
+        return Err("concurrent lifecycle roster incomplete".to_owned());
+    }
+    let audience = principals
+        .iter()
+        .map(|principal| (*principal).to_owned())
+        .collect::<Vec<_>>();
+    let expected = concurrent_requests(
+        records[0]["receipt"]["world"]
+            .as_str()
+            .ok_or("concurrent world missing")?,
+        principals[0],
+        principals[2],
+        &audience,
+    );
+    let mut ids = std::collections::HashSet::new();
+    let mut event_ids = std::collections::HashSet::new();
+    let mut sequences = std::collections::HashSet::new();
+    for entry in records {
+        let bytes = entry["bytes"]
+            .as_str()
+            .ok_or("concurrent request bytes missing")?;
+        let body: Value =
+            serde_json::from_str(bytes).map_err(|_| "concurrent request JSON invalid")?;
+        let canonical = body.to_string();
+        if !expected.contains(&body)
+            || bytes != canonical
+            || entry["principal"] != body["from"]
+            || entry["operation"] != "collaborate"
+            || !ids.insert(body["id"].to_string())
+        {
+            return Err("concurrent lifecycle exact request roster differs".to_owned());
+        }
+        let receipt = &entry["receipt"];
+        let event = &entry["event_at_recording"];
+        let mut stored = body.clone();
+        stored["revision"] = receipt["revision"].clone();
+        if receipt["record_id"] != body["id"]
+            || receipt["artifact_id"] != "artifact:lifecycle"
+            || receipt["world"] != body["world"]
+            || event["world"] != body["world"]
+            || event["id"] != receipt["event_id"]
+            || event["sequence"] != receipt["sequence"]
+            || event["actor"] != body["from"]
+            || event["kind"] != "artifact.recorded"
+            || event["body"]["artifact_revision"] != stored
+            || !event_ids.insert(event["id"].to_string())
+            || !sequences.insert(event["sequence"].to_string())
+        {
+            return Err("concurrent lifecycle receipt and exact event mapping differ".to_owned());
+        }
+    }
+    for (principal, expected) in [(principals[0], vec![4, 5]), (principals[2], vec![1, 2])] {
+        let mut entries: Vec<_> = records
+            .iter()
+            .filter(|entry| entry["principal"] == principal)
+            .collect();
+        entries.sort_by_key(|entry| entry["receipt"]["sequence"].as_u64().unwrap_or(u64::MAX));
+        let revisions: Vec<_> = entries
+            .iter()
+            .map(|entry| entry["receipt"]["revision"].as_u64().unwrap_or(0))
+            .collect();
+        if revisions != expected {
+            return Err("concurrent lifecycle independent revision sequence differs".to_owned());
+        }
+    }
+    Ok(())
 }
 
 fn prepare(
@@ -229,106 +434,38 @@ fn prepare(
     )?;
     let cursor = page["next_cursor"].clone();
     cases.push(Case::passed("lifecycle.fresh"));
+    let principals: Vec<_> = parties.iter().map(|party| party.0).collect();
+    let initial = initial_requests(ctx.world_id, &principals);
     let mut records = Vec::new();
-    for (index, (principal, token)) in [parties[0], *parties.get(2).unwrap_or(&parties[0])]
-        .into_iter()
-        .enumerate()
-    {
-        let mut message = roundtrip_message(ctx.world_id, principal);
-        message["id"] = json!(format!("message:lifecycle-{index}"));
-        message["to"] = json!(ctx.audience);
-        message["body"] = json!({"text": "Work and its context must survive an operator restart."});
+    for (index, body) in initial.iter().enumerate() {
+        let principal = body["from"].as_str().ok_or("seed principal missing")?;
+        let token = parties
+            .iter()
+            .find(|party| party.0 == principal)
+            .ok_or("seed principal unavailable")?
+            .1;
+        let operation = if index < 2 { "submit" } else { "collaborate" };
+        let endpoint = if index < 2 { submit } else { &ctx.collaborate };
+        let revision = match index {
+            7 => 2,
+            8 => 3,
+            _ => 1,
+        };
         records.push(record(
-            ctx, submit, principal, token, &message, "submit", 0,
+            ctx,
+            endpoint,
+            principal,
+            token,
+            body,
+            operation,
+            Some(revision),
         )?);
     }
     if parties.len() == 3 {
-        let mut source = artifact_submission(
-            ctx.world_id,
-            ctx.writer.principal,
-            &ctx.audience,
-            "submission:lifecycle-source",
-            "artifact:lifecycle",
-            "Preserve sources and unresolved questions.",
-        );
-        source["continuity_note"] = json!({"aim":"Keep source context available.","resume_hint":"Read the objection and decline before choosing."});
-        records.push(record(
-            ctx,
-            &ctx.collaborate,
-            ctx.writer.principal,
-            ctx.writer.token,
-            &source,
-            "collaborate",
-            1,
-        )?);
-        for kind in ["objection", "decline"] {
-            let speech = json!({"protocol_version":"0.1-draft","type":kind,"id":format!("submission:lifecycle-{kind}"),"world":ctx.world_id,"from":parties[2].0,"to":ctx.audience,"artifact_id":"artifact:lifecycle","target_from":ctx.writer.principal,"revision":1,"body":{"text":"This is a recorded participant act, not a host decision."}});
-            records.push(record(
-                ctx,
-                &ctx.collaborate,
-                parties[2].0,
-                parties[2].1,
-                &speech,
-                "collaborate",
-                0,
-            )?);
-        }
-        let withdrawal: Value = serde_json::from_slice(&withdrawal_body(
-            ctx.world_id,
-            ctx.writer.principal,
-            ctx.writer.principal,
-            "submission:lifecycle-withdrawal",
-        ))
-        .map_err(|error| error.to_string())?;
-        let mut withdrawal = withdrawal;
-        withdrawal["artifact_id"] = json!("artifact:lifecycle");
-        records.push(record(
-            ctx,
-            &ctx.collaborate,
-            ctx.writer.principal,
-            ctx.writer.token,
-            &withdrawal,
-            "collaborate",
-            1,
-        )?);
-        let mut continuation = artifact_submission(
-            ctx.world_id,
-            parties[2].0,
-            &ctx.audience,
-            "submission:lifecycle-continuation",
-            "artifact:lifecycle-continuation",
-            "The source was withdrawn; the objection and decline remain.",
-        );
-        continuation["derived_from"] =
-            json!({"from":ctx.writer.principal,"artifact_id":"artifact:lifecycle","revision":1});
-        records.push(record(
-            ctx,
-            &ctx.collaborate,
-            parties[2].0,
-            parties[2].1,
-            &continuation,
-            "collaborate",
-            1,
-        )?);
-        for revision in [2, 3] {
-            let source = artifact_submission(
-                ctx.world_id,
-                ctx.writer.principal,
-                &ctx.audience,
-                &format!("submission:lifecycle-source-{revision}"),
-                "artifact:lifecycle",
-                &format!("Retain revision {revision} after the original withdrawal."),
-            );
-            records.push(record(
-                ctx,
-                &ctx.collaborate,
-                ctx.writer.principal,
-                ctx.writer.token,
-                &source,
-                "collaborate",
-                revision,
-            )?);
-        }
+        let mut concurrent = record_concurrent(ctx, parties)?;
+        concurrent.sort_by_key(|entry| entry["receipt"]["sequence"].as_u64().unwrap_or(u64::MAX));
+        verify_concurrent_records(&concurrent, &principals)?;
+        records.extend(concurrent);
     }
     let after = snapshot(ctx, parties)?;
     verify_seed(&after, &records, parties)?;
@@ -374,7 +511,7 @@ fn record(
     token: &str,
     body: &Value,
     operation: &str,
-    expected_revision: u64,
+    expected_revision: Option<u64>,
 ) -> Result<Value, String> {
     let bytes = body.to_string();
     let response = ctx
@@ -402,7 +539,7 @@ fn record(
         Some("message") => "message",
         Some("artifact_revision") => {
             if receipt["artifact_id"] != body["artifact_id"]
-                || receipt["revision"] != expected_revision
+                || expected_revision.is_some_and(|expected| receipt["revision"] != expected)
             {
                 return Err(
                     "lifecycle artifact receipt did not assign the expected revision".to_owned(),
@@ -430,6 +567,10 @@ fn record(
 }
 
 fn verify_seed(history: &Value, records: &[Value], parties: &[(&str, &str)]) -> Result<(), String> {
+    if records.len() == 13 {
+        let principals: Vec<_> = parties.iter().map(|party| party.0).collect();
+        verify_concurrent_records(&records[9..], &principals)?;
+    }
     let mut expected_events = Vec::new();
     let mut event_ids = std::collections::HashSet::new();
     let mut last_sequence = None;
@@ -461,10 +602,9 @@ fn verify_seed(history: &Value, records: &[Value], parties: &[(&str, &str)]) -> 
         let events = history[principal]
             .as_array()
             .ok_or("seed history missing principal")?;
-        if events.len() != if records.len() == 9 { 8 } else { 2 } {
+        if events.len() != if records.len() == 13 { 12 } else { 2 } {
             return Err(
-                "lifecycle seed must leave eight visible events, including one in-place withdrawal"
-                    .to_owned(),
+                "lifecycle seed visible event count differs from its bounded layout".to_owned(),
             );
         }
         for entry in records {
@@ -478,7 +618,7 @@ fn verify_seed(history: &Value, records: &[Value], parties: &[(&str, &str)]) -> 
                 return Err("lifecycle seed receipt sequence mismatch".to_owned());
             }
         }
-        if records.len() == 9 {
+        if records.len() == 13 {
             let source = require_event(
                 events,
                 records[2]["receipt"]["event_id"]
@@ -541,13 +681,21 @@ fn validate_checkpoint(saved: &Value) -> Result<(), String> {
     let records = saved["records"]
         .as_array()
         .ok_or("checkpoint records missing")?;
-    if records.len() != if extended { 9 } else { 2 } {
+    if records.len() != if extended { 13 } else { 2 } {
         return Err(
             "checkpoint synthetic submission count does not match advertised capabilities"
                 .to_owned(),
         );
     }
     let mut record_ids = std::collections::HashSet::new();
+    let principal_names: Vec<_> = principals
+        .iter()
+        .map(|principal| principal.as_str().expect("checked principal"))
+        .collect();
+    let initial = initial_requests(
+        saved["world"]["id"].as_str().expect("validated world"),
+        &principal_names,
+    );
     for (index, entry) in records.iter().enumerate() {
         if !matches!(entry["operation"].as_str(), Some("submit" | "collaborate"))
             || !principals.contains(&entry["principal"])
@@ -589,7 +737,7 @@ fn validate_checkpoint(saved: &Value) -> Result<(), String> {
         validate(schema, &body)?;
         let expected_kind = match index {
             0 | 1 => "message",
-            2 | 6 | 7 | 8 => "artifact_revision",
+            2 | 6 | 7 | 8 | 9..=12 => "artifact_revision",
             3 => "objection",
             4 => "decline",
             5 => "withdrawal",
@@ -601,7 +749,8 @@ fn validate_checkpoint(saved: &Value) -> Result<(), String> {
             &principals[0]
         };
         if kind != expected_kind
-            || &entry["principal"] != expected_principal
+            || (index < 9 && &entry["principal"] != expected_principal)
+            || (index < initial.len() && body != initial[index])
             || !record_ids.insert((entry["principal"].to_string(), body["id"].to_string()))
         {
             return Err(
@@ -643,6 +792,9 @@ fn validate_checkpoint(saved: &Value) -> Result<(), String> {
                     != match index {
                         7 => 2,
                         8 => 3,
+                        9..=12 => entry["receipt"]["revision"]
+                            .as_u64()
+                            .ok_or("concurrent revision missing")?,
                         _ => 1,
                     }
                 || entry["receipt"]["artifact_id"] != body["artifact_id"]
@@ -664,6 +816,9 @@ fn validate_checkpoint(saved: &Value) -> Result<(), String> {
         {
             return Err("checkpoint request and receipt mismatch".to_owned());
         }
+    }
+    if extended {
+        verify_concurrent_records(&records[9..], &principal_names)?;
     }
     for principal in principals {
         let events = saved["history"][principal.as_str().expect("checked principal")]
@@ -715,6 +870,11 @@ fn verify_restart(
     parties: &[(&str, &str)],
     cases: &mut Vec<Case>,
 ) {
+    let concurrent_before = if parties.len() == 3 {
+        verify_concurrent_history(ctx, saved, parties)
+    } else {
+        Ok(())
+    };
     cases.push(result_case(
         "restart.history",
         snapshot(ctx, parties).and_then(|history| compare_history(&history, &saved["history"])),
@@ -768,12 +928,33 @@ fn verify_restart(
                 )
             })(),
         ));
+        cases.push(result_case(
+            "restart.concurrent_revisions",
+            concurrent_before.and_then(|()| verify_concurrent_history(ctx, saved, parties)),
+        ));
     } else {
         cases.push(Case::skipped_optional(
             "restart.revision_sequence",
             NO_COLLABORATION,
         ));
+        cases.push(Case::skipped_optional(
+            "restart.concurrent_revisions",
+            NO_COLLABORATION,
+        ));
     }
+}
+
+fn verify_concurrent_history(
+    ctx: &CollaborationRun<'_>,
+    saved: &Value,
+    parties: &[(&str, &str)],
+) -> Result<(), String> {
+    let history = snapshot(ctx, parties)?;
+    verify_seed(
+        &history,
+        saved["records"].as_array().expect("validated records"),
+        parties,
+    )
 }
 
 fn compare_history(actual: &Value, expected: &Value) -> Result<(), String> {

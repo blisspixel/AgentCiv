@@ -31,7 +31,7 @@ HIDDEN_CASES = {
 }
 LIFECYCLE_CASES = {
     "prepare": {"lifecycle.world", "lifecycle.collaboration", "lifecycle.fresh", "lifecycle.seed", "lifecycle.checkpoint"},
-    "verify": {"lifecycle.world", "lifecycle.collaboration", "restart.history", "restart.cursor", "restart.retry", "restart.no_duplicate", "restart.revision_sequence"},
+    "verify": {"lifecycle.world", "lifecycle.collaboration", "restart.history", "restart.cursor", "restart.retry", "restart.no_duplicate", "restart.revision_sequence", "restart.concurrent_revisions"},
     "policy": {"lifecycle.world", "lifecycle.collaboration", "policy.cursor_expired", "policy.visibility"},
 }
 
@@ -86,6 +86,7 @@ def checked_report(text: str, returncode: int, policy: str) -> dict[str, object]
         "submit.concurrent_retry", "submit.concurrent_conflict", "submit.concurrent_distinct",
         "collaborate.revision", "collaborate.objection", "collaborate.decline",
         "collaborate.revision_sequence", "collaborate.revision_sequence_retry", "collaborate.revision_sequence_rejection",
+        "collaborate.concurrent_revisions", "collaborate.concurrent_revisions_retry", "collaborate.concurrent_revisions_isolation",
     }
     if not expected.issubset(seen):
         raise ValidationFailure("report omitted required matrix cases")

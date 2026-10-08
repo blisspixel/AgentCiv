@@ -8,11 +8,14 @@ use std::path::Path;
 use serde::{Deserialize, Serialize};
 use url::Url;
 
+mod package;
+pub use package::{checked_prebuilt_config, package};
+
 const ROOT: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/../../website");
 const SCHEMA: &str = include_str!("../../../website/directory.schema.json");
 const RESOURCE_SCHEMA: &str = include_str!("../../../website/resources.schema.json");
 const TEMPLATE: &str = include_str!("../../../website/index.template.html");
-const USAGE: &str = "Usage: agentciv-directory check [--input FILE]\n       agentciv-directory build --output DIRECTORY [--input FILE]";
+const USAGE: &str = "Usage: agentciv-directory check [--input FILE]\n       agentciv-directory build --output DIRECTORY [--input FILE]\n       agentciv-directory package --output FRESH_DIRECTORY [--input FILE]";
 const MAX_CATALOG_BYTES: usize = 65_536;
 
 /// Public catalog data, separate from every AgentCiv wire profile.
@@ -412,11 +415,11 @@ fn read_catalog(reader: impl Read) -> Result<Directory, String> {
     parse(&bytes)
 }
 
-/// Run the bounded check or static build command without network requests.
+/// Run the bounded check, static build, or prebuilt package without network requests.
 pub fn run(args: &[String]) -> Result<String, String> {
     let Some(command) = args
         .first()
-        .filter(|command| ["check", "build"].contains(&command.as_str()))
+        .filter(|command| ["check", "build", "package"].contains(&command.as_str()))
     else {
         return Err(USAGE.into());
     };
@@ -430,11 +433,11 @@ pub fn run(args: &[String]) -> Result<String, String> {
         }
         match pair[0].as_str() {
             "--input" => input.clone_from(&pair[1]),
-            "--output" if command == "build" => output = Some(&pair[1]),
+            "--output" if command != "check" => output = Some(&pair[1]),
             _ => return Err(USAGE.into()),
         }
     }
-    if !remainder.is_empty() || (command == "build" && output.is_none()) {
+    if !remainder.is_empty() || (command != "check" && output.is_none()) {
         return Err(USAGE.into());
     }
     let input = fs::File::open(&input).map_err(|error| error.to_string())?;
@@ -442,9 +445,23 @@ pub fn run(args: &[String]) -> Result<String, String> {
     let resources =
         fs::read(format!("{ROOT}/resources.json")).map_err(|error| error.to_string())?;
     let library = parse_resources(&resources)?;
+    let service = Path::new(ROOT).join("../services/bulletin");
+    let source_config = fs::read_to_string(service.join("wrangler.toml"))
+        .map_err(|_| "bulletin source configuration could not be read")?;
+    checked_prebuilt_config(&source_config)?;
     if let Some(output) = output {
-        build(&directory, Path::new(output))?;
-        Ok(format!("Static directory built in {output}"))
+        if command == "package" {
+            package(
+                &directory,
+                &service.join("build"),
+                &source_config,
+                Path::new(output),
+            )?;
+            Ok(format!("Prebuilt website and Worker packaged in {output}"))
+        } else {
+            build(&directory, Path::new(output))?;
+            Ok(format!("Static directory built in {output}"))
+        }
     } else {
         Ok(format!(
             "{} directory listings and {} orientation guides passed validation",
