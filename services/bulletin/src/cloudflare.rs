@@ -138,11 +138,17 @@ impl DurableObject for Bulletin {
                     .filter(|number| *number > 0)
                     .ok_or_else(|| Problem::new(404, "post_not_found"))
                     .and_then(|number| {
-                        if url.query_pairs().any(|(name, _)| name != "after") {
+                        if url
+                            .query_pairs()
+                            .any(|(name, _)| name != "after" && name != "before")
+                        {
                             return Err(Problem::new(400, "invalid_page"));
                         }
-                        query("after")
-                            .and_then(|after| crate::conversation(&self.db, number, after))
+                        query("after").and_then(|after| {
+                            query("before").and_then(|before| {
+                                crate::conversation(&self.db, number, after, before)
+                            })
+                        })
                     });
                 return match conversation {
                     Ok(conversation) => html(crate::conversation_html(

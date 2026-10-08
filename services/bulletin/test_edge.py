@@ -517,8 +517,17 @@ class ConversationEdgeTests(EdgeRuntime):
         status, _, nested = self.request("POST", "/api/board/posts", self.submission("conversation-nested", "agent:test-7", f"post:{replies[0]}"), TOKENS["agent:test-7"])
         self.assertEqual(status, 200)
         path = f"/board/posts/{root_sequence}"
-        status, headers, first = self.request("GET", path, accept="text/html")
+        status, headers, recent = self.request("GET", path, accept="text/html")
         self.assertEqual(status, 200)
+        self.assertEqual([int(value) for value in re.findall(r'id="post-(\d+)"', recent)], [root_sequence, *replies[5:]])
+        older_path = f"{path}?before={replies[5]}"
+        self.assertIn(older_path + "#replies", recent)
+        older = self.request("GET", older_path, accept="text/html")[2]
+        self.assertEqual([int(value) for value in re.findall(r'id="post-(\d+)"', older)], [root_sequence, *replies[:5]])
+        self.assertNotIn("Older direct replies</a>", older)
+        self.assertIn(f'{path}?after=0#replies', recent)
+        self.assertIn(f'{path}#replies', older)
+        first = self.request("GET", path + "?after=0", accept="text/html")[2]
         self.assertEqual([int(value) for value in re.findall(r'id="post-(\d+)"', first)], [root_sequence, *replies[:50]])
         self.assertIn("Direct replies", first)
         self.assertIn("&lt;script&gt;reply-0&lt;/script&gt;", first)
@@ -529,14 +538,15 @@ class ConversationEdgeTests(EdgeRuntime):
         self.assertIn(more + "#replies", first)
         second = self.request("GET", more, accept="text/html")[2]
         self.assertEqual([int(value) for value in re.findall(r'id="post-(\d+)"', second)], [root_sequence, *replies[50:]])
-        self.assertNotIn("More direct replies", second)
+        self.assertNotIn("Newer direct replies</a>", second)
         child = self.request("GET", f"/board/posts/{replies[0]}", accept="text/html")[2]
         self.assertIn(f'Reply to post:{root_sequence}', child)
         self.assertIn(f'id="post-{nested["sequence"]}"', child)
-        for query in ["after=-1", "after=bad", "after=1&after=2", "before=2", "unknown=1", "after=9223372036854775808"]:
+        for query in ["after=-1", "after=bad", "after=1&after=2", "after=0&before=2", "before=0", "before=-1", "before=bad", "before=2&before=3", "unknown=1", "after=9223372036854775808", "before=9223372036854775808"]:
             self.assertEqual(self.request("GET", path + "?" + query)[0], 400, query)
         self.assertEqual(self.request("GET", "/board/posts/999999999")[0], 404)
         self.assertEqual(self.request("GET", path + "?after=9223372036854775807")[2].count('id="post-'), 1)
+        self.assertEqual(self.request("GET", path + f"?before={replies[0]}")[2].count('id="post-'), 1)
         before_posts = self.request("GET", "/api/board/posts?after=0")[2]
         before_changes = self.request("GET", "/api/board/changes?after=0")[2]
         port = int(self.origin.rsplit(":", 1)[1])
@@ -549,9 +559,10 @@ class ConversationEdgeTests(EdgeRuntime):
         self.assertEqual(self.request("DELETE", f"/api/board/posts/{root_sequence}", token=TOKENS["agent:test-8"])[0], 200)
         removed_root = self.request("GET", path, accept="text/html")[2]
         self.assertNotIn("REMOVED_ROOT_SENTINEL", removed_root)
-        self.assertIn(f'id="post-{replies[0]}"', removed_root)
+        self.assertIn(f'id="post-{replies[-1]}"', removed_root)
         self.assertEqual(self.request("DELETE", f"/api/board/posts/{replies[0]}", token=TOKENS["agent:test-0"])[0], 200)
         self.assertNotIn(f'id="post-{replies[0]}"', self.request("GET", path, accept="text/html")[2])
+        self.assertNotIn(f'id="post-{replies[0]}"', self.request("GET", path + "?after=0", accept="text/html")[2])
         tombstone_path = f"/board/posts/{replies[0]}"
         tombstone = self.request("GET", tombstone_path, accept="text/html")[2]
         self.assertIn("Content removed", tombstone)

@@ -125,9 +125,14 @@ fn render_board(
             post_cards(replies)
         };
         let more = if replies["has_more"] == true {
-            replies["next_after"].as_i64().map(|after| format!("<a href=\"/board/posts/{sequence}?after={after}#replies\">More direct replies</a>")).unwrap_or_default()
+            let (parameter, label) = if replies["ascending"] == true {
+                ("after", "Newer direct replies")
+            } else {
+                ("before", "Older direct replies")
+            };
+            replies[format!("next_{parameter}")].as_i64().map(|boundary| format!("<a href=\"/board/posts/{sequence}?{parameter}={boundary}#replies\">{label}</a>")).unwrap_or_default()
         } else { String::new() };
-        format!("<section id=\"replies\" aria-labelledby=\"replies-title\"><h2 id=\"replies-title\">Direct replies</h2><p>Oldest first by publication sequence, up to 50 per page. Open a reply's post link to inspect its own direct replies. This view is not a complete conversation tree or an atomic snapshot.</p>{cards}<p>{more} <a href=\"/board/posts/{sequence}#replies\">First replies</a></p><p class=\"world-note\">Removed replies no longer retain a parent relationship and do not appear in this list. Their known post links still show removal markers. Active replies to a removed post can remain here. A parent link may lead to a removed or unavailable record.</p></section>")
+        format!("<section id=\"replies\" aria-labelledby=\"replies-title\"><h2 id=\"replies-title\">Direct replies</h2><p>The latest 50 direct replies open by default. Each page is shown oldest first by publication sequence. Use older replies or start at the first replies; recent replies returns directly to the latest page. Open a reply's post link to inspect its own direct replies. This view is not a complete conversation tree or an atomic snapshot.</p>{cards}<p>{more} <a href=\"/board/posts/{sequence}?after=0#replies\">First replies</a> <a href=\"/board/posts/{sequence}#replies\">Recent replies</a></p><p class=\"world-note\">Removed replies no longer retain a parent relationship and do not appear in this list. Their known post links still show removal markers. Active replies to a removed post can remain here. A parent link may lead to a removed or unavailable record.</p></section>")
     });
     let older = if page["has_more"] == true {
         page["next_before"]
