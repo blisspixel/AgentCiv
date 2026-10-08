@@ -6,6 +6,7 @@ from html.parser import HTMLParser
 from contextlib import closing
 import json
 import os
+import re
 from pathlib import Path
 import shutil
 import socket
@@ -489,6 +490,82 @@ class EdgeTests(EdgeRuntime):
         self.assertEqual(self.request("GET", f"/api/board/changes?after={base_seq}")[2]["changes"], all_changes)
         self.assertEqual(self.request("GET", f"/api/board/changes?after={final_boundary}")[2]["changes"], [])
 
+
+
+class ConversationEdgeTests(EdgeRuntime):
+    def test_direct_reply_navigation_removal_upgrade_and_closed_read(self) -> None:
+        root_raw = json.loads(self.submission("conversation-root", "agent:test-8"))
+        root_raw["message"]["body"]["text"] = "REMOVED_ROOT_SENTINEL"
+        status, _, root = self.request("POST", "/api/board/posts", json.dumps(root_raw).encode(), TOKENS["agent:test-8"])
+        self.assertEqual(status, 200)
+        root_sequence = root["sequence"]
+        replies: list[int] = []
+        for index in range(55):
+            principal = f"agent:test-{index // 10}"
+            parent = f"post:{root_sequence}"
+            if index == 0:
+                parent = f"post:0{root_sequence}"
+            elif index == 1:
+                parent = f"post:+{root_sequence}"
+            raw = json.loads(self.submission(f"conversation-reply-{index}", principal, parent))
+            raw["message"]["body"]["text"] = f"<script>reply-{index}</script>"
+            status, _, receipt = self.request("POST", "/api/board/posts", json.dumps(raw).encode(), TOKENS[principal])
+            self.assertEqual(status, 200)
+            replies.append(receipt["sequence"])
+            if index % 10 == 0:
+                self.assertEqual(self.request("POST", "/api/board/posts", self.submission(f"conversation-other-{index}", "agent:test-7"), TOKENS["agent:test-7"])[0], 200)
+        status, _, nested = self.request("POST", "/api/board/posts", self.submission("conversation-nested", "agent:test-7", f"post:{replies[0]}"), TOKENS["agent:test-7"])
+        self.assertEqual(status, 200)
+        path = f"/board/posts/{root_sequence}"
+        status, headers, first = self.request("GET", path, accept="text/html")
+        self.assertEqual(status, 200)
+        self.assertEqual([int(value) for value in re.findall(r'id="post-(\d+)"', first)], [root_sequence, *replies[:50]])
+        self.assertIn("Direct replies", first)
+        self.assertIn("&lt;script&gt;reply-0&lt;/script&gt;", first)
+        self.assertNotIn("<script>", first)
+        self.assertIn("no-store", headers.get("Cache-Control", ""))
+        self.assertIn("frame-ancestors 'none'", headers.get("Content-Security-Policy", ""))
+        more = f"{path}?after={replies[49]}"
+        self.assertIn(more + "#replies", first)
+        second = self.request("GET", more, accept="text/html")[2]
+        self.assertEqual([int(value) for value in re.findall(r'id="post-(\d+)"', second)], [root_sequence, *replies[50:]])
+        self.assertNotIn("More direct replies", second)
+        child = self.request("GET", f"/board/posts/{replies[0]}", accept="text/html")[2]
+        self.assertIn(f'Reply to post:{root_sequence}', child)
+        self.assertIn(f'id="post-{nested["sequence"]}"', child)
+        for query in ["after=-1", "after=bad", "after=1&after=2", "before=2", "unknown=1", "after=9223372036854775808"]:
+            self.assertEqual(self.request("GET", path + "?" + query)[0], 400, query)
+        self.assertEqual(self.request("GET", "/board/posts/999999999")[0], 404)
+        self.assertEqual(self.request("GET", path + "?after=9223372036854775807")[2].count('id="post-'), 1)
+        before_posts = self.request("GET", "/api/board/posts?after=0")[2]
+        before_changes = self.request("GET", "/api/board/changes?after=0")[2]
+        port = int(self.origin.rsplit(":", 1)[1])
+        self.stop()
+        self.fixture_sql("DROP INDEX post_reply;")
+        self.start(port)
+        self.assertEqual(self.request("GET", path, accept="text/html")[2].count('id="post-'), 51)
+        self.assertEqual(self.request("GET", "/api/board/posts?after=0")[2], before_posts)
+        self.assertEqual(self.request("GET", "/api/board/changes?after=0")[2], before_changes)
+        self.assertEqual(self.request("DELETE", f"/api/board/posts/{root_sequence}", token=TOKENS["agent:test-8"])[0], 200)
+        removed_root = self.request("GET", path, accept="text/html")[2]
+        self.assertNotIn("REMOVED_ROOT_SENTINEL", removed_root)
+        self.assertIn(f'id="post-{replies[0]}"', removed_root)
+        self.assertEqual(self.request("DELETE", f"/api/board/posts/{replies[0]}", token=TOKENS["agent:test-0"])[0], 200)
+        self.assertNotIn(f'id="post-{replies[0]}"', self.request("GET", path, accept="text/html")[2])
+        tombstone_path = f"/board/posts/{replies[0]}"
+        tombstone = self.request("GET", tombstone_path, accept="text/html")[2]
+        self.assertIn("Content removed", tombstone)
+        self.assertNotIn(f"Reply to post:{root_sequence}", tombstone)
+        self.assertIn(f'id="post-{nested["sequence"]}"', tombstone)
+        self.stop()
+        (self.workspace / ".dev.vars").write_text("BOARD_GRANTS='[]'\n", encoding="utf-8")
+        self.start(port)
+        status, _, closed = self.request("GET", tombstone_path, accept="text/html")
+        self.assertEqual(status, 200)
+        self.assertIn("Posting is closed", closed)
+        self.assertNotIn("<form", closed)
+        self.assertEqual(self.request("GET", "/api/board/info")[2]["posting"], "closed")
+        self.assertEqual(self.request("DELETE", f"/api/board/posts/{nested['sequence']}", token=TOKENS["agent:test-7"])[0], 503)
 
 class LegacyEdgeTests(EdgeRuntime):
     def test_pre_feed_storage_upgrade_has_no_invented_history(self) -> None:

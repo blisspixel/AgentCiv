@@ -800,3 +800,248 @@ fn legacy_posts_upgrade_without_fabricated_history_and_survive_file_reopen() {
     drop(reopened);
     std::fs::remove_file(path).unwrap();
 }
+
+fn reply(id: &str, parent: &str) -> Vec<u8> {
+    modified(id, |value| {
+        value["message"]["body"]["reply_to"] = json!(parent)
+    })
+}
+
+#[test]
+fn conversation_is_current_direct_replies_with_normalized_parent_links() {
+    let db = db();
+    let author = grant("agent:a", false);
+    let root = submit(&db, &author, &raw("conversation-root", "agent:a"), DATE).unwrap();
+    let first = submit(&db, &author, &reply("conversation-child", "post:01"), DATE).unwrap();
+    let second = submit(
+        &db,
+        &author,
+        &reply("conversation-sibling", "post:+1"),
+        DATE,
+    )
+    .unwrap();
+    let nested = submit(
+        &db,
+        &author,
+        &reply("conversation-nested", &format!("post:{}", first.sequence)),
+        DATE,
+    )
+    .unwrap();
+    submit(&db, &author, &raw("unrelated-root", "agent:a"), DATE).unwrap();
+    let view = conversation(&db, root.sequence, None).unwrap();
+    assert_eq!(
+        view["replies"]["posts"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|post| post["sequence"].as_i64().unwrap())
+            .collect::<Vec<_>>(),
+        vec![first.sequence, second.sequence]
+    );
+    assert_eq!(view["replies"]["has_more"], false);
+    let html = conversation_html(&view, false, "fixture");
+    assert!(html.contains("Direct replies"));
+    assert!(html.contains(&format!("href=\"/board/posts/{}\"", first.sequence)));
+    assert!(!html.contains(&format!("id=\"post-{}\"", nested.sequence)));
+    assert!(!html.contains("<form"));
+    assert!(html.contains("Posting is closed"));
+    let child = conversation(&db, first.sequence, None).unwrap();
+    assert_eq!(child["replies"]["posts"][0]["sequence"], nested.sequence);
+    assert!(conversation_html(&child, false, "fixture").contains("Reply to post:1"));
+    assert_eq!(conversation(&db, 9999, None).unwrap_err().status, 404);
+    assert_eq!(
+        conversation(&db, root.sequence, Some(-1)).unwrap_err().code,
+        "invalid_page"
+    );
+    assert!(conversation(&Broken, root.sequence, None).is_err());
+}
+
+#[test]
+fn conversation_pages_exclude_other_roots_and_use_exclusive_reply_boundaries() {
+    let db = db();
+    let author = grant("agent:a", false);
+    let root = submit(&db, &author, &raw("paged-root", "agent:a"), DATE).unwrap();
+    let mut sequences = Vec::new();
+    for index in 0..55 {
+        let date = format!("2026-10-{:02}T08:00:00.000Z", 11 + index / 15);
+        let posted = submit(
+            &db,
+            &author,
+            &reply(
+                &format!("paged-{index}"),
+                &format!("post:{}", root.sequence),
+            ),
+            &date,
+        )
+        .unwrap();
+        sequences.push(posted.sequence);
+        if index % 10 == 0 {
+            submit(
+                &db,
+                &author,
+                &raw(&format!("unrelated-{index}"), "agent:a"),
+                &date,
+            )
+            .unwrap();
+        }
+    }
+    let first = conversation(&db, root.sequence, None).unwrap();
+    assert_eq!(first["replies"]["posts"].as_array().unwrap().len(), 50);
+    assert_eq!(first["replies"]["has_more"], true);
+    assert_eq!(first["replies"]["next_after"], sequences[49]);
+    assert!(
+        conversation_html(&first, false, "fixture").contains(&format!(
+            "/board/posts/{}?after={}#replies",
+            root.sequence, sequences[49]
+        ))
+    );
+    let second = conversation(&db, root.sequence, Some(sequences[49])).unwrap();
+    assert_eq!(second["replies"]["has_more"], false);
+    let actual = first["replies"]["posts"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .chain(second["replies"]["posts"].as_array().unwrap())
+        .map(|post| post["sequence"].as_i64().unwrap())
+        .collect::<Vec<_>>();
+    assert_eq!(actual, sequences);
+    let empty = conversation(&db, root.sequence, Some(i64::MAX)).unwrap();
+    assert_eq!(empty["replies"]["posts"], json!([]));
+    assert_eq!(empty["replies"]["next_after"], i64::MAX);
+}
+
+#[test]
+fn removal_erases_reply_edges_without_hiding_active_children_of_tombstones() {
+    let db = db();
+    let author = grant("agent:a", false);
+    let root = submit(&db, &author, &raw("removed-root", "agent:a"), DATE).unwrap();
+    let child = submit(&db, &author, &reply("removed-child", "post:1"), DATE).unwrap();
+    let grandchild = submit(&db, &author, &reply("remaining-grandchild", "post:2"), DATE).unwrap();
+    remove(&db, &author, root.sequence, DATE).unwrap();
+    let view = conversation(&db, root.sequence, None).unwrap();
+    assert_eq!(view["post"]["message"], Value::Null);
+    assert_eq!(view["replies"]["posts"][0]["sequence"], child.sequence);
+    assert!(
+        conversation_html(
+            &conversation(&db, child.sequence, None).unwrap(),
+            false,
+            "fixture"
+        )
+        .contains("Reply to post:1")
+    );
+    remove(&db, &author, child.sequence, DATE).unwrap();
+    assert_eq!(
+        conversation(&db, root.sequence, None).unwrap()["replies"]["posts"],
+        json!([])
+    );
+    let erased = conversation(&db, child.sequence, None).unwrap();
+    assert_eq!(erased["post"]["message"], Value::Null);
+    assert_eq!(
+        erased["replies"]["posts"][0]["sequence"],
+        grandchild.sequence
+    );
+    let html = conversation_html(&erased, false, "fixture");
+    assert!(!html.contains("Reply to post:1"));
+    assert!(!html.contains("removed-child"));
+    assert!(html.contains("Removed replies no longer retain a parent relationship"));
+}
+
+#[test]
+fn conversation_keeps_orphan_links_and_escapes_selected_and_reply_content() {
+    let db = db();
+    let author = grant("agent:a", false);
+    let unsafe_raw = modified("escaping-root", |value| {
+        value["message"]["body"]["subject"] = json!("<script>root</script>");
+        value["message"]["body"]["text"] = json!("<img src=x onerror='bad'>");
+    });
+    let root = submit(&db, &author, &unsafe_raw, DATE).unwrap();
+    let child_raw = modified("escaping-child", |value| {
+        value["message"]["body"]["reply_to"] = json!("post:1");
+        value["message"]["body"]["text"] = json!("<script>child</script>");
+    });
+    let child = submit(&db, &author, &child_raw, DATE).unwrap();
+    let html = conversation_html(
+        &conversation(&db, root.sequence, None).unwrap(),
+        false,
+        "fixture",
+    );
+    assert!(html.contains("&lt;script&gt;root&lt;/script&gt;"));
+    assert!(html.contains("&lt;script&gt;child&lt;/script&gt;"));
+    assert!(!html.contains("<script>"));
+    // An unavailable parent can arise in externally changed legacy storage.
+    // A link remains a reference; it does not claim the missing record is present.
+    db.0.execute("DELETE FROM posts WHERE sequence = ?", [root.sequence])
+        .unwrap();
+    let orphan = conversation(&db, child.sequence, None).unwrap();
+    assert!(conversation_html(&orphan, false, "fixture").contains("Reply to post:1"));
+    assert_eq!(
+        conversation(&db, root.sequence, None).unwrap_err().status,
+        404
+    );
+}
+
+#[test]
+fn pre_index_upgrade_is_idempotent_uses_index_and_preserves_public_history() {
+    use std::cell::RefCell;
+    struct Capture<'a> {
+        db: &'a Sql,
+        statement: RefCell<Option<String>>,
+    }
+    impl Database for Capture<'_> {
+        fn query(&self, statement: &str, bindings: Vec<Binding>) -> Result<Vec<Value>, Problem> {
+            if statement.starts_with("SELECT * FROM posts WHERE CASE") {
+                *self.statement.borrow_mut() = Some(statement.into());
+            }
+            self.db.query(statement, bindings)
+        }
+    }
+    let db = db();
+    let author = grant("agent:a", false);
+    let root = submit(&db, &author, &raw("upgrade-root", "agent:a"), DATE).unwrap();
+    let removed = submit(&db, &author, &reply("upgrade-removed", "post:1"), DATE).unwrap();
+    remove(&db, &author, removed.sequence, DATE).unwrap();
+    submit(&db, &author, &reply("upgrade-active", "post:01"), DATE).unwrap();
+    let before = page(&db, Some(0), None).unwrap();
+    let feed = changes(&db, 0).unwrap();
+    db.0.execute_batch("DROP INDEX post_reply;").unwrap();
+    initialize(&db).unwrap();
+    initialize(&db).unwrap();
+    assert_eq!(page(&db, Some(0), None).unwrap(), before);
+    assert_eq!(changes(&db, 0).unwrap(), feed);
+    let capture = Capture {
+        db: &db,
+        statement: RefCell::new(None),
+    };
+    assert_eq!(
+        conversation(&capture, root.sequence, None).unwrap()["replies"]["posts"]
+            .as_array()
+            .unwrap()
+            .len(),
+        1
+    );
+    let statement = capture.statement.into_inner().unwrap();
+    let mut explain =
+        db.0.prepare(&format!("EXPLAIN QUERY PLAN {statement}"))
+            .unwrap();
+    let details = explain
+        .query_map([root.sequence, 0], |row| row.get::<_, String>(3))
+        .unwrap()
+        .collect::<rusqlite::Result<Vec<_>>>()
+        .unwrap();
+    assert!(
+        details
+            .iter()
+            .any(|detail| detail.contains("SEARCH posts USING INDEX post_reply")),
+        "{details:?}"
+    );
+    assert!(
+        !details.iter().any(|detail| detail.contains("SCAN posts")),
+        "{details:?}"
+    );
+    // SQL numeric coercion must never turn corrupt content into a false reply.
+    db.0.execute("UPDATE posts SET message = json_set(message, '$.body.reply_to', 'wrong1') WHERE submission_id = 'upgrade-active'", []).unwrap();
+    assert_eq!(
+        conversation(&db, root.sequence, None).unwrap_err().code,
+        "storage_failed"
+    );
+}

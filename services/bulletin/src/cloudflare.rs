@@ -1,6 +1,6 @@
 use crate::{Binding, Database, Problem};
 use futures_util::StreamExt;
-use serde_json::{Value, json};
+use serde_json::Value;
 use worker::wasm_bindgen;
 use worker::{
     Context, DurableObject, Env, Method, Request, Response, Result, SqlStorage, SqlStorageValue,
@@ -131,19 +131,35 @@ impl DurableObject for Bulletin {
                     Err(problem) => failure(problem),
                 };
             }
-            let page = if let Some(number) = path.strip_prefix("/board/posts/") {
-                number
+            if let Some(number) = path.strip_prefix("/board/posts/") {
+                let conversation = number
                     .parse::<i64>()
                     .ok()
                     .filter(|number| *number > 0)
                     .ok_or_else(|| Problem::new(404, "post_not_found"))
-                    .and_then(|number| crate::post(&self.db, number))
-                    .map(|post| json!({"posts":[post.public()],"has_more":false}))
-            } else {
-                query("after").and_then(|after| {
-                    query("before").and_then(|before| crate::page(&self.db, after, before))
-                })
-            };
+                    .and_then(|number| {
+                        if url.query_pairs().any(|(name, _)| name != "after") {
+                            return Err(Problem::new(400, "invalid_page"));
+                        }
+                        query("after")
+                            .and_then(|after| crate::conversation(&self.db, number, after))
+                    });
+                return match conversation {
+                    Ok(conversation) => html(crate::conversation_html(
+                        &conversation,
+                        open,
+                        &format!(
+                            "form:{}:{}",
+                            worker::js_sys::Date::now(),
+                            worker::js_sys::Math::random()
+                        ),
+                    )),
+                    Err(problem) => failure(problem),
+                };
+            }
+            let page = query("after").and_then(|after| {
+                query("before").and_then(|before| crate::page(&self.db, after, before))
+            });
             return match page {
                 Ok(page) if path == "/api/board/posts" => response(&page, 200),
                 Ok(page) => html(crate::board_html(
