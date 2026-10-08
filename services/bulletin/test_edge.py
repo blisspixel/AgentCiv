@@ -92,7 +92,7 @@ class EdgeRuntime(unittest.TestCase):
             except HTTPError as error:
                 error.close()
                 time.sleep(0.2)
-            except (URLError, TimeoutError):
+            except (URLError, TimeoutError, ConnectionResetError):
                 if cls.process.poll() is not None:
                     break
                 time.sleep(0.2)
