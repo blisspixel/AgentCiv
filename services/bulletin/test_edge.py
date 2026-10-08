@@ -2,11 +2,13 @@
 from __future__ import annotations
 
 import hashlib
+from contextlib import closing
 import json
 import os
 from pathlib import Path
 import shutil
 import socket
+import sqlite3
 import subprocess
 import tempfile
 import time
@@ -20,7 +22,7 @@ SERVICE = Path(__file__).resolve().parent
 TOKENS = {f"agent:test-{index}": f"disposable-fixture-token-number-{index}" for index in range(10)}
 
 
-class EdgeTests(unittest.TestCase):
+class EdgeRuntime(unittest.TestCase):
     temporary: tempfile.TemporaryDirectory[str]
     workspace: Path
     process: subprocess.Popen[bytes]
@@ -121,6 +123,74 @@ class EdgeTests(unittest.TestCase):
         if reply is not None:
             body["reply_to"] = reply
         return json.dumps({"publish": "public", "message": {"protocol_version": "0.1-draft", "type": "message", "id": identifier, "world": "civ:agentciv-board", "from": principal, "to": ["board:all"], "body": body, "unknown": {"source": "retained"}}}).encode()
+
+    @classmethod
+    def fixture_sql(cls, statement: str) -> None:
+        """Operator fault injection into disposable storage while workerd is stopped."""
+        if cls.process.poll() is None:
+            raise RuntimeError("stop the fixture runtime before editing its SQLite storage")
+        stores: list[Path] = []
+        for path in (cls.workspace / "state" / "v3" / "do").rglob("*.sqlite"):
+            if path.name == "metadata.sqlite":
+                continue
+            with closing(sqlite3.connect(path)) as connection:
+                connection.execute("PRAGMA locking_mode = EXCLUSIVE")
+                if connection.execute("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'posts'").fetchone():
+                    stores.append(path)
+        if len(stores) != 1:
+            raise RuntimeError("expected exactly one disposable bulletin store")
+        with closing(sqlite3.connect(stores[0])) as connection:
+            connection.execute("PRAGMA locking_mode = EXCLUSIVE")
+            connection.executescript(statement)
+            connection.commit()
+
+
+class EdgeTests(EdgeRuntime):
+    def test_atomic_feed_failures_and_concurrent_removal(self) -> None:
+        from concurrent.futures import ThreadPoolExecutor
+        port = int(self.origin.rsplit(":", 1)[1])
+        raw = self.submission("atomic-feed", "agent:test-8")
+        original_posts = self.request("GET", "/api/board/posts?after=0")[2]
+        original_changes = self.request("GET", "/api/board/changes?after=0")[2]
+        self.stop()
+        self.fixture_sql("CREATE TRIGGER fail_feed BEFORE INSERT ON changes BEGIN SELECT RAISE(ABORT, 'disposable fixture failure'); END;")
+        self.start(port)
+        status, _, problem = self.request("POST", "/api/board/posts", raw, TOKENS["agent:test-8"])
+        self.assertEqual((status, problem["code"]), (500, "storage_failed"))
+        self.assertNotIn("disposable fixture failure", json.dumps(problem))
+        self.assertEqual(self.request("GET", "/api/board/posts?after=0")[2], original_posts)
+        self.assertEqual(self.request("GET", "/api/board/changes?after=0")[2], original_changes)
+        self.stop()
+        self.fixture_sql("DROP TRIGGER fail_feed;")
+        self.start(port)
+        status, _, accepted = self.request("POST", "/api/board/posts", raw, TOKENS["agent:test-8"])
+        self.assertEqual(status, 200)
+        previous_sequence = max((post["sequence"] for post in original_posts["posts"]), default=0)
+        self.assertEqual(accepted["sequence"], previous_sequence + 1)
+        self.assertEqual(self.request("POST", "/api/board/posts", raw, TOKENS["agent:test-8"])[2], accepted)
+        before_remove = self.request("GET", "/api/board/changes?after=0")[2]
+        self.stop()
+        self.fixture_sql("CREATE TRIGGER fail_scrub BEFORE UPDATE ON posts BEGIN SELECT RAISE(ABORT, 'disposable fixture failure'); END;")
+        self.start(port)
+        status, _, problem = self.request("DELETE", f"/api/board/posts/{accepted['sequence']}", token=TOKENS["agent:test-8"])
+        self.assertEqual((status, problem["code"]), (500, "storage_failed"))
+        self.assertEqual(self.request("GET", "/api/board/changes?after=0")[2], before_remove)
+        self.assertIn("Actual runtime post", self.request("GET", f"/board/posts/{accepted['sequence']}")[2])
+        self.stop()
+        self.fixture_sql("DROP TRIGGER fail_scrub;")
+        self.start(port)
+        with ThreadPoolExecutor(max_workers=4) as clients:
+            removed = list(clients.map(lambda _: self.request("DELETE", f"/api/board/posts/{accepted['sequence']}", token=TOKENS["agent:test-8"]), range(4)))
+        self.assertTrue(all(result[0] == 200 and result[2]["status"] == "removed" for result in removed))
+        caught = self.request("GET", f"/api/board/changes?after={before_remove['next_after']}")[2]
+        self.assertEqual(len(caught["changes"]), 1)
+        self.assertEqual(caught["changes"][0]["kind"], "remove")
+        self.assertNotIn("Actual runtime post", json.dumps(caught))
+        historical = self.request("GET", "/api/board/changes?after=0")[2]["changes"]
+        retained = [change for change in historical if change["post_id"] == accepted["post_id"]]
+        self.assertEqual(len(retained), 2)
+        self.assertTrue(all(change["message"] is None and change["original_submission"] is None for change in retained))
+        self.assertEqual(self.request("POST", "/api/board/posts", raw, TOKENS["agent:test-8"])[2]["status"], "removed")
 
     def test_access_and_failure_paths(self) -> None:
         raw = self.submission("access")
@@ -312,6 +382,10 @@ class EdgeTests(unittest.TestCase):
 
         saved_boundary = feed_after_pub["next_after"]
 
+        self.stop()
+        self.start(int(self.origin.rsplit(":", 1)[1]))
+        self.assertEqual(self.request("GET", f"/api/board/changes?after={base_seq}")[2], feed_after_pub)
+
         empty_poll = self.request("GET", f"/api/board/changes?after={saved_boundary}")[2]
         self.assertEqual(empty_poll["changes"], [])
         self.assertEqual(empty_poll["next_after"], saved_boundary)
@@ -338,6 +412,47 @@ class EdgeTests(unittest.TestCase):
         self.assertIsNotNone(all_changes[1]["message"])
         self.assertEqual(all_changes[2]["kind"], "remove")
         self.assertEqual(all_changes[2]["post_id"], f"post:{seq1}")
+
+        final_boundary = catch_up["next_after"]
+        self.stop()
+        self.start(int(self.origin.rsplit(":", 1)[1]))
+        self.assertEqual(self.request("GET", f"/api/board/changes?after={base_seq}")[2]["changes"], all_changes)
+        self.assertEqual(self.request("GET", f"/api/board/changes?after={final_boundary}")[2]["changes"], [])
+
+
+class LegacyEdgeTests(EdgeRuntime):
+    def test_pre_feed_storage_upgrade_has_no_invented_history(self) -> None:
+        port = int(self.origin.rsplit(":", 1)[1])
+        legacy_raw = self.submission("legacy-post", "agent:test-8")
+        message = json.loads(legacy_raw)["message"]
+        # Replace this disposable database with the exact pre-feed posts schema.
+        # There is deliberately no known removal time or historical change order.
+        self.stop()
+        self.fixture_sql("DROP TRIGGER publish_change; DROP TRIGGER remove_content; DROP TABLE changes; DROP TABLE posts; CREATE TABLE posts (sequence INTEGER PRIMARY KEY AUTOINCREMENT, principal TEXT NOT NULL, submission_id TEXT NOT NULL, created TEXT NOT NULL, day TEXT NOT NULL, raw TEXT NOT NULL, digest TEXT NOT NULL, message TEXT NOT NULL, removed TEXT, UNIQUE(principal, submission_id));")
+        # The wrapper and message are fixture data. SQL quoting stays separate from credentials.
+        def quote(value: str) -> str:
+            return "'" + value.replace("'", "''") + "'"
+        self.fixture_sql("INSERT INTO posts(principal, submission_id, created, day, raw, digest, message) VALUES ('agent:test-8', 'legacy-post', '2026-10-03T08:00:00.000Z', '2026-10-03', " + quote(legacy_raw.decode()) + ", " + quote(hashlib.sha256(legacy_raw).hexdigest()) + ", " + quote(json.dumps(message)) + ");")
+        self.start(port)
+        self.assertEqual(self.request("GET", "/api/board/changes?after=0")[2]["changes"], [])
+        posts = self.request("GET", "/api/board/posts?after=0")[2]["posts"]
+        self.assertEqual(posts[0]["original_submission"], legacy_raw.decode())
+        self.assertEqual(self.request("POST", "/api/board/posts", legacy_raw, TOKENS["agent:test-8"])[2]["sequence"], 1)
+        new_raw = self.submission("after-upgrade", "agent:test-8")
+        self.assertEqual(self.request("POST", "/api/board/posts", new_raw, TOKENS["agent:test-8"])[2]["sequence"], 2)
+        boundary = self.request("GET", "/api/board/changes?after=0")[2]["next_after"]
+        self.stop()
+        self.start(port)
+        self.assertEqual(self.request("DELETE", "/api/board/posts/1", token=TOKENS["agent:test-8"])[0], 200)
+        caught = self.request("GET", f"/api/board/changes?after={boundary}")[2]
+        self.assertEqual(len(caught["changes"]), 1)
+        self.assertEqual(caught["changes"][0]["post_id"], "post:1")
+        self.assertEqual(caught["changes"][0]["kind"], "remove")
+        self.assertIsNone(caught["changes"][0]["original_submission"])
+        self.stop()
+        self.start(port)
+        self.assertEqual(len(self.request("GET", "/api/board/changes?after=0")[2]["changes"]), 2)
+        self.assertEqual(self.request("POST", "/api/board/posts", legacy_raw, TOKENS["agent:test-8"])[2]["status"], "removed")
 
 
 if __name__ == "__main__":

@@ -636,3 +636,167 @@ fn changes_feed_pagination_bounds_pages() {
     assert_eq!(second_page["next_after"], 52);
     assert_eq!(second_page["changes"].as_array().unwrap().len(), 2);
 }
+
+#[test]
+fn change_insert_failure_rolls_back_publication_and_preserves_retry() {
+    let db = db();
+    let author = grant("agent:a", false);
+    let bytes = raw("atomic-publish", "agent:a");
+    db.0.execute_batch("CREATE TRIGGER fail_change BEFORE INSERT ON changes BEGIN SELECT RAISE(ABORT, 'fixture failure'); END;").unwrap();
+    assert_eq!(
+        submit(&db, &author, &bytes, DATE).unwrap_err().code,
+        "storage_failed"
+    );
+    assert_eq!(page(&db, Some(0), None).unwrap()["posts"], json!([]));
+    assert_eq!(changes(&db, 0).unwrap()["changes"], json!([]));
+    db.0.execute_batch("DROP TRIGGER fail_change").unwrap();
+    let accepted = submit(&db, &author, &bytes, DATE).unwrap();
+    assert_eq!(accepted.sequence, 1);
+    assert_eq!(accepted.raw.as_bytes(), bytes);
+    assert_eq!(submit(&db, &author, &bytes, DATE).unwrap().sequence, 1);
+    assert_eq!(
+        changes(&db, 0).unwrap()["changes"]
+            .as_array()
+            .unwrap()
+            .len(),
+        1
+    );
+}
+
+#[test]
+fn removal_failures_roll_back_both_sides_then_retry_scrubs_all_public_views() {
+    for failing_statement in [
+        "CREATE TRIGGER fail_remove BEFORE INSERT ON changes WHEN NEW.kind = 'remove' BEGIN SELECT RAISE(ABORT, 'fixture failure'); END;",
+        "CREATE TRIGGER fail_remove BEFORE UPDATE ON posts BEGIN SELECT RAISE(ABORT, 'fixture failure'); END;",
+    ] {
+        let db = db();
+        let author = grant("agent:a", false);
+        let bytes = raw("atomic-remove", "agent:a");
+        let accepted = submit(&db, &author, &bytes, DATE).unwrap();
+        let before = changes(&db, 0).unwrap();
+        db.0.execute_batch(failing_statement).unwrap();
+        assert_eq!(
+            remove(&db, &author, accepted.sequence, DATE)
+                .unwrap_err()
+                .code,
+            "storage_failed"
+        );
+        assert_eq!(changes(&db, 0).unwrap(), before);
+        assert_eq!(post(&db, accepted.sequence).unwrap().raw.as_bytes(), bytes);
+        db.0.execute_batch("DROP TRIGGER fail_remove").unwrap();
+        remove(&db, &author, accepted.sequence, DATE).unwrap();
+        remove(&db, &author, accepted.sequence, DATE).unwrap();
+        let all = changes(&db, 0).unwrap();
+        assert_eq!(all["changes"].as_array().unwrap().len(), 2);
+        assert!(!all.to_string().contains("A message"));
+        let stored = post(&db, accepted.sequence).unwrap();
+        assert!(stored.raw.is_empty() && stored.message.is_empty());
+        assert_eq!(
+            submit(&db, &author, &bytes, DATE).unwrap().receipt()["status"],
+            "removed"
+        );
+    }
+}
+
+#[test]
+fn removal_rechecks_transition_after_another_authorized_removal() {
+    struct Interleaved<'a> {
+        db: &'a Sql,
+        fired: std::cell::Cell<bool>,
+    }
+    impl Database for Interleaved<'_> {
+        fn query(&self, statement: &str, bindings: Vec<Binding>) -> Result<Vec<Value>, Problem> {
+            if statement.starts_with("INSERT INTO changes") && !self.fired.replace(true) {
+                remove(self.db, &grant("agent:a", false), 1, DATE)?;
+            }
+            self.db.query(statement, bindings)
+        }
+    }
+    let db = db();
+    submit(&db, &grant("agent:a", false), &raw("race", "agent:a"), DATE).unwrap();
+    let interleaved = Interleaved {
+        db: &db,
+        fired: std::cell::Cell::new(false),
+    };
+    let removed = remove(&interleaved, &grant("agent:moderator", true), 1, DATE).unwrap();
+    assert_eq!(removed.removed.as_deref(), Some("author_removed"));
+    let feed = changes(&db, 1).unwrap();
+    assert_eq!(feed["changes"].as_array().unwrap().len(), 1);
+    assert_eq!(feed["changes"][0]["principal"], "agent:a");
+}
+
+#[test]
+fn legacy_posts_upgrade_without_fabricated_history_and_survive_file_reopen() {
+    let nonce = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_nanos();
+    let path = std::env::temp_dir().join(format!(
+        "agentciv-board-{}-{nonce}.sqlite",
+        std::process::id()
+    ));
+    let author = grant("agent:a", false);
+    let bytes = raw("legacy", "agent:a");
+    let legacy = Sql(Connection::open(&path).unwrap());
+    // This is the exact pre-feed posts schema. No change table or triggers exist.
+    legacy.0.execute_batch("CREATE TABLE posts (sequence INTEGER PRIMARY KEY AUTOINCREMENT, principal TEXT NOT NULL, submission_id TEXT NOT NULL, created TEXT NOT NULL, day TEXT NOT NULL, raw TEXT NOT NULL, digest TEXT NOT NULL, message TEXT NOT NULL, removed TEXT, UNIQUE(principal, submission_id));").unwrap();
+    legacy.0.execute("INSERT INTO posts(principal, submission_id, created, day, raw, digest, message) VALUES (?, ?, ?, ?, ?, ?, ?)", rusqlite::params![author.principal, "legacy", DATE, &DATE[..10], std::str::from_utf8(&bytes).unwrap(), token_digest(std::str::from_utf8(&bytes).unwrap()), validate(&bytes, &author.principal).unwrap().to_string()]).unwrap();
+    drop(legacy);
+    let upgraded = Sql(Connection::open(&path).unwrap());
+    struct InterruptedUpgrade<'a>(&'a Sql);
+    impl Database for InterruptedUpgrade<'_> {
+        fn query(&self, statement: &str, bindings: Vec<Binding>) -> Result<Vec<Value>, Problem> {
+            if statement.starts_with("CREATE TRIGGER IF NOT EXISTS remove_content") {
+                Err(Problem::new(500, "storage_failed"))
+            } else {
+                self.0.query(statement, bindings)
+            }
+        }
+    }
+    assert_eq!(
+        initialize(&InterruptedUpgrade(&upgraded)).unwrap_err().code,
+        "storage_failed"
+    );
+    initialize(&upgraded).unwrap();
+    assert_eq!(changes(&upgraded, 0).unwrap()["changes"], json!([]));
+    assert_eq!(
+        submit(&upgraded, &author, &bytes, DATE).unwrap().sequence,
+        1
+    );
+    let fresh = submit(&upgraded, &author, &raw("new", "agent:a"), DATE).unwrap();
+    assert_eq!(fresh.sequence, 2);
+    let boundary = changes(&upgraded, 0).unwrap()["next_after"]
+        .as_i64()
+        .unwrap();
+    drop(upgraded);
+    let reopened = Sql(Connection::open(&path).unwrap());
+    initialize(&reopened).unwrap();
+    remove(&reopened, &author, 1, DATE).unwrap();
+    let caught = changes(&reopened, boundary).unwrap();
+    assert_eq!(caught["changes"].as_array().unwrap().len(), 1);
+    assert_eq!(caught["changes"][0]["post_sequence"], 1);
+    assert_eq!(caught["changes"][0]["kind"], "remove");
+    assert_eq!(caught["changes"][0]["original_submission"], Value::Null);
+    let final_boundary = caught["next_after"].as_i64().unwrap();
+    drop(reopened);
+    let reopened = Sql(Connection::open(&path).unwrap());
+    initialize(&reopened).unwrap();
+    assert_eq!(
+        changes(&reopened, final_boundary).unwrap()["changes"],
+        json!([])
+    );
+    assert_eq!(
+        changes(&reopened, 0).unwrap()["changes"]
+            .as_array()
+            .unwrap()
+            .len(),
+        2
+    );
+    assert_eq!(post(&reopened, 1).unwrap().receipt()["status"], "removed");
+    assert_eq!(
+        post(&reopened, 2).unwrap().raw,
+        String::from_utf8(raw("new", "agent:a")).unwrap()
+    );
+    drop(reopened);
+    std::fs::remove_file(path).unwrap();
+}
