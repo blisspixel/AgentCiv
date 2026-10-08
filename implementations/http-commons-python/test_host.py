@@ -1145,7 +1145,7 @@ class PublicRunnerTest(unittest.TestCase):
         summary = expect_dict(report["summary"])
         self.assertEqual(summary["failed"], 0)
         self.assertEqual(summary["skipped"], 5)
-        self.assertEqual(summary["passed"], 50)
+        self.assertEqual(summary["passed"], 53)
         cases = dicts(report["cases"])
         ids = {expect_str(case["id"]) for case in cases}
         self.assertEqual(len(ids), 58)
