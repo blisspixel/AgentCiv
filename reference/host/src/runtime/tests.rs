@@ -598,6 +598,13 @@ fn bounded_storage_capacity_fails_without_new_acknowledgement_or_launch() {
         Err(Error::Capacity)
     );
     assert_eq!(gate.inspect(&scope).unwrap().revision, 1);
+    assert!(matches!(
+        gate.dispatch(&scope, &request("control-capacity", generation), forbidden),
+        Err(Error::Capacity)
+    ));
+    connection
+        .execute("DELETE FROM commands WHERE command_id LIKE 'filler-%'", [])
+        .unwrap();
     connection.execute_batch("WITH RECURSIVE n(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM n WHERE x<4096) INSERT INTO invitations(participant,activity,invitation_id,request,generation,revision,status,reason) SELECT 'participant-A','open-gathering','filler-'||x,'{}',1,1,'not_launched','fixture' FROM n;").unwrap();
     assert!(matches!(
         gate.dispatch(&scope, &request("capacity", generation), forbidden),
@@ -611,7 +618,7 @@ fn bounded_storage_capacity_fails_without_new_acknowledgement_or_launch() {
         }),
         Err(Error::Capacity)
     );
-    // Existing stop receipts remain inspectable and exactly retryable at capacity.
+    // Existing control receipts remain inspectable and exactly retryable at capacity.
     assert!(
         gate.control(&scope, "ready", 0, Decision::Resume, generation)
             .unwrap()

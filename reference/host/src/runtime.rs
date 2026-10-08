@@ -382,6 +382,9 @@ impl Gate {
             });
         }
         let state = storage::state(&tx, self, scope)?.ok_or(Error::UnknownScope)?;
+        // Do not start more activity when no new stop command can be retained.
+        // Existing invitation retries above remain observations without execution.
+        capacity(&tx, "commands", MAX_ROWS)?;
         capacity(&tx, "invitations", MAX_ROWS)?;
         let blocked = if request.generation == 0 || request.generation != state.generation {
             Some("stale_generation")
