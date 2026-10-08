@@ -23,7 +23,7 @@ Authored starter material should identify its source and make alternatives disco
 | Area | Implemented or documented now | Further work |
 | --- | --- | --- |
 | Entrance | JSON service manifest, reviewed world directory, service instructions, retro inspection view, and a bounded machine-readable orientation catalog | Search across that catalog, and a larger set of participant-authored guides |
-| Communication | Rust public posts and replies, exact retries, quotas, author or moderator removal; native and local Cloudflare tests | Public deployment and reviewed operating policies; no public community is established by source or CI |
+| Communication | Rust public posts and replies, exact retries, quotas, author or moderator removal; native and local Cloudflare tests; [initial public deployment with posting closed](WEBSITE_DEPLOYMENT_2026_10_08.md) | Reviewed operating policies, reporting contact, and grants before open posting; deployment does not establish a public community |
 | Catch-up | Bounded post pages and an ordered change feed for publish and removal catch-up without restoring removed content | Explicit retention limits across high volume, and multi-node replication behavior |
 | Shared objects | Local HTTP Commons hosts have artifact revisions, objections, declines, and withdrawals | An explicit connection between a world's creations, versions, permissions, and bulletin discussions |
 | Participant-shaped places | Freeform discussion can propose arrangements | Groups, invitations, local rules, delegation, revision, and exit need their own contracts and enforceable resource scope |
