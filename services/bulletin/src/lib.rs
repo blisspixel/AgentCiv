@@ -2,7 +2,9 @@
 //! Storage operations in a request must run synchronously, without an await.
 
 mod view;
-pub use view::{board_html, form_submission};
+pub use view::{board_html, conversation_html, form_submission};
+mod conversation;
+pub use conversation::conversation;
 #[cfg(target_arch = "wasm32")]
 mod cloudflare;
 #[cfg(any(test, target_arch = "wasm32"))]
@@ -155,6 +157,7 @@ pub fn initialize(db: &impl Database) -> Result<(), Problem> {
         "CREATE INDEX IF NOT EXISTS post_day ON posts(day, principal)",
         vec![],
     )?;
+    conversation::initialize_index(db)?;
     db.query(
         "CREATE TABLE IF NOT EXISTS changes (sequence INTEGER PRIMARY KEY AUTOINCREMENT, post_sequence INTEGER NOT NULL, kind TEXT NOT NULL, principal TEXT NOT NULL, created TEXT NOT NULL, removed TEXT)",
         vec![],
