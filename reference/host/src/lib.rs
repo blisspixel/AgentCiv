@@ -2,6 +2,7 @@
 //! the profile is fully proven until the public conformance cases pass.
 
 mod http;
+pub mod runtime;
 mod store;
 mod validate;
 

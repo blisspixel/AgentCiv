@@ -27,6 +27,8 @@ fn checkpoint() -> Value {
         "decline",
         "withdrawal",
         "artifact_revision",
+        "artifact_revision",
+        "artifact_revision",
     ]
     .into_iter()
     .enumerate()
@@ -56,10 +58,22 @@ fn checkpoint() -> Value {
             }
         };
         body["id"] = json!(id);
+        if kind != "message" {
+            body["artifact_id"] = json!(if index == 6 {
+                "artifact:lifecycle-continuation"
+            } else {
+                "artifact:lifecycle"
+            });
+        }
+        let revision = match index {
+            7 => 2,
+            8 => 3,
+            _ => 1,
+        };
         let sequence = if index == 5 {
             3
-        } else if index == 6 {
-            6
+        } else if index >= 6 {
+            index
         } else {
             index + 1
         };
@@ -69,9 +83,9 @@ fn checkpoint() -> Value {
         let (field, event_kind) = match kind {
             "message" => ("message", "message.recorded"),
             "artifact_revision" => {
-                stored["revision"] = json!(1);
+                stored["revision"] = json!(revision);
                 receipt["artifact_id"] = body["artifact_id"].clone();
-                receipt["revision"] = json!(1);
+                receipt["revision"] = json!(revision);
                 ("artifact_revision", "artifact.recorded")
             }
             "objection" => ("objection", "objection.recorded"),
@@ -124,6 +138,46 @@ fn checkpoint_validation_rejects_malformed_or_mismatched_evidence() {
     let mut changed = saved;
     changed["history"]["agent:writer"][0]["world"] = json!("civ:other");
     assert!(validate_checkpoint(&changed).is_err());
+}
+
+#[test]
+fn checkpoint_revision_layout_and_old_version_are_rejected_before_requests() {
+    let saved = checkpoint();
+    for index in [7, 8] {
+        for revision in [1, 4] {
+            let mut changed = saved.clone();
+            changed["records"][index]["receipt"]["revision"] = json!(revision);
+            assert!(validate_checkpoint(&changed).is_err());
+        }
+        let mut changed = saved.clone();
+        let mut body: Value =
+            serde_json::from_str(changed["records"][index]["bytes"].as_str().unwrap()).unwrap();
+        body["artifact_id"] = json!("artifact:other");
+        changed["records"][index]["bytes"] = json!(body.to_string());
+        assert!(validate_checkpoint(&changed).is_err());
+        let mut changed = saved.clone();
+        changed["records"][index]["bytes"] = json!("{}");
+        assert!(validate_checkpoint(&changed).is_err());
+    }
+    let mut changed = saved.clone();
+    changed["records"].as_array_mut().unwrap().swap(7, 8);
+    assert!(validate_checkpoint(&changed).is_err());
+    for alteration in ["spacing", "duplicate_member"] {
+        let mut changed = saved.clone();
+        let original = changed["records"][7]["bytes"].as_str().unwrap();
+        changed["records"][7]["bytes"] = json!(if alteration == "spacing" {
+            format!(" {original}")
+        } else {
+            original.replacen('{', "{\"type\":\"message\",", 1)
+        });
+        assert!(validate_checkpoint(&changed).is_err(), "{alteration}");
+    }
+    let mut changed = saved;
+    changed["checkpoint_version"] = json!("agentciv-lifecycle/0.1-draft");
+    assert_eq!(
+        validate_checkpoint(&changed).unwrap_err(),
+        "unsupported checkpoint version"
+    );
 }
 
 #[test]

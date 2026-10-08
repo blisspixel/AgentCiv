@@ -40,7 +40,7 @@ const EXTENDED_CASES: [&str; 17] = [
     "submit.concurrent_conflict",
     "submit.concurrent_distinct",
 ];
-const COLLABORATION_CASES: [&str; 28] = [
+const COLLABORATION_CASES: [&str; 31] = [
     "collaborate.client_revision",
     "collaborate.forbidden",
     "collaborate.unauthenticated",
@@ -69,6 +69,9 @@ const COLLABORATION_CASES: [&str; 28] = [
     "collaborate.hidden_objection",
     "collaborate.hidden_decline",
     "collaborate.hidden_withdrawal",
+    "collaborate.revision_sequence",
+    "collaborate.revision_sequence_retry",
+    "collaborate.revision_sequence_rejection",
 ];
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -1265,6 +1268,7 @@ fn run_collaboration_cases(input: &CollaborationInput<'_>, cases: &mut Vec<Case>
         denied_collaboration(&ctx),
     ));
     push_collaboration_rejections(&ctx, input.world, cases);
+    revisions::run(&ctx, cases);
     let recorded = match recorded_revision(&ctx) {
         Ok(recorded) => {
             cases.push(Case::passed("collaborate.revision"));
@@ -2245,4 +2249,5 @@ mod tests;
 
 mod adversarial;
 mod lifecycle;
+mod revisions;
 pub use lifecycle::run_lifecycle;

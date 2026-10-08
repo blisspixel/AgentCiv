@@ -1108,7 +1108,10 @@
         "case:collaborate.other_chain",
         "test:rust-collaboration",
         "schema:collaboration-artifact",
-        "fixture:collaboration-artifact"
+        "fixture:collaboration-artifact",
+        "case:collaborate.revision_sequence",
+        "case:collaborate.revision_sequence_retry",
+        "case:collaborate.revision_sequence_rejection"
       ],
       "observations": [
         "obs:python:members:collaborate.other_chain",
@@ -1136,7 +1139,11 @@
         "case:events.visibility",
         "test:python-collaboration",
         "schema:collaboration-artifact",
-        "fixture:collaboration-artifact"
+        "fixture:collaboration-artifact",
+        "case:collaborate.revision_sequence",
+        "case:collaborate.revision_sequence_retry",
+        "case:collaborate.revision_sequence_rejection",
+        "case:restart.revision_sequence"
       ],
       "observations": [
         "obs:python:members:events.visibility",
@@ -1590,7 +1597,8 @@
         "test:rust-transaction",
         "test:python-collaboration",
         "schema:receipt",
-        "fixture:receipt"
+        "fixture:receipt",
+        "case:restart.revision_sequence"
       ],
       "observations": [
         "obs:python:members:collaborate.revision",
@@ -1636,7 +1644,8 @@
         "case:collaborate.withdrawal",
         "test:rust-collaboration",
         "schema:event-page",
-        "fixture:event-page"
+        "fixture:event-page",
+        "case:restart.revision_sequence"
       ],
       "observations": [
         "obs:python:members:collaborate.revision",
@@ -2762,6 +2771,30 @@
       "kind": "setup",
       "path": "docs/CONTINUITY_NOTES.md",
       "anchor": "continuity_note"
+    },
+    {
+      "id": "case:collaborate.revision_sequence",
+      "kind": "public_case",
+      "path": "conformance/runner/src/revisions.rs",
+      "anchor": "\"collaborate.revision_sequence\""
+    },
+    {
+      "id": "case:collaborate.revision_sequence_retry",
+      "kind": "public_case",
+      "path": "conformance/runner/src/revisions.rs",
+      "anchor": "\"collaborate.revision_sequence_retry\""
+    },
+    {
+      "id": "case:collaborate.revision_sequence_rejection",
+      "kind": "public_case",
+      "path": "conformance/runner/src/revisions.rs",
+      "anchor": "\"collaborate.revision_sequence_rejection\""
+    },
+    {
+      "id": "case:restart.revision_sequence",
+      "kind": "public_case",
+      "path": "conformance/runner/src/lifecycle.rs",
+      "anchor": "\"restart.revision_sequence\""
     }
   ],
   "observations": [
@@ -5393,7 +5426,7 @@
     {
       "id": "gap:revision-increment",
       "owner": "Collaboration conformance maintainers",
-      "proposed_test": "Add public revision 2 and 3 chain tests with simultaneous author submissions, separate principal chains, failed writes, and restart. Existing public first-revision checks are narrower."
+      "proposed_test": "Add a bounded public race for simultaneous author submissions, accepting either arrival order with exact receipt/body/event mapping, while a second principal uses the same artifact_id independently. Retain both same-artifact principal chains across restart and retry the exact concurrent requests without allocating more revisions. Sequential accepted revisions 1, 2, and 3, failed-write no-allocation, and restart numbering now have dedicated cases; those do not establish concurrent-chain correctness."
     },
     {
       "id": "gap:continuity-boundaries",

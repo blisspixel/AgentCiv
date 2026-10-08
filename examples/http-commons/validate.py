@@ -31,7 +31,7 @@ HIDDEN_CASES = {
 }
 LIFECYCLE_CASES = {
     "prepare": {"lifecycle.world", "lifecycle.collaboration", "lifecycle.fresh", "lifecycle.seed", "lifecycle.checkpoint"},
-    "verify": {"lifecycle.world", "lifecycle.collaboration", "restart.history", "restart.cursor", "restart.retry", "restart.no_duplicate"},
+    "verify": {"lifecycle.world", "lifecycle.collaboration", "restart.history", "restart.cursor", "restart.retry", "restart.no_duplicate", "restart.revision_sequence"},
     "policy": {"lifecycle.world", "lifecycle.collaboration", "policy.cursor_expired", "policy.visibility"},
 }
 
@@ -74,6 +74,9 @@ def checked_report(text: str, returncode: int, policy: str) -> dict[str, object]
         if not isinstance(status, str) or status not in counts:
             raise ValidationFailure("unknown case status")
         counts[status] += 1
+        optional = policy == "members" and case_id in HIDDEN_CASES
+        if case.get("required") is not (not optional):
+            raise ValidationFailure(f"case used the wrong required flag: {case_id}")
         if status == "failed" or (
             status == "skipped"
             and not (policy == "members" and case_id in HIDDEN_CASES and case.get("required") is False)
@@ -82,6 +85,7 @@ def checked_report(text: str, returncode: int, policy: str) -> dict[str, object]
     expected = HIDDEN_CASES | {
         "submit.concurrent_retry", "submit.concurrent_conflict", "submit.concurrent_distinct",
         "collaborate.revision", "collaborate.objection", "collaborate.decline",
+        "collaborate.revision_sequence", "collaborate.revision_sequence_retry", "collaborate.revision_sequence_rejection",
     }
     if not expected.issubset(seen):
         raise ValidationFailure("report omitted required matrix cases")
@@ -106,7 +110,7 @@ def checked_lifecycle(text: str, returncode: int, phase: str) -> dict[str, objec
     for item in cases:
         case = object_of(item)
         case_id = case.get("id")
-        if not isinstance(case_id, str) or case_id in seen or case.get("status") != "passed":
+        if not isinstance(case_id, str) or case_id in seen or case.get("status") != "passed" or case.get("required") is not True:
             raise ValidationFailure("lifecycle case failed, duplicated, or was skipped")
         seen.add(case_id)
     if phase not in LIFECYCLE_CASES or seen != LIFECYCLE_CASES[phase]:

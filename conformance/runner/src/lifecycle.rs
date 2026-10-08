@@ -4,7 +4,7 @@ use std::path::Path;
 
 use super::*;
 
-const CHECKPOINT_VERSION: &str = "agentciv-lifecycle/0.1-draft";
+const CHECKPOINT_VERSION: &str = "agentciv-lifecycle/0.2-draft";
 struct Credentials<'a> {
     writer: (&'a str, &'a str),
     reader: (&'a str, &'a str),
@@ -43,6 +43,7 @@ pub fn run_lifecycle(
                 "restart.cursor",
                 "restart.retry",
                 "restart.no_duplicate",
+                "restart.revision_sequence",
             ],
         ),
         "policy" => (
@@ -237,7 +238,9 @@ fn prepare(
         message["id"] = json!(format!("message:lifecycle-{index}"));
         message["to"] = json!(ctx.audience);
         message["body"] = json!({"text": "Work and its context must survive an operator restart."});
-        records.push(record(ctx, submit, principal, token, &message, "submit")?);
+        records.push(record(
+            ctx, submit, principal, token, &message, "submit", 0,
+        )?);
     }
     if parties.len() == 3 {
         let mut source = artifact_submission(
@@ -256,6 +259,7 @@ fn prepare(
             ctx.writer.token,
             &source,
             "collaborate",
+            1,
         )?);
         for kind in ["objection", "decline"] {
             let speech = json!({"protocol_version":"0.1-draft","type":kind,"id":format!("submission:lifecycle-{kind}"),"world":ctx.world_id,"from":parties[2].0,"to":ctx.audience,"artifact_id":"artifact:lifecycle","target_from":ctx.writer.principal,"revision":1,"body":{"text":"This is a recorded participant act, not a host decision."}});
@@ -266,6 +270,7 @@ fn prepare(
                 parties[2].1,
                 &speech,
                 "collaborate",
+                0,
             )?);
         }
         let withdrawal: Value = serde_json::from_slice(&withdrawal_body(
@@ -284,6 +289,7 @@ fn prepare(
             ctx.writer.token,
             &withdrawal,
             "collaborate",
+            1,
         )?);
         let mut continuation = artifact_submission(
             ctx.world_id,
@@ -302,7 +308,27 @@ fn prepare(
             parties[2].1,
             &continuation,
             "collaborate",
+            1,
         )?);
+        for revision in [2, 3] {
+            let source = artifact_submission(
+                ctx.world_id,
+                ctx.writer.principal,
+                &ctx.audience,
+                &format!("submission:lifecycle-source-{revision}"),
+                "artifact:lifecycle",
+                &format!("Retain revision {revision} after the original withdrawal."),
+            );
+            records.push(record(
+                ctx,
+                &ctx.collaborate,
+                ctx.writer.principal,
+                ctx.writer.token,
+                &source,
+                "collaborate",
+                revision,
+            )?);
+        }
     }
     let after = snapshot(ctx, parties)?;
     verify_seed(&after, &records, parties)?;
@@ -348,6 +374,7 @@ fn record(
     token: &str,
     body: &Value,
     operation: &str,
+    expected_revision: u64,
 ) -> Result<Value, String> {
     let bytes = body.to_string();
     let response = ctx
@@ -374,9 +401,11 @@ fn record(
     let field = match body["type"].as_str() {
         Some("message") => "message",
         Some("artifact_revision") => {
-            if receipt["artifact_id"] != body["artifact_id"] || receipt["revision"] != 1 {
+            if receipt["artifact_id"] != body["artifact_id"]
+                || receipt["revision"] != expected_revision
+            {
                 return Err(
-                    "lifecycle artifact receipt did not assign its first revision".to_owned(),
+                    "lifecycle artifact receipt did not assign the expected revision".to_owned(),
                 );
             }
             stored["revision"] = receipt["revision"].clone();
@@ -432,9 +461,9 @@ fn verify_seed(history: &Value, records: &[Value], parties: &[(&str, &str)]) -> 
         let events = history[principal]
             .as_array()
             .ok_or("seed history missing principal")?;
-        if events.len() != if records.len() == 7 { 6 } else { 2 } {
+        if events.len() != if records.len() == 9 { 8 } else { 2 } {
             return Err(
-                "lifecycle seed must leave six visible events, including one in-place withdrawal"
+                "lifecycle seed must leave eight visible events, including one in-place withdrawal"
                     .to_owned(),
             );
         }
@@ -449,7 +478,7 @@ fn verify_seed(history: &Value, records: &[Value], parties: &[(&str, &str)]) -> 
                 return Err("lifecycle seed receipt sequence mismatch".to_owned());
             }
         }
-        if records.len() == 7 {
+        if records.len() == 9 {
             let source = require_event(
                 events,
                 records[2]["receipt"]["event_id"]
@@ -512,7 +541,7 @@ fn validate_checkpoint(saved: &Value) -> Result<(), String> {
     let records = saved["records"]
         .as_array()
         .ok_or("checkpoint records missing")?;
-    if records.len() != if extended { 7 } else { 2 } {
+    if records.len() != if extended { 9 } else { 2 } {
         return Err(
             "checkpoint synthetic submission count does not match advertised capabilities"
                 .to_owned(),
@@ -531,6 +560,11 @@ fn validate_checkpoint(saved: &Value) -> Result<(), String> {
                 .ok_or("checkpoint request bytes missing")?,
         )
         .map_err(|error| format!("checkpoint request JSON invalid: {error}"))?;
+        if entry["bytes"].as_str() != Some(body.to_string().as_str()) {
+            return Err(
+                "checkpoint request bytes differ from the canonical prepared record".to_owned(),
+            );
+        }
         validate(RECEIPT_SCHEMA, &entry["receipt"])?;
         validate(EVENT_SCHEMA, &entry["event_at_recording"])?;
         let kind = body["type"]
@@ -555,7 +589,7 @@ fn validate_checkpoint(saved: &Value) -> Result<(), String> {
         validate(schema, &body)?;
         let expected_kind = match index {
             0 | 1 => "message",
-            2 | 6 => "artifact_revision",
+            2 | 6 | 7 | 8 => "artifact_revision",
             3 => "objection",
             4 => "decline",
             5 => "withdrawal",
@@ -589,10 +623,28 @@ fn validate_checkpoint(saved: &Value) -> Result<(), String> {
             "decline" => ("decline", "decline.recorded"),
             _ => ("withdrawal", "artifact.withdrawn"),
         };
+        let expected_artifact = if index == 6 {
+            "artifact:lifecycle-continuation"
+        } else {
+            "artifact:lifecycle"
+        };
+        if kind != "message" && body["artifact_id"] != expected_artifact {
+            return Err("checkpoint artifact chain differs from the bounded layout".to_owned());
+        }
+        if matches!(kind, "objection" | "decline" | "withdrawal")
+            && (body["target_from"] != principals[0] || body["revision"] != 1)
+        {
+            return Err("checkpoint citation differs from the original revision".to_owned());
+        }
         let mut stored = body.clone();
         if kind == "artifact_revision" {
             if body.get("revision").is_some()
-                || entry["receipt"]["revision"] != 1
+                || entry["receipt"]["revision"]
+                    != match index {
+                        7 => 2,
+                        8 => 3,
+                        _ => 1,
+                    }
                 || entry["receipt"]["artifact_id"] != body["artifact_id"]
             {
                 return Err("checkpoint artifact revision or receipt invalid".to_owned());
@@ -704,6 +756,24 @@ fn verify_restart(
         "restart.no_duplicate",
         snapshot(ctx, parties).and_then(|history| compare_history(&history, &saved["history"])),
     ));
+    if parties.len() == 3 {
+        cases.push(result_case(
+            "restart.revision_sequence",
+            (|| {
+                let history = snapshot(ctx, parties)?;
+                verify_seed(
+                    &history,
+                    saved["records"].as_array().expect("validated records"),
+                    parties,
+                )
+            })(),
+        ));
+    } else {
+        cases.push(Case::skipped_optional(
+            "restart.revision_sequence",
+            NO_COLLABORATION,
+        ));
+    }
 }
 
 fn compare_history(actual: &Value, expected: &Value) -> Result<(), String> {

@@ -62,7 +62,8 @@ def curl_binary() -> str:
 
 def build_rust_binaries(*names: str) -> dict[str, Path]:
     """Use Cargo's actual artifacts, including a configured external build directory."""
-    packages = [argument for name in names for argument in ("-p", name)]
+    owners = dict.fromkeys("agentciv-host" if name == "agentciv-runtime" else name for name in names)
+    packages = [argument for name in owners for argument in ("-p", name)]
     build = subprocess.run(
         ["cargo", "build", "--locked", "--message-format=json", *packages],
         cwd=ROOT, capture_output=True, text=True, check=False,

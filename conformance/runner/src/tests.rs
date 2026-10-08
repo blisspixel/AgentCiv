@@ -538,20 +538,20 @@ fn invalid_peer_is_rejected_without_contacting_a_host() {
 
 #[test]
 fn optional_collaboration_skip_does_not_fail_the_report() {
+    let mut cases = vec![Case::passed("events.authorized")];
+    cases.extend(
+        COLLABORATION_CASES
+            .into_iter()
+            .map(|id| Case::skipped_optional(id, "host does not advertise collaboration.submit")),
+    );
     let report = Report {
-        cases: vec![
-            Case::passed("events.authorized"),
-            Case::skipped_optional(
-                "collaborate.revision",
-                "host does not advertise collaboration.submit",
-            ),
-        ],
+        cases,
         scope: "credentialed-extended",
     };
     assert!(report.passed());
     let json = report.to_json();
     assert_eq!(json["summary"]["passed"], 1);
-    assert_eq!(json["summary"]["skipped"], 1);
+    assert_eq!(json["summary"]["skipped"], COLLABORATION_CASES.len());
     assert_eq!(json["summary"]["failed"], 0);
     assert_eq!(json["cases"][1]["required"], false);
     let required_skip = Report {

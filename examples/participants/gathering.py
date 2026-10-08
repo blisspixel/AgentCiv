@@ -143,6 +143,8 @@ def participant(config: JsonObject) -> JsonObject:
         world = discovery.get("id")
         if not isinstance(world, str) or not world:
             raise client.DecisionError("invalid discovered world")
+        if "runtime_world" in config and config["runtime_world"] != world:
+            raise client.DecisionError("runtime world mismatch")
         events = client.history(origin, token, expected_world=world)
         if token in json.dumps(events, ensure_ascii=False):
             raise client.DecisionError("credential reflected")

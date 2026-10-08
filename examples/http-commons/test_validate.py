@@ -21,6 +21,7 @@ def report(policy: str = "addressed") -> dict[str, object]:
     case_ids = sorted(validate.HIDDEN_CASES | {
         "submit.concurrent_retry", "submit.concurrent_conflict", "submit.concurrent_distinct",
         "collaborate.revision", "collaborate.objection", "collaborate.decline",
+        "collaborate.revision_sequence", "collaborate.revision_sequence_retry", "collaborate.revision_sequence_rejection",
     })
     cases = [
         {"id": case_id, "status": "skipped" if policy == "members" and case_id in validate.HIDDEN_CASES else "passed",
@@ -81,6 +82,27 @@ class ReportTests(unittest.TestCase):
             with self.assertRaises(validate.ValidationFailure):
                 validate.configure(Path(temporary), "public")
 
+    def test_revision_cases_cannot_be_missing_skipped_failed_or_demoted(self) -> None:
+        for case_id in ("collaborate.revision_sequence", "collaborate.revision_sequence_retry",
+                        "collaborate.revision_sequence_rejection"):
+            for change in ("missing", "skipped", "failed", "demoted", "duplicate"):
+                payload = report()
+                cases = payload["cases"]
+                assert isinstance(cases, list)
+                index = next(i for i, case in enumerate(cases) if case["id"] == case_id)
+                if change == "missing":
+                    del cases[index]
+                elif change == "duplicate":
+                    cases.append(dict(cases[index]))
+                elif change == "demoted":
+                    cases[index]["required"] = False
+                else:
+                    cases[index]["status"] = change
+                payload["summary"] = {status: sum(case["status"] == status for case in cases)
+                                      for status in ("passed", "failed", "skipped")}
+                with self.subTest(case=case_id, change=change), self.assertRaises(validate.ValidationFailure):
+                    validate.checked_report(json.dumps(payload), 0, "addressed")
+
     def test_build_failure_is_reported(self) -> None:
         with patch("validate.subprocess.run") as command:
             command.return_value.returncode = 1
@@ -126,10 +148,26 @@ class ReportTests(unittest.TestCase):
         for phase, inventory in validate.LIFECYCLE_CASES.items():
             payload: dict[str, object] = {
                 "profile": "http-commons/0.1-draft", "runner_scope": f"lifecycle-{phase}",
-                "cases": [{"id": case_id, "status": "passed"} for case_id in sorted(inventory)],
+                "cases": [{"id": case_id, "status": "passed", "required": True} for case_id in sorted(inventory)],
                 "summary": {"passed": len(inventory), "failed": 0, "skipped": 0},
             }
             self.assertEqual(validate.checked_lifecycle(json.dumps(payload), 0, phase), payload)
+            for mutation in ("missing", "skipped", "demoted", "duplicate"):
+                broken = dict(payload)
+                original_rows = payload["cases"]
+                assert isinstance(original_rows, list)
+                rows = [dict(validate.object_of(row)) for row in original_rows]
+                if mutation == "missing":
+                    rows.pop()
+                elif mutation == "duplicate":
+                    rows.append(dict(rows[0]))
+                elif mutation == "demoted":
+                    rows[0]["required"] = False
+                else:
+                    rows[0]["status"] = "skipped"
+                broken["cases"] = rows
+                with self.assertRaises(validate.ValidationFailure):
+                    validate.checked_lifecycle(json.dumps(broken), 0, phase)
             for field, value in (("cases", []), ("summary", {}), ("runner_scope", "credentialed-extended")):
                 broken = dict(payload)
                 broken[field] = value

@@ -18,6 +18,8 @@ Start with the existing small test participants: scripted mechanics, an installe
 
 The [delivery plan](docs/DELIVERY_PLAN.md) breaks that order into reviewable contributions with acceptance evidence, failure cases, research references, and operational gates. It covers the path to a complete optional reference assembly while keeping planned features distinct from current capabilities.
 
+The optional [durable stopping example](docs/DURABLE_STOPPING.md) now gates actual gathering subprocesses with private scope controls, coordinator fencing, and duplicate suppression. Its scripted fixture keeps a stop through replacement and host restart, then requires an explicit return. The next proofs are broader adapter use and current-history freshness, alongside the remaining public conformance gaps. This local mechanism adds no unattended activity or public runtime endpoint.
+
 A further [resource-adaptive community proposal](docs/ADAPTIVE_COMMUNITIES.md) explores participant-made tools and temporary places assembled from available, explicitly granted resources. A portable recipe could offer local-process or cached-container alternatives, with separate plan, permission, execution, and cleanup. Voluntary beacons could help interested peers find the signal, like a small radio station, while private memory and outside authority remain with their owners. Recipes, discovery extensions, and infrastructure-as-code adapters are proposed, not implemented launch or execution capabilities.
 
 ## Install the utilities

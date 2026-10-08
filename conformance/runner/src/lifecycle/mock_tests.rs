@@ -16,6 +16,10 @@ enum Defect {
     ChangedRetry,
     CursorReset,
     PolicyLeak,
+    MissingSecond,
+    ChangedThird,
+    ResetRevision,
+    AllocatingRetry,
 }
 
 #[derive(Default)]
@@ -119,6 +123,19 @@ fn mock(extended: bool) -> Mock {
                         if matches!(state.defect, Defect::LostHistory) && !events.is_empty() {
                             events.remove(0);
                         }
+                        if matches!(state.defect, Defect::MissingSecond) {
+                            events.retain(|event| {
+                                event["body"]["artifact_revision"]["revision"] != 2
+                            });
+                        }
+                        if matches!(state.defect, Defect::ChangedThird) {
+                            for event in &mut events {
+                                if event["body"]["artifact_revision"]["revision"] == 3 {
+                                    event["body"]["artifact_revision"]["body"]["text"] =
+                                        json!("changed");
+                                }
+                            }
+                        }
                         if matches!(state.defect, Defect::CursorReset) && target.contains('?') {
                             events.clear();
                         }
@@ -141,6 +158,22 @@ fn mock(extended: bool) -> Mock {
                         let mut receipt = saved.clone();
                         if matches!(state.defect, Defect::ChangedRetry) {
                             receipt["event_id"] = json!("event:changed");
+                        }
+                        if matches!(state.defect, Defect::ResetRevision)
+                            && receipt.get("revision").is_some()
+                        {
+                            receipt["revision"] = json!(1);
+                        }
+                        if matches!(state.defect, Defect::AllocatingRetry)
+                            && receipt["revision"] == 3
+                        {
+                            receipt["revision"] = json!(4);
+                            let mut event = state.events.last().unwrap().clone();
+                            let sequence = state.events.len() + 1;
+                            event["sequence"] = json!(sequence);
+                            event["id"] = json!(format!("event:{sequence}"));
+                            event["body"]["artifact_revision"]["revision"] = json!(4);
+                            state.events.push(event);
                         }
                         ("200 OK", "application/json", receipt)
                     } else {
@@ -166,7 +199,21 @@ fn mock(extended: bool) -> Mock {
                             let (field, event_kind) = match kind.as_str() {
                                 "message" => ("message", "message.recorded"),
                                 "artifact_revision" => {
-                                    record["revision"] = json!(1);
+                                    let revision = state
+                                        .receipts
+                                        .values()
+                                        .filter(|receipt| {
+                                            receipt["artifact_id"] == record["artifact_id"]
+                                                && state.events.iter().any(|event| {
+                                                    event["id"] == receipt["event_id"]
+                                                        && event["actor"] == principal
+                                                })
+                                        })
+                                        .filter_map(|receipt| receipt["revision"].as_u64())
+                                        .max()
+                                        .unwrap_or(0)
+                                        + 1;
+                                    record["revision"] = json!(revision);
                                     ("artifact_revision", "artifact.recorded")
                                 }
                                 "objection" => ("objection", "objection.recorded"),
@@ -178,7 +225,7 @@ fn mock(extended: bool) -> Mock {
                         let mut receipt = json!({"protocol_version":"0.1-draft","type":"receipt","world":"civ:lifecycle-test","record_id":record["id"],"event_id":event_id,"sequence":sequence,"status":"recorded"});
                         if kind == "artifact_revision" {
                             receipt["artifact_id"] = record["artifact_id"].clone();
-                            receipt["revision"] = json!(1);
+                            receipt["revision"] = record["revision"].clone();
                         }
                         state.receipts.insert(key, receipt.clone());
                         ("200 OK", "application/json", receipt)
@@ -234,6 +281,20 @@ fn lifecycle_tests_core_and_extension_phases_through_public_http() {
         }
         let verify = run(&host, extended, "verify");
         assert!(verify.passed(), "{verify:?}");
+        let revisions = verify
+            .cases
+            .iter()
+            .find(|case| case.id == "restart.revision_sequence")
+            .unwrap();
+        assert_eq!(revisions.required, extended);
+        assert_eq!(
+            revisions.status,
+            if extended {
+                CaseStatus::Passed
+            } else {
+                CaseStatus::Skipped
+            }
+        );
         host.state.lock().unwrap().sender_only = true;
         let policy = run(&host, extended, "policy");
         assert!(policy.passed(), "{policy:?}");
@@ -253,6 +314,29 @@ fn lifecycle_tests_core_and_extension_phases_through_public_http() {
                 }
             );
         }
+    }
+}
+
+#[test]
+fn lifecycle_detects_missing_changed_reset_and_allocating_revision_retries() {
+    for (defect, expected) in [
+        (Defect::MissingSecond, "restart.revision_sequence"),
+        (Defect::ChangedThird, "restart.revision_sequence"),
+        (Defect::ResetRevision, "restart.retry"),
+        (Defect::AllocatingRetry, "restart.no_duplicate"),
+    ] {
+        let host = mock(true);
+        assert!(run(&host, true, "prepare").passed());
+        host.state.lock().unwrap().defect = defect;
+        let report = run(&host, true, "verify");
+        assert!(!report.passed());
+        let case = report
+            .cases
+            .iter()
+            .find(|case| case.id == expected)
+            .unwrap();
+        assert!(case.required);
+        assert_eq!(case.status, CaseStatus::Failed, "{report:?}");
     }
 }
 

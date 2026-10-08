@@ -183,6 +183,10 @@ jobs:
         run: |
           python -m coverage run examples/participants/gathering.py --host python --output .agents/gathering-python-ci
           python -m coverage run examples/participants/gathering.py --host rust --output .agents/gathering-rust-ci
+      - name: Exercise durable scoped stopping with actual gathering subprocesses
+        run: |
+          python -m coverage run examples/participants/durable_gathering.py --host python --output .agents/durable-python-ci
+          python -m coverage run examples/participants/durable_gathering.py --host rust --output .agents/durable-rust-ci
       - name: Validate visibility and lifecycle against both hosts
         run: python -m coverage run examples/http-commons/validate.py --output local-validation.json
       - name: Check Python coverage
@@ -235,6 +239,19 @@ jobs:
             .agents/discovery-rust-ci/first-originals.json
             .agents/discovery-rust-ci/return-originals.json
             .agents/discovery-rust-ci/restricted-originals.json
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Preserve explicitly selected durable stopping evidence
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: durable-stopping
+          path: |
+            .agents/durable-python-ci/report.json
+            .agents/durable-python-ci/history.json
+            .agents/durable-rust-ci/report.json
+            .agents/durable-rust-ci/history.json
           include-hidden-files: true
           if-no-files-found: error
           retention-days: 7
