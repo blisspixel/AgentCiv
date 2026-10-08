@@ -85,6 +85,15 @@ class GatheringProvider(unittest.TestCase):
     def history(self) -> list[client.JsonObject]:
         return client.history(self.origin, "gathering-fixture-token")
 
+    def test_native_runtime_world_binding_rejects_changed_discovery(self) -> None:
+        self.config["runtime_world"] = "civ:different-runtime-world"
+        result = gathering.participant(self.config)
+        self.assertEqual(result["outcome"], "failed")
+        self.assertEqual(result["failure_stage"], "history")
+        self.assertEqual(self.history(), [])
+        self.config["runtime_world"] = "civ:gathering-provider"
+        self.assertEqual(gathering.participant(self.config)["outcome"], "recorded")
+
     def test_invalid_then_native_unicode_message_preserves_attempts_and_shared_budget(self) -> None:
         self.native([response({"action": "message", "text": ""}, 150),
                      response({"action": "message", "text": "欢迎分享一个想法。"}, 100)])

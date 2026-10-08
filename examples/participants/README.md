@@ -285,6 +285,17 @@ The [discovery fixture](discovery.py) uses the existing native reader to travers
 
 The [example format and limitations](../../docs/BOUNDED_DISCOVERY.md) describe lexical matching, twenty-result truncation, omissions after ambiguous tombstones, and full revalidation rather than incremental catch-up. Output contains only synthetic permitted records, projection results, retrieval times, and limits. Export permission comes from the fixture operator; native reads do not grant it. These are deterministic interface checks, not model behavior, authenticated offline evidence, or independent interoperability.
 
+## Durable scoped stopping fixture
+
+```sh
+python examples/participants/durable_gathering.py --host python --output .agents/durable-python
+python examples/participants/durable_gathering.py --host rust --output .agents/durable-rust
+```
+
+This separate optional example invokes the existing gathering participant through the [native local dispatch gate](../../docs/DURABLE_STOPPING.md). It starts new scopes stopped, applies explicit fixture-authorized controls, and observes a local leave before issuing a distinct durable stop. A replacement coordinator cannot dispatch that scope, and old resume retries do not reactivate it. Another volunteer continues their own proposal. Host restart rotates world credentials while the separate runtime stop remains; an explicit scope-authorized resume permits return.
+
+The operator-scripted controls and current-history attestations are disclosed interventions. No installed model inference, background schedule, or civic stop endpoint is added. Five bounded actual subprocess launches produce four messages and one local leave; blocked invitations launch nothing. `report.json` contains scoped receipts and sanitized child observations, and `history.json` contains permitted decoded synthetic events. Private configurations, capabilities, and databases stay outside the checkout and are not exported. Existing `gathering.py` scheduling semantics remain local to its parent.
+
 ## Limits
 
 These examples do not advance an interoperability claim. Milestone 1 and Milestone 2 stay open until a host maintained apart from the two processes in this repository passes the same public report. The [integration plan](../../docs/INTEGRATIONS.md) keeps raw JSON and HTTP first-class. The [curl walk](../../docs/HTTP_WALKTHROUGH.md) remains the restart transcript.

@@ -1,0 +1,2645 @@
+{
+  "scope": "local-visibility-and-lifecycle-matrix",
+  "repository_commit": "14498ac309cad839d14ed81f5824e5774da9dc2c",
+  "source_working_tree_dirty": false,
+  "source_sha256": {
+    "Cargo.lock": "e73f61940a7c20f2b5c2fb5a9d857e3d8f81e8aec06956ef29a7c1b92705fd8d",
+    "Cargo.toml": "913f9cc074dcd16570e96dfd0bccddcae9e0d2a748f07cc1947753c12005445d",
+    "PROTOCOL.md": "7c4973342b676a9fa078c075d3199a3f69831f4dd75531400289641c67e207f5",
+    "SPEC.md": "4eb66ea4a3ca9f2264446c0c8314e98b5978f68fd4f2f9fcc4d4e932c99e799a",
+    "conformance/fixtures/invalid/archive-bundle/duplicate-audience.json": "13cae74f90fd0543a2dea62e704d5175cda3a07716650388178ee71b8278302b",
+    "conformance/fixtures/invalid/archive-bundle/empty-audience.json": "894c596d7d9335b906ee3c9c60f639778d49ac34c563e13bd2410cf3cba30554",
+    "conformance/fixtures/invalid/archive-bundle/empty-entries.json": "cbe7eaa0c4341b60cdca1365d0088438a3d30d876d60d0508ea1e3a390077430",
+    "conformance/fixtures/invalid/archive-bundle/false-completeness.json": "6318ef999d93c43284a6e8cbaf70fa53cdbcb7c0e707e5b1b00a9779ffce4347",
+    "conformance/fixtures/invalid/archive-bundle/malformed-digest.json": "809fbf40d87bbe92927cc24b547b315cb905e53f22dc9b8cfa8cd11b3e119e53",
+    "conformance/fixtures/invalid/archive-bundle/missing-source-record.json": "30ff4c025203f4f7e57de1e3985eac9a7f165df82fed152c711b08826af65c87",
+    "conformance/fixtures/invalid/archive-bundle/unexpected-grant.json": "58247f772bd021213af56537f8eeaae5d08be2edcee41e1ddfd806deba854dd4",
+    "conformance/fixtures/invalid/archive-bundle/unsupported-version.json": "f63bf6667abb6c4b333015f85359fae7745464c43f1da452945b0e66baa890c4",
+    "conformance/fixtures/invalid/archive-bundle/wrong-record-type.json": "734bdb93509b1c686ef1e87021f9d827b8838fae56b718840eef3e3cded92dbe",
+    "conformance/fixtures/invalid/collaboration-artifact/empty-aim.json": "40ba7b16a1bc56760edb2fcca8279bb32b8ad8d6f0e0d4b4183ae8994b608f2c",
+    "conformance/fixtures/invalid/collaboration-decline/missing-target.json": "7056b4214df5724aaacd0d24bac6e2834a355749dbf6e9ff21b97f71047e64e3",
+    "conformance/fixtures/invalid/collaboration-objection/revision-zero.json": "4e5d17b71825215efa676d5af838a0758207d7803d4c7991821e1a2072f61ac1",
+    "conformance/fixtures/invalid/collaboration-withdrawal/missing-revision.json": "f5c2980478e77aedb0446a4447a4ae2304cc004262d48ffa34c8ac499f9c2c96",
+    "conformance/fixtures/invalid/event-page/invalid-nested-event.json": "46ac599e641330c63e5b384d246b7f4411f5b2e766c47f6a7aaffe8b26ee2918",
+    "conformance/fixtures/invalid/event-page/missing-cursor.json": "1ba83068febc435a3d77824566f68fda6570fb34182d1d2af95460d76c2a6d4b",
+    "conformance/fixtures/invalid/event/invalid-timestamp.json": "7edbc9d231ad4ed397312ed8767a862691c5a57173a3931c6a6ff115a6cc98af",
+    "conformance/fixtures/invalid/event/malformed-recorded-message.json": "0a435530d96c871b156442e49a476d491894477b3ded9943d4cf0e190f50a719",
+    "conformance/fixtures/invalid/event/redaction-with-content.json": "28c300c0a9a5d3b9c67bbdd17afcc71ba4cdad0586735226126c13e87ceb3bfb",
+    "conformance/fixtures/invalid/message/duplicate-recipient.json": "78e94f4cde77565ea044375415f6369d0bb57d139bd28494cbed7db005e30dc3",
+    "conformance/fixtures/invalid/problem/success-status.json": "f197e760954b77bf5c008e1106e7a2331921c7584ad505b90c307ffaa37f56f1",
+    "conformance/fixtures/invalid/receipt/false-delivery-claim.json": "4d2176ec6782df36353eef01a6b5788f6c2dce299e478327204cb842ebdafb6a",
+    "conformance/fixtures/invalid/world/invalid-endpoint-uri.json": "9e5bff6990c5dbcf42a5d679cd19c164521a0d4ddaa0bd85a48c559631a6a4ae",
+    "conformance/fixtures/invalid/world/missing-required-capability.json": "1fee02d5d07823448393b78dd7856a52d507e165d557eb1a507538aac113de87",
+    "conformance/fixtures/invalid/world/missing-submit-endpoint.json": "275f9f8fff005dd081708c3f88790771b2c169ffc73d762ec6c4b26b4efcb48b",
+    "conformance/fixtures/invalid/world/payload-limit-too-small.json": "e6e6de2441f8dc3fdda830a2181988028462b4966e9548d8fa722f1bafd29af9",
+    "conformance/fixtures/valid/action.json": "16f798aa86878e2688f76fc6f375d4a06f95ea0b1add45bd94664ec539e5c755",
+    "conformance/fixtures/valid/agent.json": "2d1b2a47cfb7e31e46c871f0f813a2f6360136832425dcc022d49d8e8efcea34",
+    "conformance/fixtures/valid/archive-bundle.json": "86ffad01c2ec5b64779834e862c468f2a61c464c9e56cf1b311c3bceb9bac72e",
+    "conformance/fixtures/valid/artifact.json": "57e13c6c906e4b9916424a859ed04b349b639add4283dab89cb8fadd857a4f8c",
+    "conformance/fixtures/valid/capabilities.json": "a67b955f9cfe493e42964be193cfebeed3039108ca3309a7bad8354a3f650121",
+    "conformance/fixtures/valid/collaboration-artifact.json": "cc22a405ad6db3b46ac3b0e9b1c800baa9ebacfa96db342efb83dad50bc07543",
+    "conformance/fixtures/valid/collaboration-decline.json": "d6d31359845e72428597393cda83bca0665f1beac5535e7e7c145f2773488118",
+    "conformance/fixtures/valid/collaboration-objection.json": "c80d8e552b4b789884794b1612e218258464b3255d165657315e687b91bd6f3a",
+    "conformance/fixtures/valid/collaboration-withdrawal.json": "1a0417ac54866337b3aa677454be52179dfbf414d0f8baeab6b96f0769f37eb4",
+    "conformance/fixtures/valid/envelope.json": "9319c1a2a9f5ddba4925a88cbce12f9a798aacdc8dd819dd195e41fd26296cd3",
+    "conformance/fixtures/valid/event-page.json": "4cc46cb15abde2907ff9c6806fe79776e0afb443020d9b2ff4be48d19fd12957",
+    "conformance/fixtures/valid/event.json": "841b85ab30c745f752833c73768fac7622529c8552708c427cc163481908e59d",
+    "conformance/fixtures/valid/message.json": "ee1e7a2d45b536e2ed5745ffb68e6b28e387df30421374841067ebc4011e555c",
+    "conformance/fixtures/valid/problem.json": "ebbc28c8590ec58b05fb038ffa20ba2f369c6d7a8f001e52981e1bb7ecac731b",
+    "conformance/fixtures/valid/receipt.json": "66c32af5f4019eb4e78d3c82154e21bd2887fe9578e78b0e64c4155010cc4aaf",
+    "conformance/fixtures/valid/world.json": "3e141fca8cfcd421157f2e2fae80cd127e4c732a3bd0ab6f885aac9573d3d9f7",
+    "conformance/runner/Cargo.toml": "37c2855b645f0ae348e657a4f1809eaf4782d6436030be070d56c3d127bcb749",
+    "conformance/runner/src/adversarial.rs": "400f5e3eb280763f55fec07a6488d12ec213d52ea94acb9173940c269a84db01",
+    "conformance/runner/src/adversarial/tests.rs": "29107252c46a864b8700d48cbf97fb9111dabd216b660ebbca59ea2bc6835726",
+    "conformance/runner/src/lib.rs": "7ac884c4a3859c405e2b5179f410d6777402528624e87de8aade1b4757f97656",
+    "conformance/runner/src/lifecycle.rs": "66248569ed09ee69fa00e18507d975caee140cbdad295ad956028fa74f0774ad",
+    "conformance/runner/src/lifecycle/mock_tests.rs": "6a2efdc7a36b3cd9d645e79b600dc0da1bd5b25b1569912e7c11c2f865d6e928",
+    "conformance/runner/src/lifecycle/tests.rs": "abce62c5f86cd93d99d87095c7b2acb2a610f1bb0e7a9ae4379561b9e65ba6e8",
+    "conformance/runner/src/main.rs": "36cb82abd9ebb8f955c6296fd2729f774270b414230fea33e4bac29b32c837f0",
+    "conformance/runner/src/revisions.rs": "9f9d866aa676aacf67cd929d4719a7cd1e73bd3717b8478f251964cd4914e097",
+    "conformance/runner/src/revisions/tests.rs": "9f411642a59734d36a41ea5cc0ca8bf0ba47270acae8486e37975786ca14cbbc",
+    "conformance/runner/src/tests.rs": "5b4480ae8e0c8109f9d6d2ad28c8fab5b6f3effd09d1890e70f8770676d4b6a5",
+    "conformance/runner/tests/cli_info.rs": "765d3eb161c8e142f3573c69b99de941fb20d8c19e40725bf9482b5cd938b2bd",
+    "docs/COLLABORATION_PROFILE.md": "08dc749305fbac325a8568557ef202b55ba7c59d78d187591dec3235856505d4",
+    "examples/http-commons/evidence.py": "18f1358553a22ead8d0cbe0e965a7785eec98fd871cb3242b6b2fd2432de31be",
+    "examples/http-commons/test_validate.py": "5a5a6e699232e48dfe3500958adf669f34e94915747f8b9787b81ad05291e882",
+    "examples/http-commons/validate.py": "7db578c5ceb9edbf5ceb1baf3cf971aedcd0643a0bbf2aa6bfff6e86382faa06",
+    "examples/http-commons/walk.py": "b6a2834ec7eb49ebf69ab1114f88418d0583a7e9bdf65b323ede741999ca602f",
+    "examples/inheritance/README.md": "d51cf45f49f01e2b9a7e3f266fe7de728aaeef91d6e4df201de5fed9b8e6f41b",
+    "examples/inheritance/after.json": "1968d5f3830aa4fb3a602165e98e5acda2f8f9344492d59084539fd590f0498b",
+    "examples/inheritance/before.json": "dc0a9bef0985d0a61cdd23a28a594aba24d4e5d7c2becd95aca7d59878aeaf0c",
+    "examples/inheritance/harness.py": "14c71f3653bd664946a510322202b4755a090f8bff27a834d065f82bbd50c11f",
+    "examples/inheritance/history.json": "5ffb51c4350bbfdc1fc3650372fbe6ff40c22faf99779c1408c0774a1496b6f3",
+    "examples/inheritance/host_source.py": "dbadd275d69523445f3a2f7037af46bfa51e6fa4cd6ad533ab896fa2d8dc4780",
+    "examples/inheritance/newcomer.py": "8091f1513e6f0cae3f6fb47fec287d950539d5ddb0fa9da9a70804c41492f1b0",
+    "examples/inheritance/oracle.py": "03143f9613084c163aa49b2767a29fc212d250fc87c0f625de598b79e315cecf",
+    "examples/inheritance/test_harness.py": "fc11f62aa9a505997003503d7622e5eede11533dcb277b7a984e13150285a0f3",
+    "examples/inheritance/test_host_source.py": "d1e1b34b326712e3d5a5ee4f5cc4068192546446cbc88fc780b0c499f7f903fb",
+    "examples/inheritance/test_newcomer.py": "20c837fe904e3ce25b1128ba2e495bf52e87d21c4c2347da8d4aa6017cd8da13",
+    "examples/inheritance/test_oracle.py": "04de7607f066e5daa8229043f1f3f22b99775f964c0a5679a25d72ccbc4808d6",
+    "examples/participants/README.md": "84cec9b2f29db26c818fbd61ba4a4d45c4da93086ce1246985c3ef01780f0366",
+    "examples/participants/collaboration.py": "fd7d7ecb155738d937cdc774c935727a8b4bd52eadef289faac67550074d2979",
+    "examples/participants/decision_loop.py": "d02f9dbd232c51a7807f1b0f532a09268c2610021fc2e644105e2aaf90574b1b",
+    "examples/participants/discovery.py": "70d2d9531ba6ffa9a2b226e05798062c8c0c9237e8998bec7691c210c7131dbf",
+    "examples/participants/durable_gathering.py": "994eb6ee077b2ce0945a384b5cba4d6980e7a111955ee05f2158ad993a81f21a",
+    "examples/participants/experiment.py": "36af709ba8b158c8d09f8d125f5eb635772f25cef7e54e6e46e18b15933e3d23",
+    "examples/participants/gathering.py": "fd0930a945daa59297a88ae7292f38edbd9f824bfe0c7c5ff75a9fa425d40468",
+    "examples/participants/local_participant.py": "2b05b826801b3b0562d69883836d48964a00a33099df41029706efadc493f244",
+    "examples/participants/loopback.py": "aa8291782ad927b3183666106342b511da61ff9b975cb103a097be32260d430b",
+    "examples/participants/mock_collaboration.py": "f9fe6229da113afe5e8fe5a28afef2a6084032c3b0b047299ab1d1632d39b456",
+    "examples/participants/mock_oracle.py": "8e2016595d166434ca05e24355bb60f52cf6a14b5761200ba27660bf9f2729e2",
+    "examples/participants/providers.py": "665d5f70e93255be742e29f5ce2ad98750730724c9b4dee66831ef5353478b2f",
+    "examples/participants/reader_collaboration.py": "a9bd62cb70ed894827513b721ddb0b326e72443a2290ea003eaa290612d73cfa",
+    "examples/participants/reader_evidence.py": "f2affac325229453d26c545cd21fd728089643c8e222a02318d2022ae7925074",
+    "examples/participants/test_collaboration.py": "5ffe2801068fde79fc0a09efc01dba5dad22db7d48f9d8f70fbd625b1eff0c8a",
+    "examples/participants/test_decision_loop.py": "e761baff5fe11e0313bb9ab8053c3f56ca6c0c6b6a1ab65c0baafd5786557cf8",
+    "examples/participants/test_discovery.py": "f2894206ff575e53bd2f08fe0e46baaa39b7bb9767bf6705b9cc8423b8953b94",
+    "examples/participants/test_durable_gathering.py": "54ab71bec68211c5fb55197099e51540e0debdd9f81c90c6c0e47c1a7e75cfcf",
+    "examples/participants/test_gathering.py": "7a0f76d97b6d6d232d91f4e96f6087b9d7e859124f6df6548e92c8046bfad7fa",
+    "examples/participants/test_local_participant.py": "222db7894804414a4c75e1e219bd7b5898c51e9b08fcbb51ac4961dd6b830955",
+    "examples/participants/test_loop_integration.py": "c4099331063080acb697ad7cc13d63a13cf70733052477b263d63c6bbfba9b6a",
+    "examples/participants/test_mock_collaboration.py": "2509b13e89afc81617314e006178ea0fc9257ef24f0430e27bba53675ca6ad18",
+    "examples/participants/test_mock_oracle.py": "ab85ed745278ed267b331561025195614c009c37f8f96ef5bb9454f4d654ab87",
+    "examples/participants/test_reader_collaboration.py": "9d757f66b44c3a8d4cccde239f69ad7fa3d6e9e5236fb9b019d55b71b05c2868",
+    "examples/participants/test_reader_diagnostics.py": "6239cdeed7bbc663f2ba8de162a0244d329a75bbeb628e3e992ec654866b4965",
+    "examples/participants/test_reader_evidence.py": "dbcd9e626b9f954deb9d42f57f5ba6c37519d7900d376722fe4825b29a3021a0",
+    "examples/participants/test_reader_repair.py": "7d367188eecdbfcc11ead9f560a79a3ebc440238e8e59c73128b3b0740fb91cc",
+    "implementations/http-commons-python/README.md": "d9a75deb85e1ddf15d95dbedab3b4d3c22e0e7cc452a15cef0a4a44997968be7",
+    "implementations/http-commons-python/host.py": "ab588e46ec2e05a462e533c8eab62bdf7f0a956a740a677d188428759c3a26ec",
+    "implementations/http-commons-python/test_host.py": "66ab94171e47cc9d43f21c98cfa9aa84d130ce7ec47cd2a40fc237c4618d356a",
+    "pyproject.toml": "8cb54ce9cb83400ada297fa8dd42d2c1c86a1a9d4d9b7c2c7a8d04a50960cdfd",
+    "reference/host/Cargo.toml": "9fca655c80930f5dc3e8b51932b25cc50e66c0e3137743e4b1bd1624307e179b",
+    "reference/host/README.md": "777ebd7677cbab1ed02578e711621e473edc5b3fbe4d1b440c9718acfcc22966",
+    "reference/host/src/bin/agentciv-runtime.rs": "7d60769bea56686d7c92c2f27173bfc6dece1fac45bab1690a537d6d890b6a55",
+    "reference/host/src/http.rs": "6315c9a171f06d03cc22dc629f26b225b562f791716ed0160b8afbea4a455e44",
+    "reference/host/src/lib.rs": "09f74cbf8871c64604a6bc4a73389d2f755cc2c032070ca9a79e1f870cf11aaa",
+    "reference/host/src/main.rs": "fe8585edb24e1b6b282f6ad83511cd2aeb72de9dffc9a6326d818487d908b5c8",
+    "reference/host/src/runtime.rs": "fbc8970491b8abd4380bcce1be8518f5270bd65521bd5f595031475968f632e1",
+    "reference/host/src/runtime/storage.rs": "a7e717f080acc1291c142009a8347ffb0c7dc2fbb03ceb5f6cbb41803c9a1c16",
+    "reference/host/src/runtime/tests.rs": "77ebd85a6ff80ef8e9e8bc44884514246f6b1e045b731124555dd270a767af92",
+    "reference/host/src/store.rs": "f0b9c08d6d398dee47f3b1ad5598ae9bb01766efd2395549f2998bb3a7826727",
+    "reference/host/src/tests.rs": "782a9566ed0a836175be11036516eeefd57393357f1376411fd488f0ad29b926",
+    "reference/host/src/validate.rs": "ab32d432fc799342d52ab60860ee3f6c05b6063ad77f19d702b877906fce35bf",
+    "reference/host/tests/cli_info.rs": "3170097ee6624bf0fc17132df384ec7ec99488e80e07b0340a708c332b565b8e",
+    "reference/host/tests/restart.rs": "61157660121b3fa84db7b36e2728def2d8f956ddd2006629e541eb2b50422bce",
+    "reference/host/tests/runtime_cli.rs": "4218038e87dfc820ab6bf7ecc78c4e9c53e3afd9abb0d029d626802bff7ea26e",
+    "reference/host/tests/runtime_process.rs": "fb92164a2541a082439ba30490fa94c1907c354f01bcce4d57e0b3213fb8eacd",
+    "rust-toolchain.toml": "dae18a8743f89707783c1d873595570f29618d0c20f022f8dced263982bba74e",
+    "schemas/README.md": "e5e07c2d7b502ea7eea13d02df30dab1768e3eef126ae7f254cbad056e3d578f",
+    "schemas/action.schema.json": "4b9abe9624af9b385adc50ef01d2ebe131707c8c81cae3ec330cf0cbaf3341d2",
+    "schemas/agent.schema.json": "1809fd2f27f90d8df9e9a317a6115595d0f9da8c7205202762b843bf12832df8",
+    "schemas/archive-bundle.schema.json": "ef0dc584bc842e8e5ff5af017854539571e2d9ea77e5c6a3848bb6cb4407b782",
+    "schemas/artifact.schema.json": "cfa388bbbe23072d007b74111c615e16f077778a12cc885ffecccad1e8f5060f",
+    "schemas/capabilities.schema.json": "ee7a49af409568a07eab5186e780977315ea603aa87b57368f1ba7efea2d017d",
+    "schemas/collaboration-artifact.schema.json": "0ba281bff19d74d462d59876711bcbd29b071767f19ba122adb67ae232e5e0cc",
+    "schemas/collaboration-decline.schema.json": "2d20af3b4386c4b49eacbe0631e73712903dc8bb560005aae36e01c0e314e716",
+    "schemas/collaboration-objection.schema.json": "2a310dea52fa971507da3dc76f4799d1809aefc405691bd24189b96fa0a4b84b",
+    "schemas/collaboration-withdrawal.schema.json": "a3e67c43c4c5f2cce605fdbfdfbf9ca4142bf9cde35051d0cba006d85d1bf316",
+    "schemas/envelope.schema.json": "66f5d960bd0f0557e0dce7ca70a6946c0397b439146805ff89e4278670e30266",
+    "schemas/event-page.schema.json": "39b662cfa2f6218c5da24f263870650f7bfa7d3c5aa20b82bddd588737d42e86",
+    "schemas/event.schema.json": "d754f7ce2ac0b3f1f4a01f1ba00f0cabede90ee20e4b294c2f533de47d7d39e1",
+    "schemas/message.schema.json": "925f154cf0c3fdc72f58acd881ac54721179d5fcfd887a9211d9b1f55463bd35",
+    "schemas/problem.schema.json": "51cc00adf5c120911695967c91b4676521b36f7b756135f90bdfc0ce0a3e065a",
+    "schemas/receipt.schema.json": "5c1fc88a94fa2571e373854e8d075a0eec77c67075e527152cc87806d3e540f8",
+    "schemas/world.schema.json": "5022527474bad6466b5e11d141290f82b83f9837dc538a9c4a218c05b126b8b6",
+    "tools/agentciv-archive/Cargo.toml": "077b5687fc2d99535a59871b17fcf0aa677bd0e71cb89971d7f7de71649a5c3a",
+    "tools/agentciv-archive/src/json.rs": "d64eb0acd57e357f594b226baea7d6a1d5ab491dcf5cd2570078b75b149fc037",
+    "tools/agentciv-archive/src/lib.rs": "2cf875e0fc36e2782c5bc6308b2ed8b6ada396cb9ce62e35d791d4ffd7e5b3c7",
+    "tools/agentciv-archive/src/main.rs": "9d566447a435629d8f250dc775a64a92c62e8bddee7fe88db4592802c7d3c008",
+    "tools/agentciv-archive/tests/archive.rs": "030c5488ec3d73fe36a20b9ec3ad0a2e8df5d760f6c401ad2ae154a2e1f0e4a1",
+    "tools/agentciv-archive/tests/cli.rs": "1b4f72537e98cc72a43a193241ef4f7b98736e5ecd792cac337c18eb5fd8c083",
+    "tools/agentciv-archive/tests/precision.rs": "942ebcbd698f34b54a9b80839b91330832a04cd1afe9138ca1e8397a1fd4f2e6",
+    "tools/agentciv-reader/Cargo.toml": "039071eed78d48c42ea04ba53c739d938c1aeb760022cfca07b9c63940287668",
+    "tools/agentciv-reader/README.md": "1afd0a5cb91a3117af928b6d40df92d29bbc186629624c3aedee2996eba431a4",
+    "tools/agentciv-reader/fixtures/offer-invalid.json": "a83bdca4c611a1a41a1e2c7f3a3b6beb9541233b8fc302739124ee6a299b5bd3",
+    "tools/agentciv-reader/fixtures/offer-valid.json": "3fd5021e50c077b6506907fc1d634208cf494f291acc60294029e44b2fd017dc",
+    "tools/agentciv-reader/src/http.rs": "2d9ac83a2a3391305dbfddbb883cb86886c80c69ca3bebd5fb15818559ad0f9f",
+    "tools/agentciv-reader/src/http/tests.rs": "23be19df644f6689063474397704d685ccef84338223c17eccf74fa1dec0c011",
+    "tools/agentciv-reader/src/lib.rs": "eab64b5b8df0cb0629da9b0650cdde714e09e5b7815216b5e470743e6477f2ee",
+    "tools/agentciv-reader/src/main.rs": "e89976547cf8a7eccb9a822e7a50206f19db83fb77c6514d17dfd856d2d31a18",
+    "tools/agentciv-reader/src/offers.rs": "8a0f7d72395be73c6fffd577254cb026c660f09c06223e549af7c0827156880f",
+    "tools/agentciv-reader/src/offers/tests.rs": "c92719aa92c9bbff864be5476904d4eaba18ce53243a6707520c9f51c63cc822",
+    "tools/agentciv-reader/src/tests.rs": "61a3b956cc1a28293351e20f9ea65b9af43ec6e8e77ac0f3a01650bac1cc6b13",
+    "tools/agentciv-reader/tests/cli.rs": "f08987b05e564bd8ff8cbbfc877315cbf1101ca71a95d8cf06cebe27cf7ff87f"
+  },
+  "source_changed_during_run": false,
+  "python_version": "3.14.7 (tags/v3.14.7:823f032, Aug  5 2026, 10:51:32) [MSC v.1944 64 bit (AMD64)]",
+  "rustc_version": "rustc 1.98.1 (48a229cea 2026-09-01)",
+  "recorded_at": "2026-10-08T16:05:40.486888+00:00",
+  "results": [
+    {
+      "implementation": "python",
+      "visibility": "members",
+      "report": {
+        "cases": [
+          {
+            "detail": "",
+            "id": "discovery.url",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "discovery.record",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "endpoints.origin",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "events.authentication",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.authentication",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "events.authorized",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.recorded",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.retry",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.conflict",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "events.recorded",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.forbidden",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.unsupported_version",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.malformed_json",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.wrong_world",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.from_mismatch",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.unsupported_record_type",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.unsupported_media_type",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.payload_too_large",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.json_charset",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "events.invalid_cursor",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "events.empty_cursor",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "events.foreign_cursor",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "events.visibility",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "events.pagination",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.concurrent_retry",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.concurrent_conflict",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.concurrent_distinct",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "members visibility cannot construct a hidden revision; run a separate addressed or sender_only world",
+            "id": "collaborate.hidden_visibility",
+            "required": false,
+            "status": "skipped"
+          },
+          {
+            "detail": "members visibility cannot construct a hidden revision; run a separate addressed or sender_only world",
+            "id": "collaborate.hidden_derivation",
+            "required": false,
+            "status": "skipped"
+          },
+          {
+            "detail": "members visibility cannot construct a hidden revision; run a separate addressed or sender_only world",
+            "id": "collaborate.hidden_objection",
+            "required": false,
+            "status": "skipped"
+          },
+          {
+            "detail": "members visibility cannot construct a hidden revision; run a separate addressed or sender_only world",
+            "id": "collaborate.hidden_decline",
+            "required": false,
+            "status": "skipped"
+          },
+          {
+            "detail": "members visibility cannot construct a hidden revision; run a separate addressed or sender_only world",
+            "id": "collaborate.hidden_withdrawal",
+            "required": false,
+            "status": "skipped"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.client_revision",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.forbidden",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.unauthenticated",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.payload_too_large",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.unsupported_media_type",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.malformed_json",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.unsupported_version",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.unsupported_record_type",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.partial_note",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.wrong_world",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.from_mismatch",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.revision_sequence",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.revision_sequence_rejection",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.revision_sequence_retry",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.revision",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.retry",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.json_charset",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.conflict",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.objection",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.decline",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.absent_revision",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.withdrawal_forbidden",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.withdrawal",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.withdrawn_citation",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.unknown_target",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.other_chain",
+            "required": true,
+            "status": "passed"
+          }
+        ],
+        "profile": "http-commons/0.1-draft",
+        "runner_scope": "credentialed-extended",
+        "summary": {
+          "failed": 0,
+          "passed": 53,
+          "skipped": 5
+        }
+      }
+    },
+    {
+      "implementation": "python",
+      "visibility": "addressed",
+      "report": {
+        "cases": [
+          {
+            "detail": "",
+            "id": "discovery.url",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "discovery.record",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "endpoints.origin",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "events.authentication",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.authentication",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "events.authorized",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.recorded",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.retry",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.conflict",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "events.recorded",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.forbidden",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.unsupported_version",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.malformed_json",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.wrong_world",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.from_mismatch",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.unsupported_record_type",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.unsupported_media_type",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.payload_too_large",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.json_charset",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "events.invalid_cursor",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "events.empty_cursor",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "events.foreign_cursor",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "events.visibility",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "events.pagination",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.concurrent_retry",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.concurrent_conflict",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.concurrent_distinct",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.hidden_visibility",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.hidden_derivation",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.hidden_objection",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.hidden_decline",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.hidden_withdrawal",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.client_revision",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.forbidden",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.unauthenticated",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.payload_too_large",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.unsupported_media_type",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.malformed_json",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.unsupported_version",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.unsupported_record_type",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.partial_note",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.wrong_world",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.from_mismatch",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.revision_sequence",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.revision_sequence_rejection",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.revision_sequence_retry",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.revision",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.retry",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.json_charset",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.conflict",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.objection",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.decline",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.absent_revision",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.withdrawal_forbidden",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.withdrawal",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.withdrawn_citation",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.unknown_target",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.other_chain",
+            "required": true,
+            "status": "passed"
+          }
+        ],
+        "profile": "http-commons/0.1-draft",
+        "runner_scope": "credentialed-extended",
+        "summary": {
+          "failed": 0,
+          "passed": 58,
+          "skipped": 0
+        }
+      }
+    },
+    {
+      "implementation": "python",
+      "visibility": "sender_only",
+      "report": {
+        "cases": [
+          {
+            "detail": "",
+            "id": "discovery.url",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "discovery.record",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "endpoints.origin",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "events.authentication",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.authentication",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "events.authorized",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.recorded",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.retry",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.conflict",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "events.recorded",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.forbidden",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.unsupported_version",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.malformed_json",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.wrong_world",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.from_mismatch",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.unsupported_record_type",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.unsupported_media_type",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.payload_too_large",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.json_charset",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "events.invalid_cursor",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "events.empty_cursor",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "events.foreign_cursor",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "events.visibility",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "events.pagination",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.concurrent_retry",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.concurrent_conflict",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.concurrent_distinct",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.hidden_visibility",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.hidden_derivation",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.hidden_objection",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.hidden_decline",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.hidden_withdrawal",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.client_revision",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.forbidden",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.unauthenticated",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.payload_too_large",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.unsupported_media_type",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.malformed_json",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.unsupported_version",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.unsupported_record_type",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.partial_note",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.wrong_world",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.from_mismatch",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.revision_sequence",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.revision_sequence_rejection",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.revision_sequence_retry",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.revision",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.retry",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.json_charset",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.conflict",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.objection",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.decline",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.absent_revision",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.withdrawal_forbidden",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.withdrawal",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.withdrawn_citation",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.unknown_target",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.other_chain",
+            "required": true,
+            "status": "passed"
+          }
+        ],
+        "profile": "http-commons/0.1-draft",
+        "runner_scope": "credentialed-extended",
+        "summary": {
+          "failed": 0,
+          "passed": 58,
+          "skipped": 0
+        }
+      }
+    },
+    {
+      "implementation": "rust",
+      "visibility": "members",
+      "report": {
+        "cases": [
+          {
+            "detail": "",
+            "id": "discovery.url",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "discovery.record",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "endpoints.origin",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "events.authentication",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.authentication",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "events.authorized",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.recorded",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.retry",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.conflict",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "events.recorded",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.forbidden",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.unsupported_version",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.malformed_json",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.wrong_world",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.from_mismatch",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.unsupported_record_type",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.unsupported_media_type",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.payload_too_large",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.json_charset",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "events.invalid_cursor",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "events.empty_cursor",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "events.foreign_cursor",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "events.visibility",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "events.pagination",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.concurrent_retry",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.concurrent_conflict",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.concurrent_distinct",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "members visibility cannot construct a hidden revision; run a separate addressed or sender_only world",
+            "id": "collaborate.hidden_visibility",
+            "required": false,
+            "status": "skipped"
+          },
+          {
+            "detail": "members visibility cannot construct a hidden revision; run a separate addressed or sender_only world",
+            "id": "collaborate.hidden_derivation",
+            "required": false,
+            "status": "skipped"
+          },
+          {
+            "detail": "members visibility cannot construct a hidden revision; run a separate addressed or sender_only world",
+            "id": "collaborate.hidden_objection",
+            "required": false,
+            "status": "skipped"
+          },
+          {
+            "detail": "members visibility cannot construct a hidden revision; run a separate addressed or sender_only world",
+            "id": "collaborate.hidden_decline",
+            "required": false,
+            "status": "skipped"
+          },
+          {
+            "detail": "members visibility cannot construct a hidden revision; run a separate addressed or sender_only world",
+            "id": "collaborate.hidden_withdrawal",
+            "required": false,
+            "status": "skipped"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.client_revision",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.forbidden",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.unauthenticated",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.payload_too_large",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.unsupported_media_type",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.malformed_json",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.unsupported_version",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.unsupported_record_type",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.partial_note",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.wrong_world",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.from_mismatch",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.revision_sequence",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.revision_sequence_rejection",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.revision_sequence_retry",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.revision",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.retry",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.json_charset",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.conflict",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.objection",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.decline",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.absent_revision",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.withdrawal_forbidden",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.withdrawal",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.withdrawn_citation",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.unknown_target",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.other_chain",
+            "required": true,
+            "status": "passed"
+          }
+        ],
+        "profile": "http-commons/0.1-draft",
+        "runner_scope": "credentialed-extended",
+        "summary": {
+          "failed": 0,
+          "passed": 53,
+          "skipped": 5
+        }
+      }
+    },
+    {
+      "implementation": "rust",
+      "visibility": "addressed",
+      "report": {
+        "cases": [
+          {
+            "detail": "",
+            "id": "discovery.url",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "discovery.record",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "endpoints.origin",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "events.authentication",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.authentication",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "events.authorized",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.recorded",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.retry",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.conflict",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "events.recorded",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.forbidden",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.unsupported_version",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.malformed_json",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.wrong_world",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.from_mismatch",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.unsupported_record_type",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.unsupported_media_type",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.payload_too_large",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.json_charset",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "events.invalid_cursor",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "events.empty_cursor",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "events.foreign_cursor",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "events.visibility",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "events.pagination",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.concurrent_retry",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.concurrent_conflict",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.concurrent_distinct",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.hidden_visibility",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.hidden_derivation",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.hidden_objection",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.hidden_decline",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.hidden_withdrawal",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.client_revision",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.forbidden",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.unauthenticated",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.payload_too_large",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.unsupported_media_type",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.malformed_json",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.unsupported_version",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.unsupported_record_type",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.partial_note",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.wrong_world",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.from_mismatch",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.revision_sequence",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.revision_sequence_rejection",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.revision_sequence_retry",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.revision",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.retry",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.json_charset",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.conflict",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.objection",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.decline",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.absent_revision",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.withdrawal_forbidden",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.withdrawal",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.withdrawn_citation",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.unknown_target",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.other_chain",
+            "required": true,
+            "status": "passed"
+          }
+        ],
+        "profile": "http-commons/0.1-draft",
+        "runner_scope": "credentialed-extended",
+        "summary": {
+          "failed": 0,
+          "passed": 58,
+          "skipped": 0
+        }
+      }
+    },
+    {
+      "implementation": "rust",
+      "visibility": "sender_only",
+      "report": {
+        "cases": [
+          {
+            "detail": "",
+            "id": "discovery.url",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "discovery.record",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "endpoints.origin",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "events.authentication",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.authentication",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "events.authorized",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.recorded",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.retry",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.conflict",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "events.recorded",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.forbidden",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.unsupported_version",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.malformed_json",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.wrong_world",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.from_mismatch",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.unsupported_record_type",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.unsupported_media_type",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.payload_too_large",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.json_charset",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "events.invalid_cursor",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "events.empty_cursor",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "events.foreign_cursor",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "events.visibility",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "events.pagination",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.concurrent_retry",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.concurrent_conflict",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "submit.concurrent_distinct",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.hidden_visibility",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.hidden_derivation",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.hidden_objection",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.hidden_decline",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.hidden_withdrawal",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.client_revision",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.forbidden",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.unauthenticated",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.payload_too_large",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.unsupported_media_type",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.malformed_json",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.unsupported_version",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.unsupported_record_type",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.partial_note",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.wrong_world",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.from_mismatch",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.revision_sequence",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.revision_sequence_rejection",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.revision_sequence_retry",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.revision",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.retry",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.json_charset",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.conflict",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.objection",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.decline",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.absent_revision",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.withdrawal_forbidden",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.withdrawal",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.withdrawn_citation",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.unknown_target",
+            "required": true,
+            "status": "passed"
+          },
+          {
+            "detail": "",
+            "id": "collaborate.other_chain",
+            "required": true,
+            "status": "passed"
+          }
+        ],
+        "profile": "http-commons/0.1-draft",
+        "runner_scope": "credentialed-extended",
+        "summary": {
+          "failed": 0,
+          "passed": 58,
+          "skipped": 0
+        }
+      }
+    }
+  ],
+  "lifecycle": [
+    {
+      "implementation": "python",
+      "operator_actions": [
+        "restart",
+        "visibility_to_sender_only"
+      ],
+      "reports": [
+        {
+          "phase": "prepare",
+          "report": {
+            "cases": [
+              {
+                "detail": "",
+                "id": "lifecycle.world",
+                "required": true,
+                "status": "passed"
+              },
+              {
+                "detail": "",
+                "id": "lifecycle.fresh",
+                "required": true,
+                "status": "passed"
+              },
+              {
+                "detail": "",
+                "id": "lifecycle.seed",
+                "required": true,
+                "status": "passed"
+              },
+              {
+                "detail": "",
+                "id": "lifecycle.checkpoint",
+                "required": true,
+                "status": "passed"
+              },
+              {
+                "detail": "",
+                "id": "lifecycle.collaboration",
+                "required": true,
+                "status": "passed"
+              }
+            ],
+            "profile": "http-commons/0.1-draft",
+            "runner_scope": "lifecycle-prepare",
+            "summary": {
+              "failed": 0,
+              "passed": 5,
+              "skipped": 0
+            }
+          }
+        },
+        {
+          "phase": "verify",
+          "report": {
+            "cases": [
+              {
+                "detail": "",
+                "id": "lifecycle.world",
+                "required": true,
+                "status": "passed"
+              },
+              {
+                "detail": "",
+                "id": "restart.history",
+                "required": true,
+                "status": "passed"
+              },
+              {
+                "detail": "",
+                "id": "restart.cursor",
+                "required": true,
+                "status": "passed"
+              },
+              {
+                "detail": "",
+                "id": "restart.retry",
+                "required": true,
+                "status": "passed"
+              },
+              {
+                "detail": "",
+                "id": "restart.no_duplicate",
+                "required": true,
+                "status": "passed"
+              },
+              {
+                "detail": "",
+                "id": "restart.revision_sequence",
+                "required": true,
+                "status": "passed"
+              },
+              {
+                "detail": "",
+                "id": "lifecycle.collaboration",
+                "required": true,
+                "status": "passed"
+              }
+            ],
+            "profile": "http-commons/0.1-draft",
+            "runner_scope": "lifecycle-verify",
+            "summary": {
+              "failed": 0,
+              "passed": 7,
+              "skipped": 0
+            }
+          }
+        },
+        {
+          "phase": "policy",
+          "report": {
+            "cases": [
+              {
+                "detail": "",
+                "id": "lifecycle.world",
+                "required": true,
+                "status": "passed"
+              },
+              {
+                "detail": "",
+                "id": "policy.cursor_expired",
+                "required": true,
+                "status": "passed"
+              },
+              {
+                "detail": "",
+                "id": "policy.visibility",
+                "required": true,
+                "status": "passed"
+              },
+              {
+                "detail": "",
+                "id": "lifecycle.collaboration",
+                "required": true,
+                "status": "passed"
+              }
+            ],
+            "profile": "http-commons/0.1-draft",
+            "runner_scope": "lifecycle-policy",
+            "summary": {
+              "failed": 0,
+              "passed": 4,
+              "skipped": 0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "implementation": "rust",
+      "operator_actions": [
+        "restart",
+        "visibility_to_sender_only"
+      ],
+      "reports": [
+        {
+          "phase": "prepare",
+          "report": {
+            "cases": [
+              {
+                "detail": "",
+                "id": "lifecycle.world",
+                "required": true,
+                "status": "passed"
+              },
+              {
+                "detail": "",
+                "id": "lifecycle.fresh",
+                "required": true,
+                "status": "passed"
+              },
+              {
+                "detail": "",
+                "id": "lifecycle.seed",
+                "required": true,
+                "status": "passed"
+              },
+              {
+                "detail": "",
+                "id": "lifecycle.checkpoint",
+                "required": true,
+                "status": "passed"
+              },
+              {
+                "detail": "",
+                "id": "lifecycle.collaboration",
+                "required": true,
+                "status": "passed"
+              }
+            ],
+            "profile": "http-commons/0.1-draft",
+            "runner_scope": "lifecycle-prepare",
+            "summary": {
+              "failed": 0,
+              "passed": 5,
+              "skipped": 0
+            }
+          }
+        },
+        {
+          "phase": "verify",
+          "report": {
+            "cases": [
+              {
+                "detail": "",
+                "id": "lifecycle.world",
+                "required": true,
+                "status": "passed"
+              },
+              {
+                "detail": "",
+                "id": "restart.history",
+                "required": true,
+                "status": "passed"
+              },
+              {
+                "detail": "",
+                "id": "restart.cursor",
+                "required": true,
+                "status": "passed"
+              },
+              {
+                "detail": "",
+                "id": "restart.retry",
+                "required": true,
+                "status": "passed"
+              },
+              {
+                "detail": "",
+                "id": "restart.no_duplicate",
+                "required": true,
+                "status": "passed"
+              },
+              {
+                "detail": "",
+                "id": "restart.revision_sequence",
+                "required": true,
+                "status": "passed"
+              },
+              {
+                "detail": "",
+                "id": "lifecycle.collaboration",
+                "required": true,
+                "status": "passed"
+              }
+            ],
+            "profile": "http-commons/0.1-draft",
+            "runner_scope": "lifecycle-verify",
+            "summary": {
+              "failed": 0,
+              "passed": 7,
+              "skipped": 0
+            }
+          }
+        },
+        {
+          "phase": "policy",
+          "report": {
+            "cases": [
+              {
+                "detail": "",
+                "id": "lifecycle.world",
+                "required": true,
+                "status": "passed"
+              },
+              {
+                "detail": "",
+                "id": "policy.cursor_expired",
+                "required": true,
+                "status": "passed"
+              },
+              {
+                "detail": "",
+                "id": "policy.visibility",
+                "required": true,
+                "status": "passed"
+              },
+              {
+                "detail": "",
+                "id": "lifecycle.collaboration",
+                "required": true,
+                "status": "passed"
+              }
+            ],
+            "profile": "http-commons/0.1-draft",
+            "runner_scope": "lifecycle-policy",
+            "summary": {
+              "failed": 0,
+              "passed": 4,
+              "skipped": 0
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,111 @@
+{
+  "world": "civ:durable-gathering",
+  "representation": "decoded_permitted_http_events_not_exact_response_bytes",
+  "copying_conditions": "operator_authorized_synthetic_fixture_only",
+  "events": [
+    {
+      "actor": "agent:durable-a",
+      "body": {
+        "message": {
+          "body": {
+            "decision_source": "scripted",
+            "text": "I propose a walk. Participation is optional."
+          },
+          "from": "agent:durable-a",
+          "id": "message:walk",
+          "protocol_version": "0.1-draft",
+          "to": [
+            "agent:durable-observer"
+          ],
+          "type": "message",
+          "world": "civ:durable-gathering"
+        }
+      },
+      "id": "event:ff42d9d1ab3b4cb7458b9681488f0087",
+      "kind": "message.recorded",
+      "protocol_version": "0.1-draft",
+      "sequence": 1,
+      "timestamp": "2026-10-08T16:05:51Z",
+      "type": "event",
+      "world": "civ:durable-gathering"
+    },
+    {
+      "actor": "agent:durable-b",
+      "body": {
+        "message": {
+          "body": {
+            "decision_source": "scripted",
+            "text": "I propose a song. It may stay unfinished."
+          },
+          "from": "agent:durable-b",
+          "id": "message:song",
+          "protocol_version": "0.1-draft",
+          "to": [
+            "agent:durable-observer"
+          ],
+          "type": "message",
+          "world": "civ:durable-gathering"
+        }
+      },
+      "id": "event:ccc04570cc495f617eb760b7c2c93fe2",
+      "kind": "message.recorded",
+      "protocol_version": "0.1-draft",
+      "sequence": 2,
+      "timestamp": "2026-10-08T16:05:52Z",
+      "type": "event",
+      "world": "civ:durable-gathering"
+    },
+    {
+      "actor": "agent:durable-b",
+      "body": {
+        "message": {
+          "body": {
+            "decision_source": "scripted",
+            "text": "I can continue my own song while the walk is stopped."
+          },
+          "from": "agent:durable-b",
+          "id": "message:volunteer",
+          "protocol_version": "0.1-draft",
+          "to": [
+            "agent:durable-observer"
+          ],
+          "type": "message",
+          "world": "civ:durable-gathering"
+        }
+      },
+      "id": "event:d09397eacf9c7fae295e2172b758e1ab",
+      "kind": "message.recorded",
+      "protocol_version": "0.1-draft",
+      "sequence": 3,
+      "timestamp": "2026-10-08T16:05:54Z",
+      "type": "event",
+      "world": "civ:durable-gathering"
+    },
+    {
+      "actor": "agent:durable-a",
+      "body": {
+        "message": {
+          "body": {
+            "decision_source": "scripted",
+            "text": "I explicitly return to the optional walk."
+          },
+          "from": "agent:durable-a",
+          "id": "message:return",
+          "protocol_version": "0.1-draft",
+          "to": [
+            "agent:durable-observer"
+          ],
+          "type": "message",
+          "world": "civ:durable-gathering"
+        }
+      },
+      "id": "event:d60b26a5bd429b32e72d9be536cc02fd",
+      "kind": "message.recorded",
+      "protocol_version": "0.1-draft",
+      "sequence": 4,
+      "timestamp": "2026-10-08T16:05:54Z",
+      "type": "event",
+      "world": "civ:durable-gathering"
+    }
+  ]
+}

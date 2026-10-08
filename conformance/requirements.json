@@ -1108,7 +1108,10 @@
         "case:collaborate.other_chain",
         "test:rust-collaboration",
         "schema:collaboration-artifact",
-        "fixture:collaboration-artifact"
+        "fixture:collaboration-artifact",
+        "case:collaborate.revision_sequence",
+        "case:collaborate.revision_sequence_retry",
+        "case:collaborate.revision_sequence_rejection"
       ],
       "observations": [
         "obs:python:members:collaborate.other_chain",
@@ -1116,7 +1119,25 @@
         "obs:python:sender_only:collaborate.other_chain",
         "obs:rust:members:collaborate.other_chain",
         "obs:rust:addressed:collaborate.other_chain",
-        "obs:rust:sender_only:collaborate.other_chain"
+        "obs:rust:sender_only:collaborate.other_chain",
+        "obs:revisions-2026-10-08:python:members:collaborate.revision_sequence",
+        "obs:revisions-2026-10-08:python:members:collaborate.revision_sequence_retry",
+        "obs:revisions-2026-10-08:python:members:collaborate.revision_sequence_rejection",
+        "obs:revisions-2026-10-08:python:addressed:collaborate.revision_sequence",
+        "obs:revisions-2026-10-08:python:addressed:collaborate.revision_sequence_retry",
+        "obs:revisions-2026-10-08:python:addressed:collaborate.revision_sequence_rejection",
+        "obs:revisions-2026-10-08:python:sender_only:collaborate.revision_sequence",
+        "obs:revisions-2026-10-08:python:sender_only:collaborate.revision_sequence_retry",
+        "obs:revisions-2026-10-08:python:sender_only:collaborate.revision_sequence_rejection",
+        "obs:revisions-2026-10-08:rust:members:collaborate.revision_sequence",
+        "obs:revisions-2026-10-08:rust:members:collaborate.revision_sequence_retry",
+        "obs:revisions-2026-10-08:rust:members:collaborate.revision_sequence_rejection",
+        "obs:revisions-2026-10-08:rust:addressed:collaborate.revision_sequence",
+        "obs:revisions-2026-10-08:rust:addressed:collaborate.revision_sequence_retry",
+        "obs:revisions-2026-10-08:rust:addressed:collaborate.revision_sequence_rejection",
+        "obs:revisions-2026-10-08:rust:sender_only:collaborate.revision_sequence",
+        "obs:revisions-2026-10-08:rust:sender_only:collaborate.revision_sequence_retry",
+        "obs:revisions-2026-10-08:rust:sender_only:collaborate.revision_sequence_rejection"
       ],
       "gaps": [
         "gap:revision-increment",
@@ -1136,7 +1157,11 @@
         "case:events.visibility",
         "test:python-collaboration",
         "schema:collaboration-artifact",
-        "fixture:collaboration-artifact"
+        "fixture:collaboration-artifact",
+        "case:collaborate.revision_sequence",
+        "case:collaborate.revision_sequence_retry",
+        "case:collaborate.revision_sequence_rejection",
+        "case:restart.revision_sequence"
       ],
       "observations": [
         "obs:python:members:events.visibility",
@@ -1156,7 +1181,27 @@
         "obs:rust:addressed:collaborate.revision",
         "obs:rust:sender_only:events.visibility",
         "obs:rust:sender_only:collaborate.client_revision",
-        "obs:rust:sender_only:collaborate.revision"
+        "obs:rust:sender_only:collaborate.revision",
+        "obs:revisions-2026-10-08:python:members:collaborate.revision_sequence",
+        "obs:revisions-2026-10-08:python:members:collaborate.revision_sequence_retry",
+        "obs:revisions-2026-10-08:python:members:collaborate.revision_sequence_rejection",
+        "obs:revisions-2026-10-08:python:addressed:collaborate.revision_sequence",
+        "obs:revisions-2026-10-08:python:addressed:collaborate.revision_sequence_retry",
+        "obs:revisions-2026-10-08:python:addressed:collaborate.revision_sequence_rejection",
+        "obs:revisions-2026-10-08:python:sender_only:collaborate.revision_sequence",
+        "obs:revisions-2026-10-08:python:sender_only:collaborate.revision_sequence_retry",
+        "obs:revisions-2026-10-08:python:sender_only:collaborate.revision_sequence_rejection",
+        "obs:revisions-2026-10-08:rust:members:collaborate.revision_sequence",
+        "obs:revisions-2026-10-08:rust:members:collaborate.revision_sequence_retry",
+        "obs:revisions-2026-10-08:rust:members:collaborate.revision_sequence_rejection",
+        "obs:revisions-2026-10-08:rust:addressed:collaborate.revision_sequence",
+        "obs:revisions-2026-10-08:rust:addressed:collaborate.revision_sequence_retry",
+        "obs:revisions-2026-10-08:rust:addressed:collaborate.revision_sequence_rejection",
+        "obs:revisions-2026-10-08:rust:sender_only:collaborate.revision_sequence",
+        "obs:revisions-2026-10-08:rust:sender_only:collaborate.revision_sequence_retry",
+        "obs:revisions-2026-10-08:rust:sender_only:collaborate.revision_sequence_rejection",
+        "obs:revisions-2026-10-08:python:verify:restart.revision_sequence",
+        "obs:revisions-2026-10-08:rust:verify:restart.revision_sequence"
       ],
       "gaps": [
         "gap:revision-increment"
@@ -1590,7 +1635,8 @@
         "test:rust-transaction",
         "test:python-collaboration",
         "schema:receipt",
-        "fixture:receipt"
+        "fixture:receipt",
+        "case:restart.revision_sequence"
       ],
       "observations": [
         "obs:python:members:collaborate.revision",
@@ -1616,7 +1662,9 @@
         "obs:rust:sender_only:collaborate.revision",
         "obs:rust:sender_only:collaborate.objection",
         "obs:rust:sender_only:collaborate.decline",
-        "obs:rust:sender_only:collaborate.withdrawal"
+        "obs:rust:sender_only:collaborate.withdrawal",
+        "obs:revisions-2026-10-08:python:verify:restart.revision_sequence",
+        "obs:revisions-2026-10-08:rust:verify:restart.revision_sequence"
       ],
       "gaps": [
         "gap:crash-recovery"
@@ -1636,7 +1684,8 @@
         "case:collaborate.withdrawal",
         "test:rust-collaboration",
         "schema:event-page",
-        "fixture:event-page"
+        "fixture:event-page",
+        "case:restart.revision_sequence"
       ],
       "observations": [
         "obs:python:members:collaborate.revision",
@@ -1662,7 +1711,9 @@
         "obs:rust:sender_only:collaborate.revision",
         "obs:rust:sender_only:collaborate.objection",
         "obs:rust:sender_only:collaborate.decline",
-        "obs:rust:sender_only:collaborate.withdrawal"
+        "obs:rust:sender_only:collaborate.withdrawal",
+        "obs:revisions-2026-10-08:python:verify:restart.revision_sequence",
+        "obs:revisions-2026-10-08:rust:verify:restart.revision_sequence"
       ],
       "gaps": [
         "gap:unknown-event-reader"
@@ -2762,6 +2813,30 @@
       "kind": "setup",
       "path": "docs/CONTINUITY_NOTES.md",
       "anchor": "continuity_note"
+    },
+    {
+      "id": "case:collaborate.revision_sequence",
+      "kind": "public_case",
+      "path": "conformance/runner/src/revisions.rs",
+      "anchor": "\"collaborate.revision_sequence\""
+    },
+    {
+      "id": "case:collaborate.revision_sequence_retry",
+      "kind": "public_case",
+      "path": "conformance/runner/src/revisions.rs",
+      "anchor": "\"collaborate.revision_sequence_retry\""
+    },
+    {
+      "id": "case:collaborate.revision_sequence_rejection",
+      "kind": "public_case",
+      "path": "conformance/runner/src/revisions.rs",
+      "anchor": "\"collaborate.revision_sequence_rejection\""
+    },
+    {
+      "id": "case:restart.revision_sequence",
+      "kind": "public_case",
+      "path": "conformance/runner/src/lifecycle.rs",
+      "anchor": "\"restart.revision_sequence\""
     }
   ],
   "observations": [
@@ -5332,6 +5407,166 @@
       "case_id": "submit.retention_boundary",
       "status": "omitted",
       "required": true
+    },
+    {
+      "id": "obs:revisions-2026-10-08:python:members:collaborate.revision_sequence",
+      "path": "conformance/evidence/revisions-2026-10-08/local-validation.json",
+      "pointer": "/results/0/report/cases",
+      "case_id": "collaborate.revision_sequence",
+      "status": "passed",
+      "required": true
+    },
+    {
+      "id": "obs:revisions-2026-10-08:python:members:collaborate.revision_sequence_retry",
+      "path": "conformance/evidence/revisions-2026-10-08/local-validation.json",
+      "pointer": "/results/0/report/cases",
+      "case_id": "collaborate.revision_sequence_retry",
+      "status": "passed",
+      "required": true
+    },
+    {
+      "id": "obs:revisions-2026-10-08:python:members:collaborate.revision_sequence_rejection",
+      "path": "conformance/evidence/revisions-2026-10-08/local-validation.json",
+      "pointer": "/results/0/report/cases",
+      "case_id": "collaborate.revision_sequence_rejection",
+      "status": "passed",
+      "required": true
+    },
+    {
+      "id": "obs:revisions-2026-10-08:python:addressed:collaborate.revision_sequence",
+      "path": "conformance/evidence/revisions-2026-10-08/local-validation.json",
+      "pointer": "/results/1/report/cases",
+      "case_id": "collaborate.revision_sequence",
+      "status": "passed",
+      "required": true
+    },
+    {
+      "id": "obs:revisions-2026-10-08:python:addressed:collaborate.revision_sequence_retry",
+      "path": "conformance/evidence/revisions-2026-10-08/local-validation.json",
+      "pointer": "/results/1/report/cases",
+      "case_id": "collaborate.revision_sequence_retry",
+      "status": "passed",
+      "required": true
+    },
+    {
+      "id": "obs:revisions-2026-10-08:python:addressed:collaborate.revision_sequence_rejection",
+      "path": "conformance/evidence/revisions-2026-10-08/local-validation.json",
+      "pointer": "/results/1/report/cases",
+      "case_id": "collaborate.revision_sequence_rejection",
+      "status": "passed",
+      "required": true
+    },
+    {
+      "id": "obs:revisions-2026-10-08:python:sender_only:collaborate.revision_sequence",
+      "path": "conformance/evidence/revisions-2026-10-08/local-validation.json",
+      "pointer": "/results/2/report/cases",
+      "case_id": "collaborate.revision_sequence",
+      "status": "passed",
+      "required": true
+    },
+    {
+      "id": "obs:revisions-2026-10-08:python:sender_only:collaborate.revision_sequence_retry",
+      "path": "conformance/evidence/revisions-2026-10-08/local-validation.json",
+      "pointer": "/results/2/report/cases",
+      "case_id": "collaborate.revision_sequence_retry",
+      "status": "passed",
+      "required": true
+    },
+    {
+      "id": "obs:revisions-2026-10-08:python:sender_only:collaborate.revision_sequence_rejection",
+      "path": "conformance/evidence/revisions-2026-10-08/local-validation.json",
+      "pointer": "/results/2/report/cases",
+      "case_id": "collaborate.revision_sequence_rejection",
+      "status": "passed",
+      "required": true
+    },
+    {
+      "id": "obs:revisions-2026-10-08:rust:members:collaborate.revision_sequence",
+      "path": "conformance/evidence/revisions-2026-10-08/local-validation.json",
+      "pointer": "/results/3/report/cases",
+      "case_id": "collaborate.revision_sequence",
+      "status": "passed",
+      "required": true
+    },
+    {
+      "id": "obs:revisions-2026-10-08:rust:members:collaborate.revision_sequence_retry",
+      "path": "conformance/evidence/revisions-2026-10-08/local-validation.json",
+      "pointer": "/results/3/report/cases",
+      "case_id": "collaborate.revision_sequence_retry",
+      "status": "passed",
+      "required": true
+    },
+    {
+      "id": "obs:revisions-2026-10-08:rust:members:collaborate.revision_sequence_rejection",
+      "path": "conformance/evidence/revisions-2026-10-08/local-validation.json",
+      "pointer": "/results/3/report/cases",
+      "case_id": "collaborate.revision_sequence_rejection",
+      "status": "passed",
+      "required": true
+    },
+    {
+      "id": "obs:revisions-2026-10-08:rust:addressed:collaborate.revision_sequence",
+      "path": "conformance/evidence/revisions-2026-10-08/local-validation.json",
+      "pointer": "/results/4/report/cases",
+      "case_id": "collaborate.revision_sequence",
+      "status": "passed",
+      "required": true
+    },
+    {
+      "id": "obs:revisions-2026-10-08:rust:addressed:collaborate.revision_sequence_retry",
+      "path": "conformance/evidence/revisions-2026-10-08/local-validation.json",
+      "pointer": "/results/4/report/cases",
+      "case_id": "collaborate.revision_sequence_retry",
+      "status": "passed",
+      "required": true
+    },
+    {
+      "id": "obs:revisions-2026-10-08:rust:addressed:collaborate.revision_sequence_rejection",
+      "path": "conformance/evidence/revisions-2026-10-08/local-validation.json",
+      "pointer": "/results/4/report/cases",
+      "case_id": "collaborate.revision_sequence_rejection",
+      "status": "passed",
+      "required": true
+    },
+    {
+      "id": "obs:revisions-2026-10-08:rust:sender_only:collaborate.revision_sequence",
+      "path": "conformance/evidence/revisions-2026-10-08/local-validation.json",
+      "pointer": "/results/5/report/cases",
+      "case_id": "collaborate.revision_sequence",
+      "status": "passed",
+      "required": true
+    },
+    {
+      "id": "obs:revisions-2026-10-08:rust:sender_only:collaborate.revision_sequence_retry",
+      "path": "conformance/evidence/revisions-2026-10-08/local-validation.json",
+      "pointer": "/results/5/report/cases",
+      "case_id": "collaborate.revision_sequence_retry",
+      "status": "passed",
+      "required": true
+    },
+    {
+      "id": "obs:revisions-2026-10-08:rust:sender_only:collaborate.revision_sequence_rejection",
+      "path": "conformance/evidence/revisions-2026-10-08/local-validation.json",
+      "pointer": "/results/5/report/cases",
+      "case_id": "collaborate.revision_sequence_rejection",
+      "status": "passed",
+      "required": true
+    },
+    {
+      "id": "obs:revisions-2026-10-08:python:verify:restart.revision_sequence",
+      "path": "conformance/evidence/revisions-2026-10-08/local-validation.json",
+      "pointer": "/lifecycle/0/reports/1/report/cases",
+      "case_id": "restart.revision_sequence",
+      "status": "passed",
+      "required": true
+    },
+    {
+      "id": "obs:revisions-2026-10-08:rust:verify:restart.revision_sequence",
+      "path": "conformance/evidence/revisions-2026-10-08/local-validation.json",
+      "pointer": "/lifecycle/1/reports/1/report/cases",
+      "case_id": "restart.revision_sequence",
+      "status": "passed",
+      "required": true
     }
   ],
   "gaps": [
@@ -5393,7 +5628,7 @@
     {
       "id": "gap:revision-increment",
       "owner": "Collaboration conformance maintainers",
-      "proposed_test": "Add public revision 2 and 3 chain tests with simultaneous author submissions, separate principal chains, failed writes, and restart. Existing public first-revision checks are narrower."
+      "proposed_test": "Add a bounded public race for simultaneous author submissions, accepting either arrival order with exact receipt/body/event mapping, while a second principal uses the same artifact_id independently. Retain both same-artifact principal chains across restart and retry the exact concurrent requests without allocating more revisions. Sequential accepted revisions 1, 2, and 3, failed-write no-allocation, and restart numbering now have dedicated cases; those do not establish concurrent-chain correctness."
     },
     {
       "id": "gap:continuity-boundaries",
