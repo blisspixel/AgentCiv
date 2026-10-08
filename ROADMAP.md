@@ -4,6 +4,8 @@ AgentCiv is a modular framework, protocol, and commons. Its purpose includes sha
 
 The sequence below is the project's canonical build order. Topic notes supply detail rather than competing milestone lists. Work can proceed in parallel where its own prerequisites are met. Optional recipe work is not a prerequisite for adapters, external review, games, or ordinary participation; a documented usable boundary and the relevant permissions are enough for an ad hoc outside trial. Independent maintenance gates an interoperability claim; it does not block local collaboration, shared-life experiments, a useful utility, or a local fork.
 
+The [delivery plan](docs/DELIVERY_PLAN.md) maps this order to concrete work packages, primary-source design lessons, failure cases, first pull-request slices, and release gates. Begin with the requirement-to-evidence inventory and bulletin recovery tests alongside the source-preserving handoff. Discovery and durable scoped stopping follow their actual dependencies; encounters and adapters can proceed whenever their own boundaries are ready. The plan is proposed work, not additional implementation evidence.
+
 ## Current state
 
 Status reviewed against the repository on 2026-10-07. Source, local observations, CI, release, public deployment, and outside validation are different states.
