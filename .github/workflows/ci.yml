@@ -165,6 +165,16 @@ jobs:
         run: |
           python -m coverage run examples/participants/reader_collaboration.py --host python --output .agents/reader-python-ci
           python -m coverage run examples/participants/reader_collaboration.py --host rust --output .agents/reader-rust-ci
+      - name: Exercise exact-parent repair and independently inspect its evidence
+        run: |
+          python -m coverage run examples/participants/reader_collaboration.py --host python --condition repair --output .agents/repair-python-ci
+          python -m coverage run examples/participants/reader_evidence.py --package .agents/repair-python-ci
+          python -m coverage run examples/participants/reader_collaboration.py --host rust --condition repair --output .agents/repair-rust-ci
+          python -m coverage run examples/participants/reader_evidence.py --package .agents/repair-rust-ci
+      - name: Reproduce retained repair evidence without a host
+        run: |
+          python -m coverage run examples/participants/reader_evidence.py --package conformance/evidence/reader-repair-2026-10-08/python
+          python -m coverage run examples/participants/reader_evidence.py --package conformance/evidence/reader-repair-2026-10-08/rust
       - name: Exercise recurring gatherings against both hosts
         run: |
           python -m coverage run examples/participants/gathering.py --host python --output .agents/gathering-python-ci
@@ -191,6 +201,21 @@ jobs:
           path: .agents/inheritance-ci/*.json
           include-hidden-files: true
           if-no-files-found: error
+          retention-days: 7
+      - name: Preserve explicitly selected repair evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: reader-repair-evidence
+          path: |
+            .agents/repair-python-ci/report.json
+            .agents/repair-python-ci/study-originals.json
+            .agents/repair-python-ci/challenge-originals.json
+            .agents/repair-rust-ci/report.json
+            .agents/repair-rust-ci/study-originals.json
+            .agents/repair-rust-ci/challenge-originals.json
+          include-hidden-files: true
+          if-no-files-found: warn
           retention-days: 7
 
   python-platforms:
@@ -243,6 +268,16 @@ jobs:
         run: |
           python examples/participants/reader_collaboration.py --host python --output .agents/reader-python-ci
           python examples/participants/reader_collaboration.py --host rust --output .agents/reader-rust-ci
+      - name: Exercise exact-parent repair and independently inspect its evidence
+        run: |
+          python examples/participants/reader_collaboration.py --host python --condition repair --output .agents/repair-python-ci
+          python examples/participants/reader_evidence.py --package .agents/repair-python-ci
+          python examples/participants/reader_collaboration.py --host rust --condition repair --output .agents/repair-rust-ci
+          python examples/participants/reader_evidence.py --package .agents/repair-rust-ci
+      - name: Reproduce retained repair evidence without a host
+        run: |
+          python examples/participants/reader_evidence.py --package conformance/evidence/reader-repair-2026-10-08/python
+          python examples/participants/reader_evidence.py --package conformance/evidence/reader-repair-2026-10-08/rust
       - name: Exercise recurring gatherings against both hosts
         run: |
           python examples/participants/gathering.py --host python --output .agents/gathering-python-ci
@@ -261,4 +296,19 @@ jobs:
           name: local-validation-${{ matrix.os }}
           path: local-validation.json
           if-no-files-found: error
+          retention-days: 7
+      - name: Preserve explicitly selected repair evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: reader-repair-evidence-${{ matrix.os }}
+          path: |
+            .agents/repair-python-ci/report.json
+            .agents/repair-python-ci/study-originals.json
+            .agents/repair-python-ci/challenge-originals.json
+            .agents/repair-rust-ci/report.json
+            .agents/repair-rust-ci/study-originals.json
+            .agents/repair-rust-ci/challenge-originals.json
+          include-hidden-files: true
+          if-no-files-found: warn
           retention-days: 7

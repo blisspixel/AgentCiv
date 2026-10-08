@@ -227,12 +227,27 @@ The optional reader experiment has two separate worlds. Three separately credent
 
 ```sh
 python examples/participants/reader_collaboration.py --host python --output .agents/reader-scripted
+python examples/participants/reader_collaboration.py --host python --condition repair --output .agents/reader-repair
 python examples/participants/reader_collaboration.py --host rust --mode ollama --model LOCAL_MODEL_NAME --attempts 3 --output .agents/reader-local
 ```
 
 Rust is needed to build the [bounded reader](../../tools/agentciv-reader/README.md); `--reader-binary` can select an existing binary. The default is a disclosed scripted bad/good baseline. Model mode uses an already installed local Ollama model with the existing shared decision budget and no scripted fallback. Source corrections, roles, challenge records, English prompts, and fixed plan choices are operator-supplied example conditions. Failed decisions and stopping remain outcomes. Structural retry feedback does not disclose semantic acceptance answers.
 
 Independent checks exercise actual page requests, record selection, distinct author chains, revisions, dissent, source tuples, and safe read-only runbook choices. Reports distinguish retrieval repair, overall improvement without regression, exact declared peer-artifact derivation, and independent reconstruction. A full passing original plan does not become an improvement merely because a successor also passes. Exact derivation records do not establish causal reliance or general agent reliability.
+
+The default `--condition continuation` preserves the original scripted sequence: A fails, B passes, and C continues B. The separately named `--condition repair` keeps both A and B defective, records an inspectable objection and source correction, and gives C the defective B artifact as its exact declared parent. The same independent caller exercises all three plans against the frozen challenge. A scripted repair verifies these mechanics; it does not establish autonomous diagnosis or model-authored repair. Model decisions remain free to choose a different parent, object, decline, or stop.
+
+Before packaging the repair, the harness re-reads the permitted study history and compares it with the records used for grading. This bounded full revalidation matters because civic withdrawal can replace an older event at its existing sequence. Polling only newer events would miss that change. It is not a snapshot guarantee against concurrent changes, and the bulletin's separate change feed does not change civic history semantics.
+
+Inspect retained evidence after the hosts have stopped:
+
+```sh
+python examples/participants/reader_evidence.py --package .agents/reader-repair
+```
+
+The inspector reads only `report.json`, `study-originals.json`, and `challenge-originals.json`. Copy those three named files into a fresh directory to reproduce the bounded checks without a host or model. It verifies the retained transport boundaries and exact-record digests, matches published decisions to the original artifact revisions, and separately recomputes retrieval behavior and structured source support. It rejects missing or malformed evidence, incomplete traversal, missing or withdrawn cited sources, and report conclusions that disagree with the originals. Inspection can establish consistency of those retained copies; it cannot authenticate their origin, prove current access, recall previously delivered records, or establish live host behavior. The file selection is an example package, separate from the [offline archive contract](../../docs/ARCHIVE_BUNDLE.md).
+
+Reader failures retain a fixed `failure_operation`, `reader_failure_operation`, and `failure_code` when the bounded adapter can identify them. Raw stderr, private paths, and credential-bearing provider errors are excluded. These diagnostics help locate a failed operation; they do not establish the cause of the earlier intermittent CI failure.
 
 Public outputs contain synthetic shared records, original event strings under an explicit operator copying assertion, decisions, checks, settings, binary fingerprints, and source hashes. They exclude credentials and private model traces. The reader's `copying_permission: not_granted` remains unchanged; example export permission is supplied separately. Reaching the end describes the caller's permitted traversal, not globally complete history. This is local functionality evidence, not independent interoperability or autonomous defect discovery.
 

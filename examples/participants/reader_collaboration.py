@@ -107,9 +107,13 @@ def validate_decision(content: str, events: list[JsonObject]) -> JsonObject:
     return value
 
 
-def scripted_decision(events: list[JsonObject], *, first: bool) -> JsonObject:
+def scripted_decision(events: list[JsonObject], *, first: bool, partial: bool = False) -> JsonObject:
     """Disclosed bad/good fixture choices, never a replacement for a model response."""
     plan = oracle.validate_plan(oracle.load_json(ROOT / "examples/inheritance" / ("before.json" if first else "after.json")))
+    if partial:
+        # A distinct, disclosed condition: source claims are corrected but the
+        # actual parent still stops after the first native HTTP page.
+        plan["reader"] = {**client.object_value(plan["reader"]), "pagination": "first"}
     notes = [event for event in events if (record := client.artifact(event)) is not None and record["from"] == GUIDE]
     latest = notes[-1]
     record = client.artifact(latest)
@@ -180,7 +184,8 @@ def participant(config: JsonObject) -> JsonObject:
                 reply = model.complete(prompt, events, output_tokens=output_tokens, timeout=timeout, schema=decision_schema(events))
                 provider_summary(model, token)
                 return reply
-            return loop.Reply(json.dumps(scripted_decision(events, first=config["principal"] == AUTHORS[0])), {"eval_count": 0})
+            return loop.Reply(json.dumps(scripted_decision(events, first=config["principal"] == AUTHORS[0],
+                partial=config.get("condition") == "repair" and config["principal"] == AUTHORS[1])), {"eval_count": 0})
 
         def validate(content: str) -> JsonObject:
             if token in content:
@@ -233,42 +238,91 @@ def participant(config: JsonObject) -> JsonObject:
     return result
 
 
+NATIVE_READER_CODES = frozenset({
+    "invalid_configuration", "input_unavailable", "input_too_large", "invalid_json", "invalid_utf8",
+    "invalid_origin", "invalid_discovery", "invalid_endpoint", "transport_failed", "http_failed",
+    "authentication_required", "forbidden", "cursor_expired", "invalid_content_type", "missing_no_store",
+    "credential_reflected", "invalid_page", "invalid_event", "event_identity_conflict", "sequence_conflict",
+    "revision_identity_conflict", "cursor_conflict", "page_limit", "event_limit", "response_limit",
+    "record_limit", "total_byte_limit", "deadline_exceeded", "output_failed",
+})
+
+
+class ReaderSnapshotError(ValueError):
+    """Fixed diagnostics without private configuration, native output or exception text."""
+
+    def __init__(self, operation: str, code: str, message: str = "reader failed") -> None:
+        super().__init__(message)
+        self.operation = operation
+        self.code = code
+
+
+def native_reader_failure(stderr: bytes) -> str:
+    """Accept only the native CLI's small, exact fixed-code error envelope."""
+    if len(stderr) <= 256:
+        try:
+            value = client.decode(stderr)
+            code = value.get("code")
+            if (set(value) == {"outcome", "code"} and value["outcome"] == "failed"
+                and isinstance(code, str) and code in NATIVE_READER_CODES):
+                return code
+        except client.DecisionError:
+            pass
+    return "process_failed"
+
+
 def read_snapshot(binary: Path, origin: str, token: str, world: str, *, first: bool = False,
                   originals_path: Path | None = None) -> tuple[list[JsonObject], JsonObject]:
-    with tempfile.TemporaryDirectory(prefix="agentciv-reader-private-") as temporary:
-        path = Path(temporary) / "reader.json"
-        mock.save(path, {"origin": origin, "token": token, "world": world, "traversal": "first_page" if first else "all",
-            "budgets": {"max_pages": 20, "max_events": 128, "max_response_bytes": 131072,
-                        "max_record_bytes": 16000, "max_total_bytes": 262144, "seconds": 30}})
-        completed = subprocess.run([str(binary), "read", str(path)], capture_output=True, timeout=40, check=False)
-    if completed.returncode != 0 or len(completed.stdout) > 1_048_576:
-        raise ValueError("reader failed")
-    value = client.decode(completed.stdout)
-    if token in json.dumps(value, ensure_ascii=False):
-        raise ValueError("credential reflected")
-    snapshot = client.object_value(value.get("snapshot"))
-    report = client.object_value(value.get("report"))
-    originals = mock.list_strings(snapshot.get("records"))
-    if snapshot.get("world") != world:
-        raise ValueError("reader world changed")
-    records = oracle.validate_events([client.decode(record.encode("utf-8")) for record in originals])
-    if any(record["world"] != world for record in records):
-        raise ValueError("reader event world changed")
-    if type(report.get("events")) is not int or report.get("events") != len(records):
-        raise ValueError("reader count differed")
-    pages = report.get("pages")
-    if (type(pages) is not int or pages < 1 or (first and pages != 1)
-        or type(report.get("reached_end")) is not bool
-        or report.get("scope") != "current_caller_view" or report.get("copying_permission") != "not_granted"):
-        raise ValueError("invalid reader report")
-    report["original_representation_sha256"] = hashlib.sha256(json.dumps(originals).encode("utf-8")).hexdigest()
-    report["original_record_sha256"] = [hashlib.sha256(record.encode("utf-8")).hexdigest() for record in originals]
-    if originals_path is not None:
-        # This caller controls the synthetic fixture and explicitly permits its export.
-        # The native reader's copying_permission remains not_granted.
-        mock.save(originals_path, {"world": world, "records": originals,
-            "copying_condition": "operator_authorized_synthetic_fixture_export_only"})
-    return records, report
+    operation = "reader_configuration"
+    try:
+        with tempfile.TemporaryDirectory(prefix="agentciv-reader-private-") as temporary:
+            path = Path(temporary) / "reader.json"
+            mock.save(path, {"origin": origin, "token": token, "world": world, "traversal": "first_page" if first else "all",
+                "budgets": {"max_pages": 20, "max_events": 128, "max_response_bytes": 131072,
+                            "max_record_bytes": 16000, "max_total_bytes": 262144, "seconds": 30}})
+            operation = "reader_process"
+            completed = subprocess.run([str(binary), "read", str(path)], capture_output=True, timeout=40, check=False)
+        if completed.returncode != 0:
+            raise ReaderSnapshotError(operation, native_reader_failure(completed.stderr))
+        if len(completed.stdout) > 1_048_576:
+            raise ReaderSnapshotError(operation, "output_limit")
+        operation = "reader_decode"
+        value = client.decode(completed.stdout)
+        if token in json.dumps(value, ensure_ascii=False):
+            raise ReaderSnapshotError(operation, "credential_reflected", "credential reflected")
+        operation = "reader_validation"
+        snapshot = client.object_value(value.get("snapshot"))
+        report = client.object_value(value.get("report"))
+        originals = mock.list_strings(snapshot.get("records"))
+        if snapshot.get("world") != world:
+            raise ReaderSnapshotError(operation, "world_changed", "reader world changed")
+        records = oracle.validate_events([client.decode(record.encode("utf-8")) for record in originals])
+        if any(record["world"] != world for record in records):
+            raise ReaderSnapshotError(operation, "event_world_changed", "reader event world changed")
+        if type(report.get("events")) is not int or report.get("events") != len(records):
+            raise ReaderSnapshotError(operation, "count_differed", "reader count differed")
+        pages = report.get("pages")
+        if (type(pages) is not int or pages < 1 or (first and pages != 1)
+            or type(report.get("reached_end")) is not bool
+            or report.get("scope") != "current_caller_view" or report.get("copying_permission") != "not_granted"):
+            raise ReaderSnapshotError(operation, "invalid_report", "invalid reader report")
+        report["original_representation_sha256"] = hashlib.sha256(json.dumps(originals).encode("utf-8")).hexdigest()
+        report["original_record_sha256"] = [hashlib.sha256(record.encode("utf-8")).hexdigest() for record in originals]
+        if originals_path is not None:
+            operation = "reader_export"
+            # This caller controls the synthetic fixture and explicitly permits its export.
+            # The native reader's copying_permission remains not_granted.
+            mock.save(originals_path, {"world": world, "records": originals,
+                "copying_condition": "operator_authorized_synthetic_fixture_export_only"})
+        return records, report
+    except ReaderSnapshotError:
+        raise
+    except subprocess.TimeoutExpired:
+        raise ReaderSnapshotError(operation, "process_timeout") from None
+    except OSError:
+        raise ReaderSnapshotError(operation, "operation_io_failed") from None
+    except (client.DecisionError, ValueError, KeyError, RecursionError):
+        raise ReaderSnapshotError(operation, "invalid_output") from None
 
 
 def grade(binary: Path, origin: str, token: str, expected: list[JsonObject], study: list[JsonObject], decision: object,
@@ -370,28 +424,44 @@ def comparison(original: JsonObject, successor: JsonObject, observation: JsonObj
 
 
 def run(output: Path, *, host: str = "python", mode: str = "scripted", model: str = "", seed: int = 42,
-        attempts: int = 1, private_traces: bool = False, reader_binary: Path | None = None, host_binary: Path | None = None) -> JsonObject:
+        attempts: int = 1, private_traces: bool = False, reader_binary: Path | None = None,
+        host_binary: Path | None = None, condition: str = "continuation") -> JsonObject:
     output = output.resolve()
     output.mkdir(parents=True, exist_ok=False)
     source: JsonObject | None = None
     observations: list[JsonObject] = []
     report: JsonObject = {"format": "agentciv-paged-reader-experiment/0.1", "outcome": "failed", "useful_result": False,
-        "host": host, "mode": mode, "observations": observations, "source": None, "external_spend_usd": 0,
+        "host": host, "mode": mode, "condition": condition, "observations": observations, "source": None, "external_spend_usd": 0,
+        "evidence_package": {"inputs": ["report.json", "study-originals.json", "challenge-originals.json"],
+            "reproduction": "python examples/participants/reader_evidence.py --package PACKAGE_DIRECTORY",
+            "rerun_argv": ["python", "examples/participants/reader_collaboration.py", "--host", host,
+                "--condition", condition, "--mode", mode, "--seed", str(seed), "--attempts", str(attempts)]
+                + (["--model", model] if model else []) + ["--output", "FRESH_OUTPUT_DIRECTORY"],
+            "missing_evidence": ["current host access and freshness", "private cognition",
+                "independent host interoperability", "causal benefit of inheritance"],
+            "operator_interventions": "scripted source updates, objections, challenge and schedule; no semantic model retries"},
         "controls": {"task": TASK, "model": model, "seed": seed, "seed_rule": "seed plus participant index",
             "attempts": attempts, "output_tokens": 1024, "decision_seconds": 120, "context_tokens": 8192,
             "model_history_bytes": client.MAX_HISTORY_BYTES, "process_seconds": 180, "private_traces": private_traces,
             "original_source_notes_and_corrections": "scripted operator artifacts", "challenge": "100 padding messages plus six scripted records",
             "source_context": "full permitted study history read from current HTTP originals within the byte budget",
             "fixture_copying_condition": "operator_authorized_synthetic_fixture_export_only_not_a_reader_grant",
-            "choice_source": mode, "semantic_feedback_to_model": False, "arbitrary_artifact_execution": False}}
+            "choice_source": mode, "semantic_feedback_to_model": False, "arbitrary_artifact_execution": False,
+            "condition": condition, "objections": "operator-authored plan inspection only in repair condition",
+            "reader_limits": {"max_pages": 20, "max_events": 128, "max_response_bytes": 131072,
+                "max_record_bytes": 16000, "max_total_bytes": 262144, "seconds": 30, "process_seconds": 40},
+            "civic_freshness": "bounded full revalidation, not incremental catch-up or atomic snapshot",
+            "evidence_scope": "synthetic permitted caller view; offline copies cannot establish current access"}}
     mock.save(output / "report.json", report)
     stage = "source_identity"
+    operation = "source_fingerprint"
     try:
         source = source_identity()
         report["source"] = source
         mock.save(output / "report.json", report)
         stage = "configuration"
-        if host not in ("python", "rust") or mode not in ("scripted", "ollama") or (mode == "ollama" and not model):
+        if (host not in ("python", "rust") or mode not in ("scripted", "ollama")
+            or condition not in ("continuation", "repair") or (mode == "ollama" and not model)):
             raise ValueError("invalid configuration")
         loop.Budget(attempts=attempts)
         stage = "native_build"
@@ -426,6 +496,32 @@ def run(output: Path, *, host: str = "python", mode: str = "scripted", model: st
                     record["derived_from"] = {"from": GUIDE, "artifact_id": record["artifact_id"], "revision": 1}
                 mock.publish(origin, tokens[GUIDE], record)
 
+            def objection(origin: str, index: int) -> None:
+                """An inspectable operator objection, never model retry feedback."""
+                events = history(origin)
+                peer = next((event for event in reversed(events)
+                    if event.get("actor") == AUTHORS[index] and client.artifact(event) is not None), None)
+                if peer is None:
+                    return  # A stop or decline is not silently replaced by a fixture.
+                target = client.artifact(peer)
+                if target is None:
+                    raise ValueError("objection target missing")
+                plan = oracle.validate_plan(client.object_value(target["body"]).get("reader_plan"))
+                if client.object_value(plan["reader"])["pagination"] != "first":
+                    return  # Do not invent a defect when a model chose differently.
+                source = next(event for event in reversed(events) if event.get("actor") == GUIDE
+                    and client.artifact(event) is not None)
+                record: JsonObject = {"protocol_version": "0.1-draft", "type": "objection",
+                    "id": f"submission:reader-objection-{'ab'[index]}", "world": WORLD,
+                    "from": GUIDE, "to": [OBSERVER], "target_from": target["from"],
+                    "artifact_id": target["artifact_id"], "revision": target["revision"],
+                    "body": {"text": "The cited reader uses pagination=first. With 106 permitted events and a "
+                        "100-event page it omits six originals. Inspect the cited plan and source revision; "
+                        "this objection remains visible after continuation.",
+                        "source_event_ids": [peer["id"], source["id"]]},
+                    "experiment_provenance": {"decision_source": "operator_scripted_plan_inspection"}}
+                mock.publish(origin, tokens[GUIDE], record)
+
             def turn(origin: str, index: int) -> None:
                 name = "abc"[index]
                 context = history(origin)
@@ -433,6 +529,7 @@ def run(output: Path, *, host: str = "python", mode: str = "scripted", model: st
                 mock.save(output / "history.json", context)
                 config: JsonObject = {"origin": origin, "principal": AUTHORS[index], "token": tokens[AUTHORS[index]],
                     "record_id": f"submission:reader-{name}", "recipients": [OBSERVER], "mode": mode, "model": model,
+                    "condition": condition,
                     "seed": seed + index, "turn": 1, "ollama_origin": "http://127.0.0.1:11434", "decision_attempts": attempts,
                     "attempt_journal": str(output / f"attempts-{name}.json")}
                 if private_traces:
@@ -454,23 +551,31 @@ def run(output: Path, *, host: str = "python", mode: str = "scripted", model: st
                     raise ValueError("participant failed")
 
             stage = "original_contributors"
+            operation = "original_host_start"
             configure(config_path, WORLD, [AUTHORS[0], AUTHORS[1], GUIDE, OBSERVER], tokens)
             first = walk.start_host(argv(config_path))
             try:
                 origin = walk.wait_until_ready(first)
+                operation = "original_contributions"
                 notes(origin, False)
                 turn(origin, 0)
+                if condition == "repair":
+                    objection(origin, 0)
                 notes(origin, True)
                 turn(origin, 1)
+                if condition == "repair":
+                    objection(origin, 1)
                 before = history(origin)
                 mock.save(output / "before-restart.json", before)
             finally:
                 walk.stop_host(first)
             configure(config_path, WORLD, [AUTHORS[2], OBSERVER], tokens)
             stage = "restart_and_successor"
+            operation = "successor_host_start"
             restarted = walk.start_host(argv(config_path))
             try:
                 origin = walk.wait_until_ready(restarted)
+                operation = "successor_contribution"
                 if history(origin, AUTHORS[2]) != before:
                     raise ValueError("restart changed history")
                 report["restart_history_equal"] = True
@@ -484,17 +589,36 @@ def run(output: Path, *, host: str = "python", mode: str = "scripted", model: st
                 if study[:len(before)] != before:
                     raise ValueError("prior records changed")
                 report["prior_records_retained"] = True
+                stage = "study_evidence"
+                operation = "study_original_capture"
+                captured, study_transport = read_snapshot(reader_binary, origin, tokens[OBSERVER], WORLD,
+                    originals_path=output / "study-originals.json")
+                operation = "study_full_revalidation"
+                revalidated, revalidation_transport = read_snapshot(reader_binary, origin, tokens[OBSERVER], WORLD)
+                if (captured != study or revalidated != study or study_transport.get("reached_end") is not True
+                    or revalidation_transport.get("reached_end") is not True
+                    or study_transport["original_representation_sha256"] != revalidation_transport["original_representation_sha256"]):
+                    raise ValueError("study changed or traversal incomplete")
+                report.update({"study_transport": study_transport, "study_revalidation_transport": revalidation_transport,
+                    "study_revalidated": True, "unresolved_objection_event_ids": [event["id"] for event in study
+                        if event["kind"] == "objection.recorded"],
+                    "objection_status_scope": "retained objections, no adjudication or resolution inferred"})
             finally:
                 walk.stop_host(restarted)
             stage = "frozen_challenge"
+            operation = "challenge_host_start"
             grade_config = private / "challenge.json"
             configure(grade_config, GRADE_WORLD, ["agent:a", "agent:b", "agent:d", OBSERVER], tokens)
             running = walk.start_host(argv(grade_config))
             try:
                 origin = walk.wait_until_ready(running)
+                operation = "challenge_fixture_publication"
                 accepted = challenge(origin, tokens)
+                operation = "challenge_original_capture"
                 expected, transport = read_snapshot(reader_binary, origin, tokens[OBSERVER], GRADE_WORLD,
                     originals_path=output / "challenge-originals.json")
+                report["challenge_transport"] = transport
+                operation = "challenge_readback_verification"
                 verify_challenge(expected, accepted)
                 if transport.get("reached_end") is not True or transport.get("pages") != 2:
                     raise ValueError("challenge was not paginated")
@@ -503,9 +627,11 @@ def run(output: Path, *, host: str = "python", mode: str = "scripted", model: st
                 original_hashes = dict(zip((str(event["id"]) for event in expected),
                     mock.list_strings(transport["original_record_sha256"]), strict=True))
                 checks: list[JsonObject] = []
-                for observation in observations:
+                for index, observation in enumerate(observations):
+                    operation = f"challenge_grade_{'abc'[index]}"
                     checks.append(grade(reader_binary, origin, tokens[OBSERVER], expected, study, observation.get("decision"),
                         expected_original_hashes=original_hashes))
+                operation = "challenge_final_revalidation"
                 unchanged, final_transport = read_snapshot(reader_binary, origin, tokens[OBSERVER], GRADE_WORLD)
                 if (unchanged != expected
                     or final_transport["original_representation_sha256"] != transport["original_representation_sha256"]):
@@ -526,15 +652,19 @@ def run(output: Path, *, host: str = "python", mode: str = "scripted", model: st
                     and client.object_value(observation["receipt"]).get("event_id") == target), None)
                 report.update(comparison(original, successor, observations[2], study, target_check=target_check))
                 report["model_improvement_observed"] = mode == "ollama" and report["qualified_improvement"] is True
+                operation = "challenge_host_shutdown"
             finally:
                 walk.stop_host(running)
     except (client.DecisionError, wire.ParticipantError, loop.LoopFailure, walk.WalkFailure, ValueError, RuntimeError,
-            OSError, KeyError, RecursionError, subprocess.SubprocessError):
+            OSError, KeyError, RecursionError, subprocess.SubprocessError) as error:
         report.update({"outcome": "failed", "useful_result": False, "qualified_improvement": False,
                        "qualified_reader_repair": False, "objective_improvement": False,
                        "first_to_successor_objective_gain": False, "first_to_successor_reader_repair": False,
                        "independent_reconstruction_improvement": False,
-                       "model_improvement_observed": False, "failure_stage": stage, "failure_code": "stage_failed"})
+                       "model_improvement_observed": False, "failure_stage": stage, "failure_code": "stage_failed",
+                       "failure_operation": operation})
+        if isinstance(error, ReaderSnapshotError):
+            report.update({"reader_failure_operation": error.operation, "failure_code": error.code})
     try:
         report["source_changed_during_run"] = source is None or source != source_identity()
     except (OSError, subprocess.SubprocessError, RuntimeError):
@@ -555,6 +685,7 @@ def main() -> int:
     parser.add_argument("--output", type=Path)
     parser.add_argument("--host", choices=("python", "rust"), default="python")
     parser.add_argument("--mode", choices=("scripted", "ollama"), default="scripted")
+    parser.add_argument("--condition", choices=("continuation", "repair"), default="continuation")
     parser.add_argument("--model", default="")
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--attempts", type=int, choices=(1, 2, 3), default=1)
@@ -574,8 +705,9 @@ def main() -> int:
     if args.output is None:
         parser.error("--output or private --config is required")
     result = run(args.output, host=args.host, mode=args.mode, model=args.model, seed=args.seed, attempts=args.attempts,
-        private_traces=args.private_traces, reader_binary=args.reader_binary, host_binary=args.host_binary)
-    print(json.dumps({key: result.get(key) for key in ("outcome", "useful_result", "qualified_improvement", "source_changed_during_run")}))
+        private_traces=args.private_traces, reader_binary=args.reader_binary, host_binary=args.host_binary, condition=args.condition)
+    print(json.dumps({key: result.get(key) for key in ("outcome", "condition", "useful_result", "qualified_improvement",
+        "source_changed_during_run", "failure_stage", "failure_operation", "reader_failure_operation", "failure_code")}))
     return 0 if result.get("outcome") == "completed" and result.get("useful_result") is True else 1
 
 
