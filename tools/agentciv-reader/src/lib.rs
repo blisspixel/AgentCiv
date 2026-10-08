@@ -2,6 +2,7 @@
 //! Reading does not authorize copying, authenticate content, or execute records.
 
 pub mod http;
+pub mod offers;
 
 use agentciv_archive::{
     MAX_ENTRIES, MAX_INPUT_BYTES, MAX_RECORD_BYTES, parse_unique, validate_event,
@@ -46,6 +47,8 @@ pub enum Error {
     TotalLimit,
     Deadline,
     Output,
+    InvalidView,
+    InvalidQuery,
 }
 
 impl Error {
@@ -80,6 +83,8 @@ impl Error {
             Self::TotalLimit => "total_byte_limit",
             Self::Deadline => "deadline_exceeded",
             Self::Output => "output_failed",
+            Self::InvalidView => "invalid_offer_view_input",
+            Self::InvalidQuery => "invalid_offer_query",
         }
     }
 }
