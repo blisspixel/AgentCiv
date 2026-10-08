@@ -483,12 +483,13 @@ fn missing_corrupt_wrong_identity_and_invalid_input_fail_closed() {
 }
 
 #[test]
-fn durable_stop_waits_for_actual_executor_under_thread_race() {
+fn active_executor_blocks_stop_ack_and_later_stop_blocks_dispatch() {
     use std::sync::atomic::{AtomicBool, Ordering};
     use std::sync::mpsc::{self, TryRecvError};
 
     // This bounds test scheduling and database I/O, not the production lock wait.
-    // The safety assertion below uses causal ordering rather than elapsed silence.
+    // Keep the executor active through the entire first stop attempt, rather than
+    // assuming a loaded runner releases its lock within the production budget.
     const HARNESS_WAIT: Duration = Duration::from_secs(30);
     let (_directory, gate, scope, generation) = fixture();
     gate.control(&scope, "ready", 0, Decision::Resume, generation)
@@ -535,29 +536,20 @@ fn durable_stop_waits_for_actual_executor_under_thread_race() {
     let stop_scope = scope.clone();
     let stop = std::thread::spawn(move || {
         let result = stopper.control(&stop_scope, "race-stop", 1, Decision::Stop, 0);
-        let finished_before_ack = executor_finished.load(Ordering::Acquire);
-        let _ = send.send((result, finished_before_ack));
+        let finished_at_control_return = executor_finished.load(Ordering::Acquire);
+        let _ = send.send((result, finished_at_control_return));
     });
-    let started = Instant::now();
-    loop {
-        match gate.local.try_lock() {
-            // Only the stopper shares this mutex. Dispatch has an independently
-            // opened Gate, so this proves control entered the locking path.
-            Err(std::sync::TryLockError::WouldBlock) => break,
-            Err(std::sync::TryLockError::Poisoned(_)) => panic!("stopper poisoned its lock"),
-            Ok(guard) => drop(guard),
-        }
-        assert!(
-            matches!(receive.try_recv(), Err(TryRecvError::Empty)),
-            "stop completed before reaching the contended gate lock"
-        );
-        assert!(
-            started.elapsed() < HARNESS_WAIT,
-            "stopper did not enter the gate lock before the test watchdog"
-        );
-        std::thread::sleep(Duration::from_millis(1));
-    }
-    assert!(matches!(receive.try_recv(), Err(TryRecvError::Empty)));
+    let (stop_result, finished_at_control_return) = receive.recv_timeout(HARNESS_WAIT).unwrap();
+    assert_eq!(stop_result, Err(Error::LockUnavailable));
+    assert!(
+        !finished_at_control_return,
+        "executor finished before its explicit release"
+    );
+    assert!(matches!(
+        dispatch_receive.try_recv(),
+        Err(TryRecvError::Empty)
+    ));
+    stop.join().unwrap();
     release_send.send(()).unwrap();
 
     let dispatch_result = dispatch_receive
@@ -566,13 +558,16 @@ fn durable_stop_waits_for_actual_executor_under_thread_race() {
         .unwrap();
     assert_eq!(dispatch_result.receipt.status, LaunchStatus::Launched);
     dispatch.join().unwrap();
-    let (stop_result, finished_before_ack) = receive.recv_timeout(HARNESS_WAIT).unwrap();
-    assert!(
-        finished_before_ack,
-        "stop acknowledged while executor was active"
-    );
-    assert!(stop_result.unwrap().state.stopped);
-    stop.join().unwrap();
+    let after_failed_stop = gate.inspect(&scope).unwrap();
+    assert_eq!(after_failed_stop.revision, 1);
+    assert!(!after_failed_stop.stopped);
+    let stopped = gate
+        .control(&scope, "race-stop", 1, Decision::Stop, 0)
+        .unwrap();
+    assert!(stopped.state.stopped);
+    assert_eq!(stopped.state.revision, 2);
+    let reopened = Gate::open(&gate.path, "runtime-A", "world-A").unwrap();
+    assert_eq!(reopened.inspect(&scope).unwrap(), stopped.state);
     assert_eq!(
         gate.dispatch(&scope, &request("after-ack", generation), forbidden)
             .unwrap()
