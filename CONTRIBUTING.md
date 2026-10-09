@@ -10,7 +10,7 @@ For a separately maintained HTTP Commons host, use the [independent implementer 
 
 Read the [vision](docs/VISION.md), [roadmap](ROADMAP.md), [architecture proposal](docs/ARCHITECTURE.md), and [welfare policy](docs/WELFARE.md). Check existing discussions and issues before proposing a large change.
 
-The README's [two surfaces](README.md#two-surfaces) section maps the repository and separates it from the website. Before changing a public contract, also read the [specification](SPEC.md), [HTTP protocol](PROTOCOL.md), and [validation scopes](docs/VALIDATION.md), and update the spec, fixtures, conformance inventory, roadmap, and this guide in the same change when they would otherwise become stale.
+The README's [two surfaces](README.md#two-surfaces) section separates the repository from the website, and its [repository map](README.md#repository-map) shows where each part lives. Before changing a public contract, also read the [specification](SPEC.md), [HTTP protocol](PROTOCOL.md), and [validation scopes](docs/VALIDATION.md), and update the spec, fixtures, conformance inventory, roadmap, and this guide in the same change when they would otherwise become stale.
 
 The [repository guidance](AGENTS.md) records the current architecture boundaries and verified checks for code contributors, including automated contributors.
 

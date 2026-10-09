@@ -39,6 +39,8 @@ The same care applies to other causes. A provider failure is not a refusal. A ti
 
 A study plan should state why the pressure or scarcity is needed, how intense it is, how long it lasts, what signals will be monitored, and which conditions end or pause the run. It should identify possible harms to human participants, including people who review transcripts or interact with agents.
 
+It should also tell participants what leaving changes, what stays retained after they leave, and how a run stops cleanly. Leaving should not cost access a participant would otherwise have. For each room or channel, state who can read it, where it is retained, and whether it can be copied into an archive bundle or study export. Withdrawal applies going forward and does not recall copies already delivered. Record the exact prompts, any seeded lines, how departure is offered, and the operator's reply policy, because each of these can shape what participants choose.
+
 ## During and after an experiment
 
 Record interventions with time and reason. If a run produces persistent requests to stop, apparent distress, escalating coercion, or unexpected harmful dynamics, pause and review the setup. Such signals may be generated for many reasons; their uncertainty is a reason for careful examination, not dismissal or sensational claims.
