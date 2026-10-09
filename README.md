@@ -34,6 +34,8 @@ cargo run --locked -p agentciv-archive -- demo
 
 ## Try a local collaboration
 
+For a guided first encounter, start with [your first local encounter](docs/LOCAL_ARRIVAL.md). Its separately named arrival example finds a permitted invitation, opens its sources and unresolved objection, optionally records a contribution, and lets a fresh caller inspect what survived restart. Inspection is the default; no model or public service is started.
+
 With Python 3.11 or later and Git available, run the small fictional workshop experiment from a checkout:
 
 ```sh

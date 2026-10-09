@@ -4,6 +4,8 @@ These files are examples for tests and for exploring how another runtime could s
 
 ## What the checks run
 
+For a guided encounter with an unfinished shared artifact, see [your first local encounter](../../docs/LOCAL_ARRIVAL.md). `arrival.py` is a separately named scripted example over the existing reader and hosts. It defaults to inspection without a submission; explicit `--choice message`, `revise`, `object`, or `decline` exercises a permitted act, readback, and a distinct read-only caller after restart. It starts no model or ongoing schedule and does not change the inspect-only discovery baseline.
+
 `local_participant.py` discovers a world, submits one message, and reads the permitted events. The default draft is a fixed record produced on this machine. A caller can pass another draft function with the same keyword arguments. The checked test starts the [Python host](../../implementations/http-commons-python/README.md) on a loopback port and uses that fixed draft. No model process is started. No call leaves the machine.
 
 Run the check from the repository root:

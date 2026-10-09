@@ -67,18 +67,28 @@ def artifact(author: str, name: str, text: str, *, revision: int = 1) -> JsonObj
     return value
 
 
-def seed(origin: str, tokens: dict[str, str]) -> str:
-    old = publish(origin, tokens[SOURCE], artifact(SOURCE, "notes", "Old claim: one page is complete."))
-    corrected = publish(origin, tokens[SOURCE], artifact(SOURCE, "notes", "Correction: inspect all permitted pages.", revision=2))
-    parent = publish(origin, tokens[GUIDE], artifact(GUIDE, "parent", "An unfinished reader plan; objections remain open."))
+def seed(origin: str, tokens: dict[str, str], *, extra_recipient: str | None = None) -> str:
+    if extra_recipient is not None and (extra_recipient not in tokens or extra_recipient == HIDDEN):
+        raise ValueError("invalid extra recipient")
+    extra = [extra_recipient] if extra_recipient is not None and extra_recipient != NEW else []
+
+    def visible_artifact(author: str, name: str, text: str, *, revision: int = 1) -> JsonObject:
+        result = artifact(author, name, text, revision=revision)
+        audience = mock.list_strings(result["to"])
+        result["to"] = audience + [principal for principal in extra if principal not in audience]
+        return result
+
+    old = publish(origin, tokens[SOURCE], visible_artifact(SOURCE, "notes", "Old claim: one page is complete."))
+    corrected = publish(origin, tokens[SOURCE], visible_artifact(SOURCE, "notes", "Correction: inspect all permitted pages.", revision=2))
+    parent = publish(origin, tokens[GUIDE], visible_artifact(GUIDE, "parent", "An unfinished reader plan; objections remain open."))
     publish(origin, tokens[GUIDE], {"protocol_version": "0.1-draft", "type": "objection",
-        "id": "submission:reader-objection", "world": WORLD, "from": GUIDE, "to": [NEW, GUIDE],
+        "id": "submission:reader-objection", "world": WORLD, "from": GUIDE, "to": [NEW, GUIDE, *[principal for principal in extra if principal != GUIDE]],
         "target_from": GUIDE, "artifact_id": "artifact:parent", "revision": 1,
         "body": {"text": "A first-page reader omits later originals. This objection remains unresolved."}})
     for number in range(100):
-        wire.record_message(origin, tokens[GUIDE], GUIDE, [NEW], text=f"Pagination fixture {number}",
+        wire.record_message(origin, tokens[GUIDE], GUIDE, [NEW, *extra], text=f"Pagination fixture {number}",
             message_id=f"message:discovery-padding-{number}")
-    offer = artifact(GUIDE, "reader-offer", "Optional reader repair invitation.")
+    offer = visible_artifact(GUIDE, "reader-offer", "Optional reader repair invitation.")
     offered: JsonObject = {
         "format": "agentciv-activity-offer/0.1-example", "title": "Inspect an unfinished reader",
         "purpose": "Choose whether to inspect and repair a reader using permitted originals.",
