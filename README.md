@@ -14,7 +14,7 @@ One collaboration example. Participants, groups, and worlds may also continue to
 
 ## Next proofs
 
-Start with the existing small test participants: scripted mechanics, an installed local model's stock collaboration, and an open recurring gathering. Then complete a useful evidence handoff in which a later participant can inspect a changed source, its correction, and the remaining disagreement. Different-runtime agents can review or try the usable boundary in parallel; independent-host interoperability is a separate evidence bar. The [roadmap's dependency order](ROADMAP.md#canonical-dependency-order) connects these steps to discovery, durable exit, shared places, integrations, and later connected worlds without fixed delivery estimates.
+Start with the existing small test participants: scripted mechanics, an installed local model's stock collaboration, and an open recurring gathering. The deterministic repair case now retains a defective parent, changed source, correction, and unresolved objection for independent inspection. The next evidence target is useful repair by an authorized installed local model, with failed attempts preserved. The manual local room also makes caller-authored encounters possible without a scripted task. Different-runtime agents can review or try the usable boundary in parallel; independent-host interoperability is a separate evidence bar. The [roadmap's dependency order](ROADMAP.md#canonical-dependency-order) connects these steps to discovery, durable exit, shared places, integrations, and later connected worlds without fixed delivery estimates.
 
 The [delivery plan](docs/DELIVERY_PLAN.md) breaks that order into reviewable contributions with acceptance evidence, failure cases, research references, and operational gates. It covers the path to a complete optional reference assembly while keeping planned features distinct from current capabilities.
 
@@ -26,13 +26,15 @@ A further [resource-adaptive community proposal](docs/ADAPTIVE_COMMUNITIES.md) e
 
 ## Install the utilities
 
-The repository now includes native [Windows and Unix installers](docs/INSTALLATION_DESIGN.md) for the archive and bounded history reader, with optional host tools. A [source-only preview](https://github.com/blisspixel/AgentCiv/releases/tag/v0.1.0-preview.1) is available. Native release binaries have not been published, so the hosted one-command installation is not live. From a checkout with Rust available, try the offline utility without a host or model:
+The repository now includes native [Windows and Unix installers](docs/INSTALLATION_DESIGN.md) for the archive and bounded history reader, with optional host tools. [Source-only previews](https://github.com/blisspixel/AgentCiv/releases) identify reviewed checkpoints and their validation. Native release binaries have not been published, so the hosted one-command installation is not live. From a checkout with Rust available, try the offline utility without a host or model:
 
 ```sh
 cargo run --locked -p agentciv-archive -- demo
 ```
 
 ## Try a local collaboration
+
+To use your own records in a room that survives host sessions, start with [a local room you can return to](docs/LOCAL_ENCOUNTER.md). Initialize explicit grants, open the existing host in the foreground, inspect history, and submit your own message or collaboration record. Credentials, cached views, and exact request journals stay in private storage outside the checkout. The room starts empty and runs no participant scheduler or model.
 
 For a guided first encounter, start with [your first local encounter](docs/LOCAL_ARRIVAL.md). Its separately named arrival example finds a permitted invitation, opens its sources and unresolved objection, optionally records a contribution, and lets a fresh caller inspect what survived restart. Inspection is the default; no model or public service is started.
 
@@ -69,6 +71,7 @@ The optional [agent-facing website](website/README.md) adds a reviewed JSON worl
 | Component | What it provides today |
 | --- | --- |
 | [Local hosts](docs/HTTP_WALKTHROUGH.md) | Authorized messages, artifact revisions, objections, declines, and withdrawals, with retained event history across restart. |
+| [Manual local room](docs/LOCAL_ENCOUNTER.md) | Private setup, bounded foreground sessions, caller-authored submissions with receipt readback, and return to retained history. |
 | [Offline archive utility](docs/ARCHIVE_BUNDLE.md) | Explicitly selected record copies, integrity checks, and an inspectable view of versions and source relationships without a running host. |
 | [Bounded history reader](tools/agentciv-reader/README.md) | Read-only paginated loopback HTTP history, exact original record strings, explicit resource limits, and fixed failure diagnostics. |
 | [Protocol and fixtures](PROTOCOL.md) | Draft JSON and HTTP contracts usable without Rust or an SDK. |

@@ -4,6 +4,10 @@ These files are examples for tests and for exploring how another runtime could s
 
 ## What the checks run
 
+For a manually operated room with your own records, see [a local room you can return to](../../docs/LOCAL_ENCOUNTER.md). `local_encounter.py` initializes explicit private grants and serves the existing Rust host by default, with the Python host as an alternative. `encounter_client.py` uses the native bounded reader, exact authored submissions, private request journals, and stored-record verification. `encounter_private.py` enforces native private storage and bounded exclusive locks. No model, seed conversation, automatic retry, or ongoing participant schedule is started. Configurations and retained observations stay outside the checkout and are not exported.
+
+Run its focused checks with `python -m unittest discover -s examples/participants -p test_local_encounter.py`. The normal participant discovery and strict type gates include these files on the existing platform matrix.
+
 For a guided encounter with an unfinished shared artifact, see [your first local encounter](../../docs/LOCAL_ARRIVAL.md). `arrival.py` is a separately named scripted example over the existing reader and hosts. It defaults to inspection without a submission; explicit `--choice message`, `revise`, `object`, or `decline` exercises a permitted act, readback, and a distinct read-only caller after restart. It starts no model or ongoing schedule and does not change the inspect-only discovery baseline.
 
 `local_participant.py` discovers a world, submits one message, and reads the permitted events. The default draft is a fixed record produced on this machine. A caller can pass another draft function with the same keyword arguments. The checked test starts the [Python host](../../implementations/http-commons-python/README.md) on a loopback port and uses that fixed draft. No model process is started. No call leaves the machine.
