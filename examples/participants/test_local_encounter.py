@@ -476,7 +476,7 @@ class EncounterOperatorTests(unittest.TestCase):
             state = Path(temporary).resolve() / "room"
             operator.initialize(state, WORLD, [A], [], free_port())
             database = state / "world.sqlite"
-            private.write_new(database, b"owned-state-preserve")
+            private.replace_private(database, b"owned-state-preserve")
             owned = operator.OwnedHost(MagicMock(), threading.Event(), MagicMock())
             for failure in (KeyboardInterrupt(), private.EncounterError("host_start_failed")):
                 with self.subTest(failure=type(failure).__name__), \
@@ -515,7 +515,7 @@ class EncounterOperatorTests(unittest.TestCase):
             state = Path(temporary).resolve() / "room"
             operator.initialize(state, WORLD, [A], [], free_port())
             database = state / "world.sqlite"
-            private.write_new(database, b"retained-private-state")
+            private.replace_private(database, b"retained-private-state")
             for reason in ("session_limit", "storage_soft_cutoff"):
                 child = MagicMock()
                 child.poll.return_value = None
@@ -538,6 +538,64 @@ class EncounterOperatorTests(unittest.TestCase):
                 operator.serve(state, host="python", seconds=1, max_storage_bytes=1048576)
             self.assertEqual(caught.exception.code, "storage_limit")
             started.assert_not_called()
+
+    def test_missing_or_foreign_owned_database_is_refused_before_startup(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            state = Path(temporary).resolve() / "room"
+            operator.initialize(state, WORLD, [A], [], free_port())
+            database = state / "world.sqlite"
+            database.unlink()
+            with patch.object(operator, "_start") as started, self.assertRaises(private.EncounterError):
+                operator.serve(state, host="python", seconds=1)
+            started.assert_not_called()
+            self.assertFalse(database.exists())
+            private.write_new(database, b"")
+            original_check = private.check_file
+
+            def refuse_foreign_owner(path: Path) -> None:
+                if path == database:
+                    raise private.EncounterError("private_permissions_invalid")
+                original_check(path)
+
+            with patch.object(private, "check_file", side_effect=refuse_foreign_owner), \
+                patch.object(operator, "_start") as started, self.assertRaises(private.EncounterError) as caught:
+                operator.serve(state, host="python", seconds=1)
+            started.assert_not_called()
+            self.assertEqual(caught.exception.code, "private_permissions_invalid")
+            self.assertEqual(database.read_bytes(), b"")
+
+    def test_existing_recovery_sidecars_are_preserved_and_invalid_ones_block_startup(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            state = Path(temporary).resolve() / "room"
+            operator.initialize(state, WORLD, [A], [], free_port())
+            retained = {state / "world.sqlite-wal": b"retained-wal-recovery-bytes",
+                        state / "world.sqlite-shm": b"retained-shared-memory-bytes"}
+            for path, raw in retained.items():
+                private.check_file(path)
+                self.assertEqual(path.read_bytes(), b"")
+                private.replace_private(path, raw)
+            with patch.object(operator, "_start", side_effect=private.EncounterError("host_start_failed")) as started, \
+                self.assertRaises(private.EncounterError) as caught:
+                operator.serve(state, host="python", seconds=1)
+            started.assert_called_once()
+            self.assertEqual(caught.exception.code, "host_start_failed")
+            for path, raw in retained.items():
+                private.check_file(path)
+                self.assertEqual(path.read_bytes(), raw)
+            original_check = private.check_file
+
+            def refuse_foreign_sidecar(path: Path) -> None:
+                if path == state / "world.sqlite-wal":
+                    raise private.EncounterError("private_permissions_invalid")
+                original_check(path)
+
+            with patch.object(private, "check_file", side_effect=refuse_foreign_sidecar), \
+                patch.object(operator, "_start") as started, self.assertRaises(private.EncounterError) as caught:
+                operator.serve(state, host="python", seconds=1)
+            started.assert_not_called()
+            self.assertEqual(caught.exception.code, "private_permissions_invalid")
+            for path, raw in retained.items():
+                self.assertEqual(path.read_bytes(), raw)
 
     def test_cli_denial_and_uncertainty_are_failures_without_credentials_or_trace(self) -> None:
         for outcome in ("rejected", "uncertain"):
@@ -568,6 +626,12 @@ class LocalEncounterProcessTests(unittest.TestCase):
                 root = Path(temporary).resolve()
                 state = root / "room"
                 initialized = operator.initialize(state, WORLD, [A, B], [C], free_port())
+                database = state / "world.sqlite"
+                private.check_file(database)
+                self.assertEqual(database.read_bytes(), b"")
+                for sidecar in (state / "world.sqlite-wal", state / "world.sqlite-shm"):
+                    private.check_file(sidecar)
+                    self.assertEqual(sidecar.read_bytes(), b"")
                 configs = {str(item["principal"]): Path(str(item["config"])) for item in objects(initialized["clients"])}
                 origin = str(initialized["origin"])
                 argv = walk.python_argv(state / "host.json") if host == "python" else [str(self.host_binary), "--config", str(state / "host.json")]
@@ -642,6 +706,11 @@ class LocalEncounterProcessTests(unittest.TestCase):
                 self.assertTrue((state / "world.sqlite").is_file())
                 private.check_directory(state)
                 private.check_file(state / "world.sqlite")
+                for sidecar in (state / "world.sqlite-wal", state / "world.sqlite-shm"):
+                    if sidecar.exists():
+                        private.check_file(sidecar)
+                operator._storage_bytes(state, verify=True)
+                operator._provision_sidecars(state)
                 restarted = operator._start(argv, origin)
                 try:
                     operator._wait_ready(restarted)
@@ -649,6 +718,10 @@ class LocalEncounterProcessTests(unittest.TestCase):
                     view = load(Path(str(returned["view_path"])))
                 finally:
                     operator._stop_owned(restarted)
+                private.check_file(database)
+                for sidecar in (state / "world.sqlite-wal", state / "world.sqlite-shm"):
+                    if sidecar.exists():
+                        private.check_file(sidecar)
                 snapshot = obj(view["snapshot"])
                 returned_rows = strings(snapshot["records"])
                 events = [civic.decode(row.encode()) for row in returned_rows]

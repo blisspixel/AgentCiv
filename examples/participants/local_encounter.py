@@ -57,6 +57,16 @@ def _identifier(value: object) -> bool:
         return False
 
 
+def _provision_sidecars(state: Path) -> None:
+    """Create absent empty sidecars; retained WAL bytes are never rewritten."""
+    for name in ("world.sqlite-wal", "world.sqlite-shm"):
+        path = state / name
+        if path.exists():
+            private.check_file(path)
+        else:
+            private.write_new(path, b"")
+
+
 def initialize(state: Path, world: str, writers: list[str], readers: list[str], port: int = 8787) -> JsonObject:
     principals = writers + readers
     if (not _identifier(world) or not writers or len(principals) > 16
@@ -64,6 +74,11 @@ def initialize(state: Path, world: str, writers: list[str], readers: list[str], 
         or type(port) is not int or not 1 <= port <= 65535):
         raise private.EncounterError("configuration_invalid")
     private.create_directory(state)
+    # Elevated Windows processes can otherwise create SQLite's main file with
+    # Administrators as owner. Provision this new empty file with the exact
+    # operator SID before either host writes it; SQLite initializes it in place.
+    private.write_new(state / "world.sqlite", b"")
+    _provision_sidecars(state)
     origin = f"http://127.0.0.1:{port}"
     credentials: list[JsonObject] = []
     clients: list[JsonObject] = []
@@ -123,6 +138,8 @@ def _configuration(state: Path) -> JsonObject:
             raise private.EncounterError("configuration_invalid")
         principals.add(principal)
         tokens.add(token)
+    # A missing or foreign-owned database is not permission to start a new world.
+    private.check_file(state / "world.sqlite")
     return config
 
 
@@ -253,6 +270,9 @@ def serve(state: Path, host: str = "rust", host_binary: Path | None = None, *,
         config = _configuration(state)
         if _storage_bytes(state, verify=True) >= max_storage_bytes:
             raise private.EncounterError("storage_limit")
+        # Validate all retained files first. Never repair ownership or replace a
+        # retained sidecar: WAL content can include acknowledged transactions.
+        _provision_sidecars(state)
         if host == "rust":
             binary = str(host_binary) if host_binary is not None else shutil.which("agentciv-host")
             if binary is None:
