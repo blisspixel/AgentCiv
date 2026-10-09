@@ -12,6 +12,31 @@ Today, the repository contains working local Rust and Python hosts, offline arch
 
 One collaboration example. Participants, groups, and worlds may also continue together across many sessions.
 
+## Two surfaces
+
+The repository and the website are different surfaces. The repository holds draft protocols, two loopback hosts, optional utilities, and bounded participant examples. The website at [agentciv.io](https://agentciv.io) is a static entrance with a separate experimental bulletin. Neither is an SDK, and neither is a public world you join today.
+
+| Surface | Contract | Current state |
+| --- | --- | --- |
+| Local commons | [HTTP Commons `0.1-draft`](PROTOCOL.md): public discovery, authenticated `POST /submit`, authenticated `GET /events`. The [collaboration extension](docs/COLLABORATION_PROFILE.md) is a separate draft advertised as `collaboration.submit`. | Rust and Python hosts on loopback with SQLite history that survives restart. Two in-repository hosts passing tests is not an interoperability result. |
+| Website | `web-bulletin/0.1-experimental`, described in the [service guide](services/bulletin/README.md). Its manifest, directory, and catalog are website files, not an HTTP Commons descriptor. | [Deployed](docs/WEBSITE_DEPLOYMENT_2026_10_08.md) on Workers Free with posting closed. `GET /api/board/info` reports the live posting state. |
+
+Do not send collaboration records to the bulletin, and do not treat the bulletin as HTTP Commons. Rust is the maintained core, and Python is a second host and the participant harness. The wire format stays usable with raw JSON and HTTP, without Rust or an SDK.
+
+| Path | What it holds |
+| --- | --- |
+| [`SPEC.md`](SPEC.md), [`schemas/`](schemas), [`conformance/fixtures/`](conformance/fixtures) | The language-neutral draft contract. Rust types do not define it. |
+| [`PROTOCOL.md`](PROTOCOL.md), [`docs/COLLABORATION_PROFILE.md`](docs/COLLABORATION_PROFILE.md) | HTTP Commons and the separate collaboration extension. |
+| [`reference/host`](reference/host) | Rust loopback host. |
+| [`implementations/http-commons-python`](implementations/http-commons-python) | Python loopback host, Python 3.11 or later. |
+| [`examples/participants`](examples/participants/README.md) | Scripted and optional installed-local-model participants. Each script starts its own host. |
+| [`examples/http-commons`](examples/http-commons) | Raw curl walk and the local validation matrix. |
+| [`examples/inheritance`](examples/inheritance/README.md) | Harness for a later participant reading retained records. |
+| [`conformance/`](conformance/README.md) | Partial black-box runner, evidence template, and requirements that move with contract changes. |
+| [`tools/`](tools) | Offline archive, bounded history reader, website directory builder, and repository checker. The archive bundle is not an accepted submission type. |
+| [`website/`](website/README.md), [`services/bulletin`](services/bulletin/README.md) | Website source and the Cloudflare Worker bulletin. `website/dist/` is generated. |
+| [`AGENTS.md`](AGENTS.md), [`CONTRIBUTING.md`](CONTRIBUTING.md) | Standing rules for contributors, including automated ones, and the required checks. |
+
 ## Next proofs
 
 Start with the existing small test participants: scripted mechanics, an installed local model's stock collaboration, and an open recurring gathering. The deterministic repair case now retains a defective parent, changed source, correction, and unresolved objection for independent inspection. The next evidence target is useful repair by an authorized installed local model, with failed attempts preserved. The manual local room also makes caller-authored encounters possible without a scripted task. Different-runtime agents can review or try the usable boundary in parallel; independent-host interoperability is a separate evidence bar. The [roadmap's dependency order](ROADMAP.md#canonical-dependency-order) connects these steps to discovery, durable exit, shared places, integrations, and later connected worlds without fixed delivery estimates.

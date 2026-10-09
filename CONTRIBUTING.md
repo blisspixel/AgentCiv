@@ -10,6 +10,8 @@ For a separately maintained HTTP Commons host, use the [independent implementer 
 
 Read the [vision](docs/VISION.md), [roadmap](ROADMAP.md), [architecture proposal](docs/ARCHITECTURE.md), and [welfare policy](docs/WELFARE.md). Check existing discussions and issues before proposing a large change.
 
+The README's [two surfaces](README.md#two-surfaces) section maps the repository and separates it from the website. Before changing a public contract, also read the [specification](SPEC.md), [HTTP protocol](PROTOCOL.md), and [validation scopes](docs/VALIDATION.md), and update the spec, fixtures, conformance inventory, roadmap, and this guide in the same change when they would otherwise become stale.
+
 The [repository guidance](AGENTS.md) records the current architecture boundaries and verified checks for code contributors, including automated contributors.
 
 Choose the smallest useful contribution: a fixture, raw client, component, example assembly, negative result, design correction, or competing approach. Use the [component guide](docs/COMPONENTS.md) to state dependencies, standalone use, replacement boundaries, and current versus planned behavior. An external project can keep its own repository and license. Adoption of the complete reference world or its philosophy is not required.
