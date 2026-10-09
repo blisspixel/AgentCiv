@@ -250,7 +250,8 @@ def publish_choice(origin: str, token: str, choice: str, basis: JsonObject) -> t
 
 def _verify_readback(record: JsonObject, receipt: JsonObject, originals: list[str]) -> str:
     """A receipt is insufficient: match the submitted fields to the retained original."""
-    if (receipt.get("record_id") != record.get("id") or receipt.get("world") != WORLD
+    if (receipt.get("protocol_version") != "0.1-draft" or receipt.get("type") != "receipt"
+        or receipt.get("record_id") != record.get("id") or receipt.get("world") != WORLD
         or receipt.get("status") != "recorded" or not isinstance(receipt.get("event_id"), str)
         or type(receipt.get("sequence")) is not int):
         raise ValueError("arrival receipt invalid")

@@ -143,10 +143,16 @@ class ArrivalUnitTests(unittest.TestCase):
         record, receipt, originals = contribution()
         self.assertEqual(arrival.verify_readback(record, receipt, originals), originals[0])
         for field, wrong in (("status", "delivered"), ("event_id", "event:other"),
-                             ("record_id", "submission:other"), ("sequence", True), ("revision", 2)):
+                             ("record_id", "submission:other"), ("sequence", True), ("revision", 2),
+                             ("revision", True), ("type", "event"), ("protocol_version", "unknown")):
             with self.subTest(field=field), self.assertRaises(ValueError) as caught:
                 arrival.verify_readback(record, {**receipt, field: wrong}, originals)
             self.assert_fixed(caught.exception)
+        for field in ("protocol_version", "type"):
+            missing = dict(receipt)
+            missing.pop(field)
+            with self.subTest(missing=field), self.assertRaises(ValueError):
+                arrival.verify_readback(record, missing, originals)
         changed = client.decode(originals[0].encode())
         changed["body"] = {"artifact_revision": {**record, "revision": 1, "body": {"text": "Different result."}}}
         for raw in ([], ["private-not-json"], [json.dumps(changed)], originals * 2):
