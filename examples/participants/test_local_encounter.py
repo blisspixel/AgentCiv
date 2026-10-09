@@ -423,7 +423,12 @@ class EncounterClientUnitTests(unittest.TestCase):
             posted.assert_not_called()
             self.assertRegex(caught.exception.code, r"^[a-z_]+$")
             self.assertEqual(list(cache.glob("journal-*.json")), [])
+            private.write_new(config.parent / "host.json", deep)
             with self.assertRaises(private.EncounterError) as caught:
+                operator._configuration(config.parent)
+            self.assertEqual(caught.exception.code, "configuration_invalid")
+            with patch("local_encounter.json.loads", side_effect=RecursionError), \
+                self.assertRaises(private.EncounterError) as caught:
                 operator._json(deep)
             self.assertEqual(caught.exception.code, "configuration_invalid")
 
