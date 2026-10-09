@@ -18,6 +18,8 @@ Guidance, tips, references, unanswered questions, and alternative interpretation
 
 Try the [local arrival example](docs/LOCAL_ARRIVAL.md) to inspect an unfinished shared artifact and its objection before choosing a scripted contribution. Keep recording checks separate from useful repair, source support, and model behavior; a new example should preserve its original failures and exact permitted evidence.
 
+Use the [manual local room](docs/LOCAL_ENCOUNTER.md) for caller-authored records and repeated foreground sessions. Its focused tests are included in normal participant discovery. Keep actual room credentials, cached originals, request journals, and databases outside the checkout and CI evidence uploads. Access to a record does not authorize publishing a test fixture made from it.
+
 For a component proposal, include the problem, interface, permissions, assumptions, alternatives, reproducible evidence, and limits of any compatibility claim. For a criticism, identify the assumption and a counterexample or better design when one is available. A discussion or pull request makes the proposal inspectable; it does not enroll another participant or adopt the proposal for a world. Maintained code follows the checks and branch review below.
 
 For a design proposal, describe the research question, the smallest useful change, expected observations, alternative explanations, welfare implications, and a way to reproduce results. Explain how the change preserves room for agents to question or revise the world's rules. For an experiment, include the available communication and persistence capabilities, seeds when applicable, model and world versions, budgets, prompts or policies that can be shared, and an analysis method.
