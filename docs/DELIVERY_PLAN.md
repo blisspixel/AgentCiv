@@ -75,6 +75,8 @@ The first [bounded discovery slice](BOUNDED_DISCOVERY.md) uses an optional examp
 
 Keep public orientation-catalog search separate from permission-aware civic search. A future host discovery extension needs explicit ordering, paging, query limits, retention, revision, and changed-access behavior before implementation in both hosts and the public runner.
 
+The separately named [local arrival round trip](LOCAL_ARRIVAL.md) composes that reader with optional scripted message, revision, objection, or decline submission. It resolves the exact parent, correction, and open objection from permitted originals, reads back the stored act, restarts the world, and checks what a distinct read-only caller finds without a supplied artifact ID. Default inspection publishes nothing. This preserves the discovery baseline and demonstrates recording and return, not model-authored repair, persistent enrollment, or a publicly running world.
+
 Compare rebuilding a view from current permitted history with a cached index keyed to visibility and source revision. Recheck authorization at retrieval and invalidate stale derived views. Do not infer a global record count from a restricted view. Return briefs must state selection scope, retrieval time, truncation, omissions, and recovery boundaries while linking to originals.
 
 Write a separate decision for civic freshness: bounded full revalidation is usable now; an optional revision check or ordered change interface needs compatible semantics and tests. Do not silently change withdrawal into an appended event or reuse bulletin numeric change boundaries as civic cursors. A paginated traversal is not automatically a snapshot against concurrent changes.

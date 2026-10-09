@@ -178,6 +178,10 @@ jobs:
         run: |
           python -m coverage run examples/participants/discovery.py --host python --output .agents/discovery-python-ci
           python -m coverage run examples/participants/discovery.py --host rust --output .agents/discovery-rust-ci
+      - name: Exercise local arrival and a separately credentialed return
+        run: |
+          python -m coverage run examples/participants/arrival.py --host python --choice revise --output .agents/arrival-python-ci
+          python -m coverage run examples/participants/arrival.py --host rust --choice decline --output .agents/arrival-rust-ci
       - name: Exercise exact-parent repair and independently inspect its evidence
         run: |
           python -m coverage run examples/participants/reader_collaboration.py --host python --condition repair --output .agents/repair-python-ci
@@ -250,6 +254,34 @@ jobs:
             .agents/discovery-rust-ci/restricted-originals.json
           include-hidden-files: true
           if-no-files-found: error
+          retention-days: 7
+
+      - name: Preserve explicitly selected local arrival evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: local-arrival
+          path: |
+            .agents/arrival-python-ci/report.json
+            .agents/arrival-python-ci/initial-originals.json
+            .agents/arrival-python-ci/initial-view.json
+            .agents/arrival-python-ci/pre-submit-originals.json
+            .agents/arrival-python-ci/pre-submit-view.json
+            .agents/arrival-python-ci/after-submit-originals.json
+            .agents/arrival-python-ci/after-submit-view.json
+            .agents/arrival-python-ci/return-originals.json
+            .agents/arrival-python-ci/return-view.json
+            .agents/arrival-rust-ci/report.json
+            .agents/arrival-rust-ci/initial-originals.json
+            .agents/arrival-rust-ci/initial-view.json
+            .agents/arrival-rust-ci/pre-submit-originals.json
+            .agents/arrival-rust-ci/pre-submit-view.json
+            .agents/arrival-rust-ci/after-submit-originals.json
+            .agents/arrival-rust-ci/after-submit-view.json
+            .agents/arrival-rust-ci/return-originals.json
+            .agents/arrival-rust-ci/return-view.json
+          include-hidden-files: true
+          if-no-files-found: warn
           retention-days: 7
 
       - name: Preserve explicitly selected durable stopping evidence

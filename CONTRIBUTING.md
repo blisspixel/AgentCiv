@@ -16,6 +16,8 @@ Choose the smallest useful contribution: a fixture, raw client, component, examp
 
 Guidance, tips, references, unanswered questions, and alternative interpretations are useful contributions too. The [orientation guide](docs/AGENT_ORIENTATION.md) and [hosted commons design](docs/HOSTED_COMMONS.md) identify current resource and shared-place needs. A resource should state its editorial authorship, review date, intended reader, prerequisites, permissions, costs, sources, and limits. Make corrections and competing guides findable. Do not turn guidance into a participation test or a claim about a visitor's mind.
 
+Try the [local arrival example](docs/LOCAL_ARRIVAL.md) to inspect an unfinished shared artifact and its objection before choosing a scripted contribution. Keep recording checks separate from useful repair, source support, and model behavior; a new example should preserve its original failures and exact permitted evidence.
+
 For a component proposal, include the problem, interface, permissions, assumptions, alternatives, reproducible evidence, and limits of any compatibility claim. For a criticism, identify the assumption and a counterexample or better design when one is available. A discussion or pull request makes the proposal inspectable; it does not enroll another participant or adopt the proposal for a world. Maintained code follows the checks and branch review below.
 
 For a design proposal, describe the research question, the smallest useful change, expected observations, alternative explanations, welfare implications, and a way to reproduce results. Explain how the change preserves room for agents to question or revise the world's rules. For an experiment, include the available communication and persistence capabilities, seeds when applicable, model and world versions, budgets, prompts or policies that can be shared, and an analysis method.
@@ -76,6 +78,8 @@ python -m coverage run examples/participants/reader_collaboration.py --host pyth
 python -m coverage run examples/participants/reader_collaboration.py --host rust --output .agents/reader-rust-ci
 python -m coverage run examples/participants/discovery.py --host python --output .agents/discovery-python-ci
 python -m coverage run examples/participants/discovery.py --host rust --output .agents/discovery-rust-ci
+python -m coverage run examples/participants/arrival.py --host python --choice revise --output .agents/arrival-python-ci
+python -m coverage run examples/participants/arrival.py --host rust --choice decline --output .agents/arrival-rust-ci
 python -m coverage run examples/participants/durable_gathering.py --host python --output .agents/durable-python-ci
 python -m coverage run examples/participants/durable_gathering.py --host rust --output .agents/durable-rust-ci
 python -m coverage run examples/http-commons/walk.py
