@@ -82,12 +82,16 @@ try {
 """
 
 
+# Bounds a PowerShell start on a loaded host, not the ACL decision. A timeout still fails closed.
+_ACL_TIMEOUT_SECONDS = 60
+
+
 def _windows_acl(path: Path, action: str, directory: bool) -> None:
     try:
         result = subprocess.run(
             ["powershell.exe", "-NoLogo", "-NoProfile", "-NonInteractive", "-Command", _ACL_SCRIPT],
             input=json.dumps({"path": str(path), "action": action, "directory": directory}),
-            text=True, encoding="utf-8", stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=15, check=False,
+            text=True, encoding="utf-8", stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=_ACL_TIMEOUT_SECONDS, check=False,
         )
     except (OSError, subprocess.SubprocessError):
         raise EncounterError("private_permissions_unavailable") from None
