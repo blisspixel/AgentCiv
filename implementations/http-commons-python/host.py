@@ -8,9 +8,11 @@ this process does not show interoperability.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import hmac
 import ipaddress
 import json
+import math
 import secrets
 import socket
 import socketserver
@@ -31,8 +33,12 @@ PAGE_LIMIT = 100
 MAX_PAYLOAD_CAP = 8 * 1024 * 1024
 PROTOCOL_VERSION = "0.1-draft"
 PROFILE = "http-commons/0.1-draft"
+# Container nesting the Rust host's serde_json parser accepts; deeper bodies are malformed.
+MAX_JSON_DEPTH = 127
+MAX_CHUNK_LINE = 1024
 
 REASONS = {
+    200: "OK",
     400: "Bad Request",
     401: "Unauthorized",
     403: "Forbidden",
@@ -378,6 +384,64 @@ def as_object(value: object) -> JsonObject | None:
     return parsed
 
 
+class MalformedJson(ValueError):
+    pass
+
+
+def _finite_float(text: str) -> float:
+    value = float(text)
+    if not math.isfinite(value):
+        raise MalformedJson
+    return value
+
+
+def _bounded_int(text: str) -> int:
+    value = int(text)
+    float(value)  # Beyond the binary64 range the Rust host rejects the number.
+    return value
+
+
+def _reject_constant(text: str) -> object:
+    raise MalformedJson
+
+
+def _well_formed(value: object, depth: int) -> bool:
+    if isinstance(value, str):
+        try:
+            value.encode("utf-8")
+        except UnicodeEncodeError:
+            return False
+        return True
+    if isinstance(value, list):
+        return depth <= MAX_JSON_DEPTH and all(_well_formed(item, depth + 1) for item in value)
+    if isinstance(value, dict):
+        return depth <= MAX_JSON_DEPTH and all(
+            _well_formed(key, depth) and _well_formed(item, depth + 1) for key, item in value.items()
+        )
+    return True
+
+
+def parse_request_json(body: bytes) -> object:
+    """Parse a request body as strict UTF-8 JSON that every in-repository host accepts alike.
+
+    Non-finite or out-of-range numbers, NaN-style literals, lone surrogates, and nesting
+    deeper than the Rust host allows are malformed, so no stored event can later make a
+    strict reader fail on an event page.
+    """
+    try:
+        value: object = json.loads(
+            body.decode("utf-8"),
+            parse_float=_finite_float,
+            parse_int=_bounded_int,
+            parse_constant=_reject_constant,
+        )
+    except (ValueError, OverflowError, RecursionError):
+        raise MalformedJson from None
+    if not _well_formed(value, 1):
+        raise MalformedJson
+    return value
+
+
 def parse_object(raw: str | bytes) -> JsonObject:
     try:
         parsed: object = json.loads(raw)
@@ -526,7 +590,7 @@ class Store:
             except (Conflict, StorageFailure):
                 _rollback(connection)
                 raise
-            except sqlite3.Error as error:
+            except (sqlite3.Error, ValueError) as error:
                 _rollback(connection)
                 raise StorageFailure from error
             finally:
@@ -596,8 +660,8 @@ class Store:
                 sequence,
                 event_id,
                 principal,
-                json.dumps(event, ensure_ascii=False, separators=(",", ":")),
-                json.dumps(message, ensure_ascii=False, separators=(",", ":")),
+                json.dumps(event, ensure_ascii=False, separators=(",", ":"), allow_nan=False),
+                json.dumps(message, ensure_ascii=False, separators=(",", ":"), allow_nan=False),
                 now,
             ),
         )
@@ -610,7 +674,7 @@ class Store:
                 principal,
                 message_id,
                 body,
-                json.dumps(receipt, ensure_ascii=False, separators=(",", ":")),
+                json.dumps(receipt, ensure_ascii=False, separators=(",", ":"), allow_nan=False),
                 now,
             ),
         )
@@ -627,7 +691,7 @@ class Store:
             except (Conflict, UnknownTarget, NotAuthor, StorageFailure):
                 _rollback(connection)
                 raise
-            except sqlite3.Error as error:
+            except (sqlite3.Error, ValueError) as error:
                 _rollback(connection)
                 raise StorageFailure from error
             finally:
@@ -694,7 +758,7 @@ class Store:
             event["body"] = {}
             connection.execute(
                 "UPDATE events SET event_json = ? WHERE sequence = ?",
-                (json.dumps(event, ensure_ascii=False, separators=(",", ":")), int(row["sequence"])),
+                (json.dumps(event, ensure_ascii=False, separators=(",", ":"), allow_nan=False), int(row["sequence"])),
             )
             receipt = {
                 "protocol_version": PROTOCOL_VERSION,
@@ -716,7 +780,7 @@ class Store:
                 principal,
                 record_id,
                 body,
-                json.dumps(receipt, ensure_ascii=False, separators=(",", ":")),
+                json.dumps(receipt, ensure_ascii=False, separators=(",", ":"), allow_nan=False),
                 now,
             ),
         )
@@ -840,8 +904,8 @@ class Store:
                 sequence,
                 event_id,
                 principal,
-                json.dumps(event, ensure_ascii=False, separators=(",", ":")),
-                json.dumps(record, ensure_ascii=False, separators=(",", ":")),
+                json.dumps(event, ensure_ascii=False, separators=(",", ":"), allow_nan=False),
+                json.dumps(record, ensure_ascii=False, separators=(",", ":"), allow_nan=False),
                 now,
             ),
         )
@@ -957,13 +1021,18 @@ class Store:
 
 
 def tokens_equal(left: str, right: str) -> bool:
-    if len(left) != len(right):
-        return False
-    return hmac.compare_digest(left, right)
+    """Compare digests so neither the content nor the length of a token affects timing."""
+    left_digest = hashlib.sha256(left.encode("utf-8", "surrogatepass")).digest()
+    right_digest = hashlib.sha256(right.encode("utf-8", "surrogatepass")).digest()
+    return hmac.compare_digest(left_digest, right_digest)
+
+
+def visible_header(value: str) -> bool:
+    return all(character == "\t" or " " <= character <= "~" for character in value)
 
 
 def authenticate(header: str | None, credentials: tuple[Credential, ...]) -> Credential | None:
-    if not header:
+    if not header or not visible_header(header):
         return None
     scheme, separator, token = header.partition(" ")
     if not separator or scheme.lower() != "bearer":
@@ -1012,6 +1081,8 @@ class CommonsServer(ThreadingHTTPServer):
         self.server_port = bound_port
 
     def __init__(self, config: HostConfig, store: Store) -> None:
+        if ":" in config.listen[0]:
+            self.address_family = socket.AF_INET6
         super().__init__(config.listen, Handler)
         self.config = config
         self.store = store
@@ -1131,8 +1202,8 @@ class Handler(BaseHTTPRequestHandler):
             self._problem(415, "unsupported_media_type", "JSON is required")
             return
         try:
-            record = json.loads(body)
-        except json.JSONDecodeError:
+            record = parse_request_json(body)
+        except MalformedJson:
             self._problem(400, "malformed_json", "JSON could not be parsed")
             return
         code = message_error(record)
@@ -1182,8 +1253,8 @@ class Handler(BaseHTTPRequestHandler):
             self._problem(415, "unsupported_media_type", "JSON is required")
             return
         try:
-            record = json.loads(body)
-        except json.JSONDecodeError:
+            record = parse_request_json(body)
+        except MalformedJson:
             self._problem(400, "malformed_json", "JSON could not be parsed")
             return
         code = collaboration_error(record)
@@ -1222,9 +1293,14 @@ class Handler(BaseHTTPRequestHandler):
 
     def _read_limited(self, limit: int) -> tuple[bytes | None, bool]:
         raw_length = self.headers.get("Content-Length")
+        transfer = self.headers.get("Transfer-Encoding")
+        if transfer is not None:
+            if raw_length is not None or transfer.strip().lower() != "chunked":
+                return b"", False
+            return self._read_chunked(limit)
         if raw_length is None:
-            data = self.rfile.read(limit + 1)
-            return (None, True) if len(data) > limit else (data, False)
+            # A request without Content-Length or Transfer-Encoding has no body.
+            return b"", False
         try:
             length = int(raw_length)
         except ValueError:
@@ -1235,6 +1311,31 @@ class Handler(BaseHTTPRequestHandler):
             self._discard(min(length, 2_000_000))
             return None, True
         return self.rfile.read(length), False
+
+    def _read_chunked(self, limit: int) -> tuple[bytes | None, bool]:
+        data = bytearray()
+        while True:
+            line = self.rfile.readline(MAX_CHUNK_LINE + 1)
+            if len(line) > MAX_CHUNK_LINE or not line.endswith(b"\r\n"):
+                return b"", False
+            size_text = line[:-2].split(b";", 1)[0].strip()
+            if not size_text or any(byte not in b"0123456789abcdefABCDEF" for byte in size_text):
+                return b"", False
+            size = int(size_text, 16)
+            if size == 0:
+                for _ in range(64):
+                    trailer = self.rfile.readline(MAX_CHUNK_LINE + 1)
+                    if trailer == b"\r\n":
+                        return bytes(data), False
+                    if not trailer or len(trailer) > MAX_CHUNK_LINE:
+                        return b"", False
+                return b"", False
+            if len(data) + size > limit:
+                return None, True
+            chunk = self.rfile.read(size)
+            if len(chunk) != size or self.rfile.read(2) != b"\r\n":
+                return b"", False
+            data.extend(chunk)
 
     def _discard_body(self) -> None:
         raw_length = self.headers.get("Content-Length")
@@ -1256,7 +1357,7 @@ class Handler(BaseHTTPRequestHandler):
             remaining -= len(chunk)
 
     def _json(self, status: int, body: JsonObject) -> None:
-        self._bytes(status, json.dumps(body, ensure_ascii=False).encode("utf-8"), "application/json")
+        self._bytes(status, json.dumps(body, ensure_ascii=False, allow_nan=False).encode("utf-8"), "application/json")
 
     def _problem(self, status: int, code: str, title: str) -> None:
         extra = None
@@ -1264,7 +1365,7 @@ class Handler(BaseHTTPRequestHandler):
             extra = [("WWW-Authenticate", 'Bearer realm="agentciv"')]
         self._bytes(
             status,
-            json.dumps(problem(status, code, title)).encode("utf-8"),
+            json.dumps(problem(status, code, title), allow_nan=False).encode("utf-8"),
             "application/problem+json",
             extra,
         )

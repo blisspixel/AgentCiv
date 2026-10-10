@@ -1220,3 +1220,141 @@ def runner_command(root: Path, discovery: str) -> list[str]:
 
 if __name__ == "__main__":
     unittest.main()
+
+
+def raw_exchange(server: host.CommonsServer, data: bytes) -> bytes:
+    address = server.server_address
+    family = socket.AF_INET6 if ":" in str(address[0]) else socket.AF_INET
+    with socket.socket(family, socket.SOCK_STREAM) as connection:
+        connection.settimeout(5)
+        connection.connect((str(address[0]), int(address[1])))
+        connection.sendall(data)
+        connection.shutdown(socket.SHUT_WR)  # A truncated body ends here instead of waiting for a timeout.
+        received = bytearray()
+        while True:
+            chunk = connection.recv(65536)
+            if not chunk:
+                return bytes(received)
+            received.extend(chunk)
+
+
+def raw_post(path: str, headers: list[str], body: bytes, token: str = "writer-token-value") -> bytes:
+    lines = [f"POST {path} HTTP/1.1", "Host: 127.0.0.1", f"Authorization: Bearer {token}",
+        "Content-Type: application/json", "Connection: close", *headers]
+    return ("\r\n".join(lines) + "\r\n\r\n").encode("latin-1") + body
+
+
+def status_of(response: bytes) -> int:
+    return int(response.split(b" ", 2)[1])
+
+
+def chunked(*parts: bytes, extension: bytes = b"", trailer: bytes = b"") -> bytes:
+    encoded = b"".join(f"{len(part):x}".encode() + extension + b"\r\n" + part + b"\r\n" for part in parts)
+    return encoded + b"0\r\n" + trailer + b"\r\n"
+
+
+class InputHardeningTests(unittest.TestCase):
+    """Inputs the Rust host refuses must not become stored events here either."""
+
+    def setUp(self) -> None:
+        self.temporary = tempfile.TemporaryDirectory()
+        self.directory = Path(self.temporary.name)
+        self.servers: list[host.CommonsServer] = []
+
+    def tearDown(self) -> None:
+        for server in self.servers:
+            server.shutdown()
+            server.server_close()
+        self.temporary.cleanup()
+
+    def start(self, listen: tuple[str, int] = ("127.0.0.1", 0), max_payload_bytes: int = 4096) -> host.CommonsServer:
+        server = host.start_server(config(self.directory, listen=listen, max_payload_bytes=max_payload_bytes))
+        self.servers.append(server)
+        return server
+
+    def events(self, server: host.CommonsServer) -> list[object]:
+        status, _, payload = request("GET", f"{server.origin}/events", token="reader-token-value")
+        self.assertEqual(status, 200)
+
+        def strict(_: str) -> object:
+            raise AssertionError("non-standard JSON number on an event page")
+
+        page = json.loads(payload.decode("utf-8"), parse_constant=strict)
+        return expect_list(at(page, "events"))
+
+    def test_numbers_text_and_nesting_the_rust_host_refuses_are_malformed_and_unrecorded(self) -> None:
+        server = self.start()
+        template = message("message:template", "agent:abc123").decode("utf-8")
+        body = '"body": {"text": "hello"}'
+        self.assertIn(body, template)
+        values = ("NaN", "Infinity", "-Infinity", "1e400", "-1e999", "9" * 309, '"\\ud800"', "[" * 126 + "]" * 126)
+        refused = [template.replace(body, f'"body": {{"x": {value}}}').encode("utf-8") for value in values]
+        refused.append(template.replace(body, '"body": {"text": "\xff"}').encode("latin-1"))
+        refused.append(b"\xef\xbb\xbf" + template.encode("utf-8"))
+        for number, payload in enumerate(refused):
+            with self.subTest(number=number):
+                status, _, problem = request("POST", f"{server.origin}/submit", "writer-token-value", payload)
+                self.assertEqual((status, at(json_body(problem), "code")), (400, "malformed_json"))
+        collaboration = json.dumps(artifact_revision("artifact:nan", "agent:abc123", ["agent:abc123"]))
+        collaboration = collaboration.replace('"body": {', '"body": {"x": NaN, ', 1)
+        self.assertIn("NaN", collaboration)
+        status, _, problem = request("POST", f"{server.origin}/collaborate", "writer-token-value",
+            collaboration.encode("utf-8"))
+        self.assertEqual((status, at(json_body(problem), "code")), (400, "malformed_json"))
+        self.assertEqual(self.events(server), [])
+        accepted_values = ("1e308", "123456789012345678901234567890", '"\\ud83d\\ude00"', "[" * 125 + "]" * 125)
+        for number, value in enumerate(accepted_values):
+            payload_text = template.replace(body, f'"body": {{"x": {value}}}').replace(
+                "message:template", f"message:ok-{number}")
+            status, _, _ = request("POST", f"{server.origin}/submit", "writer-token-value", payload_text.encode("utf-8"))
+            self.assertEqual(status, 200)
+        self.assertEqual(len(self.events(server)), len(accepted_values))
+
+    def test_non_ascii_authorization_is_unauthenticated_and_tokens_compare_by_digest(self) -> None:
+        server = self.start()
+        response = raw_exchange(server, raw_post("/submit", ["Content-Length: 2"], b"{}",
+            token="writer-token-valu\xff"))
+        self.assertEqual(status_of(response), 401)
+        self.assertIn(b"authentication_required", response)
+        self.assertTrue(host.tokens_equal("same-token-value", "same-token-value"))
+        self.assertFalse(host.tokens_equal("same-token-value", "same-token-valu"))
+        self.assertFalse(host.tokens_equal("same-token-value", "same-token-valu\xff"))
+        self.assertFalse(host.visible_header("Bearer token\x00"))
+        self.assertTrue(host.visible_header("Bearer\ttoken value"))
+
+    def test_request_framing_never_waits_for_an_undeclared_body(self) -> None:
+        server = self.start(max_payload_bytes=1024)
+        first = message("message:chunked", "agent:abc123")
+        response = raw_exchange(server, raw_post("/submit", ["Transfer-Encoding: chunked"], chunked(first)))
+        self.assertEqual(status_of(response), 200)
+        self.assertTrue(response.startswith(b"HTTP/1.1 200 OK\r\n"))
+        self.assertIn(b"\r\nConnection: close\r\n", response)
+        second = message("message:chunk-2", "agent:abc123")
+        response = raw_exchange(server, raw_post("/submit", ["Transfer-Encoding: chunked"],
+            chunked(second[:10], second[10:], extension=b";ext=1", trailer=b"Trailer: x\r\n")))
+        self.assertEqual(status_of(response), 200)
+        oversized = chunked(b"x" * 2048)
+        self.assertEqual(status_of(raw_exchange(server, raw_post("/submit", ["Transfer-Encoding: chunked"], oversized))), 413)
+        for headers, body in ((["Transfer-Encoding: chunked"], b"zz\r\n{}\r\n0\r\n\r\n"),
+                              (["Transfer-Encoding: chunked"], b"2\r\n{}"),
+                              (["Transfer-Encoding: chunked"], b"2\r\n{}XX0\r\n\r\n"),
+                              (["Transfer-Encoding: gzip"], b"{}"),
+                              (["Transfer-Encoding: chunked", "Content-Length: 2"], b"{}"),
+                              ([], b"")):
+            with self.subTest(headers=headers, body=body):
+                response = raw_exchange(server, raw_post("/submit", headers, body))
+                self.assertEqual(status_of(response), 400)
+                self.assertIn(b"malformed_json", response)
+        self.assertEqual(len(self.events(server)), 2)
+
+    def test_ipv6_loopback_listen_starts_and_serves_discovery(self) -> None:
+        try:
+            with socket.socket(socket.AF_INET6, socket.SOCK_STREAM) as probe:
+                probe.bind(("::1", 0))
+        except OSError:
+            self.skipTest("IPv6 loopback is unavailable on this machine")
+        server = self.start(listen=("::1", 0))
+        self.assertTrue(server.origin.startswith("http://[::1]:"))
+        response = raw_exchange(server, b"GET /.well-known/agentciv HTTP/1.1\r\nHost: [::1]\r\n"
+            b"Accept: application/json\r\nConnection: close\r\n\r\n")
+        self.assertEqual(status_of(response), 200)
