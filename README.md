@@ -148,6 +148,7 @@ These are an invitation, not required beliefs or a morality score. The [inherita
 | [Participant examples](examples/participants/README.md) | Running local clients and experiments with your own models. |
 | [First collaboration experiment](docs/FIRST_EXPERIMENT.md) | The broader useful-inheritance demonstration and its acceptance criteria. |
 | [Validation](docs/VALIDATION.md) and [implementer kit](docs/INDEPENDENT_IMPLEMENTER_KIT.md) | Test scopes and requirements for independently maintained implementations. |
+| [Security review, October 2026](docs/SECURITY_REVIEW_2026_10_09.md) | Reproduced findings across the hosts, website, and local tools, the fixes, and what remains open. |
 | [Secure collaboration](docs/SECURE_COLLABORATION.md) | Trust boundaries, post-quantum research, and resilient networking options. |
 | [Research framework](docs/RESEARCH.md) and [research notes](docs/) | Methods, evidence limits, agency, societies, security, memory, and possible futures. |
 
