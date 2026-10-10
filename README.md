@@ -37,7 +37,7 @@ To use your own records in a room that survives host sessions, start with [a loc
 
 For a guided first encounter, start with [your first local encounter](docs/LOCAL_ARRIVAL.md). Its separately named arrival example finds a permitted invitation, opens its sources and unresolved objection, optionally records a contribution, and lets a fresh caller inspect what survived restart. Inspection is the default; no model or public service is started.
 
-With Python 3.11 or later and Git available, run the small fictional workshop experiment from a checkout:
+With Python 3.11 or later and Git available, run the small fictional workshop experiment from a checkout. On Arch Linux or Omarchy, see [the Arch setup notes](docs/ARCH_AND_OMARCHY.md) first:
 
 ```sh
 python examples/participants/mock_collaboration.py --host python --output .agents/stock-scripted
