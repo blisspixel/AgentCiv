@@ -25,10 +25,10 @@ struct Snapshot {
 }
 
 #[derive(Deserialize)]
-struct NativeReport {
-    pages: usize,
-    events: usize,
-    response_bytes: usize,
+pub(crate) struct NativeReport {
+    pub(crate) pages: usize,
+    pub(crate) events: usize,
+    pub(crate) response_bytes: usize,
     reached_end: bool,
     scope: String,
     copying_permission: String,
@@ -55,7 +55,7 @@ struct Source {
     revision: u64,
 }
 
-type Identity = (String, String, u64);
+pub(crate) type Identity = (String, String, u64);
 
 fn bounded_text(text: &str, scalars: usize, bytes: usize, empty: bool) -> bool {
     (empty || !text.is_empty())
@@ -93,7 +93,7 @@ fn valid_offer(value: &Value) -> Option<Offer> {
     .then_some(offer)
 }
 
-fn identity(record: &Value) -> Option<Identity> {
+pub(crate) fn identity(record: &Value) -> Option<Identity> {
     Some((
         record["from"].as_str()?.to_owned(),
         record["artifact_id"].as_str()?.to_owned(),
@@ -101,11 +101,11 @@ fn identity(record: &Value) -> Option<Identity> {
     ))
 }
 
-fn artifact(event: &Value) -> Option<&Value> {
+pub(crate) fn artifact(event: &Value) -> Option<&Value> {
     (event["kind"] == "artifact.recorded").then_some(&event["body"]["artifact_revision"])
 }
 
-fn original(index: usize, events: &[Value], records: &[String]) -> Value {
+pub(crate) fn original(index: usize, events: &[Value], records: &[String]) -> Value {
     json!({"event_id":events[index]["id"],"record_utf8":records[index]})
 }
 
@@ -202,19 +202,24 @@ fn project_offer(index: usize, offer: &Offer, events: &[Value], records: &[Strin
         "sources":sources,"earlier_revisions":earlier,"related_records":related,"derivation":derivation})
 }
 
-/// Revalidate all originals before selecting. Failure returns no usable projection.
-/// Only records already in this input can affect output, including omission counts.
-pub fn project(raw: &str, query: &str) -> Result<Value> {
-    if !bounded_text(query, 128, 512, true) {
-        return Err(Error::InvalidQuery);
-    }
+/// A full caller-view traversal whose exact originals were revalidated.
+pub(crate) struct Validated {
+    pub(crate) world: String,
+    pub(crate) report: NativeReport,
+    pub(crate) records: Vec<String>,
+    pub(crate) events: Vec<Value>,
+}
+
+/// Revalidate every original in a saved `read` result. Failure returns no usable view.
+pub(crate) fn validated(raw: &str) -> Result<Validated> {
     if raw.len() > MAX_INPUT_BYTES {
         return Err(Error::InputLimit);
     }
     let value = parse_unique(raw).map_err(|_| Error::InvalidJson)?;
     let input: Input = serde_json::from_value(value).map_err(|_| Error::InvalidView)?;
-    let report = &input.report;
-    let records = &input.snapshot.records;
+    let report = input.report;
+    let records = input.snapshot.records;
+    let world = input.snapshot.world;
     if report.scope != "current_caller_view"
         || report.copying_permission != "not_granted"
         || !report.reached_end
@@ -234,27 +239,42 @@ pub fn project(raw: &str, query: &str) -> Result<Value> {
         max_total_bytes: MAX_INPUT_BYTES,
         ..Budgets::default()
     };
-    collect(
-        &input.snapshot.world,
-        &budgets,
-        Traversal::All,
-        None,
-        |_, _, _| {
-            let end = (offset + 100).min(records.len());
-            let page = format!(
-                "{{\"protocol_version\":\"0.1-draft\",\"type\":\"event_page\",\"world\":{},\"events\":[{}],\"has_more\":{},\"next_cursor\":\"projection:{end}\"}}",
-                serde_json::to_string(&input.snapshot.world).map_err(|_| Error::InvalidView)?,
-                records[offset..end].join(","),
-                end < records.len()
-            );
-            offset = end;
-            Ok(page.into_bytes())
-        },
-    )?;
+    collect(&world, &budgets, Traversal::All, None, |_, _, _| {
+        let end = (offset + 100).min(records.len());
+        let page = format!(
+            "{{\"protocol_version\":\"0.1-draft\",\"type\":\"event_page\",\"world\":{},\"events\":[{}],\"has_more\":{},\"next_cursor\":\"projection:{end}\"}}",
+            serde_json::to_string(&world).map_err(|_| Error::InvalidView)?,
+            records[offset..end].join(","),
+            end < records.len()
+        );
+        offset = end;
+        Ok(page.into_bytes())
+    })?;
     let events: Vec<Value> = records
         .iter()
         .map(|record| parse_unique(record).map_err(|_| Error::InvalidEvent))
         .collect::<Result<_>>()?;
+    Ok(Validated {
+        world,
+        report,
+        records,
+        events,
+    })
+}
+
+/// Revalidate all originals before selecting. Failure returns no usable projection.
+/// Only records already in this input can affect output, including omission counts.
+pub fn project(raw: &str, query: &str) -> Result<Value> {
+    if !bounded_text(query, 128, 512, true) {
+        return Err(Error::InvalidQuery);
+    }
+    let Validated {
+        world,
+        report,
+        records,
+        events,
+    } = validated(raw)?;
+    let records = &records;
     let mut latest = BTreeMap::new();
     let mut tombstones = Vec::new();
     for (index, event) in events.iter().enumerate() {
@@ -320,7 +340,7 @@ pub fn project(raw: &str, query: &str) -> Result<Value> {
         .iter()
         .map(|&index| original(index, &events, records))
         .collect();
-    let view = json!({"format":"agentciv-offer-view/0.1-example","world":input.snapshot.world,"query":query,"offers":offers,"tombstones":tombstones,
+    let view = json!({"format":"agentciv-offer-view/0.1-example","world":world,"query":query,"offers":offers,"tombstones":tombstones,
         "report":{"scope":"current_caller_view","copying_permission":"not_granted","reached_end":true,"pages":report.pages,"events":report.events,"response_bytes":report.response_bytes,
             "displayed":offers.len(),"result_limit":RESULT_LIMIT,"truncated":truncated,"shortened_fields":[],
             "omissions":{"superseded_offer_revisions":superseded,"malformed_latest_offers":malformed,"uncertain_chain_offers":uncertain},

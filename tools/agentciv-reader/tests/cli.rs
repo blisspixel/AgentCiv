@@ -182,3 +182,47 @@ fn offers_cli_revalidates_offline_and_fails_closed_without_source_reflection() {
         "input_too_large"
     );
 }
+
+#[test]
+fn corrections_cli_revalidates_offline_and_fails_closed_without_partial_output() {
+    let help = String::from_utf8(invoke(&["--help"]).stdout).unwrap();
+    assert!(help.contains("corrections READ_RESULT"));
+    let temporary = TempDir::new().unwrap();
+    let path = temporary.path().join("read-result.json");
+    let empty = json!({"snapshot":{"world":"civ:cli","records":[]},"report":{"pages":1,"events":0,"response_bytes":200,"reached_end":true,"scope":"current_caller_view","copying_permission":"not_granted"}});
+    fs::write(&path, empty.to_string()).unwrap();
+    let result = invoke(&["corrections", path.to_str().unwrap()]);
+    assert!(result.status.success());
+    assert!(result.stderr.is_empty());
+    let view: Value = serde_json::from_slice(&result.stdout).unwrap();
+    assert_eq!(view["format"], "agentciv-correction-view/0.1-example");
+    assert_eq!(view["concerns"], json!([]));
+    assert_eq!(view["unresolved_citations"], json!([]));
+    assert_eq!(view["report"]["copying_permission"], "not_granted");
+    let mut partial = empty.clone();
+    partial["report"]["reached_end"] = json!(false);
+    for (raw, code) in [
+        ("{private-untrusted-source".to_owned(), "invalid_json"),
+        (partial.to_string(), "invalid_correction_view_input"),
+    ] {
+        fs::write(&path, raw).unwrap();
+        let result = invoke(&["corrections", path.to_str().unwrap()]);
+        assert!(!result.status.success());
+        assert!(result.stdout.is_empty());
+        assert_eq!(
+            serde_json::from_slice::<Value>(&result.stderr).unwrap(),
+            json!({"outcome":"failed","code":code})
+        );
+    }
+    fs::write(&path, vec![b'x'; agentciv_archive::MAX_INPUT_BYTES + 1]).unwrap();
+    let result = invoke(&["corrections", path.to_str().unwrap()]);
+    assert_eq!(
+        serde_json::from_slice::<Value>(&result.stderr).unwrap()["code"],
+        "input_too_large"
+    );
+    let extra = invoke(&["corrections", path.to_str().unwrap(), "unexpected"]);
+    assert_eq!(
+        serde_json::from_slice::<Value>(&extra.stderr).unwrap()["code"],
+        "invalid_configuration"
+    );
+}

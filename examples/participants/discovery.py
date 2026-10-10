@@ -67,7 +67,8 @@ def artifact(author: str, name: str, text: str, *, revision: int = 1) -> JsonObj
     return value
 
 
-def seed(origin: str, tokens: dict[str, str], *, extra_recipient: str | None = None) -> str:
+def seed(origin: str, tokens: dict[str, str], *, extra_recipient: str | None = None, citations: bool = False) -> str:
+    """Citations add declared dependents of the objected parent; hosts accept them only for a visible target."""
     if extra_recipient is not None and (extra_recipient not in tokens or extra_recipient == HIDDEN):
         raise ValueError("invalid extra recipient")
     extra = [extra_recipient] if extra_recipient is not None and extra_recipient != NEW else []
@@ -80,11 +81,18 @@ def seed(origin: str, tokens: dict[str, str], *, extra_recipient: str | None = N
 
     old = publish(origin, tokens[SOURCE], visible_artifact(SOURCE, "notes", "Old claim: one page is complete."))
     corrected = publish(origin, tokens[SOURCE], visible_artifact(SOURCE, "notes", "Correction: inspect all permitted pages.", revision=2))
-    parent = publish(origin, tokens[GUIDE], visible_artifact(GUIDE, "parent", "An unfinished reader plan; objections remain open."))
+    planned = visible_artifact(GUIDE, "parent", "An unfinished reader plan; objections remain open.")
+    if citations:
+        planned["to"] = [*mock.list_strings(planned["to"]), HIDDEN]
+    parent = publish(origin, tokens[GUIDE], planned)
     publish(origin, tokens[GUIDE], {"protocol_version": "0.1-draft", "type": "objection",
         "id": "submission:reader-objection", "world": WORLD, "from": GUIDE, "to": [NEW, GUIDE, *[principal for principal in extra if principal != GUIDE]],
         "target_from": GUIDE, "artifact_id": "artifact:parent", "revision": 1,
         "body": {"text": "A first-page reader omits later originals. This objection remains unresolved."}})
+    if citations:
+        attempt = visible_artifact(SOURCE, "reader-attempt", "A later attempt that builds on the unfinished reader plan.")
+        attempt["derived_from"] = {"from": GUIDE, "artifact_id": "artifact:parent", "revision": 1}
+        publish(origin, tokens[SOURCE], attempt)
     for number in range(100):
         wire.record_message(origin, tokens[GUIDE], GUIDE, [NEW, *extra], text=f"Pagination fixture {number}",
             message_id=f"message:discovery-padding-{number}")
@@ -103,8 +111,25 @@ def seed(origin: str, tokens: dict[str, str], *, extra_recipient: str | None = N
     hidden = artifact(HIDDEN, "hidden-offer", "Restricted fixture sentinel.")
     hidden["to"] = [HIDDEN]
     hidden["body"] = {**client.object_value(hidden["body"]), "activity_offer": offered}
+    if citations:
+        hidden["derived_from"] = {"from": GUIDE, "artifact_id": "artifact:parent", "revision": 1}
     publish(origin, tokens[HIDDEN], hidden)
     return str(corrected["event_id"])
+
+
+def project(binary: Path, arguments: list[str], expected: str, token: str) -> JsonObject:
+    try:
+        completed = subprocess.run([str(binary), *arguments], capture_output=True, timeout=40, check=False)
+    except (OSError, subprocess.TimeoutExpired):
+        raise ValueError("offer_projection_process_failed") from None
+    if completed.returncode != 0 or len(completed.stdout) > 1_048_576:
+        raise ValueError("offer_projection_failed")
+    result = client.decode(completed.stdout)
+    if result.get("format") != expected or result.get("world") != WORLD:
+        raise ValueError("invalid_offer_projection")
+    if token in json.dumps(result, ensure_ascii=False):
+        raise ValueError("credential_reflected")
+    return result
 
 
 def view(binary: Path, origin: str, token: str, output: Path, label: str, query: str = "reader") -> JsonObject:
@@ -118,17 +143,8 @@ def view(binary: Path, origin: str, token: str, output: Path, label: str, query:
     with tempfile.TemporaryDirectory(prefix="agentciv-offer-input-") as temporary:
         path = Path(temporary) / "input.json"
         mock.save(path, {"snapshot": snapshot, "report": transport})
-        try:
-            completed = subprocess.run([str(binary), "offers", str(path), query], capture_output=True, timeout=40, check=False)
-        except (OSError, subprocess.TimeoutExpired):
-            raise ValueError("offer_projection_process_failed") from None
-    if completed.returncode != 0 or len(completed.stdout) > 1_048_576:
-        raise ValueError("offer_projection_failed")
-    result = client.decode(completed.stdout)
-    if result.get("format") != "agentciv-offer-view/0.1-example" or result.get("world") != WORLD:
-        raise ValueError("invalid_offer_projection")
-    if token in json.dumps(result, ensure_ascii=False):
-        raise ValueError("credential_reflected")
+        result = project(binary, ["offers", str(path), query], "agentciv-offer-view/0.1-example", token)
+        result["corrections"] = project(binary, ["corrections", str(path)], "agentciv-correction-view/0.1-example", token)
     result["observation"] = {"retrieval_started": started, "retrieval_finished": datetime.now(timezone.utc).isoformat(),
         "configured_budgets": LIMITS, "freshness": "bounded_full_revalidation_not_an_atomic_snapshot",
         "copying_condition": "operator_authorized_synthetic_fixture_export_only", "choice": "inspect_only_no_dispatch"}
@@ -186,6 +202,33 @@ def verify(first: JsonObject, returned: JsonObject, visibility: str) -> None:
             raise ValueError("restricted_material_disclosed")
 
 
+def verify_corrections(view_value: JsonObject, visibility: str) -> None:
+    """The objected parent lists only visible declared dependents; hidden citers stay absent."""
+    corrections = client.object_value(view_value.get("corrections"))
+    concerns = corrections.get("concerns")
+    if not isinstance(concerns, list):
+        raise ValueError("invalid_correction_list")
+    if visibility == "sender_only":
+        if concerns or corrections.get("unresolved_citations") != []:
+            raise ValueError("sender_only_disclosed_correction")
+        return
+    parent = {"from": GUIDE, "artifact_id": "artifact:parent", "revision": 1}
+    selected = [client.object_value(item) for item in concerns if client.object_value(item).get("target") == parent]
+    if len(selected) != 1 or selected[0].get("target_status") != "available" or "objected" not in mock.list_strings(selected[0].get("reasons")):
+        raise ValueError("objected_parent_missing")
+    dependents = selected[0].get("dependents")
+    if not isinstance(dependents, list):
+        raise ValueError("invalid_dependents")
+    authors = sorted(str(client.object_value(item).get("from")) for item in dependents)
+    expected = sorted([SOURCE, HIDDEN] if visibility == "members" else [SOURCE])
+    if authors != expected or any(client.object_value(item).get("depth") != 1 for item in dependents):
+        raise ValueError("dependent_listing_failed")
+    if visibility == "addressed" and "Restricted fixture sentinel" in json.dumps(corrections):
+        raise ValueError("restricted_dependent_disclosed")
+    if corrections.get("unresolved_citations") != []:
+        raise ValueError("unexpected_unknown_lineage")
+
+
 def run(output: Path, *, host: str = "python", visibility: str = "addressed",
         reader_binary: Path | None = None, host_binary: Path | None = None) -> JsonObject:
     if host not in ("python", "rust") or visibility not in ("members", "addressed", "sender_only"):
@@ -205,7 +248,7 @@ def run(output: Path, *, host: str = "python", visibility: str = "addressed",
         running = walk.start_host(argv)
         try:
             origin = walk.wait_until_ready(running)
-            corrected_id = seed(origin, tokens)
+            corrected_id = seed(origin, tokens, citations=visibility != "sender_only")
             first = view(binary, origin, tokens[NEW], output, "first")
             receipt = publish(origin, tokens[SOURCE], {"protocol_version": "0.1-draft", "type": "withdrawal",
                 "id": "submission:withdraw-source", "world": WORLD, "from": SOURCE,
@@ -214,6 +257,8 @@ def run(output: Path, *, host: str = "python", visibility: str = "addressed",
                 raise ValueError("withdrawal_identity_changed")
             returned = view(binary, origin, tokens[NEW], output, "return")
             verify(first, returned, visibility)
+            for value in (first, returned):
+                verify_corrections(value, visibility)
         finally:
             walk.stop_host(running)
         old_token = tokens[NEW]
@@ -237,7 +282,7 @@ def run(output: Path, *, host: str = "python", visibility: str = "addressed",
         "restricted": restricted, "old_credential_rejected": revoked,
         "scope": "two_repository_hosts_not_independent_interoperability",
         "recovery": "full_traversal_from_origin_no_cached_view_fallback"}
-    if not revoked or restricted.get("offers") != []:
+    if not revoked or restricted.get("offers") != [] or client.object_value(restricted.get("corrections")).get("concerns") != []:
         raise ValueError("access_change_failed")
     if reader.source_identity() != source:
         raise ValueError("source_changed")
