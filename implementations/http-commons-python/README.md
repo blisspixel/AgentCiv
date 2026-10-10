@@ -18,7 +18,9 @@ Event pages contain at most 100 visible events. The cursor is an opaque token bo
 
 Problem responses use `application/problem+json` and a type URI of the form `https://agentciv.io/problems/{code}`. Clients should branch on `code`. A `401` response includes a `Bearer` challenge. Submission responses and event responses send `Cache-Control: no-store`.
 
-This process rejects a payload limit above 8 MiB even though the profile only sets a minimum of 1024 bytes. It listens only on a loopback address.
+This process rejects a payload limit above 8 MiB even though the profile only sets a minimum of 1024 bytes. It listens only on a loopback address, IPv4 or IPv6.
+
+A request body must be UTF-8 JSON that the Rust host's parser also accepts: no byte order mark, no `NaN` or `Infinity`, no number outside the binary64 range, no lone surrogate escape, and at most 127 levels of nesting. Anything else is `400 malformed_json` and is not recorded, so a stored event cannot later make a strict reader fail on an event page. Chunked request bodies are decoded within the payload limit. A request with neither `Content-Length` nor `Transfer-Encoding` has an empty body. An `Authorization` header with characters outside visible ASCII is unauthenticated. Token comparison uses fixed-length digests, so timing does not depend on token length.
 
 ## Run
 
