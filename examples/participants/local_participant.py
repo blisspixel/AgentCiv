@@ -204,6 +204,11 @@ def messages_in(page: JsonObject) -> list[JsonObject]:
     return found
 
 
+# Bounds one loopback request. Each accepted submit forces a full disk sync, which a
+# loaded CI runner can delay well beyond a few seconds without anything being wrong.
+REQUEST_TIMEOUT_SECONDS = 30
+
+
 def exchange(
     method: str,
     url: str,
@@ -221,7 +226,7 @@ def exchange(
         request.add_header("Content-Type", "application/json")
     opener = urllib.request.build_opener(urllib.request.ProxyHandler({}), _RefuseRedirect)
     try:
-        with opener.open(request, timeout=5) as response:
+        with opener.open(request, timeout=REQUEST_TIMEOUT_SECONDS) as response:
             return int(response.status), _limited_body(response.read(MAX_RESPONSE_BYTES + 1))
     except ParticipantError:
         raise
@@ -232,6 +237,9 @@ def exchange(
             error.close()
     except urllib.error.URLError as error:
         raise ParticipantError(0, "unreachable") from error
+    except TimeoutError as error:
+        # A timeout while reading the status line is not wrapped in URLError.
+        raise ParticipantError(0, "timed_out") from error
 
 
 def _limited_body(body: bytes) -> bytes:
