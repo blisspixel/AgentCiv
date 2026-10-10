@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import socket
 import sys
 import tempfile
 import threading
@@ -268,6 +269,14 @@ class ClientBoundaryTests(unittest.TestCase):
                 server.shutdown()
                 server.server_close()
                 thread.join(timeout=2)
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as silent:
+            silent.bind(("127.0.0.1", 0))
+            silent.listen(1)
+            silent_origin = f"http://127.0.0.1:{silent.getsockname()[1]}"
+            with patch.object(local_participant, "REQUEST_TIMEOUT_SECONDS", 0.5):
+                with self.assertRaises(local_participant.ParticipantError) as stalled:
+                    local_participant.exchange("GET", silent_origin)
+            self.assertEqual(stalled.exception.code, "timed_out")
         with self.assertRaises(local_participant.ParticipantError) as unreadable:
             local_participant._object(b"\xff", 200)
         self.assertEqual(unreadable.exception.code, "unreadable")
