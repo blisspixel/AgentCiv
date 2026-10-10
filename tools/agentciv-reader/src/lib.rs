@@ -1,6 +1,7 @@
 //! Optional bounded history reading. The existing draft schemas remain authoritative.
 //! Reading does not authorize copying, authenticate content, or execute records.
 
+pub mod corrections;
 pub mod http;
 pub mod offers;
 
@@ -49,6 +50,7 @@ pub enum Error {
     Output,
     InvalidView,
     InvalidQuery,
+    InvalidCorrectionView,
 }
 
 impl Error {
@@ -85,6 +87,7 @@ impl Error {
             Self::Output => "output_failed",
             Self::InvalidView => "invalid_offer_view_input",
             Self::InvalidQuery => "invalid_offer_query",
+            Self::InvalidCorrectionView => "invalid_correction_view_input",
         }
     }
 }

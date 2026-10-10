@@ -40,6 +40,16 @@ Output format is `agentciv-offer-view/0.1-example`, with world, query, offers, t
 
 The saved native report has no retrieval timestamp or complete configured budget. Those fields are explicitly `not_recorded_in_native_input`; a composing harness records start/end times and configured limits separately. Reaching the end is a bounded host observation, not atomic history, permanent availability, or ongoing permission. Before relying on an offer, re-read from the beginning under the current grant and rebuild. Compare exact source bytes and report differences. Tail polling misses changes to older records at their existing sequence. A denied or failed new read must not fall back to a stale view. Received private copies cannot be recalled by withdrawal.
 
+## Correction view
+
+The reader's `corrections INPUT` command answers a different question over the same validated input: when a revision is disputed, which visible later work relied on it? Corrections that do not reach people who already relied on the original were a recurring finding in the [memory source review](MEMORY_RESEARCH.md). This view is a derived listing, not a new record type or host requirement.
+
+A revision is a concern when a visible objection targets its exact `(from, artifact_id, revision)` tuple, or when its author has a visible later revision in the same chain and at least one other visible revision cites it. Dependents are visible artifact revisions whose `derived_from` reaches the concern, followed breadth first with a depth count and the exact tuple each one cites. Revisions in the concern's own chain are listed as `later_revisions`, not as dependents, and the walk does not continue through them. A visited set bounds the walk even if copied input contains a citation cycle. Each entry keeps exact original bytes. At most fifty concerns appear, ordered by the earliest visible related event, with truncation disclosed.
+
+A concern whose target is not in the input has `target_status: unavailable`. Any `derived_from` whose target is not in the input appears under `unresolved_citations` with `lineage: unknown`. Absent, hidden, and withdrawn targets cannot be told apart, and a withdrawal tombstone does not identify its erased tuple, so no link is guessed. Hidden dependents and hidden objections are not represented, and nothing in the output counts them. Output format is `agentciv-correction-view/0.1-example`; invalid or partial input fails with `invalid_correction_view_input` or the shared input diagnostics.
+
+The listing establishes that a reader can find what declared a disputed revision as its basis. It does not establish that the objection is right, that the later revision is better, or that anyone repaired a dependent. The discovery exercise checks it on both hosts under all three visibility policies: a visible dependent is listed, a dependent addressed only to another principal appears only under `members`, and a sender-only or revoked view lists nothing.
+
 The [reader guide](../tools/agentciv-reader/README.md) describes the native HTTP boundary. The example fixtures in `tools/agentciv-reader/fixtures` document accepted and rejected offer shapes. Native and two-host example checks establish bounded local behavior, not model-authored choices, deployment, or independent interoperability.
 
 

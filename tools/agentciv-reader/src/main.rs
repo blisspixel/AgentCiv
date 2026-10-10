@@ -27,6 +27,9 @@ fn run(args: &[String]) -> Result<serde_json::Value> {
             &input(path, agentciv_archive::MAX_INPUT_BYTES)?,
             query,
         ),
+        [command, path] if command == "corrections" => {
+            agentciv_reader::corrections::project(&input(path, agentciv_archive::MAX_INPUT_BYTES)?)
+        }
         _ => Err(Error::Configuration),
     }
 }
@@ -39,7 +42,7 @@ fn main() -> ExitCode {
     }
     if args == ["--help"] {
         println!(
-            "Usage: agentciv-reader read CONFIG\n       agentciv-reader offers READ_RESULT QUERY\nRead-only loopback history. CONFIG supplies origin, token, world, optional traversal and budgets. Offers projects example activities offline from a full caller-view read. Reading grants no copying permission."
+            "Usage: agentciv-reader read CONFIG\n       agentciv-reader offers READ_RESULT QUERY\n       agentciv-reader corrections READ_RESULT\nRead-only loopback history. CONFIG supplies origin, token, world, optional traversal and budgets. Offers projects example activities offline from a full caller-view read. Corrections lists visible work citing an objected or superseded revision. Reading grants no copying permission."
         );
         return ExitCode::SUCCESS;
     }
