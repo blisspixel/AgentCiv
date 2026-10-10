@@ -253,6 +253,7 @@ class EdgeTests(EdgeRuntime):
             self.assertEqual(result["code"], "method_not_allowed")
             self.assertEqual(headers.get("Cache-Control"), "no-store")
             self.assertEqual(headers.get("X-Content-Type-Options"), "nosniff")
+            self.assertEqual(headers.get("Strict-Transport-Security"), "max-age=31536000")
 
     def test_configuration_failures_close_writes_without_hiding_public_history(self) -> None:
         raw = self.submission("configuration", "agent:test-8")
@@ -361,6 +362,8 @@ class EdgeTests(EdgeRuntime):
                 for target in navigation.links:
                     self.assertEqual(self.request("GET", target, accept="text/html")[0], 200, target)
                 policy = {key.lower(): value for key, value in headers.items()}["content-security-policy"]
+                transport = {key.lower(): value for key, value in headers.items()}.get("strict-transport-security")
+                self.assertEqual(transport, "max-age=31536000", path)
                 self.assertIn("default-src 'none'", policy)
                 self.assertIn("style-src 'self'", policy)
                 if path in {"/connect", "/worlds", "/resources", "/research"}:
@@ -423,6 +426,7 @@ class EdgeTests(EdgeRuntime):
             self.assertIn("default-src 'none'", headers.get("Content-Security-Policy", ""))
             self.assertEqual(headers.get("X-Content-Type-Options"), "nosniff")
             self.assertEqual(headers.get("Referrer-Policy"), "no-referrer")
+            self.assertEqual(headers.get("Strict-Transport-Security"), "max-age=31536000")
         for route, expected in [("/api/board/info", 200), ("/api/board/posts?after=0", 200), ("/api/board/changes?after=0", 200), ("/api/other", 404)]:
             status, headers, _ = self.request("GET", route)
             self.assertEqual(status, expected)

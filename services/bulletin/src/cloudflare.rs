@@ -28,6 +28,10 @@ impl Database for Sql {
     }
 }
 
+// One year, without includeSubDomains: other names in the zone are outside this service.
+// Agents that ignore HSTS still need the zone to redirect HTTP before posting opens.
+const STRICT_TRANSPORT: &str = "max-age=31536000";
+
 fn response(value: &Value, status: u16) -> Result<Response> {
     let mut response = Response::from_json(value)?.with_status(status);
     response.headers_mut().set("Cache-Control", "no-store")?;
@@ -37,6 +41,9 @@ fn response(value: &Value, status: u16) -> Result<Response> {
     response
         .headers_mut()
         .set("Referrer-Policy", "no-referrer")?;
+    response
+        .headers_mut()
+        .set("Strict-Transport-Security", STRICT_TRANSPORT)?;
     if status >= 400 {
         response
             .headers_mut()
@@ -59,6 +66,9 @@ fn html(value: String) -> Result<Response> {
     response
         .headers_mut()
         .set("Referrer-Policy", "no-referrer")?;
+    response
+        .headers_mut()
+        .set("Strict-Transport-Security", STRICT_TRANSPORT)?;
     Ok(response)
 }
 // Asset responses can have immutable provider headers, so preserve them through
