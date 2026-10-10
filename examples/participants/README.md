@@ -4,7 +4,7 @@ These files are examples for tests and for exploring how another runtime could s
 
 ## What the checks run
 
-For a manually operated room with your own records, see [a local room you can return to](../../docs/LOCAL_ENCOUNTER.md). `local_encounter.py` initializes explicit private grants and serves the existing Rust host by default, with the Python host as an alternative. `encounter_client.py` uses the native bounded reader, exact authored submissions, private request journals, and stored-record verification. `encounter_private.py` enforces native private storage and bounded exclusive locks. No model, seed conversation, automatic retry, or ongoing participant schedule is started. Configurations and retained observations stay outside the checkout and are not exported.
+For a manually operated room with your own records, see [a local room you can return to](../../docs/LOCAL_ENCOUNTER.md). `local_encounter.py` initializes explicit private grants and serves the existing Rust host by default, with the Python host as an alternative. `encounter_client.py` uses the native bounded reader, exact authored submissions or a text-only `say` message whose envelope comes from the room configuration, private request journals, and stored-record verification. `encounter_private.py` enforces native private storage and bounded exclusive locks. No model, seed conversation, automatic retry, or ongoing participant schedule is started. Configurations and retained observations stay outside the checkout and are not exported.
 
 Run its focused checks with `python -m unittest discover -s examples/participants -p test_local_encounter.py`. The normal participant discovery and strict type gates include these files on the existing platform matrix.
 

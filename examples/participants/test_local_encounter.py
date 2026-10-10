@@ -6,6 +6,7 @@ import copy
 import hashlib
 import json
 import os
+import signal
 import socket
 import stat
 import subprocess
@@ -369,6 +370,78 @@ class EncounterClientUnitTests(unittest.TestCase):
                 self.assertEqual(str(journal["request_utf8"]).encode(), raw)
                 self.assertNotIn("event_record_utf8", journal)
 
+    def test_rejection_reports_the_host_code_to_the_caller(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary).resolve()
+            config, _, _ = settings(root)
+            source = root / "authored-wrong-world.json"
+            source.write_bytes(json.dumps(authored("message", "message:wrong-world", A)).encode())
+            problem = {"type": "https://agentciv.io/problems/wrong-world", "title": "Wrong world", "status": 422, "code": "wrong_world"}
+            current = native([])
+            with patch.object(client, "_native_read", return_value=current), \
+                patch.object(client, "_project", return_value=projection(current)), \
+                patch.object(client, "_endpoint", return_value=("http://127.0.0.1:8787/submit", "messages.submit")), \
+                patch.object(wire, "exchange", return_value=(422, json.dumps(problem).encode())):
+                result = client.submit(config, source, reader_binary=Path(__file__))
+            self.assertEqual((result["outcome"], result["code"]), ("rejected", "wrong_world"))
+
+    def test_say_fills_the_envelope_from_the_room_and_keeps_the_exact_bytes(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary).resolve()
+            state = root / "room"
+            initialized = operator.initialize(state, WORLD, [A, B], [C], free_port())
+            config = next(Path(str(item["config"])) for item in objects(initialized["clients"]) if item["principal"] == A)
+            self.assertEqual(load(config)["members"], [A, B, C])
+            sent_bytes: list[bytes] = []
+
+            def accept(method: str, endpoint: str, *, token: str, body: bytes) -> tuple[int, bytes]:
+                sent_bytes.append(body)
+                record = civic.decode(body)
+                receipt = {"protocol_version": "0.1-draft", "type": "receipt", "world": WORLD,
+                    "message_id": record["id"], "event_id": "event:say-1", "sequence": 1, "status": "recorded"}
+                return 200, json.dumps(receipt).encode()
+
+            for to, expected in ((None, [B, C]), ([C, C], [C])):
+                sent_bytes.clear()
+                current = native([])
+                with self.subTest(to=to), patch.object(client, "_native_read", return_value=current), \
+                    patch.object(client, "_project", return_value=projection(current)), \
+                    patch.object(client, "_endpoint", return_value=("http://127.0.0.1:8787/submit", "messages.submit")), \
+                    patch.object(client, "_receipt", side_effect=lambda raw, record, settings: civic.decode(raw)), \
+                    patch.object(client, "_verify_readback", return_value="{}"), \
+                    patch.object(wire, "exchange", side_effect=accept):
+                    result = client.say(config, "Hello. I am looking around first.", to, reader_binary=Path(__file__))
+                self.assertEqual(result["outcome"], "recorded")
+                sent = civic.decode(sent_bytes[0])
+                self.assertEqual((sent["protocol_version"], sent["type"], sent["world"], sent["from"]), ("0.1-draft", "message", WORLD, A))
+                self.assertEqual(sent["to"], expected)
+                self.assertEqual(sent["body"], {"text": "Hello. I am looking around first."})
+                self.assertTrue(str(sent["id"]).startswith("message:"))
+                journal = load(Path(str(result["journal_path"])))
+                self.assertEqual(str(journal["request_utf8"]).encode("utf-8"), sent_bytes[0])
+
+    def test_say_refuses_empty_text_reflected_credentials_and_bad_rosters_before_network(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary).resolve()
+            config, value, cache = settings(root)
+            current = native([])
+            with patch.object(wire, "exchange") as posted, patch.object(client, "_native_read", return_value=current), \
+                patch.object(client, "_project", return_value=projection(current)):
+                for text, to, code in (("   ", None, "empty_message"), ("ok", ["agent:\u0007"], "invalid_recipient"),
+                                       ("lone \ud800 surrogate", None, "invalid_message_text"),
+                                       (f"my token is {value['token']}", None, "invalid_authored_record")):
+                    with self.subTest(code=code), self.assertRaises(private.EncounterError) as caught:
+                        client.say(config, text, to, reader_binary=Path(__file__))
+                    self.assertEqual(caught.exception.code, code)
+            posted.assert_not_called()
+            self.assertEqual(list(cache.glob("journal-*.json")), [])
+            for number, members in enumerate(([], [B], [A, A], "agent:a")):
+                path = config.parent / f"roster-{number}.json"
+                private.write_new(path, json.dumps({**value, "members": members}).encode())
+                with self.subTest(members=members), self.assertRaises(private.EncounterError) as caught:
+                    client.say(path, "hello", reader_binary=Path(__file__))
+                self.assertEqual(caught.exception.code, "invalid_client_configuration")
+
     def test_older_withdrawal_and_changed_access_block_stale_basis_before_publication(self) -> None:
         for condition in ("withdrawn", "access_changed", "partial"):
             with self.subTest(condition=condition), tempfile.TemporaryDirectory() as temporary:
@@ -621,6 +694,61 @@ class EncounterOperatorTests(unittest.TestCase):
             for path, raw in retained.items():
                 self.assertEqual(path.read_bytes(), raw)
 
+    def test_permission_failure_names_the_offending_file_relative_to_the_room(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            state = Path(temporary).resolve() / "room"
+            operator.initialize(state, WORLD, [A], [], free_port())
+            note = state / "my-note.json"
+            private.write_new(note, b"{}")
+            original_check = private.check_file
+
+            def refuse_note(path: Path) -> None:
+                if path == note:
+                    raise private.EncounterError("private_permissions_invalid")
+                original_check(path)
+
+            arguments = ["local_encounter.py", "serve", "--state", str(state), "--host", "python", "--seconds", "1"]
+            with patch.object(private, "check_file", side_effect=refuse_note), patch.object(operator, "_start") as started, \
+                patch.object(sys, "argv", arguments), patch("builtins.print") as printed:
+                self.assertEqual(operator.main(), 1)
+            started.assert_not_called()
+            failure = json.loads(printed.call_args.args[0])
+            self.assertEqual(failure, {"outcome": "failed", "code": "private_permissions_invalid", "file": "my-note.json"})
+            self.assertNotIn(str(state), printed.call_args.args[0])
+
+    def test_terminate_signal_stops_the_owned_host_and_restores_the_previous_handler(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            state = Path(temporary).resolve() / "room"
+            operator.initialize(state, WORLD, [A], [], free_port())
+            owned = operator.OwnedHost(MagicMock(), threading.Event(), MagicMock())
+            before = signal.getsignal(signal.SIGTERM)
+
+            def terminated(host: operator.OwnedHost) -> None:
+                signal.raise_signal(signal.SIGTERM)
+
+            with patch.object(operator, "_start", return_value=owned), patch.object(operator, "_wait_ready", side_effect=terminated), \
+                patch.object(operator, "_stop_owned") as stopped, patch("builtins.print"):
+                result = operator.serve(state, host="python", seconds=1)
+            self.assertEqual(result["reason"], "interrupted")
+            stopped.assert_called_once_with(owned)
+            self.assertEqual(signal.getsignal(signal.SIGTERM), before)
+
+            def outside_main_thread() -> None:
+                with operator._terminate_as_interrupt():
+                    pass
+
+            worker = threading.Thread(target=outside_main_thread)
+            worker.start()
+            worker.join()
+            self.assertEqual(signal.getsignal(signal.SIGTERM), before)
+
+    def test_cli_say_routes_text_to_the_client(self) -> None:
+        arguments = ["local_encounter.py", "say", "--config", "private-config", "--text", "hello", "--to", C]
+        with patch.object(sys, "argv", arguments), patch.object(client, "say", return_value={"outcome": "recorded"}) as said, \
+            patch("builtins.print"):
+            self.assertEqual(operator.main(), 0)
+        said.assert_called_once_with(Path("private-config"), "hello", [C], None, reader_binary=None)
+
     def test_cli_denial_and_uncertainty_are_failures_without_credentials_or_trace(self) -> None:
         for outcome in ("rejected", "uncertain"):
             with self.subTest(outcome=outcome), patch.object(sys, "argv", ["local_encounter.py", "submit",
@@ -686,6 +814,10 @@ class LocalEncounterProcessTests(unittest.TestCase):
                     self.assertEqual(str(journal["request_utf8"]).encode("utf-8"), raw_message)
                     self.assertEqual(journal["request_sha256"], hashlib.sha256(raw_message).hexdigest())
                     self.assertEqual(obj(obj(civic.decode(str(journal["event_record_utf8"]).encode())["body"])["message"]), message)
+                    spoken = client.say(configs[B], "A first word from text alone.", [A], reader_binary=self.reader_binary)
+                    self.assertEqual(spoken["outcome"], "recorded")
+                    spoken_event = civic.decode(str(load(Path(str(spoken["journal_path"])))["event_record_utf8"]).encode())
+                    self.assertEqual(obj(obj(spoken_event["body"])["message"])["body"], {"text": "A first word from text alone."})
                     settings_a = load(configs[A])
                     endpoint = obj(wire.discover(origin)["endpoints"])["submit"]
                     status, raw = wire.exchange("POST", str(endpoint), token=str(settings_a["token"]), body=raw_message)
@@ -766,7 +898,7 @@ class LocalEncounterProcessTests(unittest.TestCase):
                 self.assertFalse(any(value["actor"] == C for value in events))
                 self.assertEqual(view["copying_permission"], "not_granted")
 
-    def test_port_collision_is_a_fixed_failure_and_preserves_the_initialized_room(self) -> None:
+    def test_port_collision_is_named_and_preserves_the_initialized_room(self) -> None:
         with tempfile.TemporaryDirectory(prefix="agentciv-port-collision-") as temporary, socket.socket() as occupied:
             occupied.bind(("127.0.0.1", 0))
             occupied.listen(1)
@@ -775,7 +907,7 @@ class LocalEncounterProcessTests(unittest.TestCase):
             config_before = (state / "host.json").read_bytes()
             with self.assertRaises(private.EncounterError) as caught:
                 operator.serve(state, host="rust", host_binary=self.host_binary, seconds=1)
-            self.assertEqual(caught.exception.code, "host_start_failed")
+            self.assertEqual(caught.exception.code, "port_in_use")
             self.assertEqual((state / "host.json").read_bytes(), config_before)
             self.assertTrue((state / "client-01.json").is_file())
 

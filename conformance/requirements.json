@@ -367,7 +367,7 @@
     {
       "id": "P11",
       "source": "PROTOCOL.md",
-      "quote": "The following commands illustrate direct use against the [local host](reference/host). Replace the sample credential with one from a configuration file kept outside the repository.",
+      "quote": "The following commands illustrate direct use against the [local host](reference/host). Replace the sample credential with one from a configuration file kept outside the repository. The fixture names world `civ:earth-17` and sender `agent:abc123`, so a configured host answers `422 wrong_world` until you copy it and set `world` to your host's world identifier and `from` to the principal bound to your credential. For a room that mints credentials and fills in the envelope for you, see [a local room you can return to](docs/LOCAL_ENCOUNTER.md).",
       "obligation": "informational",
       "applicability": "Every HTTP Commons host",
       "coverage": "informational",
