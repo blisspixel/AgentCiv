@@ -9,7 +9,6 @@ import argparse
 import json
 import os
 import secrets
-import shutil
 import stat
 import subprocess
 import sys
@@ -274,7 +273,8 @@ def serve(state: Path, host: str = "rust", host_binary: Path | None = None, *,
         # retained sidecar: WAL content can include acknowledged transactions.
         _provision_sidecars(state)
         if host == "rust":
-            binary = str(host_binary) if host_binary is not None else shutil.which("agentciv-host")
+            found = host_binary if host_binary is not None else private.find_executable("agentciv-host")
+            binary = None if found is None else str(found)
             if binary is None:
                 raise private.EncounterError("host_binary_unavailable")
             argv = [binary, "--config", str(state / "host.json")]

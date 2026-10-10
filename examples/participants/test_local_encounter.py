@@ -201,6 +201,30 @@ class PrivateEncounterFilesTests(unittest.TestCase):
                 self.assertTrue((directory / ".encounter.lock").is_file())
 
 
+    def test_tool_lookup_ignores_the_current_directory_and_relative_path_entries(self) -> None:
+        suffix = ".exe" if sys.platform == "win32" else ""
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary).resolve()
+            planted = root / "planted"
+            trusted = root / "trusted"
+            planted.mkdir()
+            trusted.mkdir()
+            for directory in (planted, trusted):
+                tool = directory / f"agentciv-reader{suffix}"
+                tool.write_bytes(b"")
+                tool.chmod(0o700)
+            previous = Path.cwd()
+            os.chdir(planted)
+            try:
+                with patch.dict(os.environ, {"PATH": os.pathsep.join([".", "planted", ""])}):
+                    self.assertIsNone(private.find_executable("agentciv-reader"))
+                with patch.dict(os.environ, {"PATH": os.pathsep.join([".", str(trusted)])}):
+                    self.assertEqual(private.find_executable("agentciv-reader"), trusted / f"agentciv-reader{suffix}")
+                with patch.dict(os.environ, {"PATH": str(trusted)}):
+                    self.assertIsNone(private.find_executable("agentciv-missing"))
+            finally:
+                os.chdir(previous)
+
 class EncounterClientUnitTests(unittest.TestCase):
     def test_empty_read_publishes_nothing_and_saved_view_cannot_be_overwritten(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
