@@ -7,7 +7,6 @@ from __future__ import annotations
 
 import hashlib
 import json
-import shutil
 import subprocess
 import uuid
 from collections.abc import Iterator
@@ -82,7 +81,7 @@ def _configuration(path: Path) -> JsonObject:
 
 
 def _binary(selected: Path | None) -> Path:
-    found = str(selected) if selected is not None else shutil.which("agentciv-reader")
+    found = str(selected) if selected is not None else private.find_executable("agentciv-reader")
     if not found or not Path(found).is_file():
         raise private.EncounterError("reader_unavailable")
     return Path(found).resolve()

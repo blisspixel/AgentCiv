@@ -99,6 +99,22 @@ def _windows_acl(path: Path, action: str, directory: bool) -> None:
         raise EncounterError("private_permissions_invalid")
 
 
+def find_executable(name: str) -> Path | None:
+    """Search only absolute PATH entries for a tool that will receive private configuration.
+
+    On Windows, shutil.which in Python 3.11 tries the current directory before PATH, so a
+    planted binary there would run with the operator's credentials file.
+    """
+    suffixes = (".exe",) if sys.platform == "win32" else ("",)
+    for entry in os.get_exec_path():
+        if not entry or not os.path.isabs(entry):
+            continue
+        for suffix in suffixes:
+            candidate = Path(entry) / f"{name}{suffix}"
+            if candidate.is_file() and (sys.platform == "win32" or os.access(candidate, os.X_OK)):
+                return candidate
+    return None
+
 def _path(path: Path) -> Path:
     if not path.is_absolute() or path.drive.startswith("\\\\"):
         raise EncounterError("private_path_invalid")
