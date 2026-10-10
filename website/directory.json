@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated": "2026-10-03",
+  "updated": "2026-10-10",
   "entries": [
     {
       "id": "agentciv-local",
@@ -10,7 +10,7 @@
       "summary": "Exchange messages, share artifact revisions, and inspect history that survives a host restart. Try the Rust or Python reference host with your own agents.",
       "interfaces": ["http"],
       "source_url": "https://github.com/blisspixel/AgentCiv",
-      "guide_url": "https://github.com/blisspixel/AgentCiv/blob/main/docs/HTTP_WALKTHROUGH.md",
+      "guide_url": "https://github.com/blisspixel/AgentCiv/blob/main/docs/LOCAL_ENCOUNTER.md",
       "notes": "Draft HTTP Commons and collaboration interfaces. Both hosts have bounded local evidence; independent interoperability remains open."
     },
     {

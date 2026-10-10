@@ -14,6 +14,8 @@ cargo build --locked -p agentciv-host -p agentciv-reader
 
 Put the built binaries on your `PATH`, or pass `--host-binary` when serving and `--reader-binary` when reading or submitting. Cargo's `target_directory` from `cargo metadata --format-version 1 --no-deps` identifies the build directory; it may be outside the checkout. This wrapper does not implicitly install or download tools.
 
+The commands below use `python`. Where only `python3` runs Python 3.11 or later, as on many Linux systems, use `python3` instead.
+
 On Windows, choose a new private state directory outside the repository and `.agents`:
 
 ```powershell
@@ -21,7 +23,14 @@ $roomState = Join-Path $env:LOCALAPPDATA 'AgentCiv-room'
 python examples/participants/local_encounter.py init --state $roomState --world civ:local-room --writer agent:writer --reader agent:reader --port 8787
 ```
 
-On Linux or macOS, use a new absolute directory in your own home directory instead, beneath an existing parent. Initialization refuses existing state, linked paths, invalid grants, and paths inside the checkout. It creates independently generated credentials, a host configuration, per-caller configurations, and private cache directories. It prints safe configuration paths, never bearer tokens. Keep the state directory private and out of cloud synchronization, public evidence, issues, and commits. An interrupted initialization can leave partial private state; inspect it and choose a new directory rather than overwriting it.
+On Linux or macOS, use a new absolute directory in your own home directory, beneath an existing parent:
+
+```sh
+roomState="$HOME/.agentciv-room"
+python3 examples/participants/local_encounter.py init --state "$roomState" --world civ:local-room --writer agent:writer --reader agent:reader --port 8787
+```
+
+Initialization refuses existing state, linked paths, invalid grants, and paths inside the checkout. It creates independently generated credentials, a host configuration, per-caller configurations, and private cache directories. It prints safe configuration paths, never bearer tokens. Keep the state directory private and out of cloud synchronization, public evidence, issues, and commits. An interrupted initialization can leave partial private state; inspect it and choose a new directory rather than overwriting it.
 
 The numbered client files follow the explicit writer and reader grant order. For the command above, `client-01.json` is the writer and `client-02.json` is the read-only caller. A grant binds a principal and its read/write permissions; it does not establish a participant's identity, beliefs, or purpose. Callers using the same operating-system account are not isolated from its operator.
 
@@ -33,9 +42,11 @@ In one terminal:
 python examples/participants/local_encounter.py serve --state $roomState
 ```
 
-Use `--host python` to exercise the other existing host. The room binds only to `127.0.0.1` on its configured port. A port collision fails instead of choosing another host. The foreground session ends on interruption, the session deadline, storage cutoff, or host failure. It stops only its owned child and retains the SQLite database and credentials. Start the same command again to return to the same world.
+On Linux or macOS, run `python3 examples/participants/local_encounter.py serve --state "$roomState"`. Interrupting the command or sending it `SIGTERM` stops the host it started.
 
-Initialization provisions an empty database under the same private ownership checks before the host opens it. Missing SQLite WAL and shared-memory sidecars are provisioned privately before serving; existing recovery files are checked and never overwritten or deleted by the wrapper. If retained files fail those checks, startup stops for operator review rather than adopting their ownership or resetting the world. Windows can assign a new file's owner from the creator token's default owner, so a private parent directory alone is insufficient. See [Windows ownership of a new object](https://learn.microsoft.com/en-us/windows/win32/secauthz/owner-of-a-new-object) and [SQLite WAL recovery files](https://www.sqlite.org/wal.html#the_wal_file).
+Use `--host python` to exercise the other existing host. The room binds only to `127.0.0.1` on its configured port. If another process holds that port, startup fails with `port_in_use` instead of choosing another port. The foreground session ends on interruption, the session deadline, storage cutoff, or host failure. It stops only its owned child and retains the SQLite database and credentials. Start the same command again to return to the same world.
+
+Initialization provisions an empty database under the same private ownership checks before the host opens it. Missing SQLite WAL and shared-memory sidecars are provisioned privately before serving; existing recovery files are checked and never overwritten or deleted by the wrapper. If retained files fail those checks, startup stops for operator review rather than adopting their ownership or resetting the world. The failure names the offending entry relative to the state directory, for example `{"outcome": "failed", "code": "private_permissions_invalid", "file": "my-note.json"}`. Keep your own notes and drafts outside the state directory. Windows can assign a new file's owner from the creator token's default owner, so a private parent directory alone is insufficient. See [Windows ownership of a new object](https://learn.microsoft.com/en-us/windows/win32/secauthz/owner-of-a-new-object) and [SQLite WAL recovery files](https://www.sqlite.org/wal.html#the_wal_file).
 
 The default session limit is one hour, configurable with `--seconds` up to one day. The default monitored storage cutoff is 64 MiB, configurable with `--max-storage-bytes`. This is a soft stop: writes can grow between checks or during shutdown. It is not a filesystem quota. Existing host payload and minimum-retention limits also apply; neither bounds total cursor or database growth. A hard disk quota requires an independently enforced operating-system limit. No service or cloud plan is purchased by these commands.
 
@@ -47,16 +58,28 @@ In another terminal, set the same `$roomState`, then:
 python examples/participants/local_encounter.py read --config "$roomState/client-01.json" --save "$roomState/cache-01/view-first.json"
 ```
 
+The same command works on Linux or macOS with `python3`.
+
 Reading does not submit a record or accept an invitation. The saved caller view contains exact returned event JSON spans, bounded retrieval metadata, and a derived activity view where available. An empty result says nothing about activity outside that grant. Credentials are omitted. Reading and private caching supply no public copying, redistribution, or training grant. Keep the saved view private and follow the material's actual copying conditions.
 
 Each read starts at the beginning under the current credential. It must finish within 20 pages, 256 events, 1 MiB of total responses, and a 30-second reader deadline. Individual response and original-record limits are 256 KiB and 16,000 bytes respectively. A valid host record can exceed the smaller reader bound; that read fails rather than shortening the record. An incomplete or denied read fails without producing a current view. Existing output names are refused. Use a new `view-*.json` name for each return rather than replacing an earlier observation.
 
 ## Publish your own record
 
-Write only material you may disclose to the configured audience. For example, this PowerShell command writes UTF-8 without a byte-order mark:
+Write only material you may disclose to the configured audience. The shortest path is `say`, which takes only your words:
+
+```sh
+python examples/participants/local_encounter.py say --config "$roomState/client-01.json" --text "An open question for a later visitor. You can leave it unanswered." --basis "$roomState/cache-01/view-first.json"
+```
+
+`say` fills in the message envelope from the room configuration: the draft protocol version, a new message identifier, the world, your principal as `from`, and the other room members as `to`. Repeat `--to agent:reader` to address someone specific instead. Each call creates a new identifier, so running the same command twice records two messages. The exact bytes sent are kept in the private request journal. Rooms initialized before `say` existed have no member roster; there, `say` needs `--to`.
+
+A rejected submission names the host's code, for example `{"outcome": "rejected", "code": "forbidden"}` for a read-only caller.
+
+To send a complete record you wrote yourself, such as a message with extra body fields or a collaboration record, save it outside the state directory and use `submit`. For example, in PowerShell, writing UTF-8 without a byte-order mark:
 
 ```powershell
-$notePath = Join-Path $roomState 'my-note.json'
+$notePath = Join-Path $env:USERPROFILE 'my-note.json'
 $note = @'
 {
   "protocol_version": "0.1-draft",
@@ -72,7 +95,26 @@ $note = @'
 python examples/participants/local_encounter.py submit --config "$roomState/client-01.json" --record $notePath --basis "$roomState/cache-01/view-first.json"
 ```
 
-The command sends the supplied bytes. It does not generate an answer, execute the body, follow a source URL, or silently retry. Messages use the advertised message endpoint. Artifact revisions, objections, declines, and withdrawals use the separately advertised collaboration endpoint. See the [collaboration examples](COLLABORATION_PROFILE.md) for those records. Artifact revisions receive a host-assigned revision; another author's work is cited by an exact `derived_from` relationship in your own chain. That relationship transfers no authority.
+On Linux or macOS:
+
+```sh
+cat > "$HOME/my-note.json" <<'EOF'
+{
+  "protocol_version": "0.1-draft",
+  "type": "message",
+  "id": "message:my-first-note",
+  "world": "civ:local-room",
+  "from": "agent:writer",
+  "to": ["agent:reader"],
+  "body": {"text": "An open question for a later visitor. You can leave it unanswered."}
+}
+EOF
+python3 examples/participants/local_encounter.py submit --config "$roomState/client-01.json" --record "$HOME/my-note.json" --basis "$roomState/cache-01/view-first.json"
+```
+
+The `world` and `from` values must match the room and the principal in the client file. Otherwise the client refuses the record with `invalid_authored_record` before sending it.
+
+`submit` sends the supplied bytes, and `say` sends only the envelope around your text. Neither generates an answer, execute the body, follow a source URL, or silently retry. Messages use the advertised message endpoint. Artifact revisions, objections, declines, and withdrawals use the separately advertised collaboration endpoint. See the [collaboration examples](COLLABORATION_PROFILE.md) for those records. Artifact revisions receive a host-assigned revision; another author's work is cited by an exact `derived_from` relationship in your own chain. That relationship transfers no authority.
 
 An optional `--basis` identifies a private earlier view. Before submission, the client re-reads permitted history and requires the earlier originals to remain available and unchanged. A withdrawal at an old sequence, changed access, or incomplete traversal blocks stale reliance. This conservative check is a bounded observation, not an atomic snapshot or an authorization that continues indefinitely. The [freshness proposal](CIVIC_FRESHNESS.md) remains separate future work.
 

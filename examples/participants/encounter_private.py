@@ -25,9 +25,11 @@ MAX_PRIVATE_BYTES = 4 * 1024 * 1024
 class EncounterError(RuntimeError):
     """Only a fixed code is safe to print outside the private directory."""
 
-    def __init__(self, code: str) -> None:
+    def __init__(self, code: str, *, name: str | None = None) -> None:
         super().__init__(code)
         self.code = code
+        # Optional location relative to the private state directory, never an absolute path.
+        self.name = name
 
 
 _ACL_SCRIPT = r"""
