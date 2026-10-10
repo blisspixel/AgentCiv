@@ -327,6 +327,62 @@ jobs:
       - name: Test offline inheritance components
         run: python -m unittest discover -s examples/inheritance -p "test_*.py"
 
+  # Omarchy is Arch Linux with mise-managed languages and rustup. The image digest is pinned;
+  # pacman still installs current rolling packages, as an Omarchy machine would. Tests run as an
+  # unprivileged user because the private-file checks behave differently for root.
+  arch-linux:
+    name: Arch Linux (Omarchy base) with ${{ matrix.python }}
+    runs-on: ubuntu-24.04
+    container:
+      image: archlinux:latest@sha256:4e77cf2ea5f410e6f8be5abf93ccf17ce2436e87a138c167208356711a405dbd
+    defaults:
+      run:
+        shell: bash
+    strategy:
+      fail-fast: false
+      matrix:
+        python: [arch-system, mise-3.15.0]
+    steps:
+      - name: Install Arch packages and an unprivileged user
+        run: |
+          pacman -Syu --noconfirm --needed git base-devel python rustup mise
+          useradd --create-home --uid 1001 builder
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: Give the checkout to the unprivileged user
+        run: 'chown -R builder:builder "$GITHUB_WORKSPACE"'
+      - name: Build native tools with the pinned rustup toolchain
+        run: |
+          runuser -u builder -- env HOME=/home/builder bash -euo pipefail -c '
+            cd "$GITHUB_WORKSPACE"
+            rustup default stable
+            cargo --version
+            cargo build --locked -p agentciv-host -p agentciv-reader -p agentciv-archive'
+      - name: Type-check and test Python in a virtual environment
+        env:
+          AGENTCIV_PYTHON: ${{ matrix.python }}
+        run: |
+          runuser -u builder -- env HOME=/home/builder bash -euo pipefail -c '
+            cd "$GITHUB_WORKSPACE"
+            if [ "$AGENTCIV_PYTHON" = mise-3.15.0 ]; then
+              mise use --global python@3.15.0
+              interpreter="$(mise which python)"
+            else
+              interpreter=/usr/bin/python3
+            fi
+            "$interpreter" -m venv "$HOME/venv"
+            . "$HOME/venv/bin/activate"
+            python --version
+            python -m pip install --disable-pip-version-check -r requirements-dev.txt
+            python -m mypy
+            python -m unittest implementations/http-commons-python/test_host.py
+            python -m unittest discover -s examples/participants -p "test_*.py"
+            python -m unittest examples/http-commons/test_validate.py
+            python -m unittest discover -s examples/inheritance -p "test_*.py"
+            python examples/http-commons/walk.py
+            python examples/http-commons/validate.py --output "$HOME/local-validation.json"'
+
   rust-platforms:
     name: Rust on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}

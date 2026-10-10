@@ -4,6 +4,7 @@
 .coverage
 .coverage.*
 __pycache__/
+/.venv/
 /website/dist/
 /website/.wrangler/
 /services/bulletin/build/
