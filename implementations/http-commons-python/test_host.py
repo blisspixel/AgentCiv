@@ -1218,9 +1218,6 @@ def runner_command(root: Path, discovery: str) -> list[str]:
     return ["cargo", "run", "--locked", "-p", "agentciv-conformance", "--", *arguments]
 
 
-if __name__ == "__main__":
-    unittest.main()
-
 
 def raw_exchange(server: host.CommonsServer, data: bytes) -> bytes:
     address = server.server_address
@@ -1287,7 +1284,8 @@ class InputHardeningTests(unittest.TestCase):
         template = message("message:template", "agent:abc123").decode("utf-8")
         body = '"body": {"text": "hello"}'
         self.assertIn(body, template)
-        values = ("NaN", "Infinity", "-Infinity", "1e400", "-1e999", "9" * 309, '"\\ud800"', "[" * 126 + "]" * 126)
+        values = ("NaN", "Infinity", "-Infinity", "1e400", "-1e999", "9" * 309, '"\\ud800"', "[" * 126 + "]" * 126,
+            "18446744073709551616", "-9223372036854775809", "123456789012345678901234567890")
         refused = [template.replace(body, f'"body": {{"x": {value}}}').encode("utf-8") for value in values]
         refused.append(template.replace(body, '"body": {"text": "\xff"}').encode("latin-1"))
         refused.append(b"\xef\xbb\xbf" + template.encode("utf-8"))
@@ -1302,7 +1300,8 @@ class InputHardeningTests(unittest.TestCase):
             collaboration.encode("utf-8"))
         self.assertEqual((status, at(json_body(problem), "code")), (400, "malformed_json"))
         self.assertEqual(self.events(server), [])
-        accepted_values = ("1e308", "123456789012345678901234567890", '"\\ud83d\\ude00"', "[" * 125 + "]" * 125)
+        accepted_values = ("1e308", "18446744073709551615", "-9223372036854775808", '"\\ud83d\\ude00"',
+            "[" * 125 + "]" * 125)
         for number, value in enumerate(accepted_values):
             payload_text = template.replace(body, f'"body": {{"x": {value}}}').replace(
                 "message:template", f"message:ok-{number}")
@@ -1358,3 +1357,67 @@ class InputHardeningTests(unittest.TestCase):
         response = raw_exchange(server, b"GET /.well-known/agentciv HTTP/1.1\r\nHost: [::1]\r\n"
             b"Accept: application/json\r\nConnection: close\r\n\r\n")
         self.assertEqual(status_of(response), 200)
+
+class ReviewedRuleTests(unittest.TestCase):
+    """Rules both in-repository hosts share after the October 2026 security review."""
+
+    def setUp(self) -> None:
+        self.temporary = tempfile.TemporaryDirectory()
+        self.server = host.start_server(config(Path(self.temporary.name), max_payload_bytes=8192))
+
+    def tearDown(self) -> None:
+        self.server.shutdown()
+        self.server.server_close()
+        self.temporary.cleanup()
+
+    def collaborate(self, token: str, record: dict[str, object]) -> tuple[int, str]:
+        status, _, payload = request("POST", f"{self.server.origin}/collaborate", token,
+            json.dumps(record).encode("utf-8"))
+        code = at(json_body(payload), "code") if status != 200 else ""
+        return status, str(code)
+
+    def objection(self, record_id: str, sender: str, target: tuple[str, str, object]) -> dict[str, object]:
+        return {"protocol_version": "0.1-draft", "type": "objection", "id": record_id, "world": "civ:local",
+            "from": sender, "to": [sender], "target_from": target[0], "artifact_id": target[1],
+            "revision": target[2], "body": {"text": "A recorded objection."}}
+
+    def test_write_only_principal_sees_only_its_own_records_when_citing(self) -> None:
+        secret = artifact_revision("artifact:secret", "agent:abc123", ["agent:reader"])
+        self.assertEqual(self.collaborate("writer-token-value", secret)[0], 200)
+        artifact_id = str(secret["artifact_id"])
+        for target in (("agent:abc123", artifact_id, 1), ("agent:abc123", "artifact:none", 1)):
+            with self.subTest(target=target):
+                self.assertEqual(self.collaborate("writer-only-token", self.objection(
+                    f"submission:probe-{target[1]}", "agent:writer-only", target)), (422, "unknown_target"))
+        own = artifact_revision("artifact:own", "agent:writer-only", ["agent:reader"])
+        self.assertEqual(self.collaborate("writer-only-token", own)[0], 200)
+        own_target = ("agent:writer-only", str(own["artifact_id"]), 1)
+        self.assertEqual(self.collaborate("writer-only-token", self.objection(
+            "submission:own-objection", "agent:writer-only", own_target))[0], 200)
+        self.assertEqual(self.collaborate("writer-token-value", self.objection(
+            "submission:reader-visible", "agent:abc123", ("agent:abc123", artifact_id, 1)))[0], 200)
+
+    def test_extra_target_from_and_fractional_revisions_do_not_redirect_citations(self) -> None:
+        plan = artifact_revision("artifact:plan", "agent:abc123", ["agent:reader"])
+        self.assertEqual(self.collaborate("writer-token-value", plan)[0], 200)
+        smuggled = artifact_revision("artifact:smuggled", "agent:abc123", ["agent:reader"])
+        smuggled["derived_from"] = {"from": "agent:ghost", "artifact_id": plan["artifact_id"], "revision": 1,
+            "target_from": "agent:abc123"}
+        self.assertEqual(self.collaborate("writer-token-value", smuggled), (422, "unknown_target"))
+        fractional = self.objection("submission:fractional", "agent:abc123", ("agent:abc123", str(plan["artifact_id"]), 1.0))
+        self.assertEqual(self.collaborate("writer-token-value", fractional), (422, "invalid_record"))
+
+    def test_repeated_after_is_an_invalid_cursor_after_the_grant_checks(self) -> None:
+        url = f"{self.server.origin}/events?after=a&after=b"
+        status, headers, _ = request("GET", url)
+        self.assertEqual(status, 401)
+        self.assertIn("www-authenticate", headers)
+        status, _, payload = request("GET", url, token="writer-only-token")
+        self.assertEqual((status, at(json_body(payload), "code")), (403, "forbidden"))
+        status, headers, payload = request("GET", url, token="reader-token-value")
+        self.assertEqual((status, at(json_body(payload), "code")), (400, "invalid_cursor"))
+        self.assertEqual(headers.get("content-type"), "application/problem+json")
+
+
+if __name__ == "__main__":
+    unittest.main()

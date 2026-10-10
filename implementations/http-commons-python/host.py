@@ -397,7 +397,9 @@ def _finite_float(text: str) -> float:
 
 def _bounded_int(text: str) -> int:
     value = int(text)
-    float(value)  # Beyond the binary64 range the Rust host rejects the number.
+    # The Rust host keeps integers exact only within i64 or u64, and refuses the rest.
+    if not -(2**63) <= value <= 2**64 - 1:
+        raise MalformedJson
     return value
 
 
@@ -680,12 +682,13 @@ class Store:
         )
         return receipt
 
-    def collaborate(self, principal: str, body: bytes) -> JsonObject:
+    def collaborate(self, principal: str, body: bytes, *, can_read: bool = True) -> JsonObject:
+        """Without a read grant a principal sees only its own records, as in an event read."""
         with self._lock:
             connection = self._connect()
             try:
                 connection.execute("BEGIN IMMEDIATE")
-                receipt = self._collaborate(connection, principal, body)
+                receipt = self._collaborate(connection, principal, body, can_read)
                 connection.execute("COMMIT")
                 return receipt
             except (Conflict, UnknownTarget, NotAuthor, StorageFailure):
@@ -697,7 +700,9 @@ class Store:
             finally:
                 connection.close()
 
-    def _collaborate(self, connection: sqlite3.Connection, principal: str, body: bytes) -> JsonObject:
+    def _collaborate(
+        self, connection: sqlite3.Connection, principal: str, body: bytes, can_read: bool
+    ) -> JsonObject:
         record = parse_object(body)
         record_id = record.get("id")
         if not _nonempty_string(record_id):
@@ -717,7 +722,7 @@ class Store:
             and bytes(saved["request_bytes"]) == body
         ):
             return parse_object(str(saved["receipt_json"]))
-        self._ensure_collaboration_target(connection, principal, record)
+        self._ensure_collaboration_target(connection, principal, can_read, record)
         if saved is not None and saved["created_unix"] + retention > now:
             raise Conflict
         if saved is not None:
@@ -730,7 +735,7 @@ class Store:
         if kind == "artifact_revision":
             citation = as_object(record.get("derived_from"))
             if citation is not None:
-                self._require_visible_revision(connection, principal, citation, cited_by="from")
+                self._require_visible_revision(connection, principal, can_read, citation, cited_by="from")
             artifact_id = record.get("artifact_id")
             if not _nonempty_string(artifact_id):
                 raise StorageFailure
@@ -742,14 +747,13 @@ class Store:
             receipt["artifact_id"] = stored["artifact_id"]
             receipt["revision"] = stored["revision"]
         elif isinstance(kind, str) and kind in {"objection", "decline"}:
-            self._require_visible_revision(connection, principal, record, cited_by="target_from")
+            self._require_visible_revision(connection, principal, can_read, record, cited_by="target_from")
             recorded = "objection.recorded" if kind == "objection" else "decline.recorded"
             receipt = self._insert_collaboration(
                 connection, principal, record, recorded, kind, now
             )
         elif kind == "withdrawal":
-            row = self._require_visible_revision(
-                connection, principal, record, cited_by="target_from"
+            row = self._require_visible_revision(connection, principal, can_read, record, cited_by="target_from"
             )
             if row["actor"] != principal:
                 raise NotAuthor
@@ -787,20 +791,19 @@ class Store:
         return receipt
 
     def _ensure_collaboration_target(
-        self, connection: sqlite3.Connection, principal: str, record: JsonObject
+        self, connection: sqlite3.Connection, principal: str, can_read: bool, record: JsonObject
     ) -> None:
         kind = record.get("type")
         if kind == "artifact_revision":
             citation = as_object(record.get("derived_from"))
             if citation is not None:
-                self._require_visible_revision(connection, principal, citation, cited_by="from")
+                self._require_visible_revision(connection, principal, can_read, citation, cited_by="from")
             return
         if kind in {"objection", "decline"}:
-            self._require_visible_revision(connection, principal, record, cited_by="target_from")
+            self._require_visible_revision(connection, principal, can_read, record, cited_by="target_from")
             return
         if kind == "withdrawal":
-            row = self._require_visible_revision(
-                connection, principal, record, cited_by="target_from"
+            row = self._require_visible_revision(connection, principal, can_read, record, cited_by="target_from"
             )
             if row["actor"] != principal:
                 raise NotAuthor
@@ -832,6 +835,7 @@ class Store:
         self,
         connection: sqlite3.Connection,
         principal: str,
+        can_read: bool,
         citation: JsonObject,
         cited_by: str,
     ) -> sqlite3.Row:
@@ -851,7 +855,9 @@ class Store:
             ):
                 continue
             actor = row["actor"]
-            if isinstance(actor, str) and visible_to(visibility, principal, actor, record):
+            if not isinstance(actor, str):
+                continue
+            if (visible_to(visibility, principal, actor, record) if can_read else actor == principal):
                 return row
         raise UnknownTarget
 
@@ -1166,7 +1172,9 @@ class Handler(BaseHTTPRequestHandler):
             self._problem(401, "authentication_required", "Authentication required")
             return
         params = urllib.parse.parse_qs(query, keep_blank_values=True)
-        after = params["after"][0] if "after" in params else None
+        values = params.get("after")
+        # A repeated `after` is an invalid cursor, reported after the read grant check.
+        after = None if values is None else values[0] if len(values) == 1 else ""
         try:
             page = server.store.read_page(credential.principal, after, credential.read)
         except ReadForbidden as error:
@@ -1276,7 +1284,7 @@ class Handler(BaseHTTPRequestHandler):
                 self._problem(403, "forbidden", "Record sender does not match the credential")
                 return
         try:
-            receipt = server.store.collaborate(credential.principal, body)
+            receipt = server.store.collaborate(credential.principal, body, can_read=credential.read)
         except Conflict:
             self._problem(409, "id_conflict", "Record id was already used for different bytes")
             return

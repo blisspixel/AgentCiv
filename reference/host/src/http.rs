@@ -3,6 +3,7 @@
 use std::sync::Arc;
 
 use axum::body::Body;
+use axum::extract::rejection::QueryRejection;
 use axum::extract::{Query, State};
 use axum::http::{HeaderMap, HeaderValue, StatusCode, header};
 use axum::response::{IntoResponse, Response};
@@ -12,7 +13,7 @@ use serde::Deserialize;
 use serde_json::{Value, json};
 
 use crate::store::{CollaborateError, ReadError, Store, SubmitError};
-use crate::validate::{collaboration_error, message_error, world_matches};
+use crate::validate::{collaboration_error, exact_integers, message_error, world_matches};
 use crate::{Credential, Visibility};
 
 #[derive(Clone)]
@@ -134,10 +135,11 @@ async fn collaborate(State(app): State<Arc<App>>, headers: HeaderMap, body: Body
         );
     }
     let principal = credential.principal.clone();
+    let can_read = credential.read;
     let world_id = app.world_id.clone();
     let store = app.store.clone();
     let submitted = tokio::task::spawn_blocking(move || {
-        accept_collaboration(&store, &principal, &world_id, &bytes)
+        accept_collaboration(&store, &principal, can_read, &world_id, &bytes)
     })
     .await;
     match submitted {
@@ -158,7 +160,7 @@ async fn collaborate(State(app): State<Arc<App>>, headers: HeaderMap, body: Body
 async fn events(
     State(app): State<Arc<App>>,
     headers: HeaderMap,
-    Query(query): Query<EventQuery>,
+    query: Result<Query<EventQuery>, QueryRejection>,
 ) -> Response {
     let Some(credential) = authenticate(&headers, &app.credentials) else {
         return problem(
@@ -171,7 +173,12 @@ async fn events(
     let can_read = credential.read;
     let world_id = app.world_id.clone();
     let store = app.store.clone();
-    let after = query.after;
+    // A malformed query, such as a repeated `after`, is an invalid cursor. It is reported
+    // after the credential and read grant, in the profile's check order.
+    let after = match query {
+        Ok(Query(query)) => query.after,
+        Err(_) => Some(String::new()),
+    };
     let page = tokio::task::spawn_blocking(move || {
         store.read_page(&principal, &world_id, after.as_deref(), can_read)
     })
@@ -218,19 +225,29 @@ fn reject(status: StatusCode, code: &'static str, title: &'static str) -> Submit
     }
 }
 
+/// Parse a request body, refusing integers serde_json would round so stored fields stay exact.
+fn parse_request(bytes: &[u8]) -> Result<Value, SubmitRejection> {
+    let malformed = || {
+        reject(
+            StatusCode::BAD_REQUEST,
+            "malformed_json",
+            "JSON could not be parsed",
+        )
+    };
+    let record: Value = serde_json::from_slice(bytes).map_err(|_| malformed())?;
+    if !exact_integers(bytes) {
+        return Err(malformed());
+    }
+    Ok(record)
+}
+
 fn accept_submission(
     store: &Store,
     principal: &str,
     world_id: &str,
     bytes: &[u8],
 ) -> Result<Value, SubmitRejection> {
-    let record: Value = serde_json::from_slice(bytes).map_err(|_| {
-        reject(
-            StatusCode::BAD_REQUEST,
-            "malformed_json",
-            "JSON could not be parsed",
-        )
-    })?;
+    let record = parse_request(bytes)?;
     if let Some(code) = message_error(&record) {
         let title = match code {
             "unsupported_version" => "Unsupported protocol version",
@@ -267,16 +284,11 @@ fn accept_submission(
 fn accept_collaboration(
     store: &Store,
     principal: &str,
+    can_read: bool,
     world_id: &str,
     bytes: &[u8],
 ) -> Result<Value, SubmitRejection> {
-    let record: Value = serde_json::from_slice(bytes).map_err(|_| {
-        reject(
-            StatusCode::BAD_REQUEST,
-            "malformed_json",
-            "JSON could not be parsed",
-        )
-    })?;
+    let record = parse_request(bytes)?;
     if let Some(code) = collaboration_error(&record) {
         let title = match code {
             "unsupported_version" => "Unsupported protocol version",
@@ -299,7 +311,7 @@ fn accept_collaboration(
             "Record sender does not match the credential",
         ));
     }
-    match store.collaborate(principal, world_id, bytes) {
+    match store.collaborate(principal, can_read, world_id, bytes) {
         Ok(receipt) => Ok(receipt),
         Err(CollaborateError::Conflict) => Err(reject(
             StatusCode::CONFLICT,

@@ -149,13 +149,16 @@ impl Store {
         self.with_write(|conn| submit_tx(conn, principal, world_id, bytes, None))
     }
 
+    /// `can_read` is the credential's read grant. Without it, a principal sees only its own
+    /// records, so a write-only citation cannot reveal whether someone else's revision exists.
     pub fn collaborate(
         &self,
         principal: &str,
+        can_read: bool,
         world_id: &str,
         bytes: &[u8],
     ) -> Result<Value, CollaborateError> {
-        self.with_write(|conn| collaborate_tx(conn, principal, world_id, bytes, None))
+        self.with_write(|conn| collaborate_tx(conn, principal, can_read, world_id, bytes, None))
     }
 
     #[cfg(test)]
@@ -389,6 +392,7 @@ fn insert_event(
 fn collaborate_tx(
     conn: &mut Connection,
     principal: &str,
+    can_read: bool,
     world_id: &str,
     bytes: &[u8],
     now_override: Option<i64>,
@@ -418,7 +422,7 @@ fn collaborate_tx(
         {
             return Ok(saved.receipt.clone());
         }
-        ensure_collaboration_target(conn, principal, &record)?;
+        ensure_collaboration_target(conn, principal, can_read, &record)?;
         if let Some(saved) = saved.as_ref() {
             if saved.created.saturating_add(retention) > now {
                 return Err(CollaborateError::Conflict);
@@ -433,7 +437,7 @@ fn collaborate_tx(
         let receipt = match kind {
             "artifact_revision" => {
                 if let Some(citation) = record.get("derived_from") {
-                    require_visible_revision(conn, principal, citation)?;
+                    require_visible_revision(conn, principal, can_read, citation, "from")?;
                 }
                 let mut stored = record.clone();
                 let revision = next_revision(
@@ -458,7 +462,7 @@ fn collaborate_tx(
                 receipt
             }
             "objection" | "decline" => {
-                require_visible_revision(conn, principal, &record)?;
+                require_visible_revision(conn, principal, can_read, &record, "target_from")?;
                 let event_kind = if kind == "objection" {
                     "objection.recorded"
                 } else {
@@ -470,7 +474,8 @@ fn collaborate_tx(
                 receipt
             }
             "withdrawal" => {
-                let row = require_visible_revision(conn, principal, &record)?;
+                let row =
+                    require_visible_revision(conn, principal, can_read, &record, "target_from")?;
                 if row.actor != principal {
                     return Err(CollaborateError::Forbidden);
                 }
@@ -514,21 +519,22 @@ fn collaborate_tx(
 fn ensure_collaboration_target(
     conn: &Connection,
     principal: &str,
+    can_read: bool,
     record: &Value,
 ) -> Result<(), CollaborateError> {
     match record["type"].as_str().ok_or(CollaborateError::Storage)? {
         "artifact_revision" => {
             if let Some(citation) = record.get("derived_from") {
-                require_visible_revision(conn, principal, citation)?;
+                require_visible_revision(conn, principal, can_read, citation, "from")?;
             }
             Ok(())
         }
         "objection" | "decline" => {
-            require_visible_revision(conn, principal, record)?;
+            require_visible_revision(conn, principal, can_read, record, "target_from")?;
             Ok(())
         }
         "withdrawal" => {
-            let row = require_visible_revision(conn, principal, record)?;
+            let row = require_visible_revision(conn, principal, can_read, record, "target_from")?;
             if row.actor != principal {
                 return Err(CollaborateError::Forbidden);
             }
@@ -604,14 +610,18 @@ fn next_revision(
     max_revision.checked_add(1).ok_or(CollaborateError::Storage)
 }
 
+/// `author_field` names the cited author: `from` inside `derived_from`, `target_from` on an
+/// objection, decline, or withdrawal. There is no fallback, so an extra field cannot redirect
+/// the visibility check to a different revision than the one stored.
 fn require_visible_revision(
     conn: &Connection,
     principal: &str,
+    can_read: bool,
     citation: &Value,
+    author_field: &str,
 ) -> Result<ArtifactRow, CollaborateError> {
-    let target_from = citation["target_from"]
+    let target_from = citation[author_field]
         .as_str()
-        .or_else(|| citation["from"].as_str())
         .ok_or(CollaborateError::Storage)?;
     let artifact_id = citation["artifact_id"]
         .as_str()
@@ -627,7 +637,12 @@ fn require_visible_revision(
         {
             continue;
         }
-        if visible_to(current.visibility, principal, &row.actor, &row.message_json) {
+        let visible = if can_read {
+            visible_to(current.visibility, principal, &row.actor, &row.message_json)
+        } else {
+            row.actor == principal
+        };
+        if visible {
             return Ok(row);
         }
     }

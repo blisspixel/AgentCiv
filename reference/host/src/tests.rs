@@ -1101,3 +1101,194 @@ fn cursor_expired(base: &str, cursor: &str) -> bool {
         .expect("expired");
     expired.status() == 410 && body_json(expired)["code"] == "cursor_expired"
 }
+
+#[tokio::test]
+async fn reviewed_visibility_citation_number_and_query_rules_hold_on_public_http() {
+    let dir = tempdir().expect("temp");
+    let mut host_config = config(dir.path(), Visibility::Members);
+    host_config.credentials.push(Credential {
+        principal: "agent:write-only".to_owned(),
+        token: "token-write-only".to_owned(),
+        read: false,
+        write: true,
+    });
+    host_config.max_payload_bytes = 4096;
+    let running = start_test_host(host_config).await.expect("start");
+    let base = running
+        .discovery
+        .trim_end_matches("/.well-known/agentciv")
+        .to_owned();
+    tokio::task::spawn_blocking(move || exercise_review_rules(&base))
+        .await
+        .expect("review rules");
+}
+
+fn objection_of(
+    id: &str,
+    sender: &str,
+    target: (&str, &str, serde_json::Value),
+) -> serde_json::Value {
+    json!({
+        "protocol_version": "0.1-draft", "type": "objection", "id": id, "world": "civ:local",
+        "from": sender, "to": [sender], "target_from": target.0, "artifact_id": target.1,
+        "revision": target.2, "body": {"text": "A recorded objection."}
+    })
+}
+
+fn problem_code(response: reqwest::blocking::Response) -> (u16, String) {
+    let status = response.status().as_u16();
+    (
+        status,
+        body_json(response)["code"]
+            .as_str()
+            .unwrap_or("")
+            .to_owned(),
+    )
+}
+
+fn exercise_review_rules(base: &str) {
+    // A principal without the read grant sees only its own records when citing.
+    let secret = artifact("submission:secret", "agent:abc123", &["agent:reader"]);
+    assert_eq!(collaborate(base, "token-writer", secret).status(), 200);
+    let probe = objection_of(
+        "submission:probe",
+        "agent:write-only",
+        ("agent:abc123", "artifact:plan", json!(1)),
+    );
+    let missing = objection_of(
+        "submission:missing",
+        "agent:write-only",
+        ("agent:abc123", "artifact:none", json!(1)),
+    );
+    for record in [probe, missing] {
+        assert_eq!(
+            problem_code(collaborate(base, "token-write-only", record)),
+            (422, "unknown_target".to_owned())
+        );
+    }
+    let own = artifact("submission:own", "agent:write-only", &["agent:reader"]);
+    assert_eq!(collaborate(base, "token-write-only", own).status(), 200);
+    let own_objection = objection_of(
+        "submission:own-objection",
+        "agent:write-only",
+        ("agent:write-only", "artifact:plan", json!(1)),
+    );
+    assert_eq!(
+        collaborate(base, "token-write-only", own_objection).status(),
+        200
+    );
+
+    // An extra target_from inside derived_from cannot redirect the visibility check.
+    let mut smuggled = artifact("submission:smuggled", "agent:abc123", &["agent:reader"]);
+    smuggled["artifact_id"] = json!("artifact:smuggled");
+    smuggled["derived_from"] = json!({"from": "agent:ghost", "artifact_id": "artifact:plan", "revision": 1, "target_from": "agent:abc123"});
+    assert_eq!(
+        problem_code(collaborate(base, "token-writer", smuggled)),
+        (422, "unknown_target".to_owned())
+    );
+
+    // A cited revision must be an exact integer, not 1.0.
+    let fractional = objection_of(
+        "submission:fractional",
+        "agent:abc123",
+        ("agent:abc123", "artifact:plan", json!(1.0)),
+    );
+    assert_eq!(
+        problem_code(collaborate(base, "token-writer", fractional)),
+        (422, "invalid_record".to_owned())
+    );
+    let mut fractional_citation = artifact(
+        "submission:fractional-citation",
+        "agent:abc123",
+        &["agent:reader"],
+    );
+    fractional_citation["derived_from"] =
+        json!({"from": "agent:abc123", "artifact_id": "artifact:plan", "revision": 1.0});
+    assert_eq!(
+        problem_code(collaborate(base, "token-writer", fractional_citation)),
+        (422, "invalid_record".to_owned())
+    );
+
+    // Integers are stored exactly or refused; none is rounded.
+    let exact = r#"{"protocol_version":"0.1-draft","type":"message","id":"message:exact","world":"civ:local","from":"agent:abc123","to":["agent:reader"],"body":{"max":18446744073709551615,"min":-9223372036854775808,"small":0.1000000000000001,"text":"12345678901234567890123456789"}}"#;
+    let refused = r#"{"protocol_version":"0.1-draft","type":"message","id":"message:rounded","world":"civ:local","from":"agent:abc123","to":["agent:reader"],"body":{"n":123456789012345678901234567890}}"#;
+    let post = |bytes: &str| {
+        client()
+            .post(format!("{base}/submit"))
+            .header(CONTENT_TYPE, "application/json")
+            .header(AUTHORIZATION, "Bearer token-writer")
+            .body(bytes.to_owned())
+            .send()
+            .expect("submit")
+    };
+    assert_eq!(post(exact).status(), 200);
+    assert_eq!(
+        problem_code(post(refused)),
+        (400, "malformed_json".to_owned())
+    );
+    let page = client()
+        .get(format!("{base}/events"))
+        .header(AUTHORIZATION, "Bearer token-reader")
+        .send()
+        .expect("events")
+        .text()
+        .expect("page");
+    assert!(page.contains(r#""max":18446744073709551615"#));
+    assert!(page.contains(r#""min":-9223372036854775808"#));
+    assert!(page.contains(r#""small":0.1000000000000001"#));
+    assert!(!page.contains("message:rounded"));
+
+    // A malformed query reaches the profile's check order instead of a plain-text rejection.
+    let events = |token: Option<&str>| {
+        let request = client().get(format!("{base}/events?after=a&after=b"));
+        let request = match token {
+            Some(token) => request.header(AUTHORIZATION, format!("Bearer {token}")),
+            None => request,
+        };
+        request.send().expect("events")
+    };
+    let anonymous = events(None);
+    assert_eq!(anonymous.status(), 401);
+    assert!(anonymous.headers().get("www-authenticate").is_some());
+    assert_eq!(
+        problem_code(events(Some("token-write-only"))),
+        (403, "forbidden".to_owned())
+    );
+    let reader = events(Some("token-reader"));
+    assert_eq!(
+        reader
+            .headers()
+            .get(CONTENT_TYPE)
+            .and_then(|value| value.to_str().ok()),
+        Some("application/problem+json")
+    );
+    assert_eq!(problem_code(reader), (400, "invalid_cursor".to_owned()));
+}
+
+#[test]
+fn exact_integer_scan_ignores_strings_and_fractions() {
+    use crate::validate::exact_integers;
+    for accepted in [
+        &br#"{"a":18446744073709551615,"b":-9223372036854775808,"c":0,"d":-0}"#[..],
+        br#"{"a":"123456789012345678901234567890","b":"x\"999999999999999999999"}"#,
+        br#"{"a":1.5e400,"b":123456789012345678901234567890.5,"c":1E30}"#,
+        br#"[1,2,3]"#,
+    ] {
+        assert!(
+            exact_integers(accepted),
+            "{}",
+            String::from_utf8_lossy(accepted)
+        );
+    }
+    for refused in [
+        &br#"{"a":18446744073709551616}"#[..],
+        br#"{"a":-9223372036854775809}"#,
+        br#"[1,"\\",99999999999999999999]"#,
+    ] {
+        assert!(
+            !exact_integers(refused),
+            "{}",
+            String::from_utf8_lossy(refused)
+        );
+    }
+}
