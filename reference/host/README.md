@@ -6,6 +6,10 @@ The host is not yet a completed claim that `http-commons/0.1-draft` is fully pro
 
 ## Run
 
+Unchanged polls reuse the opaque cursor for the same principal, policy revision, and scan boundary. Existing tokens remain valid, including duplicates issued by older versions. Tokens are not globally capped or pruned: distinct boundaries and expired revisions remain stored to preserve unknown, foreign, and expired error behavior. Ten thousand unchanged polls add no cursor rows. Both hosts index artifact author, ID, and revision, so unrelated message history is excluded from collaboration lookups. Python reads stream until a bounded visible page is available. Sparse visibility can still require scanning many hidden rows; per-view freshness and incremental withdrawal handling remain separate work in [issue 68](https://github.com/blisspixel/AgentCiv/issues/68).
+
+The error code and check order stay unchanged. A foreign cursor has title `Cursor belongs to another principal`. Identifiable `invalid_record` mistakes receive fixed hints such as `check /body` or `check /to`; arbitrary keys, submitted values, and validator exception text are never reflected in those hints. These hints do not change the schemas or grant permissions.
+
 Keep the configuration file, database, and bearer tokens outside this repository. Do not commit them. The process listens only on a loopback address.
 
 ```sh

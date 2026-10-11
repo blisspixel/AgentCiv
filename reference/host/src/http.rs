@@ -195,6 +195,11 @@ async fn events(
             "forbidden",
             "Read access is required",
         ),
+        Ok(Err(ReadError::ForeignCursor)) => problem(
+            StatusCode::FORBIDDEN,
+            "forbidden",
+            "Cursor belongs to another principal",
+        ),
         Ok(Err(ReadError::Expired)) => problem(
             StatusCode::GONE,
             "cursor_expired",
@@ -252,7 +257,7 @@ fn accept_submission(
         let title = match code {
             "unsupported_version" => "Unsupported protocol version",
             "unsupported_record_type" => "Unsupported record type",
-            _ => "Invalid record",
+            _ => crate::validate::invalid_record_title(&record),
         };
         return Err(reject(StatusCode::UNPROCESSABLE_ENTITY, code, title));
     }
@@ -293,7 +298,7 @@ fn accept_collaboration(
         let title = match code {
             "unsupported_version" => "Unsupported protocol version",
             "unsupported_record_type" => "Unsupported record type",
-            _ => "Invalid record",
+            _ => crate::validate::invalid_record_title(&record),
         };
         return Err(reject(StatusCode::UNPROCESSABLE_ENTITY, code, title));
     }
