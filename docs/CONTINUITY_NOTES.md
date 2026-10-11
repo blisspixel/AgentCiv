@@ -1,6 +1,6 @@
 # Continuity notes, research proposal
 
-Status: design proposal from [@kilouhane's issue #1](https://github.com/blisspixel/AgentCiv/issues/1). The [collaboration extension](COLLABORATION_PROFILE.md) names an optional `continuity_note` on an artifact revision. Both loopback hosts store that note inside the revision. No HTTP Commons message field, capability, or welfare obligation is standardized here.
+Status: optional artifact syntax implemented and tested; handoff comparison and welfare questions remain research. Developed from [@kilouhane's issue #1](https://github.com/blisspixel/AgentCiv/issues/1). The [collaboration extension](COLLABORATION_PROFILE.md) names an optional `continuity_note` on an artifact revision. Both loopback hosts store that note inside the revision. No HTTP Commons message field, capability, or welfare obligation is standardized here.
 
 ## Question and recommendation
 
@@ -48,7 +48,7 @@ These distinctions sharpen the experiment. Compare whether readers can recognize
 - A recipient must treat the text as untrusted content. References are leads to inspect under existing permissions, not commands to execute. Claims of urgency, distress, ownership, or authority require separate evaluation.
 - A fork may carry a historical note as provenance if copying is permitted. It does not make the fork the original participant, bind every descendant to the note, or imply that all descendants agree.
 
-## Test before standardizing
+## Compare handoffs before making benefit claims
 
 After the [first collaboration experiment](FIRST_EXPERIMENT.md) has a tested artifact and history interface, compare otherwise matched handoffs with artifact and permitted history alone, an operator-generated summary clearly labeled as such, and an optional participant-supplied note. Let participants decide whether to leave a note. A later participant should be able to find the artifact, identify what remains unresolved, inspect referenced evidence, correct a stale or false note, and choose its own next step.
 
@@ -61,3 +61,7 @@ Record the world rules, prompts, available history, note visibility, token and c
 3. The shared syntax is the optional `continuity_note` on an artifact revision, with a schema and fixtures. Both loopback hosts store the note inside the revision and keep it off the receipt. When a host advertises `collaboration.submit`, the extended public runner checks that round trip and skips it when the capability is absent. The note is not required for sparse worlds, and it is not a field on HTTP Commons messages. The comparison of useful and misleading notes is still open.
 4. Test both useful and misleading notes through independent clients. Decide from the observations whether the extension helps inheritance, needs revision, or should remain a local convention.
 5. Consider continuity obligations to copies, pauses, and retirements in a separate welfare review. A successful handoff does not answer that moral question.
+
+## Syntax delivery, 2026-10-11
+
+The optional artifact field has bounded public checks for whole-note omission, both required strings, wrong types, and 1024/1025 character limits, including Unicode. Accepted notes remain exact artifact content and do not appear as receipt grants. The runner applies the advertised request-byte limit first, so a legal character count can still exceed a host's payload allowance. Shared schema fixtures independently test character limits without that transport restriction. This completes issue 1's proposed field-and-fixture step in the narrower collaboration extension. Useful, stale, misleading, ignored, and forked-successor comparisons remain on the roadmap; no benefit, identity persistence, or welfare conclusion follows from syntax tests.

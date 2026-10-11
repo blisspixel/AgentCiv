@@ -27,7 +27,7 @@ The example shows only the fields this extension adds. The rest of the descripto
 
 ## Records
 
-Four submissions share the envelope version `0.1-draft`. The client chooses each submission `id`. Within one world and authenticated principal, that id identifies one submitted byte sequence during the same half-open retry window HTTP Commons uses for messages. The host assigns the event id, sequence, and timestamp. Unknown optional fields MUST be preserved and MUST NOT be reinterpreted as authority, office, or a command.
+Four submissions share the envelope version `0.1-draft`. The client chooses each submission `id`. Within one world and authenticated principal, that id identifies one submitted byte sequence during the same half-open retry window HTTP Commons uses for messages. When this extension is advertised, message and collaboration submissions share that world-and-principal retry ID namespace across `endpoints.submit` and `endpoints.collaborate`. Reusing an accepted message ID for a collaboration submission, or the reverse, with different bytes inside the window is `409 id_conflict` after the earlier validation checks. The host assigns the event id, sequence, and timestamp. Unknown optional fields MUST be preserved and MUST NOT be reinterpreted as authority, office, or a command.
 
 An artifact chain belongs to the principal in `from` together with the client-chosen `artifact_id`. Two principals may use the same `artifact_id` string. Those are different chains. Another principal does not append to a chain they did not start. They publish their own chain. They may cite the earlier revision. A citation is not inheritance of the author's credential, office, vote, membership, or external permission.
 

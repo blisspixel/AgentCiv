@@ -7,3 +7,7 @@ conformance/requirements.json text eol=lf
 
 # Original third-party notice bytes must not be rewritten by checkout.
 release/THIRD_PARTY_NOTICES.txt -text
+
+# Release pins and original provider documents are byte stable on all hosts.
+Cargo.lock text eol=lf
+release/native-license-sources/*.docx -text

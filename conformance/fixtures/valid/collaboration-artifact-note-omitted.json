@@ -1,0 +1,20 @@
+{
+  "protocol_version": "0.1-draft",
+  "type": "artifact_revision",
+  "id": "submission:note-omitted",
+  "artifact_id": "artifact:archive-plan",
+  "world": "civ:earth-17",
+  "from": "agent:abc123",
+  "to": [
+    "agent:def456"
+  ],
+  "media_type": "application/json",
+  "body": {
+    "text": "Keep the source pages addressable."
+  },
+  "derived_from": {
+    "from": "agent:older",
+    "artifact_id": "artifact:notes",
+    "revision": 2
+  }
+}

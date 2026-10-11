@@ -691,8 +691,21 @@ fn secret_tokens<'a>(
 
 fn redact(report: &mut Report, secrets: &[&str]) {
     for case in &mut report.cases {
-        for secret in secrets {
+        let serialized = case.evidence.as_ref().map(Value::to_string);
+        for secret in secrets.iter().filter(|secret| !secret.is_empty()) {
             case.detail = case.detail.replace(secret, "[redacted]");
+            let encoded = serde_json::to_string(secret).expect("credential string serialization");
+            let escaped = &encoded[1..encoded.len() - 1];
+            case.detail = case.detail.replace(escaped, "[redacted]");
+            if serialized
+                .as_ref()
+                .is_some_and(|text| text.contains(secret) || text.contains(escaped))
+            {
+                case.evidence = None;
+                case.status = CaseStatus::Failed;
+                case.required = true;
+                case.detail = "Evidence withheld because a host reflected a credential".to_owned();
+            }
         }
     }
 }
@@ -965,6 +978,21 @@ fn run_extended_cases(
         Party {
             principal: writer,
             token: writer_token,
+        },
+        cases,
+    );
+    boundaries::base(
+        client,
+        world,
+        events,
+        submit,
+        Party {
+            principal: writer,
+            token: writer_token,
+        },
+        Party {
+            principal: reader,
+            token: reader_token,
         },
         cases,
     );
@@ -1289,6 +1317,14 @@ fn run_collaboration_cases(input: &CollaborationInput<'_>, cases: &mut Vec<Case>
     concurrent_revisions::run(&ctx, cases);
     collaboration_retries::run(&ctx, cases);
     prefix::run(input.world, &ctx, cases);
+    let submit = match endpoint_url(input.discovery, input.world, "submit") {
+        Ok(url) => url,
+        Err(detail) => {
+            cases.push(Case::failed("collaborate.retry_namespace", detail));
+            return;
+        }
+    };
+    boundaries::collaboration(input.world, &ctx, &submit, cases);
     let recorded = match recorded_revision(&ctx) {
         Ok(recorded) => {
             cases.push(Case::passed("collaborate.revision"));
@@ -2268,9 +2304,14 @@ fn run_internal(discovery_url: &str, credential: Option<(&str, &str)>) -> Report
 mod tests;
 
 mod adversarial;
+mod boundaries;
 mod collaboration_retries;
 mod concurrent_revisions;
+mod crash_recovery;
 mod lifecycle;
 mod prefix;
+mod race_recovery;
+mod retention;
+pub use retention::run_retention;
 mod revisions;
 pub use lifecycle::run_lifecycle;

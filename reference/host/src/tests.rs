@@ -573,7 +573,7 @@ async fn public_http_covers_recording_refusal_and_restart() {
     })
     .await
     .expect("runner");
-    assert_eq!(report.cases.len(), 68, "{report:?}");
+    assert_eq!(report.cases.len(), 73, "{report:?}");
     let hidden_cases = [
         "prefix.hidden",
         "collaborate.hidden_visibility",
@@ -687,6 +687,27 @@ async fn public_http_covers_recording_refusal_and_restart() {
         .expect("expired");
     assert!(expired);
     drop(running);
+}
+
+#[tokio::test]
+async fn public_retention_observes_history_retry_and_later_id_reuse() {
+    let directory = tempdir().expect("temp");
+    let mut settings = config(directory.path(), Visibility::Members);
+    settings.retention_seconds = 8;
+    settings.max_payload_bytes = 4096;
+    let running = start_test_host(settings).await.expect("start");
+    let discovery = running.discovery.clone();
+    let report = tokio::task::spawn_blocking(move || {
+        agentciv_conformance::run_retention(
+            &discovery,
+            ("agent:abc123", "token-writer"),
+            ("agent:reader", "token-reader"),
+        )
+    })
+    .await
+    .expect("retention runner");
+    assert!(report.passed(), "{report:?}");
+    assert_eq!(report.cases.len(), 6);
 }
 
 fn exercise_refusals(base: &str) -> String {

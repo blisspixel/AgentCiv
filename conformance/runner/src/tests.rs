@@ -386,6 +386,26 @@ fn baseline_passes_against_mock_host() {
 }
 
 #[test]
+fn credential_reflections_fail_and_withhold_original_evidence() {
+    for secret in ["private-token", "quoted\"token", "line\ntoken"] {
+        let mut case = Case::passed("probe");
+        case.evidence = Some(json!({"response":{"optional":secret}}));
+        let mut report = Report {
+            scope: "credentialed-extended",
+            cases: vec![case],
+        };
+        redact(&mut report, &[secret, ""]);
+        assert!(!report.passed());
+        assert!(report.cases[0].evidence.is_none());
+        assert_eq!(
+            report.cases[0].detail,
+            "Evidence withheld because a host reflected a credential"
+        );
+        assert!(!report.to_json().to_string().contains(secret));
+    }
+}
+
+#[test]
 fn bad_auth_response_is_reported() {
     let (url, host) = mock_host(Mode::BadAuth);
     let report = run(&url);

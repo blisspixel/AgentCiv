@@ -34,6 +34,10 @@ LIFECYCLE_CASES = {
     "prepare": {"lifecycle.world", "lifecycle.collaboration", "lifecycle.fresh", "lifecycle.seed", "lifecycle.checkpoint"},
     "verify": {"lifecycle.world", "lifecycle.collaboration", "restart.history", "restart.cursor", "restart.retry", "restart.no_duplicate", "restart.revision_sequence", "restart.concurrent_revisions"},
     "policy": {"lifecycle.world", "lifecycle.collaboration", "policy.cursor_expired", "policy.visibility"},
+    "revoke": {"lifecycle.world", "lifecycle.collaboration", "access.revoked_before_cursor", "access.writer_unchanged"},
+    "restore": {"lifecycle.world", "lifecycle.collaboration", "access.restored_cursor_expired", "access.restored_history"},
+    "remove": {"lifecycle.world", "lifecycle.collaboration", "access.removed_before_cursor", "access.writer_unchanged"},
+    "rotate": {"lifecycle.world", "lifecycle.collaboration", "access.old_credential_rejected", "access.rotation_cursor_preserved", "access.restored_history"},
 }
 
 
@@ -90,6 +94,8 @@ def checked_report(text: str, returncode: int, policy: str) -> dict[str, object]
         "collaborate.concurrent_revisions", "collaborate.concurrent_revisions_retry", "collaborate.concurrent_revisions_isolation",
         "collaborate.concurrent_retry", "collaborate.concurrent_conflict", "collaborate.concurrent_retry_sequence",
         "prefix.baseline", "prefix.append", "prefix.withdrawal",
+        "submit.failure_precedence", "submit.content_is_data", "collaborate.failure_precedence",
+        "collaborate.retry_namespace", "collaborate.note_boundaries",
     }
     if not expected.issubset(seen):
         raise ValidationFailure("report omitted required matrix cases")
@@ -121,6 +127,38 @@ def checked_lifecycle(text: str, returncode: int, phase: str) -> dict[str, objec
         raise ValidationFailure("lifecycle case inventory was incomplete")
     if report.get("summary") != {"passed": len(seen), "failed": 0, "skipped": 0}:
         raise ValidationFailure("lifecycle summary did not match its cases")
+    return report
+
+
+RETENTION_CASES = {"retention.setup", "retention.recorded", "retention.minimum_history", "retention.retry_inside", "retention.reuse_after", "retention.no_duplicate"}
+INTERRUPTION_CASES = {
+    "race-prepare": {"collaborate.concurrent_retry", "collaborate.concurrent_conflict", "collaborate.concurrent_retry_sequence", "race_recovery.checkpoint"},
+    "race-verify": {"restart.same_id_retry", "restart.same_id_conflict"},
+    "crash-prepare": {"crash.acknowledged", "crash.checkpoint", "crash.uncertain_dispatched"},
+    "crash-verify": {"crash.acknowledged_history", "crash.uncertain_retry", "crash.no_duplicate"},
+}
+
+
+def checked_bounded(text: str, returncode: int, scope: str, expected: set[str]) -> dict[str, object]:
+    try:
+        parsed: object = json.loads(text)
+    except json.JSONDecodeError as error:
+        raise ValidationFailure("bounded observation did not emit JSON") from error
+    report = object_of(parsed)
+    if returncode != 0 or report.get("profile") != "http-commons/0.1-draft" or report.get("runner_scope") != scope:
+        raise ValidationFailure("bounded observation failed or used another profile or scope")
+    raw_cases = report.get("cases")
+    if not isinstance(raw_cases, list):
+        raise ValidationFailure("bounded observation omitted cases")
+    seen: set[str] = set()
+    for item in raw_cases:
+        case = object_of(item)
+        case_id = case.get("id")
+        if not isinstance(case_id, str) or case_id in seen or case.get("status") != "passed" or case.get("required") is not True:
+            raise ValidationFailure("bounded case failed, duplicated, or was skipped")
+        seen.add(case_id)
+    if seen != expected or report.get("summary") != {"passed": len(seen), "failed": 0, "skipped": 0}:
+        raise ValidationFailure("bounded inventory or summary was incomplete")
     return report
 
 
@@ -188,11 +226,43 @@ def run_lifecycle(
         config, environment = configure(directory, "members")
         checkpoint = directory / "checkpoint.json"
         reports: list[dict[str, object]] = []
-        for phase in ("prepare", "verify", "policy"):
+        reader_credential: dict[str, object] | None = None
+        for phase in ("prepare", "verify", "rotate", "revoke", "restore", "remove", "restore", "policy"):
+            settings = object_of(json.loads(config.read_text(encoding="utf-8")))
+            raw_credentials = settings.get("credentials")
+            if not isinstance(raw_credentials, list):
+                raise ValidationFailure("operator credentials must be a list")
+            credentials = [object_of(item) for item in raw_credentials]
+            current_reader = next((item for item in credentials if item.get("principal") == "agent:reader"), None)
+            if phase == "rotate":
+                if current_reader is None:
+                    raise ValidationFailure("operator reader was missing")
+                environment["AGENTCIV_CONFORMANCE_OLD_READER_TOKEN"] = environment["AGENTCIV_CONFORMANCE_READER_TOKEN"]
+                replacement = secrets.token_urlsafe(24)
+                environment["AGENTCIV_CONFORMANCE_READER_TOKEN"] = replacement
+                current_reader["token"] = replacement
+            elif phase == "revoke":
+                if current_reader is None:
+                    raise ValidationFailure("operator reader was missing")
+                current_reader["read"] = False
+                current_reader["write"] = True
+            elif phase == "remove":
+                if current_reader is None:
+                    raise ValidationFailure("operator reader was missing")
+                reader_credential = current_reader.copy()
+                credentials = [item for item in credentials if item is not current_reader]
+            elif phase == "restore":
+                if current_reader is None:
+                    if reader_credential is None:
+                        raise ValidationFailure("removed operator reader was not saved")
+                    current_reader = reader_credential.copy()
+                    credentials.append(current_reader)
+                current_reader["read"] = True
+                current_reader["write"] = False
             if phase == "policy":
-                settings = object_of(json.loads(config.read_text(encoding="utf-8")))
                 settings["visibility"] = "sender_only"
-                config.write_text(json.dumps(settings), encoding="utf-8")
+            settings["credentials"] = credentials
+            config.write_text(json.dumps(settings), encoding="utf-8")
             host = walk.start_host(argv_for(config))
             try:
                 discovery = walk.wait_until_ready(host) + "/.well-known/agentciv"
@@ -206,8 +276,48 @@ def run_lifecycle(
                 reports.append({"phase": phase, "report": report})
             finally:
                 walk.stop_host(host)
-        return {"implementation": label, "operator_actions": ["restart", "visibility_to_sender_only"],
+        return {"implementation": label, "operator_actions": ["restart", "rotate_reader_credential", "reader_to_write_only", "restore_read_only", "remove_reader", "restore_reader", "visibility_to_sender_only"],
                 "reports": reports}
+
+
+def run_retention(label: str, argv_for: Callable[[Path], list[str]], runner: Path) -> dict[str, object]:
+    with tempfile.TemporaryDirectory(prefix="agentciv-retention-") as temporary:
+        config, environment = configure(Path(temporary), "members")
+        settings = object_of(json.loads(config.read_text(encoding="utf-8")))
+        settings["retention_seconds"] = 8
+        config.write_text(json.dumps(settings), encoding="utf-8")
+        host = walk.start_host(argv_for(config))
+        try:
+            discovery = walk.wait_until_ready(host) + "/.well-known/agentciv"
+            result = subprocess.run([str(runner), "--discovery", discovery, "--principal", "agent:abc123", "--reader", "agent:reader", "--retention-window-test"], cwd=ROOT, env=environment, capture_output=True, text=True, timeout=60, check=False)
+            report = checked_bounded(result.stdout, result.returncode, "bounded-retention", RETENTION_CASES)
+            return {"implementation": label, "operator_actions": ["fresh_disposable_world", "retention_seconds_8", "steady_local_clock"], "report": report}
+        finally:
+            walk.stop_host(host)
+
+
+def run_interruption(label: str, argv_for: Callable[[Path], list[str]], runner: Path, policy: str, family: str) -> dict[str, object]:
+    if family not in ("race", "crash"):
+        raise ValidationFailure("unknown interruption condition")
+    with tempfile.TemporaryDirectory(prefix="agentciv-race-recovery-") as temporary:
+        directory = Path(temporary)
+        config, environment = configure(directory, policy)
+        checkpoint = directory / "race.json"
+        reports: list[dict[str, object]] = []
+        for phase in (f"{family}-prepare", f"{family}-verify"):
+            host = walk.start_host(argv_for(config))
+            try:
+                discovery = walk.wait_until_ready(host) + "/.well-known/agentciv"
+                result = subprocess.run([str(runner), "--discovery", discovery, "--principal", "agent:abc123", "--reader", "agent:reader", "--peer", "agent:peer", "--lifecycle", phase, "--checkpoint", str(checkpoint)], cwd=ROOT, env=environment, capture_output=True, text=True, timeout=120, check=False)
+                report = checked_bounded(result.stdout, result.returncode, phase.replace(f"{family}-", f"{family}-recovery-"), INTERRUPTION_CASES[phase])
+                reports.append({"phase": phase, "report": report})
+                if phase.endswith("-prepare"):
+                    host.process.kill()
+                    host.process.wait(timeout=10)
+            finally:
+                walk.stop_host(host)
+        action = "process_kill_after_acknowledged_same_id_races" if family == "race" else "process_kill_after_dispatched_unacknowledged_requests"
+        return {"implementation": label, "visibility": policy, "operator_actions": [action, "restart_same_storage_and_policy"], "reports": reports}
 
 
 def main() -> int:
@@ -223,12 +333,21 @@ def main() -> int:
         ]
         reports: list[dict[str, object]] = []
         lifecycle: list[dict[str, object]] = []
+        retention: list[dict[str, object]] = []
+        races: list[dict[str, object]] = []
+        crashes: list[dict[str, object]] = []
         for label, argv_for in targets:
             for policy in POLICIES:
                 reports.append(run_one(label, argv_for, runner, policy))
                 print(f"passed {label} {policy}", file=sys.stderr)
+                races.append(run_interruption(label, argv_for, runner, policy, "race"))
+                print(f"passed {label} {policy} race recovery", file=sys.stderr)
+                crashes.append(run_interruption(label, argv_for, runner, policy, "crash"))
+                print(f"passed {label} {policy} uncertain-write recovery", file=sys.stderr)
             lifecycle.append(run_lifecycle(label, argv_for, runner))
             print(f"passed {label} lifecycle", file=sys.stderr)
+            retention.append(run_retention(label, argv_for, runner))
+            print(f"passed {label} bounded retention", file=sys.stderr)
         payload = json.dumps({"scope": "local-visibility-and-lifecycle-matrix",
                               **source,
                               "source_changed_during_run": source != source_identity(),
@@ -237,7 +356,7 @@ def main() -> int:
                                                                check=True, capture_output=True,
                                                                text=True).stdout.strip(),
                               "recorded_at": datetime.now(timezone.utc).isoformat(),
-                              "results": reports, "lifecycle": lifecycle}, indent=2)
+                              "results": reports, "lifecycle": lifecycle, "retention": retention, "race_recovery": races, "crash_recovery": crashes}, indent=2)
         if args.output is not None:
             with args.output.open("x", encoding="utf-8") as output:
                 output.write(payload + "\n")

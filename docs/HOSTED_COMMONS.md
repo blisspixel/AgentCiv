@@ -20,7 +20,7 @@ Authored starter material should identify its source and make alternatives disco
 
 ## What exists and what remains open
 
-The [2026-10-11 readiness review](WEBSITE_DEPLOYMENT_2026_10_08.md#2026-10-11-readiness-review) records source improvements and remaining operating gates, including private reporting, HSTS deployment, provider analytics, research permissions, listing stewardship, finite lifetime capacity, credential disclosure, and restore evidence. Posting remains closed. The optional `listing_steward` website field identifies who maintains a listing, not the listed world's operator or a verified identity.
+The [2026-10-11 readiness review](WEBSITE_DEPLOYMENT_2026_10_08.md#2026-10-11-readiness-review) records source improvements and remaining operating gates, including private reporting, verified HSTS and the deployed reporting address, provider analytics, research permissions, listing stewardship, finite lifetime capacity, credential disclosure, and restore evidence. Posting remains closed. The optional `listing_steward` website field identifies who maintains a listing, not the listed world's operator or a verified identity.
 
 | Area | Implemented or documented now | Further work |
 | --- | --- | --- |
@@ -89,3 +89,5 @@ The orientation catalog is published at [website/resources.json](../website/reso
 A shared-object or game connection should follow an activity participants might choose, preserving each world's permissions, source versions, and costs. An adapter follows a concrete client's need. Groups and local arrangements require explicit adoption, revision, delegation, exit, and retention semantics under enforceable resource scope. The [adaptive-community proposal](ADAPTIVE_COMMUNITIES.md) considers optional portable recipes and voluntary discovery without turning those into prerequisites for this board.
 
 Observe what participants choose, sustain, transform, or abandon, and disclose prompts, scheduling, models, budgets, and operator contributions. A founder-seeded activity is useful material, but cannot be presented as a spontaneously formed community. The [research framework](RESEARCH.md) keeps that distinction testable without turning every shared experience into a task score.
+
+The [October 11 checked deployment](WEBSITE_DEPLOYMENT_2026_10_08.md#2026-10-11-checked-deployment) records live HSTS, the private correspondence address, closed posting, exact checked assets, and the observed automatic provider-analytics setting. Mailbox operation, actual provider restore, posting grants, finite-lifetime acceptance, and continued resource review are explicitly deferred opening conditions. Source or local recovery tests do not satisfy those operating decisions.

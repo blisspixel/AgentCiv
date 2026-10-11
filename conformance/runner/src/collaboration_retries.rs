@@ -292,5 +292,94 @@ pub(super) fn run(ctx: &CollaborationRun<'_>, cases: &mut Vec<Case>) {
     });
 }
 
+pub(super) fn verify_saved(
+    ctx: &CollaborationRun<'_>,
+    evidence: &Value,
+    conflict: bool,
+) -> Result<(), String> {
+    let kind = if conflict {
+        Kind::Conflict
+    } else {
+        Kind::Exact
+    };
+    let requests = [request(ctx, kind, 0), request(ctx, kind, 1)];
+    if evidence["request_bytes"] != json!(requests.iter().map(Value::to_string).collect::<Vec<_>>())
+    {
+        return Err("saved race requests differ from this declared synthetic condition".to_owned());
+    }
+    let rows = evidence["responses"]
+        .as_array()
+        .ok_or("saved race responses missing")?;
+    if rows.len() != 2 {
+        return Err("saved race must contain two actual responses".to_owned());
+    }
+    let parse = |row: &Value| -> Result<Observed, String> {
+        Ok(Observed {
+            status: StatusCode::from_u16(
+                row["status"]
+                    .as_u64()
+                    .and_then(|n| u16::try_from(n).ok())
+                    .ok_or("saved race status invalid")?,
+            )
+            .map_err(|_| "saved race status invalid")?,
+            no_store: row["no_store"]
+                .as_bool()
+                .ok_or("saved response header missing")?,
+            body: row["body"].clone(),
+        })
+    };
+    let responses = [parse(&rows[0]), parse(&rows[1])];
+    let winner = verify_responses(kind, &requests, &responses)?;
+    let first_receipt = &responses[winner].as_ref().map_err(Clone::clone)?.body;
+    let history = read_history(ctx, ctx.writer.token)?;
+    let first = verify_history(ctx, &requests[winner], first_receipt, &history, 1)?;
+    let mut later = requests[winner].clone();
+    later["id"] = json!(format!(
+        "{}-later",
+        requests[winner]["id"].as_str().ok_or("race id missing")?
+    ));
+    later["body"]["text"] = json!("Continue after both simultaneous responses.");
+    let later_bytes = later.to_string();
+    if evidence["later_request_bytes"].as_str() != Some(later_bytes.as_str())
+        || evidence["winning_event"] != first
+    {
+        return Err("saved race event or later request changed".to_owned());
+    }
+    let second = verify_history(ctx, &later, &evidence["later_receipt"], &history, 2)?;
+    if evidence["later_event"] != second
+        || chain(&history, &requests[winner]) != vec![&first, &second]
+    {
+        return Err("restart changed or duplicated the winning race chain".to_owned());
+    }
+    for (body, receipt) in [
+        (&requests[winner], first_receipt),
+        (&later, &evidence["later_receipt"]),
+    ] {
+        let retry = check_receipt(
+            post_collaboration(ctx, ctx.writer.token, body.to_string().as_bytes())?,
+            ctx.world_id,
+            body["id"].as_str().ok_or("saved id missing")?,
+        )?;
+        if &retry != receipt {
+            return Err("winning retry receipt changed across restart".to_owned());
+        }
+    }
+    if conflict {
+        expect_problem(
+            post_collaboration(
+                ctx,
+                ctx.writer.token,
+                requests[1 - winner].to_string().as_bytes(),
+            )?,
+            StatusCode::CONFLICT,
+            "id_conflict",
+        )?;
+    }
+    if read_history(ctx, ctx.writer.token)? != history {
+        return Err("restart retry changed exact history".to_owned());
+    }
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests;

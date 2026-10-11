@@ -1403,10 +1403,10 @@ class PublicRunnerTest(unittest.TestCase):
         summary = expect_dict(report["summary"])
         self.assertEqual(summary["failed"], 0)
         self.assertEqual(summary["skipped"], 6)
-        self.assertEqual(summary["passed"], 62)
+        self.assertEqual(summary["passed"], 67)
         cases = dicts(report["cases"])
         ids = {expect_str(case["id"]) for case in cases}
-        self.assertEqual(len(ids), 68)
+        self.assertEqual(len(ids), 73)
         self.assertTrue({"collaborate.concurrent_retry", "collaborate.concurrent_conflict",
                          "collaborate.concurrent_retry_sequence"}.issubset(ids))
         self.assertIn("submit.json_charset", ids)
