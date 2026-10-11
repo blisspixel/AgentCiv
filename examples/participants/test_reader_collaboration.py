@@ -600,5 +600,21 @@ class ReaderProcessTests(unittest.TestCase):
             self.assertEqual(invalid["failure_stage"], "configuration")
 
 
+class ReaderOutputCli(unittest.TestCase):
+    def test_existing_output_has_one_fixed_diagnostic_and_preserves_files(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            output = Path(temporary)
+            sentinel = output / "existing.json"
+            sentinel.write_bytes(b"original")
+            result = subprocess.run([sys.executable, reader.__file__, "--output", str(output)],
+                                    capture_output=True, check=False, timeout=30)
+            self.assertEqual(result.returncode, 1)
+            diagnostic = client.decode(result.stdout)
+            self.assertEqual(diagnostic["failure_code"], "output_directory_exists")
+            self.assertEqual(diagnostic["output"], str(output.resolve()))
+            self.assertEqual(result.stderr, b"")
+            self.assertEqual(sentinel.read_bytes(), b"original")
+
+
 if __name__ == "__main__":
     unittest.main()

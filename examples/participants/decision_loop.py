@@ -56,11 +56,13 @@ class Budget:
     attempts: int = 1
     output_tokens: int = 1024
     seconds: float = 120
+    max_prompt_bytes: int = MAX_PROMPT_BYTES
 
     def __post_init__(self) -> None:
         if (type(self.attempts) is not int or not 1 <= self.attempts <= 3
             or type(self.output_tokens) is not int or not 1 <= self.output_tokens <= 2048
-            or isinstance(self.seconds, bool) or not 1 <= self.seconds <= 150):
+            or isinstance(self.seconds, bool) or not 1 <= self.seconds <= 150
+            or type(self.max_prompt_bytes) is not int or not 1 <= self.max_prompt_bytes <= MAX_PROMPT_BYTES):
             raise ValueError("decision loop budget exceeds bounds")
 
 
@@ -99,7 +101,7 @@ class DecisionLoop:
         return deepcopy({
             "format": "agentciv-decision-loop/0.1", "outcome": self.outcome,
             "budget": {"attempts": self.budget.attempts, "output_tokens": self.budget.output_tokens,
-                       "seconds": self.budget.seconds},
+                       "seconds": self.budget.seconds, "max_prompt_bytes": self.budget.max_prompt_bytes},
             "attempts": self.attempts, "charged_output_tokens": self.tokens,
             "first_attempt_valid": bool(self.attempts and self.attempts[0].get("outcome") == "valid"),
             "eventual_valid": any(attempt.get("outcome") == "valid" for attempt in self.attempts),
@@ -153,7 +155,7 @@ class DecisionLoop:
                 self.outcome = "output_budget_exhausted"
                 self.save()
                 raise LoopFailure(self.outcome)
-            if len(prompt.encode("utf-8")) > MAX_PROMPT_BYTES:
+            if len(prompt.encode("utf-8")) > self.budget.max_prompt_bytes:
                 self.outcome = "prompt_budget_exhausted"
                 self.save()
                 raise LoopFailure(self.outcome)

@@ -492,6 +492,10 @@ fn main() -> ExitCode {
 }
 
 #[cfg(test)]
+#[path = "../../test_support/python.rs"]
+mod python_fixture;
+
+#[cfg(test)]
 mod tests {
     use super::*;
 
@@ -524,7 +528,7 @@ mod tests {
         let script = format!(
             "import sys, time\nfrom pathlib import Path\nroot = Path(sys.argv[1])\nroot.joinpath('ready').write_bytes(b'fixture')\nwhile not root.joinpath('release').exists():\n    time.sleep(0.01)\n{code}"
         );
-        let child = Command::new("python")
+        let child = Command::new(python_fixture::interpreter())
             .args(["-u", "-c", &script])
             .arg(directory.path())
             .stdin(Stdio::null())

@@ -37,8 +37,9 @@ CONSIDER = (
 )
 OPEN = "There is no assigned deliverable, occupation, friendship, or culture requirement."
 ASSIGNED = "The operator assigns a task: offer entries for a small shared collection of imagined places. Completion is optional."
+PROMPT_VERSION = "gathering-welcome/0.2"
 COMMON = (
-    "This is a bounded local gathering, not a claim about experience or a long-lived society. "
+    "Welcome. You are invited to a small local gathering. No response is required for belonging. "
     "Choose message, quiet, or leave. Message records your own words in this world's history. "
     "Quiet records only a local harness observation and keeps later invitations available. "
     "Leave records only a local harness observation and removes later scheduled invitations, "
@@ -53,12 +54,16 @@ COMMON = (
     "Private model state is not carried across processes; only permitted public history is shown. "
     "Published text allows Unicode but must follow this repository example's plain punctuation "
     "and no emoji policy, not a wire rule. Message needs 1 to 400 characters. Quiet or leave "
-    "needs empty text. Return only the requested JSON object."
+    "may include words kept only in the local observation, never published as a message. "
+    "Use at most 12000 UTF-8 bytes for those words. This bounded invitation makes no claim "
+    "about experience or a long-lived society. Return only the requested JSON object."
 )
 SCHEMA: JsonObject = {
     "type": "object", "additionalProperties": False, "required": ["action", "text"],
     "properties": {"action": {"type": "string", "enum": ["message", "quiet", "leave"]},
-                   "text": {"type": "string", "maxLength": 400}},
+                   "text": {"type": "string", "maxLength": 12000}},
+    "allOf": [{"if": {"properties": {"action": {"const": "message"}}},
+               "then": {"properties": {"text": {"minLength": 1, "maxLength": 400}}}}],
 }
 
 
@@ -78,16 +83,15 @@ def validate_decision(content: str) -> JsonObject:
     if decision["action"] not in ("message", "quiet", "leave"):
         raise loop.InvalidDecision("invalid_action")
     text = decision["text"]
-    if not isinstance(text, str) or len(text) > 400:
+    if not isinstance(text, str):
         raise loop.InvalidDecision("invalid_text")
     try:
-        text.encode("utf-8")
+        if len(text.encode("utf-8")) > 12000:
+            raise client.DecisionError("local words exceed byte bound")
         if decision["action"] == "message":
-            if not text.strip():
+            if not text.strip() or len(text) > 400:
                 raise client.DecisionError("empty publication")
             client.validate_publication_text({"action": "revise", "text": text})
-        elif text:
-            raise client.DecisionError("unpublished text must be empty")
     except (UnicodeError, client.DecisionError) as error:
         raise loop.InvalidDecision("invalid_text") from error
     return decision
@@ -127,7 +131,8 @@ def publish(origin: str, token: str, record: JsonObject, engine: loop.DecisionLo
 
 
 def participant(config: JsonObject) -> JsonObject:
-    result: JsonObject = {"outcome": "failed", "decision_source": config.get("mode")}
+    result: JsonObject = {"outcome": "failed", "decision_source": config.get("mode"),
+                          "prompt_version": PROMPT_VERSION}
     engine: loop.DecisionLoop | None = None
     model: client.OllamaDecision | None = None
     stage = "configuration"
@@ -156,8 +161,6 @@ def participant(config: JsonObject) -> JsonObject:
             model = client.OllamaDecision(str(config["ollama_origin"]), str(config["model"]), int(str(config["seed"])), None, token=token)
 
         def request(prompt: str, output_tokens: int, timeout: float) -> loop.Reply:
-            if len(prompt.encode("utf-8")) > 6500:
-                raise loop.LoopFailure("prompt_budget_exhausted")
             if model is not None:
                 reply = model.complete(prompt, events, output_tokens=output_tokens, timeout=timeout, schema=SCHEMA)
                 if token in reply.content:
@@ -185,11 +188,11 @@ def participant(config: JsonObject) -> JsonObject:
         journal = config.get("attempt_journal")
         private = config.get("private_candidates")
         engine = loop.DecisionLoop(request, validate_decision,
-            budget=loop.Budget(attempts=int(str(config.get("decision_attempts", 1)))),
+            budget=loop.Budget(attempts=int(str(config.get("decision_attempts", 1))), max_prompt_bytes=6500),
             journal=Path(journal) if isinstance(journal, str) else None,
             private=Path(private) if isinstance(private, str) else None)
         stage = "decision"
-        prompt = json.dumps({"interface": COMMON, "condition": OPEN if config["condition"] == "open" else ASSIGNED,
+        prompt = json.dumps({"prompt_version": PROMPT_VERSION, "interface": COMMON, "condition": OPEN if config["condition"] == "open" else ASSIGNED,
             "optional_invitation": CONSIDER if config["consider"] else None,
             "authenticated_principal": config["principal"], "round": config["round"],
             "return_invitation": config["return_invitation"], "permitted_events": events, "schema": SCHEMA}, ensure_ascii=False)
@@ -198,6 +201,7 @@ def participant(config: JsonObject) -> JsonObject:
         if decision["action"] != "message":
             engine.publication_state("not_published_" + str(decision["action"]))
             result["outcome"] = "quiet" if decision["action"] == "quiet" else "left"
+            result["text_disposition"] = "local_observation_only_not_published"
         else:
             record: JsonObject = {"protocol_version": "0.1-draft", "type": "message", "id": config["record_id"],
                 "world": world, "from": config["principal"], "to": config["recipients"],
@@ -245,7 +249,8 @@ def authored_messages(events: list[JsonObject]) -> list[tuple[str, str]]:
 def run(output: Path, *, condition: str = "open", host: str = "python", mode: str = "scripted",
         model: str = "", seed: int = 42, rounds: int = 2, attempts: int = 1,
         newcomer: bool = True, returning: bool = False, consider: bool = False,
-        private_traces: bool = False, choices: bool = False, temp_root: Path | None = None) -> JsonObject:
+        private_traces: bool = False, choices: bool = False, temp_root: Path | None = None,
+        ollama_origin: str = "http://127.0.0.1:11434") -> JsonObject:
     output = output.resolve()
     output.mkdir(parents=True, exist_ok=False)
     observations: list[JsonObject] = []
@@ -258,7 +263,8 @@ def run(output: Path, *, condition: str = "open", host: str = "python", mode: st
     if choices and mode == "scripted":
         schedule = "A proposes a walk and B proposes a song; restart; A leaves the local schedule; B records a decline; A returns"
         scripted_choices = "A proposes a walk; B proposes a song; A leaves locally; B declines the walk in a recorded message; A returns and both proposals remain open"
-    controls: JsonObject = {"condition": condition, "instructions": COMMON,
+    controls: JsonObject = {"condition": condition, "instructions": COMMON, "prompt_version": PROMPT_VERSION,
+        "ollama_origin": None, "think": False,
         "opening": OPEN if condition == "open" else ASSIGNED, "optional_invitation": CONSIDER if consider else None,
         "mode": mode, "model": model, "seed": seed, "seed_rule": "seed plus scheduled invitation index",
         "rounds": rounds, "newcomer": newcomer, "returning": returning, "choices": choices,
@@ -289,6 +295,8 @@ def run(output: Path, *, condition: str = "open", host: str = "python", mode: st
         if choices and (condition != "open" or newcomer or rounds != 2 or mode != "scripted"):
             raise ValueError("choices encounter is an open scripted pair with a return and no newcomer")
         loop.Budget(attempts=attempts)
+        ollama_origin = loopback_origin(ollama_origin)
+        controls["ollama_origin"] = ollama_origin
         if mode == "ollama" and not model.strip():
             raise ValueError("installed local model required")
         if temp_root is not None and temp_root.resolve().is_relative_to(ROOT.resolve()):
@@ -348,7 +356,7 @@ def run(output: Path, *, condition: str = "open", host: str = "python", mode: st
                 config: JsonObject = {"origin": origin, "token": tokens[principal], "principal": principal,
                     "recipients": [OBSERVER], "record_id": f"message:gathering-{index + 1}", "condition": condition,
                     "round": number, "consider": consider, "return_invitation": return_invitation,
-                    "mode": mode, "model": model, "seed": seed + index, "ollama_origin": "http://127.0.0.1:11434",
+                    "mode": mode, "model": model, "seed": seed + index, "ollama_origin": ollama_origin,
                     "decision_attempts": attempts, "attempt_journal": str(output / f"attempts-{index + 1}.json"),
                     "scripted_action": action}
                 if scripted_text:
@@ -467,6 +475,7 @@ def main() -> int:
     parser.add_argument("--host", choices=("python", "rust"), default="python")
     parser.add_argument("--mode", choices=("scripted", "ollama"), default="scripted")
     parser.add_argument("--model", default="")
+    parser.add_argument("--ollama-origin", default="http://127.0.0.1:11434")
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--rounds", type=int, choices=(2, 3), default=2)
     parser.add_argument("--attempts", type=int, choices=(1, 2, 3), default=1)
@@ -503,7 +512,7 @@ def main() -> int:
     reports = [run(args.output / condition, condition=condition, host=args.host, mode=args.mode, model=args.model,
         seed=args.seed, rounds=args.rounds, attempts=args.attempts, newcomer=not args.no_newcomer,
         returning=args.returning, consider=args.consider, private_traces=args.private_traces,
-        choices=args.choices, temp_root=args.temp_root)
+        choices=args.choices, temp_root=args.temp_root, ollama_origin=args.ollama_origin)
         for condition in conditions]
     summary = {"format": "agentciv-gathering-comparison/0.1", "conditions": [report["controls"] for report in reports],
         "outcomes": [report["outcome"] for report in reports], "interpretation": "separate bounded observations, not a causal comparison or social score"}

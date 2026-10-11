@@ -24,7 +24,8 @@ import walk  # noqa: E402
 
 class GatheringDecisions(unittest.TestCase):
     def test_all_choices_and_unicode_with_separate_publication_policy(self) -> None:
-        for action, text in (("message", "Un lugar tranquilo. 欢迎一起想象。"), ("quiet", ""), ("leave", "")):
+        for action, text in (("message", "Un lugar tranquilo. 欢迎一起想象。"), ("quiet", ""), ("leave", ""),
+                             ("leave", "Goodbye\u2014" + "x" * 450), ("quiet", "Private words.")):
             decision = {"action": action, "text": text}
             self.assertEqual(gathering.validate_decision(json.dumps(decision)), decision)
         self.assertEqual(client.object_value(client.object_value(gathering.SCHEMA["properties"])["action"])["enum"],
@@ -32,7 +33,8 @@ class GatheringDecisions(unittest.TestCase):
 
     def test_invalid_json_and_decisions_fail_without_coercion(self) -> None:
         invalid: list[object] = [None, [], {}, {"action": "message", "text": "ok", "extra": True},
-            {"action": "quiet", "text": "explanation"}, {"action": "leave", "text": "reason"},
+            {"action": "quiet", "text": "x" * 12001}, {"action": "leave", "text": "\ud800"},
+            {"action": "leave", "text": "欢" * 4001},
             {"action": "message", "text": " "}, {"action": "message", "text": 1},
             {"action": "message", "text": "x" * 401}, {"action": "message", "text": "a\u2014b"},
             {"action": "message", "text": "\ud800"}, {"action": "unknown", "text": ""},
@@ -138,6 +140,35 @@ class GatheringProvider(unittest.TestCase):
             self.assertNotIn("receipt", result)
             self.assertNotIn("record", result)
         self.assertEqual(self.history(), [])
+
+    def test_leave_words_are_retained_locally_without_publication(self) -> None:
+        words = "Goodbye\u2014" + "x" * 450
+        self.native([response({"action": "leave", "text": words})])
+        result = gathering.participant(self.config)
+        self.assertEqual(result["outcome"], "left")
+        self.assertEqual(client.object_value(result["decision"])["text"], words)
+        self.assertEqual(result["text_disposition"], "local_observation_only_not_published")
+        self.assertEqual(result["prompt_version"], gathering.PROMPT_VERSION)
+        self.assertNotIn("record", result)
+        self.assertEqual(self.history(), [])
+
+    def test_large_history_exhausts_prompt_before_any_model_decision(self) -> None:
+        for index in range(8):
+            record = {
+                "protocol_version": "0.1-draft", "type": "message", "id": f"message:large-{index}",
+                "world": "civ:gathering-provider", "from": "agent:writer", "to": ["agent:writer"],
+                "body": {"text": "x" * 900}}
+            submit, _ = wire.world_endpoints(self.origin, wire.discover(self.origin))
+            status, _ = wire.exchange("POST", submit, token="gathering-fixture-token",
+                                      body=json.dumps(record).encode())
+            self.assertEqual(status, 200)
+        self.native([response({"action": "leave", "text": ""})])
+        result = gathering.participant(self.config)
+        self.assertEqual(result["failure_stage"], "decision")
+        self.assertEqual(result["failure_code"], "prompt_budget_exhausted")
+        self.assertEqual(client.object_value(result["provider"])["calls"], 0)
+        self.assertEqual(client.object_value(result["decision_loop"])["attempts"], [])
+        self.assertEqual(len(self.history()), 8)
 
     def test_provider_failure_never_becomes_quiet_leave_or_scripted_message(self) -> None:
         self.native([None])

@@ -704,6 +704,10 @@ def main() -> int:
         return 1 if result["outcome"] == "failed" else 0
     if args.output is None:
         parser.error("--output or private --config is required")
+    if args.output.exists():
+        print(json.dumps({"outcome": "failed", "failure_stage": "configuration",
+                          "failure_code": "output_directory_exists", "output": str(args.output.resolve())}))
+        return 1
     result = run(args.output, host=args.host, mode=args.mode, model=args.model, seed=args.seed, attempts=args.attempts,
         private_traces=args.private_traces, reader_binary=args.reader_binary, host_binary=args.host_binary, condition=args.condition)
     print(json.dumps({key: result.get(key) for key in ("outcome", "condition", "useful_result", "qualified_improvement",

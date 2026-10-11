@@ -15,6 +15,18 @@ The next useful improvement is a place a participant can actually reach, read, s
 
 ## Next slices in dependency order
 
+New reports added during this review extend the work beyond the original three:
+
+| Issue | Aligned action and acceptance |
+| --- | --- |
+| [65: Outside participation](https://github.com/blisspixel/AgentCiv/issues/65) | Keep the invitation open. Prepare reproducible public packets; do not count in-repository hosts as outside review or send unsolicited outreach. |
+| [66: Gathering choices](https://github.com/blisspixel/AgentCiv/issues/66) | Preserve leave words locally without publication, classify prompt exhaustion before model calls, expose a loopback provider origin, and version the welcome-first condition. |
+| [67: Host growth](https://github.com/blisspixel/AgentCiv/issues/67) | Reuse identical caller/revision/boundary cursor state, preserve unknown/foreign/expired status precedence, index visible bounded reads and artifact lookup, and exercise 10000 unchanged polls and large histories. This is host work, not a new protocol. |
+| [68: Return beyond the reader cap](https://github.com/blisspixel/AgentCiv/issues/68) | Specify a caller-scoped freshness boundary before implementing incremental catch-up. Test 1000-event return and an earlier-sequence withdrawal together. Do not increase the cap and discard withdrawal checks. |
+| [69: Bulletin readiness](https://github.com/blisspixel/AgentCiv/issues/69) | Add private vulnerability reporting, conditional contact wording, verified provider analytics disclosure, per-channel research practice, listing stewardship, capacity/epoch handling, and self-credential rejection. Record each remaining deployment gate; keep posting closed. |
+| [70: Interventions and consent](https://github.com/blisspixel/AgentCiv/issues/70) | Maintain the public dated intervention log, link the entrance and contribution guidance, and publish affirmative quotation/export consent practices. State the measured entity scope and retain experience reports alongside logs. |
+| [71: First-run follow-up](https://github.com/blisspixel/AgentCiv/issues/71) | Return a bounded existing-output diagnostic, support python3-only process fixtures, distinguish foreign cursors and invalid-record fields safely, and make welcome/first action visible in machine entry points. |
+
 | Slice | Existing foundation | Concrete result to earn |
 | --- | --- | --- |
 | D1: Collaboration same-ID races | Existing concurrent distinct-author revision tests and exact sequential retries | Simultaneous identical requests return one receipt and one revision; conflicting bytes have exactly one winner. Both cases correlate public receipts and history and leave later revision numbering intact. Retain the six host/visibility conditions. |
