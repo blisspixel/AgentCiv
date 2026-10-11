@@ -9,13 +9,18 @@ import argparse
 import json
 import os
 import secrets
+import signal
+import socket
 import stat
 import subprocess
 import sys
 import threading
 import time
+from collections.abc import Iterator
+from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
+from types import FrameType
 
 import encounter_private as private
 
@@ -88,7 +93,8 @@ def initialize(state: Path, world: str, writers: list[str], readers: list[str], 
         config = state / f"client-{number:02}.json"
         private.write_new(config, _bytes({"format": CLIENT_FORMAT, "origin": origin, "world": world,
             "principal": principal, "token": token, "payload_bytes": PAYLOAD_BYTES,
-            "cache_directory": str(cache), "private_cache_permission": CACHE_PERMISSION}))
+            "cache_directory": str(cache), "private_cache_permission": CACHE_PERMISSION,
+            "members": principals}))
         writable = principal in writers
         credentials.append({"principal": principal, "token": token, "read": True, "write": writable})
         clients.append({"principal": principal, "config": str(config), "write": writable})
@@ -142,6 +148,49 @@ def _configuration(state: Path) -> JsonObject:
     return config
 
 
+def _check_named(state: Path, path: Path, *, directory: bool) -> None:
+    """Name the offending entry relative to the state directory so the operator can fix it."""
+    try:
+        if directory:
+            private.check_directory(path)
+        else:
+            private.check_file(path)
+    except private.EncounterError as error:
+        raise private.EncounterError(error.code, name=path.relative_to(state).as_posix()) from None
+
+
+def _port_available(listen: str) -> bool:
+    """Probe the configured loopback port so a collision has its own fixed code."""
+    port = int(listen.removeprefix("127.0.0.1:"))
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as probe:
+        if os.name != "nt":
+            # Matches the hosts' own listeners: lingering closed connections do not block a restart.
+            probe.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        try:
+            probe.bind(("127.0.0.1", port))
+        except OSError:
+            return False
+    return True
+
+
+@contextmanager
+def _terminate_as_interrupt() -> Iterator[None]:
+    """Treat SIGTERM like an interruption so the owned host is stopped, not orphaned."""
+    if threading.current_thread() is not threading.main_thread():
+        yield
+        return
+
+    def handler(signum: int, frame: FrameType | None) -> None:
+        raise KeyboardInterrupt
+
+    previous = signal.getsignal(signal.SIGTERM)
+    signal.signal(signal.SIGTERM, handler)
+    try:
+        yield
+    finally:
+        signal.signal(signal.SIGTERM, previous)
+
+
 def _storage_bytes(state: Path, *, verify: bool = False) -> int:
     """Bounded inspection only: this is a soft cutoff, never a filesystem quota."""
     private.check_directory(state)
@@ -167,13 +216,13 @@ def _storage_bytes(state: Path, *, verify: bool = False) -> int:
                     if directory != state:
                         raise private.EncounterError("private_directory_invalid")
                     if verify:
-                        private.check_directory(path)
+                        _check_named(state, path, directory=True)
                     pending.append(path)
                 else:
                     if not stat.S_ISREG(info.st_mode):
-                        raise private.EncounterError("private_file_invalid")
+                        raise private.EncounterError("private_file_invalid", name=path.relative_to(state).as_posix())
                     if verify:
-                        private.check_file(path)
+                        _check_named(state, path, directory=False)
                     total += info.st_size
     except OSError:
         raise private.EncounterError("storage_check_failed") from None
@@ -282,24 +331,27 @@ def serve(state: Path, host: str = "rust", host_binary: Path | None = None, *,
             argv = [sys.executable, str(ROOT / "implementations" / "http-commons-python" / "host.py"),
                     "--config", str(state / "host.json")]
         origin = "http://" + str(config["listen"])
-        owned = _start(argv, origin)
-        try:
-            _wait_ready(owned)
-            print(json.dumps({"outcome": "serving", "world": config["world_id"], "origin": origin,
-                "session_seconds": seconds, "storage_soft_cutoff_bytes": max_storage_bytes}), flush=True)
-            deadline = time.monotonic() + seconds
-            reason = "session_limit"
-            while time.monotonic() < deadline:
-                if owned.process.poll() is not None:
-                    raise private.EncounterError("host_exited")
-                if _storage_bytes(state) >= max_storage_bytes:
-                    reason = "storage_soft_cutoff"
-                    break
-                time.sleep(min(1.0, max(0.0, deadline - time.monotonic())))
-        except KeyboardInterrupt:
-            reason = "interrupted"
-        finally:
-            _stop_owned(owned)
+        if not _port_available(str(config["listen"])):
+            raise private.EncounterError("port_in_use")
+        with _terminate_as_interrupt():
+            owned = _start(argv, origin)
+            try:
+                _wait_ready(owned)
+                print(json.dumps({"outcome": "serving", "world": config["world_id"], "origin": origin,
+                    "session_seconds": seconds, "storage_soft_cutoff_bytes": max_storage_bytes}), flush=True)
+                deadline = time.monotonic() + seconds
+                reason = "session_limit"
+                while time.monotonic() < deadline:
+                    if owned.process.poll() is not None:
+                        raise private.EncounterError("host_exited")
+                    if _storage_bytes(state) >= max_storage_bytes:
+                        reason = "storage_soft_cutoff"
+                        break
+                    time.sleep(min(1.0, max(0.0, deadline - time.monotonic())))
+            except KeyboardInterrupt:
+                reason = "interrupted"
+            finally:
+                _stop_owned(owned)
         return {"outcome": "stopped", "reason": reason, "state_retained": True,
             "scope": "owned_foreground_host_only_no_runtime_dispatch_stop"}
 
@@ -328,6 +380,12 @@ def main() -> int:
     submission.add_argument("--record", required=True, type=Path)
     submission.add_argument("--basis", type=Path)
     submission.add_argument("--reader-binary", type=Path)
+    speaking = commands.add_parser("say", help="publish a message from text alone; the room fills in the envelope")
+    speaking.add_argument("--config", required=True, type=Path)
+    speaking.add_argument("--text", required=True)
+    speaking.add_argument("--to", action="append", help="recipient principal; repeat for several (default: other room members)")
+    speaking.add_argument("--basis", type=Path)
+    speaking.add_argument("--reader-binary", type=Path)
     args = parser.parse_args()
     try:
         if args.command == "init":
@@ -339,12 +397,17 @@ def main() -> int:
             import encounter_client
             if args.command == "read":
                 result = encounter_client.read(args.config, args.save, reader_binary=args.reader_binary)
+            elif args.command == "say":
+                result = encounter_client.say(args.config, args.text, args.to, args.basis, reader_binary=args.reader_binary)
             else:
                 result = encounter_client.submit(args.config, args.record, args.basis, reader_binary=args.reader_binary)
         print(json.dumps(result, ensure_ascii=True))
         return 0 if result.get("outcome") in ("initialized", "stopped", "read", "recorded") else 1
     except private.EncounterError as error:
-        print(json.dumps({"outcome": "failed", "code": error.code}))
+        failure: JsonObject = {"outcome": "failed", "code": error.code}
+        if error.name is not None:
+            failure["file"] = error.name
+        print(json.dumps(failure, ensure_ascii=True))
         return 1
     except (OSError, ValueError, RecursionError, subprocess.SubprocessError):
         print(json.dumps({"outcome": "failed", "code": "local_operation_failed"}))

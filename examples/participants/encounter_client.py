@@ -61,7 +61,13 @@ def _text(value: object, maximum: int = 1024) -> bool:
 
 def _configuration(path: Path) -> JsonObject:
     value = civic.decode(private.read_bounded(path, MAX_CONFIG))
-    if set(value) != {"format", "origin", "world", "principal", "token", "payload_bytes", "cache_directory", "private_cache_permission"}:
+    required = {"format", "origin", "world", "principal", "token", "payload_bytes", "cache_directory", "private_cache_permission"}
+    # Rooms initialized before the optional member roster remain valid.
+    if set(value) not in (required, required | {"members"}):
+        raise private.EncounterError("invalid_client_configuration")
+    members = value.get("members", [value["principal"]])
+    if (not isinstance(members, list) or not 1 <= len(members) <= 16 or len(set(map(str, members))) != len(members)
+        or not all(_text(item) for item in members) or value["principal"] not in members):
         raise private.EncounterError("invalid_client_configuration")
     origin = value["origin"]
     if not isinstance(origin, str):
@@ -379,6 +385,37 @@ def _rejection(status: int, raw: bytes, capability: str) -> str | None:
     return code if code in submission_codes.get(status, set()) else None
 
 
+def say(config: Path, text: str, to: list[str] | None = None, basis: Path | None = None, *,
+        reader_binary: Path | None = None) -> JsonObject:
+    """Publish a message from its text alone. The envelope comes from the room configuration.
+
+    Each call creates a new message identifier, so repeating a command can record a second message.
+    The exact bytes sent remain in the private request journal.
+    """
+    try:
+        settings = _configuration(config)
+        if not isinstance(text, str) or not text.strip():
+            raise private.EncounterError("empty_message")
+        principal = str(settings["principal"])
+        others = [str(item) for item in _members(settings) if item != principal]
+        recipients = list(dict.fromkeys(to)) if to else (others or [principal])
+        if not all(_text(item) for item in recipients):
+            raise private.EncounterError("invalid_recipient")
+        record: JsonObject = {"protocol_version": "0.1-draft", "type": "message", "id": f"message:{uuid.uuid4().hex}",
+            "world": settings["world"], "from": principal, "to": recipients, "body": {"text": text}}
+        raw = (json.dumps(record, ensure_ascii=False, indent=2) + "\n").encode("utf-8")
+    except private.EncounterError:
+        raise
+    except (ValueError, UnicodeError):
+        raise private.EncounterError("invalid_message_text") from None
+    return _publish(settings, raw, basis, reader_binary)
+
+
+def _members(settings: JsonObject) -> list[object]:
+    members = settings.get("members", [settings["principal"]])
+    return list(members) if isinstance(members, list) else []
+
+
 def submit(config: Path, record: Path, basis: Path | None = None, *, reader_binary: Path | None = None) -> JsonObject:
     try:
         settings = _configuration(config)
@@ -386,6 +423,16 @@ def submit(config: Path, record: Path, basis: Path | None = None, *, reader_bina
         maximum = int(str(settings["payload_bytes"]))
         with record.open("rb") as source:
             raw = source.read(maximum + 1)
+    except private.EncounterError:
+        raise
+    except OSError:
+        raise private.EncounterError("private_submit_failed") from None
+    return _publish(settings, raw, basis, reader_binary)
+
+
+def _publish(settings: JsonObject, raw: bytes, basis: Path | None, reader_binary: Path | None) -> JsonObject:
+    try:
+        maximum = int(str(settings["payload_bytes"]))
         if len(raw) > maximum:
             raise private.EncounterError("authored_record_too_large")
         authored = _authored(raw, settings)
@@ -411,7 +458,7 @@ def submit(config: Path, record: Path, basis: Path | None = None, *, reader_bina
                     journal.update({"state": "rejected" if rejection is not None else "uncertain",
                         "failure_code": rejection if rejection is not None else "publication_outcome_unverified"})
                     if rejection is not None:
-                        result["outcome"] = "rejected"
+                        result.update({"outcome": "rejected", "code": rejection})
                 else:
                     receipt = _receipt(response, authored, settings)
                     journal["receipt"] = receipt
