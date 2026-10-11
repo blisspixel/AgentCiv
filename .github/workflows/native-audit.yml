@@ -1,0 +1,143 @@
+name: Native distribution audit
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    name: Native notices and linkage (${{ matrix.target }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            target: x86_64-unknown-linux-gnu
+            suffix: ''
+          - os: ubuntu-24.04-arm
+            target: aarch64-unknown-linux-gnu
+            suffix: ''
+          - os: windows-2025
+            target: x86_64-pc-windows-msvc
+            suffix: .exe
+          - os: windows-11-arm
+            target: aarch64-pc-windows-msvc
+            suffix: .exe
+          - os: macos-15-intel
+            target: x86_64-apple-darwin
+            suffix: ''
+          - os: macos-15
+            target: aarch64-apple-darwin
+            suffix: ''
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: Build and exercise the exact native source
+        shell: bash
+        env:
+          TARGET: ${{ matrix.target }}
+          SUFFIX: ${{ matrix.suffix }}
+          RUSTFLAGS: ${{ runner.os == 'Windows' && '-C target-feature=+crt-static' || '' }}
+        run: |
+          set -euo pipefail
+          mkdir -p dist/audit
+          git rev-parse HEAD > dist/audit/SOURCE_COMMIT
+          rustc -vV > dist/audit/rustc.txt
+          cargo -vV > dist/audit/cargo.txt
+          cp Cargo.lock rust-toolchain.toml dist/audit/
+          cargo test --locked --target "$TARGET" -p agentciv-archive -p agentciv-reader
+          cargo build --release --locked --target "$TARGET" -p agentciv-archive -p agentciv-reader -p agentciv-host -p agentciv-conformance
+          cargo metadata --locked --format-version 1 --filter-platform "$TARGET" > dist/audit/metadata.json
+          for tool in agentciv-archive agentciv-reader agentciv-host agentciv-conformance; do
+            binary="target/$TARGET/release/$tool$SUFFIX"
+            test "$("$binary" --version)" = "$tool 0.1.0"
+            "$binary" --help > "dist/audit/$tool-help.txt"
+            cp "$binary" "dist/$tool-v0.1.0-$TARGET$SUFFIX"
+          done
+          "target/$TARGET/release/agentciv-archive$SUFFIX" demo > dist/audit/demo.json
+          grep -q 'source_authenticity' dist/audit/demo.json
+          (
+            cd dist
+            if command -v sha256sum >/dev/null 2>&1; then
+              sha256sum agentciv-* > "SHA256SUMS-$TARGET"
+            else
+              shasum -a 256 agentciv-* > "SHA256SUMS-$TARGET"
+            fi
+          )
+      - name: Preserve original native toolchain notices
+        shell: bash
+        run: |
+          set -euo pipefail
+          audit_sysroot=$(rustc --print sysroot | tr -d '\r')
+          if command -v cygpath >/dev/null 2>&1; then
+            audit_sysroot=$(cygpath -u "$audit_sysroot")
+          fi
+          (
+            cd "$audit_sysroot"
+            find share/doc -type f \( -iname 'license*' -o -iname 'licence*' -o -iname 'copying*' -o -iname 'notice*' -o -iname 'copyright*' -o -iname 'authors*' -o -iname 'unlicense*' -o -path '*/licenses/*' -o -path '*/licences/*' \) -print0
+          ) > dist/audit/toolchain-notice-paths.nul
+          test -s dist/audit/toolchain-notice-paths.nul
+          tar -czf "$PWD/dist/audit/toolchain-notices.tar.gz" -C "$audit_sysroot" --null -T "$PWD/dist/audit/toolchain-notice-paths.nul"
+      - name: Inspect GNU linkage and symbol versions
+        if: runner.os == 'Linux'
+        shell: bash
+        env:
+          TARGET: ${{ matrix.target }}
+        run: |
+          set -euo pipefail
+          for tool in agentciv-archive agentciv-reader agentciv-host agentciv-conformance; do
+            binary="target/$TARGET/release/$tool"
+            readelf --dynamic "$binary" > "dist/audit/$tool-dynamic.txt"
+            readelf --version-info "$binary" > "dist/audit/$tool-symbol-versions.txt"
+            ldd "$binary" > "dist/audit/$tool-runtime.txt"
+          done
+      - name: Inspect macOS linkage and deployment versions
+        if: runner.os == 'macOS'
+        shell: bash
+        env:
+          TARGET: ${{ matrix.target }}
+        run: |
+          set -euo pipefail
+          for tool in agentciv-archive agentciv-reader agentciv-host agentciv-conformance; do
+            binary="target/$TARGET/release/$tool"
+            otool -L "$binary" > "dist/audit/$tool-runtime.txt"
+            vtool -show-build "$binary" > "dist/audit/$tool-build-version.txt"
+          done
+      - name: Inspect Windows imports and reject dynamic MSVC runtime dependencies
+        if: runner.os == 'Windows'
+        shell: powershell
+        env:
+          TARGET: ${{ matrix.target }}
+        run: |
+          $auditSysroot = & rustc --print sysroot
+          if ($LASTEXITCODE -ne 0) { throw 'toolchain unavailable' }
+          $auditHost = ((& rustc -vV | Where-Object { $_ -like 'host: *' }) -replace '^host: ', '').Trim()
+          if ($LASTEXITCODE -ne 0 -or -not $auditHost) { throw 'native toolchain host unavailable' }
+          $auditInspector = Join-Path $auditSysroot "lib/rustlib/$auditHost/bin/llvm-readobj.exe"
+          if (-not (Test-Path -LiteralPath $auditInspector)) { throw 'pinned import inspector unavailable' }
+          foreach ($tool in 'agentciv-archive','agentciv-reader','agentciv-host','agentciv-conformance') {
+            $auditImports = & $auditInspector --coff-imports "target/$env:TARGET/release/$tool.exe"
+            if ($LASTEXITCODE -ne 0 -or ($auditImports -join "`n") -match '(?i)\b(?:vcruntime|msvcp)[a-z0-9_]*\.dll\b') {
+              throw 'binary requires a separately installed MSVC runtime'
+            }
+            $auditImports | Set-Content -LiteralPath "dist/audit/$tool-runtime.txt" -Encoding UTF8
+          }
+      - name: Exercise real native Unix installation and removal
+        if: runner.os != 'Windows'
+        shell: bash
+        run: sh installers/smoke-install.sh "$PWD/dist" v0.1.0
+      - name: Exercise real native Windows installation and removal
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: '& .\installers\smoke-install.ps1 -ReleaseDirectory "$PWD/dist" -ReleaseVersion v0.1.0'
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        if: always()
+        with:
+          name: native-audit-${{ matrix.target }}
+          path: dist/
+          if-no-files-found: error
+          retention-days: 7

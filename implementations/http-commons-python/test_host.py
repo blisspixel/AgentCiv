@@ -324,6 +324,96 @@ class StoreTests(unittest.TestCase):
     def tearDown(self) -> None:
         self.temporary.cleanup()
 
+    def test_cursor_admission_bounds_ten_thousand_distinct_boundaries_and_generations(self) -> None:
+        for changing_policy in (False, True):
+            principal = "agent:policy" if changing_policy else "agent:boundaries"
+            connection = self.store._connect()
+            try:
+                connection.execute("BEGIN IMMEDIATE")
+                for index in range(10_000):
+                    revision, boundary = (index + 1, 0) if changing_policy else (1, index)
+                    if index < host.MAX_CURSORS_PER_OWNER:
+                        self.store._cursor_at(connection, principal, revision, boundary)
+                    else:
+                        with self.assertRaises(host.CursorCapacity):
+                            self.store._cursor_at(connection, principal, revision, boundary)
+                connection.execute("COMMIT")
+                count = connection.execute("SELECT COUNT(*) FROM cursors WHERE principal = ?", (principal,)).fetchone()[0]
+                self.assertEqual(count, host.MAX_CURSORS_PER_OWNER)
+                self.store._cursor_at(connection, principal, 1, 0)
+                self.store._cursor_at(connection, "agent:another", 1, 0)
+                connection.execute("PRAGMA wal_checkpoint(TRUNCATE)")
+                self.assertLess(self.config.database_path.stat().st_size, 4 * 1024 * 1024)
+            finally:
+                connection.close()
+
+    def test_cursor_owner_capacity_survives_replacement_without_recycling(self) -> None:
+        connection = self.store._connect()
+        try:
+            for index in range(host.MAX_CURSOR_OWNERS - len(self.config.credentials)):
+                self.store._admit_cursor_owner(connection, f"agent:reserved-{index}")
+        finally:
+            connection.close()
+        host.Store(self.config)
+        changed = config(self.directory, credentials=(host.Credential("agent:new", "new-secret", True, True),))
+        with self.assertRaises(host.ConfigError):
+            host.Store(changed)
+        host.Store(self.config)
+
+    def test_legacy_over_quota_cursors_are_not_pruned(self) -> None:
+        connection = self.store._connect()
+        try:
+            connection.execute("WITH RECURSIVE n(x) AS (SELECT 0 UNION ALL SELECT x+1 FROM n WHERE x < ?) "
+                "INSERT INTO cursors SELECT 'legacy-' || x, 'agent:legacy', x, 1 FROM n", (host.MAX_CURSORS_PER_OWNER,))
+        finally:
+            connection.close()
+        replacement = host.Store(self.config)
+        connection = replacement._connect()
+        try:
+            self.assertEqual(replacement._cursor_at(connection, "agent:legacy", 1, 0), "legacy-0")
+            with self.assertRaises(host.CursorCapacity):
+                replacement._cursor_at(connection, "agent:legacy", 2, 0)
+            count = connection.execute("SELECT COUNT(*) FROM cursors").fetchone()[0]
+            self.assertEqual(count, host.MAX_CURSORS_PER_OWNER + 1)
+        finally:
+            connection.close()
+
+    def test_concurrent_cursor_admission_cannot_overbook_last_slot(self) -> None:
+        connection = self.store._connect()
+        try:
+            connection.execute("WITH RECURSIVE n(x) AS (SELECT 1 UNION ALL SELECT x+1 FROM n WHERE x < ?) "
+                "INSERT INTO cursors SELECT 'existing-' || x,'agent:abc123',x,1 FROM n",
+                (host.MAX_CURSORS_PER_OWNER - 1,))
+        finally:
+            connection.close()
+        outcomes: list[bool] = []
+        result_lock = threading.Lock()
+
+        def attempt(index: int) -> None:
+            connection = self.store._connect()
+            try:
+                connection.execute("BEGIN IMMEDIATE")
+                try:
+                    self.store._cursor_at(connection, "agent:abc123", 1, 10000 + index)
+                except host.CursorCapacity:
+                    connection.execute("ROLLBACK")
+                    success = False
+                else:
+                    connection.execute("COMMIT")
+                    success = True
+                with result_lock:
+                    outcomes.append(success)
+            finally:
+                connection.close()
+
+        workers = [threading.Thread(target=attempt, args=(index,)) for index in range(4)]
+        for worker in workers:
+            worker.start()
+        for worker in workers:
+            worker.join(timeout=10)
+            self.assertFalse(worker.is_alive())
+        self.assertEqual(sorted(outcomes), [False, False, False, True])
+
     def test_unchanged_polls_reuse_cursor_and_preserve_legacy_tokens(self) -> None:
         first = self.store.read_page("agent:abc123", None, True)
         cursor = expect_str(first["next_cursor"])
@@ -496,6 +586,38 @@ class HttpTests(unittest.TestCase):
         )
         self.servers.append(server)
         return server
+
+    def test_cursor_capacity_keeps_hidden_activity_and_error_precedence_distinct(self) -> None:
+        server = self.start(visibility="sender_only")
+        url = server.origin + "/events"
+        status, _, raw = request("GET", url, "writer-token-value")
+        self.assertEqual(status, 200)
+        original = json_body(raw)
+        cursor = expect_str(original["next_cursor"])
+        connection = server.store._connect()
+        try:
+            connection.execute("WITH RECURSIVE n(x) AS (SELECT 1 UNION ALL SELECT x+1 FROM n WHERE x < ?) "
+                "INSERT INTO cursors SELECT 'padding-' || x,'agent:abc123',x + 100000,1 FROM n",
+                (host.MAX_CURSORS_PER_OWNER - 1,))
+        finally:
+            connection.close()
+        server.store.submit("agent:two", message("message:hidden", "agent:two"))
+        after = url + "?after=" + urllib.parse.quote(cursor, safe="")
+        status, _, raw = request("GET", after, "writer-token-value")
+        self.assertEqual(status, 200)
+        self.assertEqual(json_body(raw)["next_cursor"], original["next_cursor"])
+        self.assertEqual(json_body(raw)["events"], [])
+        server.store.submit("agent:abc123", message("message:visible", "agent:abc123"))
+        status, headers, raw = request("GET", after, "writer-token-value")
+        self.assertEqual((status, json_body(raw)["code"]), (429, "cursor_capacity"))
+        self.assertEqual(headers["cache-control"], "no-store")
+        for token, boundary, expected in (("writer-token-value", "unknown", (400, "invalid_cursor")),
+                ("reader-token-value", cursor, (403, "forbidden")),
+                ("unknown", cursor, (401, "authentication_required")),
+                ("writer-only-token", "unknown", (403, "forbidden"))):
+            status, _, raw = request("GET", url + "?after=" + urllib.parse.quote(boundary, safe=""), token)
+            self.assertEqual((status, json_body(raw)["code"]), expected)
+        self.assertEqual(request("GET", url, "reader-token-value")[0], 200)
 
     def test_startup_does_not_reverse_resolve_the_listen_address(self) -> None:
         with mock.patch("socket.getfqdn", side_effect=AssertionError("dns")):
@@ -1235,10 +1357,12 @@ class PublicRunnerTest(unittest.TestCase):
         summary = expect_dict(report["summary"])
         self.assertEqual(summary["failed"], 0)
         self.assertEqual(summary["skipped"], 5)
-        self.assertEqual(summary["passed"], 56)
+        self.assertEqual(summary["passed"], 59)
         cases = dicts(report["cases"])
         ids = {expect_str(case["id"]) for case in cases}
-        self.assertEqual(len(ids), 61)
+        self.assertEqual(len(ids), 64)
+        self.assertTrue({"collaborate.concurrent_retry", "collaborate.concurrent_conflict",
+                         "collaborate.concurrent_retry_sequence"}.issubset(ids))
         self.assertIn("submit.json_charset", ids)
         self.assertIn("events.empty_cursor", ids)
         hidden_ids = {

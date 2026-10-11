@@ -40,7 +40,7 @@ const EXTENDED_CASES: [&str; 17] = [
     "submit.concurrent_conflict",
     "submit.concurrent_distinct",
 ];
-const COLLABORATION_CASES: [&str; 34] = [
+const COLLABORATION_CASES: [&str; 37] = [
     "collaborate.client_revision",
     "collaborate.forbidden",
     "collaborate.unauthenticated",
@@ -75,6 +75,9 @@ const COLLABORATION_CASES: [&str; 34] = [
     "collaborate.concurrent_revisions",
     "collaborate.concurrent_revisions_retry",
     "collaborate.concurrent_revisions_isolation",
+    "collaborate.concurrent_retry",
+    "collaborate.concurrent_conflict",
+    "collaborate.concurrent_retry_sequence",
 ];
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -100,6 +103,7 @@ pub struct Case {
     pub status: CaseStatus,
     pub detail: String,
     pub required: bool,
+    pub evidence: Option<Value>,
 }
 
 impl Case {
@@ -109,6 +113,7 @@ impl Case {
             status: CaseStatus::Passed,
             detail: String::new(),
             required: true,
+            evidence: None,
         }
     }
 
@@ -118,6 +123,7 @@ impl Case {
             status: CaseStatus::Failed,
             detail: detail.into(),
             required: true,
+            evidence: None,
         }
     }
 
@@ -127,6 +133,7 @@ impl Case {
             status: CaseStatus::Skipped,
             detail: detail.to_owned(),
             required: true,
+            evidence: None,
         }
     }
 
@@ -136,6 +143,7 @@ impl Case {
             status: CaseStatus::Skipped,
             detail: detail.to_owned(),
             required: false,
+            evidence: None,
         }
     }
 }
@@ -165,12 +173,18 @@ impl Report {
         json!({
             "profile": "http-commons/0.1-draft",
             "runner_scope": self.scope,
-            "cases": self.cases.iter().map(|case| json!({
+            "cases": self.cases.iter().map(|case| {
+                let mut value = json!({
                 "id": case.id,
                 "required": case.required,
                 "status": case.status.as_str(),
                 "detail": case.detail
-            })).collect::<Vec<_>>(),
+                });
+                if let Some(evidence) = &case.evidence {
+                    value["evidence"] = evidence.clone();
+                }
+                value
+            }).collect::<Vec<_>>(),
             "summary": {
                 "passed": counts(CaseStatus::Passed),
                 "failed": counts(CaseStatus::Failed),
@@ -1273,6 +1287,7 @@ fn run_collaboration_cases(input: &CollaborationInput<'_>, cases: &mut Vec<Case>
     push_collaboration_rejections(&ctx, input.world, cases);
     revisions::run(&ctx, cases);
     concurrent_revisions::run(&ctx, cases);
+    collaboration_retries::run(&ctx, cases);
     let recorded = match recorded_revision(&ctx) {
         Ok(recorded) => {
             cases.push(Case::passed("collaborate.revision"));
@@ -2252,6 +2267,7 @@ fn run_internal(discovery_url: &str, credential: Option<(&str, &str)>) -> Report
 mod tests;
 
 mod adversarial;
+mod collaboration_retries;
 mod concurrent_revisions;
 mod lifecycle;
 mod revisions;

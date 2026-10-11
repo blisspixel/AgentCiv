@@ -30,6 +30,9 @@ from typing import TypeGuard
 JsonObject = dict[str, object]
 
 PAGE_LIMIT = 100
+MAX_CURSOR_OWNERS = 128
+MAX_CURSORS_PER_OWNER = 4096
+MAX_CURSOR_OWNER_BYTES = 1024
 MAX_PAYLOAD_CAP = 8 * 1024 * 1024
 PROTOCOL_VERSION = "0.1-draft"
 PROFILE = "http-commons/0.1-draft"
@@ -49,6 +52,7 @@ REASONS = {
     413: "Payload Too Large",
     415: "Unsupported Media Type",
     422: "Unprocessable Content",
+    429: "Too Many Requests",
     500: "Internal Server Error",
 }
 
@@ -83,6 +87,10 @@ class ReadForbidden(Exception):
 
 
 class CursorExpired(Exception):
+    pass
+
+
+class CursorCapacity(Exception):
     pass
 
 
@@ -540,6 +548,11 @@ class Store:
                     self._put_meta(connection, "world_id", self.config.world_id)
                 elif stored_world != self.config.world_id:
                     raise ConfigError("database belongs to a different world")
+                connection.execute("INSERT OR IGNORE INTO cursor_owners SELECT DISTINCT principal FROM cursors")
+                if int(connection.execute("SELECT COUNT(*) FROM cursor_owners").fetchone()[0]) > MAX_CURSOR_OWNERS:
+                    raise CursorCapacity
+                for credential in self.config.credentials:
+                    self._admit_cursor_owner(connection, credential.principal)
                 current = _fingerprint(
                     self.config.visibility,
                     self.config.retention_seconds,
@@ -557,6 +570,9 @@ class Store:
                         connection, "retention_seconds", str(self.config.retention_seconds)
                     )
                 connection.execute("COMMIT")
+            except CursorCapacity as error:
+                _rollback(connection)
+                raise ConfigError("persistent cursor owner capacity is exhausted or an owner exceeds 1024 bytes") from error
             except ConfigError:
                 _rollback(connection)
                 raise
@@ -597,6 +613,7 @@ class Store:
             );
             CREATE INDEX IF NOT EXISTS cursor_boundaries
                 ON cursors(principal, revision, last_sequence);
+            CREATE TABLE IF NOT EXISTS cursor_owners (principal TEXT PRIMARY KEY);
             CREATE INDEX IF NOT EXISTS artifact_chains
                 ON events(actor, json_extract(message_json, '$.artifact_id'), json_extract(message_json, '$.revision'))
                 WHERE json_extract(message_json, '$.type') = 'artifact_revision';
@@ -947,7 +964,7 @@ class Store:
                 page = self._read_page(connection, principal, after)
                 connection.execute("COMMIT")
                 return page
-            except (InvalidCursor, ReadForbidden, CursorExpired, StorageFailure):
+            except (InvalidCursor, ReadForbidden, CursorExpired, CursorCapacity, StorageFailure):
                 _rollback(connection)
                 raise
             except sqlite3.Error as error:
@@ -982,12 +999,10 @@ class Store:
             (start,),
         )
         visible: list[JsonObject] = []
-        scanned_through = start
         last_included = start
         has_more = False
         for row in rows:
             sequence = int(row["sequence"])
-            scanned_through = sequence
             message = parse_object(str(row["message_json"]))
             event = parse_object(str(row["event_json"]))
             actor = row["actor"]
@@ -1000,21 +1015,10 @@ class Store:
                 break
             visible.append(event)
             last_included = sequence
-        last_sequence = last_included if has_more else scanned_through
+        # Hidden-only activity does not consume this caller's quota or change its token.
+        last_sequence = last_included
         rows.close()
-        saved = connection.execute(
-            "SELECT token FROM cursors WHERE principal = ? AND revision = ? AND last_sequence = ? LIMIT 1",
-            (principal, revision, last_sequence),
-        ).fetchone()
-        token = str(saved[0]) if saved is not None else secrets.token_urlsafe(24)
-        if saved is None:
-            connection.execute(
-                """
-                INSERT INTO cursors (token, principal, last_sequence, revision)
-                VALUES (?, ?, ?, ?)
-                """,
-                (token, principal, last_sequence, revision),
-            )
+        token = self._cursor_at(connection, principal, revision, last_sequence)
         return {
             "protocol_version": PROTOCOL_VERSION,
             "type": "event_page",
@@ -1023,6 +1027,39 @@ class Store:
             "next_cursor": token,
             "has_more": has_more,
         }
+
+    def _admit_cursor_owner(self, connection: sqlite3.Connection, principal: str) -> None:
+        known = connection.execute("SELECT 1 FROM cursor_owners WHERE principal = ?", (principal,)).fetchone()
+        if known is not None:
+            return
+        owners = int(connection.execute("SELECT COUNT(*) FROM cursor_owners").fetchone()[0])
+        if owners >= MAX_CURSOR_OWNERS or len(principal.encode("utf-8")) > MAX_CURSOR_OWNER_BYTES:
+            raise CursorCapacity
+        connection.execute("INSERT INTO cursor_owners(principal) VALUES (?)", (principal,))
+
+    def _cursor_at(self, connection: sqlite3.Connection, principal: str, revision: int, last_sequence: int) -> str:
+        saved = connection.execute(
+            "SELECT token FROM cursors WHERE principal = ? AND revision = ? AND last_sequence = ? LIMIT 1",
+            (principal, revision, last_sequence),
+        ).fetchone()
+        if saved is not None:
+            return str(saved[0])
+        self._admit_cursor_owner(connection, principal)
+        count = int(connection.execute(
+            "SELECT COUNT(*) FROM (SELECT 1 FROM cursors WHERE principal = ? LIMIT ?)",
+            (principal, MAX_CURSORS_PER_OWNER),
+        ).fetchone()[0])
+        if count >= MAX_CURSORS_PER_OWNER:
+            raise CursorCapacity
+        token = secrets.token_urlsafe(24)
+        connection.execute(
+                """
+                INSERT INTO cursors (token, principal, last_sequence, revision)
+                VALUES (?, ?, ?, ?)
+                """,
+                (token, principal, last_sequence, revision),
+        )
+        return token
 
     def event_count(self) -> int:
         with self._lock:
@@ -1142,7 +1179,9 @@ class CommonsServer(ThreadingHTTPServer):
                 "submit": "bearer",
                 "collaborate": "bearer",
             },
-            "limits": {"max_payload_bytes": self.config.max_payload_bytes},
+            "limits": {"max_payload_bytes": self.config.max_payload_bytes,
+                       "max_cursor_principals": MAX_CURSOR_OWNERS,
+                       "max_cursors_per_principal": MAX_CURSORS_PER_OWNER},
         }
         return described
 
@@ -1211,6 +1250,9 @@ class Handler(BaseHTTPRequestHandler):
             return
         except CursorExpired:
             self._problem(410, "cursor_expired", "Cursor can no longer resume")
+            return
+        except CursorCapacity:
+            self._problem(429, "cursor_capacity", "Caller cursor capacity is exhausted")
             return
         except StorageFailure:
             self._problem(500, "storage_failed", "Events could not be read")

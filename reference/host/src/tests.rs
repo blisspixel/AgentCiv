@@ -269,6 +269,96 @@ fn unchanged_polls_reuse_cursor_without_losing_legacy_tokens() {
 }
 
 #[test]
+fn cursor_capacity_is_caller_scoped_and_preserves_public_error_precedence() {
+    let directory = tempdir().unwrap();
+    let settings = config(directory.path(), Visibility::SenderOnly);
+    let runtime = tokio::runtime::Runtime::new().unwrap();
+    let running = runtime.block_on(start_test_host(settings.clone())).unwrap();
+    let base = running.discovery.trim_end_matches("/.well-known/agentciv");
+    let get = |token: &str, after: Option<&str>| {
+        let mut url = reqwest::Url::parse(&format!("{base}/events")).unwrap();
+        if let Some(after) = after {
+            url.query_pairs_mut().append_pair("after", after);
+        }
+        client().get(url).bearer_auth(token).send().unwrap()
+    };
+    let original = body_json(get("token-writer", None));
+    let cursor = original["next_cursor"].as_str().unwrap();
+    let connection = rusqlite::Connection::open(&settings.database_path).unwrap();
+    connection
+        .execute(
+            "WITH RECURSIVE n(x) AS (SELECT 1 UNION ALL SELECT x+1 FROM n WHERE x < ?1)
+        INSERT INTO cursors SELECT 'padding-' || x,'agent:abc123',x + 100000,1 FROM n",
+            [crate::store::MAX_CURSORS_PER_OWNER - 1],
+        )
+        .unwrap();
+    assert_eq!(get("token-writer", Some(cursor)).status(), 200);
+    // A hidden row must not allocate a new boundary at exhausted capacity.
+    let hidden = message("message:hidden", "hidden");
+    let mut hidden_record: serde_json::Value = serde_json::from_slice(&hidden).unwrap();
+    hidden_record["from"] = json!("agent:reader");
+    connection
+        .execute(
+            "INSERT INTO events VALUES(1,'event:hidden','agent:reader',?1,?2)",
+            rusqlite::params![
+                json!({"protocol_version":"0.1-draft","type":"event","world":"civ:local",
+                    "id":"event:hidden","sequence":1,"timestamp":"2026-10-11T00:00:00Z",
+                    "actor":"agent:reader","kind":"message.recorded","body":{"message":hidden_record}}).to_string(),
+                hidden_record.to_string()
+            ],
+        )
+        .unwrap();
+    let unchanged = body_json(get("token-writer", Some(cursor)));
+    assert_eq!(unchanged["next_cursor"], original["next_cursor"]);
+    assert_eq!(unchanged["events"], json!([]));
+    let response = client()
+        .post(format!("{base}/submit"))
+        .bearer_auth("token-writer")
+        .header(CONTENT_TYPE, "application/json")
+        .body(message("message:visible", "visible"))
+        .send()
+        .unwrap();
+    assert_eq!(response.status(), 200);
+    let capacity = get("token-writer", Some(cursor));
+    assert_eq!(capacity.headers().get("Cache-Control").unwrap(), "no-store");
+    assert_eq!(problem_code(capacity), (429, "cursor_capacity".to_owned()));
+    assert_eq!(
+        problem_code(get("token-writer", Some("unknown"))),
+        (400, "invalid_cursor".to_owned())
+    );
+    assert_eq!(
+        problem_code(get("token-reader", Some(cursor))),
+        (403, "forbidden".to_owned())
+    );
+    assert_eq!(
+        problem_code(get("unknown", Some(cursor))),
+        (401, "authentication_required".to_owned())
+    );
+    // Independent quota can still mint a token and read its own permitted history.
+    assert_eq!(get("token-reader", Some("padding-1")).status(), 403);
+    assert_eq!(get("token-reader", None).status(), 200);
+    let count: i64 = connection
+        .query_row("SELECT COUNT(*) FROM cursors", [], |row| row.get(0))
+        .unwrap();
+    assert_eq!(count, crate::store::MAX_CURSORS_PER_OWNER + 1);
+    drop(running);
+    let mut changed = settings;
+    changed.visibility = Visibility::Members;
+    let restarted = runtime.block_on(start_test_host(changed)).unwrap();
+    let base = restarted
+        .discovery
+        .trim_end_matches("/.well-known/agentciv");
+    let mut url = reqwest::Url::parse(&format!("{base}/events")).unwrap();
+    url.query_pairs_mut().append_pair("after", cursor);
+    let expired = client()
+        .get(url)
+        .bearer_auth("token-writer")
+        .send()
+        .unwrap();
+    assert_eq!(problem_code(expired), (410, "cursor_expired".to_owned()));
+}
+
+#[test]
 fn same_message_id_is_scoped_to_each_principal() {
     let dir = tempdir().expect("temp");
     let grants = vec![
@@ -483,7 +573,7 @@ async fn public_http_covers_recording_refusal_and_restart() {
     })
     .await
     .expect("runner");
-    assert_eq!(report.cases.len(), 61, "{report:?}");
+    assert_eq!(report.cases.len(), 64, "{report:?}");
     let hidden_cases = [
         "collaborate.hidden_visibility",
         "collaborate.hidden_derivation",
@@ -546,6 +636,9 @@ async fn public_http_covers_recording_refusal_and_restart() {
         "collaborate.concurrent_revisions",
         "collaborate.concurrent_revisions_retry",
         "collaborate.concurrent_revisions_isolation",
+        "collaborate.concurrent_retry",
+        "collaborate.concurrent_conflict",
+        "collaborate.concurrent_retry_sequence",
     ] {
         assert!(
             report.cases.iter().any(|case| case.id == id),

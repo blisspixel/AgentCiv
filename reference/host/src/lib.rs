@@ -244,6 +244,10 @@ async fn bind(config: HostConfig) -> Result<(TcpListener, App), HostError> {
         StoreError::WorldMismatch => {
             HostError::Config("database belongs to a different world".to_owned())
         }
+        StoreError::CursorOwnersFull => HostError::Config(
+            "Persistent cursor owner capacity is exhausted or an owner exceeds 1024 bytes"
+                .to_owned(),
+        ),
         StoreError::Storage => HostError::Storage,
     })?;
     let listener = TcpListener::bind(config.listen)

@@ -44,3 +44,7 @@ Both in-repository hosts apply the same request rules. A request body must parse
 ## Optional local runtime
 
 The separate `agentciv-runtime` binary explicitly launches the existing scripted gathering through a durable scoped admission gate. It uses its own private database and control capabilities. It adds no HTTP endpoint or background dispatch. A participant stop blocks future launches through this adapter and survives coordinator replacement; it does not cancel an already running child or turn a civic decline into runtime authority. See [the local stopping contract](../../docs/DURABLE_STOPPING.md) for private configuration, exact acknowledgements, recovery, budgets, and limits. The HTTP host itself still does not run models or execute artifacts.
+
+## Cursor admission
+
+The [cursor resource policy](../../docs/CURSOR_RESOURCE_POLICY.md) bounds new cursor storage across changing boundaries and policy generations. Discovery states the independent 4096-row principal quota and 128 persistent owner slots. Existing and legacy tokens remain; exhaustion returns fixed `429 cursor_capacity` after authorization and cursor checks. Hidden-only activity does not consume the caller's quota. No automatic pruning, rollover, or rollback detection is implemented.
