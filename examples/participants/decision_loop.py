@@ -32,6 +32,18 @@ class LoopFailure(RuntimeError):
         self.code = code
 
 
+class ProviderFailure(RuntimeError):
+    """A closed set of public diagnostics, never arbitrary provider exception text."""
+
+    def __init__(self, code: str = "provider_error") -> None:
+        fixed = {"provider_error", "timeout", "connection_refused", "transport_error", "invalid_json",
+                 "redirect_refused", "response_too_large"}
+        if code not in fixed and code not in {f"http_status_{status}" for status in range(100, 600)}:
+            raise ValueError("unknown provider failure category")
+        super().__init__(code)
+        self.code = code
+
+
 class InvalidDecision(LoopFailure):
     def __init__(self, code: str) -> None:
         if code not in FEEDBACK:
@@ -154,9 +166,10 @@ class DecisionLoop:
             self.ensure_deadline()
             try:
                 reply = self.request(prompt, remaining, min(120, self.remaining_seconds()))
-            except Exception:
+            except Exception as error:
                 # Do not copy arbitrary provider exception text into public feedback/evidence.
                 attempt["outcome"] = "provider_failed"
+                attempt["failure_code"] = error.code if isinstance(error, ProviderFailure) else "provider_error"
                 self.outcome = "provider_failed"
                 self.save()
                 raise
@@ -178,7 +191,7 @@ class DecisionLoop:
             attempt["charged_output_tokens"] = charged
             attempt["output_usage_measured"] = measured
             attempt["metrics"] = {key: value for key, value in reply.metrics.items()
-                                  if key in {"eval_count", "prompt_eval_count", "total_duration"}
+                                  if key in {"eval_count", "prompt_eval_count", "total_duration", "load_duration", "eval_duration"}
                                   and type(value) is int and value >= 0}
             attempt["candidate_retained_privately"] = False
             if self.private is not None and len(raw) <= MAX_CANDIDATE_BYTES:

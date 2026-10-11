@@ -150,7 +150,7 @@ def source_check(events: list[JsonObject], plan: JsonObject) -> JsonObject:
 
 def provider_summary(model: client.OllamaDecision, token: str) -> JsonObject:
     summary: JsonObject = {"runtime": "ollama", "model": model.metadata, "version": model.version,
-        "options": model.options, "calls": model.calls, "metrics": getattr(model, "metrics", {}),
+        "options": model.options, "think": model.think, "calls": model.calls, "metrics": getattr(model, "metrics", {}),
         "truncate": False, "shift": False}
     if token in json.dumps(summary, ensure_ascii=False):
         raise client.ModelError("credential reflected")

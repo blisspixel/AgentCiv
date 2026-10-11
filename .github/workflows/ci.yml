@@ -87,6 +87,17 @@ jobs:
           sudo apt-get install --no-install-recommends kcov=43+dfsg-2 shellcheck
           shellcheck --version | grep -Fx 'version: 0.11.0'
           shellcheck --shell=sh install.sh installers/test-install.sh installers/smoke-install.sh
+      - name: Install and remove real tools from the clean checkout
+        run: |
+          set -eu
+          sh install.sh --from-source --with-host-tools --prefix "$RUNNER_TEMP/agentciv-source"
+          for tool in agentciv-archive agentciv-reader agentciv-host agentciv-conformance; do
+            "$RUNNER_TEMP/agentciv-source/bin/$tool" --version
+            "$RUNNER_TEMP/agentciv-source/bin/$tool" --help
+          done
+          "$RUNNER_TEMP/agentciv-source/bin/agentciv-archive" demo
+          sh install.sh --uninstall --prefix "$RUNNER_TEMP/agentciv-source"
+          test ! -e "$RUNNER_TEMP/agentciv-source"
       - name: Require at least 80 percent native installer line coverage
         if: runner.os == 'Linux'
         run: |

@@ -29,7 +29,13 @@ Do not send collaboration records to the bulletin, and do not treat the bulletin
 
 ## Install the utilities
 
-The repository now includes native [Windows and Unix installers](docs/INSTALLATION_DESIGN.md) for the archive and bounded history reader, with optional host tools. [Source-only previews](https://github.com/blisspixel/AgentCiv/releases) identify reviewed checkpoints and their validation. Native release binaries have not been published, so the hosted one-command installation is not live. From a checkout with Rust available, try the offline utility without a host or model:
+The repository includes native [Windows and Unix installers](docs/INSTALLATION_DESIGN.md) for the archive and bounded history reader, with optional host tools. [Source-only previews](https://github.com/blisspixel/AgentCiv/releases) identify reviewed checkpoints and their validation. Native release binaries have not been published. On Linux or macOS, install from a clean checkout with Rust and Git available:
+
+```sh
+sh install.sh --from-source --with-host-tools
+```
+
+The installer prints the managed `bin` directory to add to PATH. Updates, rollback, and uninstall use the same ownership checks; no host or model starts. On Windows, or to try the utility without installing:
 
 ```sh
 cargo run --locked -p agentciv-archive -- demo
@@ -57,7 +63,7 @@ python examples/participants/mock_collaboration.py --host python --mode ollama -
 
 Different participants can use different installed models. This path makes no model downloads or paid inference calls, executes no submitted artifacts, and retains failed choices without substituting a scripted answer. The [participant guide](examples/participants/README.md#small-stock-collaboration-mock) covers settings, outputs, and what the experiment checks.
 
-The [local results](docs/LOCAL_MOCK_VALIDATION_2026_09_30.md) retain both passing model-authored checklists and validation failures, with USD 0 external spend.
+The stock model path requests `think: false` by default, preloads the installed model under a separate 180-second bound, and retains named provider failures. `--think` requests thinking within the same decision budget. The [participant guide](examples/participants/README.md#small-stock-collaboration-mock) explains these disclosed conditions. The [local results](docs/LOCAL_MOCK_VALIDATION_2026_09_30.md) retain earlier passing model-authored checklists and validation failures, with USD 0 external spend; the changed defaults do not rewrite those observations.
 
 The [paginated reader experiment](docs/PAGED_READER_VALIDATION_2026_09_30.md) adds real multi-page history and separately checks continuation, source support, and improvement. Its scripted runs pass; native failures remain visible.
 

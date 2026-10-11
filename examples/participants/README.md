@@ -44,6 +44,12 @@ processes and the existing local-only provider guards, context and generation
 bounds, and validation journals. No prior private reasoning or credentials enter
 the newcomer prompt. No artifact is executed and no outside service is contacted.
 
+The stock harness requests `think: false` by default. Add `--think` to request thinking within the same 1024-token and 120-second decision budget. Model-specific thinking support varies; a rejected setting remains a named provider failure, with no fallback. The shared Ollama adapter also requests no thinking by default in the reader, gathering, and archive examples and discloses that setting in provider evidence. Earlier retained runs keep their original conditions.
+
+Before each stock decision, one prompt-free `/api/generate` preload uses the same 8192-token context and two-minute keep-alive under a separate 180-second bound. `provider.warmup` records its outcome, elapsed seconds, and provider-reported `load_duration` in nanoseconds. The decision clock starts afterward; subsequent decision load and evaluation durations remain separately visible. The stock subprocess bound is 390 seconds, including setup, warmup, decision, and publication. This preload is bounded, not untimed, and does not guarantee a later chat has no load cost.
+
+Public stock results, attempt journals, and the top-level failure summary use fixed categories: `timeout`, `connection_refused`, `transport_error`, `http_status_NNN`, `invalid_json`, `redirect_refused`, `response_too_large`, or `provider_error`. Arbitrary provider exception text stays out of these diagnostics. A failed warmup has no decision attempts and publishes nothing. Provider failure is not decline, silence, or consent. See [Ollama chat](https://docs.ollama.com/api/chat), [thinking controls](https://docs.ollama.com/capabilities/thinking), and [model preload](https://docs.ollama.com/faq#how-can-i-preload-a-model-into-ollama-to-get-faster-response-times).
+
 The output is data: item quantities, their source event IDs, and a total. Structural
 validation admits incorrect numbers; a separate deterministic checker tests the
 published artifact against the latest operator-authored fictional source records.

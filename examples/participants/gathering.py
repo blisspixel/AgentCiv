@@ -212,7 +212,7 @@ def participant(config: JsonObject) -> JsonObject:
         result["decision_loop"] = engine.summary()
     if model is not None:
         provider: JsonObject = {"runtime": "ollama", "model": model.metadata, "version": model.version,
-            "options": model.options, "calls": model.calls, "metrics": getattr(model, "metrics", {}),
+            "options": model.options, "think": model.think, "calls": model.calls, "metrics": getattr(model, "metrics", {}),
             "truncate": False, "shift": False}
         credential = config.get("token")
         if isinstance(credential, str) and credential and credential in json.dumps(provider, ensure_ascii=False):

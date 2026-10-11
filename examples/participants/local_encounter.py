@@ -322,7 +322,7 @@ def serve(state: Path, host: str = "rust", host_binary: Path | None = None, *,
         # retained sidecar: WAL content can include acknowledged transactions.
         _provision_sidecars(state)
         if host == "rust":
-            found = host_binary if host_binary is not None else private.find_executable("agentciv-host")
+            found = host_binary if host_binary is not None else private.find_tool("agentciv-host")
             binary = None if found is None else str(found)
             if binary is None:
                 raise private.EncounterError("host_binary_unavailable")
@@ -338,7 +338,8 @@ def serve(state: Path, host: str = "rust", host_binary: Path | None = None, *,
             try:
                 _wait_ready(owned)
                 print(json.dumps({"outcome": "serving", "world": config["world_id"], "origin": origin,
-                    "session_seconds": seconds, "storage_soft_cutoff_bytes": max_storage_bytes}), flush=True)
+                    "session_seconds": seconds, "storage_soft_cutoff_bytes": max_storage_bytes,
+                    "host_binary": argv[0]}), flush=True)
                 deadline = time.monotonic() + seconds
                 reason = "session_limit"
                 while time.monotonic() < deadline:
@@ -375,6 +376,9 @@ def main() -> int:
     reading.add_argument("--config", required=True, type=Path)
     reading.add_argument("--save", type=Path)
     reading.add_argument("--reader-binary", type=Path)
+    showing = commands.add_parser("show", help="render a saved private caller view without network access")
+    showing.add_argument("view", type=Path)
+    showing.add_argument("--config", required=True, type=Path)
     submission = commands.add_parser("submit")
     submission.add_argument("--config", required=True, type=Path)
     submission.add_argument("--record", required=True, type=Path)
@@ -395,7 +399,10 @@ def main() -> int:
                 max_storage_bytes=args.max_storage_bytes)
         else:
             import encounter_client
-            if args.command == "read":
+            if args.command == "show":
+                print(encounter_client.show(args.config, args.view))
+                return 0
+            elif args.command == "read":
                 result = encounter_client.read(args.config, args.save, reader_binary=args.reader_binary)
             elif args.command == "say":
                 result = encounter_client.say(args.config, args.text, args.to, args.basis, reader_binary=args.reader_binary)

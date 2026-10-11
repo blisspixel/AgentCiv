@@ -912,5 +912,66 @@ class LocalEncounterProcessTests(unittest.TestCase):
             self.assertTrue((state / "client-01.json").is_file())
 
 
+class NewcomerToolsTests(unittest.TestCase):
+    def test_saved_view_shows_speakers_text_and_links_without_terminal_controls(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            config, _, _ = settings(Path(temporary).resolve())
+            record = authored("artifact_revision", "revision:visible", A)
+            record["body"] = {"text": "hello\n\u001b[31mvisitor", "unfinished": True}
+            current = native([event(record, 1), event(authored("objection", "objection:visible", B), 2)])
+            with patch.object(client, "_native_read", return_value=current), patch.object(client, "_project", return_value=projection(current)):
+                result = client.read(config, reader_binary=Path(__file__))
+            path = Path(str(result["view_path"]))
+            original = path.read_bytes()
+            with patch.object(subprocess, "run") as network:
+                rendered = client.show(config, path)
+            network.assert_not_called()
+            self.assertIn('text: "hello\\n\\u001b[31mvisitor"', rendered)
+            self.assertNotIn("\u001b", rendered)
+            for text in (A, B, "artifact_id", "target_from", "objection.recorded", "unfinished", "saved caller view"):
+                self.assertIn(text, rendered)
+            self.assertEqual(path.read_bytes(), original)
+            modified = load(path)
+            modified["principal"] = C
+            private.replace_private(path, json.dumps(modified).encode())
+            with self.assertRaises(private.EncounterError):
+                client.show(config, path)
+
+    def test_tool_resolution_uses_only_trusted_path_or_absolute_cargo_target(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            target = Path(temporary).resolve()
+            (target / "debug").mkdir()
+            binary = target / "debug" / ("agentciv-reader.exe" if sys.platform == "win32" else "agentciv-reader")
+            binary.write_bytes(b"fixture")
+            binary.chmod(0o700)
+            with patch.object(private, "find_executable", side_effect=[None, Path("trusted-cargo")]), patch.object(subprocess, "run", return_value=subprocess.CompletedProcess([], 0, json.dumps({"target_directory": str(target)}).encode(), b"")) as metadata:
+                self.assertEqual(private.find_tool("agentciv-reader"), binary)
+                self.assertIn("--offline", metadata.call_args.args[0])
+            with patch.object(private, "find_executable", return_value=binary), patch.object(subprocess, "run") as metadata:
+                self.assertEqual(private.find_tool("agentciv-reader"), binary)
+                metadata.assert_not_called()
+            for output in (b"not JSON", b'[]', b'{"target_directory":"relative"}', b'{}'):
+                with patch.object(private, "find_executable", side_effect=[None, Path("trusted-cargo")]), patch.object(subprocess, "run", return_value=subprocess.CompletedProcess([], 0, output, b"")):
+                    self.assertIsNone(private.find_tool("agentciv-reader"))
+            with patch.object(private, "find_executable", return_value=None):
+                self.assertIsNone(private.find_tool("agentciv-reader"))
+                with self.assertRaises(private.EncounterError) as missing:
+                    client._binary(None)
+                self.assertEqual(missing.exception.code, "reader_binary_not_found")
+
+    def test_reader_diagnostics_are_fixed_and_do_not_print_provider_text(self) -> None:
+        for native_code, expected in (("transport_failed", "host_unreachable"), ("deadline_exceeded", "host_read_timeout"), ("private arbitrary text", "reader_failed")):
+            failed = subprocess.CompletedProcess([], 1, b"", json.dumps({"outcome": "failed", "code": native_code}).encode())
+            with patch.object(subprocess, "run", return_value=failed), self.assertRaises(private.EncounterError) as caught:
+                client._process(Path("reader"), "read", Path("private-config"))
+            self.assertEqual(caught.exception.code, expected)
+
+    def test_show_cli_prints_the_saved_rendering(self) -> None:
+        with patch.object(sys, "argv", ["room", "show", "private-view", "--config", "private-config"]), patch.object(client, "show", return_value="saved room") as showing, patch("builtins.print") as printed:
+            self.assertEqual(operator.main(), 0)
+        showing.assert_called_once_with(Path("private-config"), Path("private-view"))
+        printed.assert_called_once_with("saved room")
+
+
 if __name__ == "__main__":
     unittest.main()

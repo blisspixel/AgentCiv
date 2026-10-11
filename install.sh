@@ -4,23 +4,31 @@ set -eu
 
 fail() { printf '%s\n' "AgentCiv: $*" >&2; exit 1; }
 usage() {
-    printf '%s\n' 'Usage: sh install.sh [--version vX.Y.Z] [--prefix PATH] [--with-host-tools] [--rollback | --uninstall]' \
+    printf '%s\n' 'Usage: sh install.sh [--version vX.Y.Z[-preview.N] | --pre | --from-source] [--prefix PATH] [--with-host-tools] [--rollback | --uninstall]' \
         'Default: archive and reader utilities. No admin, models, servers, or background updates.'
 }
 version=latest
 prefix=${HOME:?HOME must be set}/.local/share/agentciv
 components='agentciv-archive agentciv-reader'
 operation=install
+from_source=no
+preview=no
 while [ "$#" -gt 0 ]; do
     case "$1" in
         --version) [ "$#" -ge 2 ] || fail 'missing version'; version=$2; shift 2 ;;
         --prefix) [ "$#" -ge 2 ] || fail 'missing prefix'; prefix=$2; shift 2 ;;
         --with-host-tools) components='agentciv-archive agentciv-reader agentciv-host agentciv-conformance'; shift ;;
+        --from-source) from_source=yes; shift ;;
+        --pre) preview=yes; shift ;;
         --rollback|--uninstall) [ "$operation" = install ] || fail 'conflicting operations'; operation=${1#--}; shift ;;
         --help|-h) usage; exit 0 ;;
         *) fail 'unknown option (use --help)' ;;
     esac
 done
+if [ "$from_source" = yes ] || [ "$preview" = yes ]; then
+    [ "$operation" = install ] && [ "$version" = latest ] || fail 'conflicting operations or version'
+fi
+[ "$from_source:$preview" != yes:yes ] || fail 'conflicting source and preview options'
 case "$prefix" in /*) ;; *) fail 'prefix must be absolute' ;; esac
 case "$prefix" in */./*|*/../*|*/.|*/..) fail 'prefix cannot contain dot path segments' ;; esac
 newline='
@@ -37,11 +45,12 @@ check_path() {
 check_path "$prefix"
 valid_version() {
     case "$1" in *"$newline"*|*"$(printf '\r')"*) return 1 ;; esac
-    printf '%s\n' "$1" | LC_ALL=C grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+$'
+    [ "${#1}" -le 64 ] && printf '%s\n' "$1" | LC_ALL=C grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+(-[A-Za-z0-9]+([.-][A-Za-z0-9]+)*)?$'
 }
+valid_generation() { valid_version "$1" || printf '%s\n' "$1" | LC_ALL=C grep -Eq '^source-[0-9a-f]{40}$'; }
 if [ "$operation" = install ] && [ "$version" != latest ]; then
     case "$version" in v*) ;; *) version=v$version ;; esac
-    valid_version "$version" || fail 'version must be vX.Y.Z'
+    valid_version "$version" || fail 'version must be vX.Y.Z or vX.Y.Z-preview.N'
 fi
 hash_file() {
     if command -v sha256sum >/dev/null 2>&1; then sha256sum "$1" | cut -d ' ' -f 1
@@ -49,7 +58,7 @@ hash_file() {
     else fail 'sha256sum or shasum required'; fi
 }
 safe_owned() {
-    printf '%s\n' "$1" | LC_ALL=C grep -Eq '^(bin/agentciv-(archive|reader|host|conformance)|versions/v[0-9]+\.[0-9]+\.[0-9]+/(agentciv-(archive|reader|host|conformance)|components|LICENSE|THIRD_PARTY_NOTICES\.txt|NOTICE_INVENTORY\.json))$'
+    printf '%s\n' "$1" | LC_ALL=C grep -Eq '^(bin/agentciv-(archive|reader|host|conformance)|versions/(v[0-9]+\.[0-9]+\.[0-9]+(-[A-Za-z0-9]+([.-][A-Za-z0-9]+)*)?|source-[0-9a-f]{40})/(agentciv-(archive|reader|host|conformance)|components|LICENSE|THIRD_PARTY_NOTICES\.txt|NOTICE_INVENTORY\.json))$'
 }
 verify_owned() {
     [ -f "$prefix/owned.sha256" ] && [ ! -L "$prefix/owned.sha256" ] || fail 'missing ownership manifest'
@@ -73,8 +82,8 @@ if [ -e "$prefix" ]; then
     [ "$(cat "$prefix/state")" = agentciv-install/1 ] || fail 'invalid install state'
     if [ -f "$prefix/current" ]; then current=$(cat "$prefix/current"); fi
     if [ -f "$prefix/previous" ]; then previous=$(cat "$prefix/previous"); fi
-    [ "$current" = none ] || valid_version "$current" || fail 'invalid current version'
-    [ "$previous" = none ] || valid_version "$previous" || fail 'invalid previous version'
+    [ "$current" = none ] || valid_generation "$current" || fail 'invalid current version'
+    [ "$previous" = none ] || valid_generation "$previous" || fail 'invalid previous version'
     verify_owned
 fi
 for name in state current previous owned.sha256 bin versions; do check_path "$prefix/$name"; done
@@ -94,6 +103,15 @@ temp=
 cleanup() {
     if [ -n "$temp" ]; then rm -rf -- "$temp"; fi
     rmdir "$prefix/.install-lock"
+    # A failed first download/build leaves no owned installation. Never recurse
+    # through the prefix or remove unknown files, even in an abandoned skeleton.
+    if [ ! -e "$prefix/current" ] && [ -f "$prefix/owned.sha256" ] && [ ! -s "$prefix/owned.sha256" ]; then
+        rmdir "$prefix/bin" "$prefix/versions" 2>/dev/null || :
+        if [ ! -e "$prefix/bin" ] && [ ! -e "$prefix/versions" ]; then
+            rm -f -- "$prefix/state" "$prefix/owned.sha256"
+            rmdir "$prefix" 2>/dev/null || :
+        fi
+    fi
     if [ "$operation" = uninstall ]; then rmdir "$prefix" 2>/dev/null || :; fi
 }
 trap cleanup EXIT
@@ -110,7 +128,7 @@ if [ "$operation" = install ]; then
     done
 fi
 if [ "$operation" = uninstall ]; then
-    [ "$current" != none ] || fail 'nothing installed at prefix'
+    [ "$current" != none ] || [ ! -s "$prefix/owned.sha256" ] || fail 'invalid empty installation'
     while IFS=' ' read -r expected relative extra || [ -n "$expected$relative$extra" ]; do rm -- "$prefix/$relative"; done < "$prefix/owned.sha256"
     # Remove only empty owned directories; unknown files and user data remain.
     owned_versions=$(awk '$2 ~ /^versions\// { split($2, parts, "/"); print parts[2] }' "$prefix/owned.sha256" | sort -u)
@@ -131,6 +149,30 @@ else
     if [ "$current" != none ] && grep -Fq agentciv-host "$prefix/versions/$current/components"; then
         components='agentciv-archive agentciv-reader agentciv-host agentciv-conformance'
     fi
+    temp=$(mktemp -d "${TMPDIR:-/tmp}/agentciv-install.XXXXXXXX") || fail 'temporary directory unavailable'
+    if [ "$from_source" = yes ]; then
+        command -v cargo >/dev/null 2>&1 || fail 'cargo required for --from-source'
+        command -v git >/dev/null 2>&1 || fail 'git required for --from-source'
+        source_root=$(CDPATH='' cd "$(dirname "$0")" && pwd)
+        [ -f "$source_root/Cargo.toml" ] && [ -f "$source_root/tools/agentciv-reader/Cargo.toml" ] || fail '--from-source requires a checkout'
+        commit=$(git -C "$source_root" rev-parse --verify HEAD) || fail 'source commit unavailable'
+        printf '%s\n' "$commit" | grep -Eq '^[0-9a-f]{40}$' || fail 'invalid source commit'
+        git -C "$source_root" diff --quiet HEAD -- || fail 'commit tracked changes before source installation'
+        version=source-$commit
+        for component in $components; do
+            case "$component" in
+                agentciv-host) package=reference/host ;;
+                agentciv-conformance) package=conformance/runner ;;
+                *) package=tools/$component ;;
+            esac
+            (cd "$source_root" && cargo install --locked --path "$source_root/$package" --root "$temp/build") || fail 'source build failed; current installation retained'
+            cp "$temp/build/bin/$component" "$temp/$component"
+            "$temp/$component" --version
+        done
+        cp "$source_root/LICENSE" "$temp/LICENSE"
+        cp "$source_root/release/THIRD_PARTY_NOTICES.txt" "$temp/THIRD_PARTY_NOTICES.txt"
+        cp "$source_root/release/NOTICE_INVENTORY.json" "$temp/NOTICE_INVENTORY.json"
+    else
     case "$(uname -s):$(uname -m)" in
         Linux:x86_64) target=x86_64-unknown-linux-gnu ;;
         Linux:aarch64|Linux:arm64) target=aarch64-unknown-linux-gnu ;;
@@ -144,16 +186,20 @@ else
     printf '%s\n' "$curl_version" | awk -F. 'NR == 1 { exit !($1 > 8 || ($1 == 8 && $2 >= 4)) }' || fail 'curl 8.4 or newer required for bounded downloads'
     # GitHub may redirect assets to its HTTPS release storage. Never permit HTTP.
     download() { curl --disable --fail --silent --show-error --location --proto '=https' --proto-redir '=https' --connect-timeout 15 --max-time 180 --max-filesize "${3:-134217728}" --output "$2" "$1"; }
-    temp=$(mktemp -d "${TMPDIR:-/tmp}/agentciv-install.XXXXXXXX") || fail 'temporary directory unavailable'
     base=https://github.com/blisspixel/AgentCiv/releases
+    if [ "$preview" = yes ]; then
+        command -v jq >/dev/null 2>&1 || fail 'jq required for --pre; otherwise select --version explicitly'
+        download 'https://api.github.com/repos/blisspixel/AgentCiv/releases?per_page=100' "$temp/releases.json" 1048576 || fail 'release list unavailable'
+        version=$(jq -er '[.[] | select(.draft == false and .prerelease == true)][0].tag_name | strings' "$temp/releases.json") || fail 'no published preview available'
+    fi
     if [ "$version" = latest ]; then
         download "$base/latest/download/VERSION" "$temp/VERSION" 64 || fail 'no published release available'
         [ "$(wc -c < "$temp/VERSION")" -le 64 ] || fail 'invalid release version'
         version=$(cat "$temp/VERSION")
     fi
     case "$version" in v*) ;; *) version=v$version ;; esac
-    valid_version "$version" || fail 'version must be vX.Y.Z'
-    download "$base/download/$version/SHA256SUMS" "$temp/SHA256SUMS" 16384 || fail 'checksums unavailable'
+    valid_version "$version" || fail 'version must be vX.Y.Z or vX.Y.Z-preview.N'
+    download "$base/download/$version/SHA256SUMS" "$temp/SHA256SUMS" 16384 || fail 'native assets unavailable for this release; source previews have no binaries; use --from-source in a checkout'
     [ "$(wc -c < "$temp/SHA256SUMS")" -le 16384 ] || fail 'checksum manifest too large'
     for resource in LICENSE THIRD_PARTY_NOTICES.txt NOTICE_INVENTORY.json; do
         expected=$(awk -v name="$resource" '$2 == name { count++; digest=$1 } END { if (count != 1) exit 1; print digest }' "$temp/SHA256SUMS") || fail 'missing or duplicate notice checksum'
@@ -171,6 +217,7 @@ else
         chmod 755 "$temp/$component"
         [ "$("$temp/$component" --version)" = "$component ${version#v}" ] || fail 'binary version or platform mismatch'
     done
+    fi
     # A private staging directory lives on the destination volume for rename.
     destination=$prefix/versions/$version
     if [ -e "$destination" ]; then

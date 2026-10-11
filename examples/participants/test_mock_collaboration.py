@@ -207,6 +207,13 @@ class StockProviderTests(unittest.TestCase):
         result = mock.participant(self.config)
         self.assertEqual(result["outcome"], "failed")
         self.assertEqual(result["failure_stage"], "provider")
+        self.assertEqual(result["failure_code"], "http_status_503")
+        engine = client.object_value(result["decision_loop"])
+        attempts = engine["attempts"]
+        self.assertIsInstance(attempts, list)
+        if not isinstance(attempts, list):
+            self.fail("missing attempt evidence")
+        self.assertEqual(client.object_value(attempts[0])["failure_code"], "http_status_503")
         self.assertNotIn("decision", result)
         self.assertEqual(client.history(self.origin, "writer-fixture-token"), self.events)
         self.assertNotIn("writer-fixture-token", json.dumps(result))

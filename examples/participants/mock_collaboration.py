@@ -206,7 +206,11 @@ def participant(config: JsonObject) -> JsonObject:
             stage = "provider"
             trace = config.get("private_trace")
             model = client.OllamaDecision(str(config["ollama_origin"]), str(config["model"]), int(str(config["seed"])),
-                Path(trace) if isinstance(trace, str) else None, token=token)
+                Path(trace) if isinstance(trace, str) else None, token=token, think=config.get("think") is True)
+            if type(config.get("think", False)) is not bool:
+                raise ValueError("think must be boolean")
+            stage = "model_warmup"
+            model.warm()
 
         def request(prompt: str, output_tokens: int, timeout: float) -> loop.Reply:
             if model is not None:
@@ -265,14 +269,14 @@ def participant(config: JsonObject) -> JsonObject:
             receipt = publish(origin, token, record, engine)
             result.update({"outcome": "recorded", "record": record, "receipt": receipt})
     except (client.DecisionError, wire.ParticipantError, loop.LoopFailure, OSError, ValueError, KeyError, RecursionError) as error:
-        result["failure_stage"] = "provider" if isinstance(error, client.ModelError) else stage
-        result["failure_code"] = error.code if isinstance(error, loop.LoopFailure) else "stage_failed"
+        result["failure_stage"] = "provider" if isinstance(error, client.ModelError) and stage != "model_warmup" else stage
+        result["failure_code"] = error.code if isinstance(error, (loop.LoopFailure, client.ModelError)) else "stage_failed"
     if engine is not None:
         result["decision_loop"] = engine.summary()
     if model is not None:
         provider = {"runtime": "ollama", "model": model.metadata, "version": model.version,
             "options": model.options, "calls": model.calls, "metrics": getattr(model, "metrics", {}),
-            "truncate": False, "shift": False}
+            "truncate": False, "shift": False, "think": model.think, "warmup": model.warmup}
         try:
             model.reject_reflection(provider)
         except client.ModelError:
@@ -290,7 +294,7 @@ def list_strings(value: object) -> list[str]:
 
 def run(output: Path, *, host: str = "python", mode: str = "scripted", model: str = "",
         model_a: str | None = None, model_b: str | None = None, model_c: str | None = None,
-        seed: int = 42, attempts: int = 1, private_traces: bool = False) -> JsonObject:
+        seed: int = 42, attempts: int = 1, private_traces: bool = False, think: bool = False) -> JsonObject:
     output.mkdir(parents=True, exist_ok=False)
     source: JsonObject | None = None
     observations: list[JsonObject] = []
@@ -300,7 +304,8 @@ def run(output: Path, *, host: str = "python", mode: str = "scripted", model: st
             "schedule": "operator A then B; host restart; C", "models": [model_a or model, model_b or model, model_c or model],
             "seed": seed, "seed_rule": "configured seed plus participant index 0, 1, 2",
             "attempts": attempts, "output_tokens_per_turn": 1024, "decision_seconds": 120,
-            "context_tokens": 8192, "process_seconds": 180, "private_traces": private_traces,
+            "context_tokens": 8192, "process_seconds": 390, "private_traces": private_traces,
+            "think": think, "warmup_seconds": 180, "warmup_before_decision_clock": True,
             "publication_policy": "repository example; plain punctuation, no emojis; not a wire rule",
             "tools": "permitted loopback history and at most one chosen collaboration publication",
             "social_choices_scripted": mode == "scripted", "semantic_feedback_to_model": False,
@@ -312,7 +317,7 @@ def run(output: Path, *, host: str = "python", mode: str = "scripted", model: st
         report["source"] = source
         save(output / "report.json", report)
         stage = "configuration"
-        if host not in ("python", "rust") or mode not in ("scripted", "ollama") or type(seed) is not int:
+        if host not in ("python", "rust") or mode not in ("scripted", "ollama") or type(seed) is not int or type(think) is not bool:
             raise ValueError("invalid experiment configuration")
         loop.Budget(attempts=attempts)
         models = [model_a or model, model_b or model, model_c or model]
@@ -359,7 +364,7 @@ def run(output: Path, *, host: str = "python", mode: str = "scripted", model: st
                 config: JsonObject = {"origin": origin, "principal": AUTHORS[index], "token": tokens[AUTHORS[index]],
                     "recipients": [OBSERVER], "record_id": f"submission:checklist-{name}", "mode": mode,
                     "model": models[index], "seed": seed + index, "turn": 1, "ollama_origin": "http://127.0.0.1:11434",
-                    "decision_attempts": attempts, "attempt_journal": str(output / f"attempts-{name}.json")}
+                    "decision_attempts": attempts, "think": think, "attempt_journal": str(output / f"attempts-{name}.json")}
                 if private_traces:
                     config.update({"private_trace": str(output / f"private-{name}.json"),
                                    "private_candidates": str(output / f"private-candidates-{name}")})
@@ -369,7 +374,7 @@ def run(output: Path, *, host: str = "python", mode: str = "scripted", model: st
                 save(output / "history.json", shared_history(origin))
                 try:
                     completed = subprocess.run([sys.executable, str(Path(__file__)), "--config", str(child_config)],
-                        cwd=ROOT, capture_output=True, timeout=180, check=False)
+                        cwd=ROOT, capture_output=True, timeout=390, check=False)
                 finally:
                     # A killed or failed child may still have recorded its act. Preserve history without retrying it.
                     save(output / "history.json", shared_history(origin))
@@ -432,7 +437,7 @@ def run(output: Path, *, host: str = "python", mode: str = "scripted", model: st
             OSError, ValueError, KeyError, RecursionError, RuntimeError, subprocess.SubprocessError):
         report.update({"outcome": "failed", "useful_result": False})
         report["failure_stage"] = stage
-        report["failure_code"] = "stage_failed"
+        report["failure_code"] = observations[-1].get("failure_code", "stage_failed") if observations else "stage_failed"
     try:
         report["source_changed_during_run"] = source is None or source != source_identity()
     except (OSError, subprocess.SubprocessError, RuntimeError):
@@ -456,6 +461,7 @@ def main() -> int:
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--attempts", type=int, choices=(1, 2, 3), default=1)
     parser.add_argument("--private-traces", action="store_true")
+    parser.add_argument("--think", action="store_true", help="request model thinking within the same decision budget")
     args = parser.parse_args()
     if args.config is not None:
         try:
@@ -471,8 +477,8 @@ def main() -> int:
         parser.error("--output or private --config is required")
     result = run(args.output.resolve(), host=args.host, mode=args.mode, model=args.model,
         model_a=args.model_a, model_b=args.model_b, model_c=args.model_c,
-        seed=args.seed, attempts=args.attempts, private_traces=args.private_traces)
-    print(json.dumps({key: result.get(key) for key in ("outcome", "useful_result", "source_changed_during_run")}))
+        seed=args.seed, attempts=args.attempts, private_traces=args.private_traces, think=args.think)
+    print(json.dumps({key: result.get(key) for key in ("outcome", "useful_result", "source_changed_during_run", "failure_stage", "failure_code")}))
     return 0 if result.get("outcome") == "completed" and result.get("useful_result") is True else 1
 
 

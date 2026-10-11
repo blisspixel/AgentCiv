@@ -87,9 +87,9 @@ def _configuration(path: Path) -> JsonObject:
 
 
 def _binary(selected: Path | None) -> Path:
-    found = str(selected) if selected is not None else private.find_executable("agentciv-reader")
+    found = str(selected) if selected is not None else private.find_tool("agentciv-reader")
     if not found or not Path(found).is_file():
-        raise private.EncounterError("reader_unavailable")
+        raise private.EncounterError("reader_binary_not_found")
     return Path(found).resolve()
 
 
@@ -99,6 +99,15 @@ def _process(binary: Path, command: str, path: Path) -> JsonObject:
         result = subprocess.run(arguments, capture_output=True, timeout=40, check=False)
     except (OSError, subprocess.SubprocessError):
         raise private.EncounterError("reader_process_failed") from None
+    if result.returncode != 0 and command == "read" and len(result.stderr) <= 1024:
+        try:
+            diagnostic = civic.decode(result.stderr)
+        except civic.DecisionError:
+            diagnostic = {}
+        if diagnostic == {"outcome": "failed", "code": "transport_failed"}:
+            raise private.EncounterError("host_unreachable")
+        if diagnostic == {"outcome": "failed", "code": "deadline_exceeded"}:
+            raise private.EncounterError("host_read_timeout")
     if result.returncode != 0 or len(result.stdout) > MAX_OUTPUT:
         raise private.EncounterError("reader_failed")
     try:
@@ -212,17 +221,64 @@ def read(config: Path, save: Path | None = None, *, reader_binary: Path | None =
     try:
         settings = _configuration(config)
         with private.lock(Path(str(settings["cache_directory"]))):
-            view = _capture(settings, _binary(reader_binary))
+            binary = _binary(reader_binary)
+            view = _capture(settings, binary)
             path = _save_view(view, settings, save)
         transport = _object(view["transport"])
         return {"outcome": "read", "world": settings["world"], "principal": settings["principal"],
-            "events": transport["events"], "pages": transport["pages"], "view_path": str(path),
+            "events": transport["events"], "pages": transport["pages"], "view_path": str(path), "reader_binary": str(binary),
             "copying_permission": "not_granted", "freshness": "bounded_full_read_not_atomic"}
     except private.EncounterError:
         raise
     # RuntimeError includes parser RecursionError; no nested input enters diagnostics.
     except (ValueError, OSError, KeyError, TypeError, RuntimeError):
         raise private.EncounterError("private_read_failed") from None
+
+
+def show(config: Path, path: Path) -> str:
+    """Render a saved permitted view; quote untrusted text before terminal output."""
+    try:
+        settings = _configuration(config)
+        view = _decode(private.read_bounded(path, MAX_OUTPUT))
+        _validate_view(view, settings)
+        lines = [f"Room {json.dumps(settings['world'], ensure_ascii=True)}; saved caller view, not live history."]
+        for original in _originals(view):
+            event = _decode(original.encode("utf-8"))
+            if str(settings["token"]) in json.dumps(civic.decode(original.encode("utf-8")), ensure_ascii=False):
+                raise private.EncounterError("credential_reflected")
+            body = _object(event.get("body"))
+            # Each exact original remains in the view; this is only a readable projection.
+            def quote(value: object) -> str:
+                if isinstance(value, Decimal):
+                    return str(value)
+                if isinstance(value, dict):
+                    return "{" + ", ".join(f"{quote(key)}: {quote(item)}" for key, item in value.items()) + "}"
+                if isinstance(value, list):
+                    return "[" + ", ".join(quote(item) for item in value) + "]"
+                return json.dumps(value, ensure_ascii=True)
+            lines.append(f"#{quote(event.get('sequence'))} {quote(event.get('timestamp'))} {quote(event.get('actor'))} {quote(event.get('kind'))} {quote(event.get('id'))}")
+            for kind, value in body.items():
+                record = _object(value)
+                lines.append(f"  {quote(kind)} to {quote(record.get('to', []))}")
+                for key in ("artifact_id", "revision", "target_from", "derived_from"):
+                    if key in record:
+                        lines.append(f"  {key}: {quote(record[key])}")
+                if "body" in record:
+                    content = _object(record["body"])
+                    if "text" in content:
+                        lines.append(f"  text: {quote(content['text'])}")
+                    other = {key: value for key, value in content.items() if key != "text"}
+                    if other:
+                        lines.append(f"  data: {quote(other)}")
+                if kind == "tombstone":
+                    lines.append(f"  {quote(record)}")
+        if len(lines) == 1:
+            lines.append("No events in this saved view.")
+        return "\n".join(lines)
+    except private.EncounterError:
+        raise
+    except (ValueError, OSError, KeyError, TypeError, RuntimeError):
+        raise private.EncounterError("invalid_private_view") from None
 
 
 def _authored(raw: bytes, settings: JsonObject) -> JsonObject:

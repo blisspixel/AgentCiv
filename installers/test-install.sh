@@ -47,9 +47,10 @@ while [ "$#" -gt 0 ]; do
     esac
 done
 printf '%s\n' "$url" >> "$AGENTCIV_TEST_LOG"
-case "$url" in https://github.com/blisspixel/AgentCiv/releases/*) ;; *) exit 90 ;; esac
+case "$url" in https://github.com/blisspixel/AgentCiv/releases/*|https://api.github.com/repos/blisspixel/AgentCiv/releases\?per_page=100) ;; *) exit 90 ;; esac
 case "$url" in
     */latest/download/VERSION) cp "$AGENTCIV_FIXTURE/VERSION" "$output" ;;
+    https://api.github.com/*) printf '%s\n' '[{"tag_name":"v0.3.0-preview.1","draft":false,"prerelease":true}]' > "$output" ;;
     */download/*) relative=${url#https://github.com/blisspixel/AgentCiv/releases/download/}; cp "$AGENTCIV_FIXTURE/$relative" "$output" ;;
     *) exit 91 ;;
 esac
@@ -83,6 +84,7 @@ BINARY
 }
 make_release v0.1.0
 make_release v0.2.0
+make_release v0.3.0-preview.1
 printf '%s\n' v0.1.0 > "$scratch/releases/VERSION"
 case_number=0
 if [ -n "${AGENTCIV_COVERAGE_DIR:-}" ]; then mkdir -p "$AGENTCIV_COVERAGE_DIR"; fi
@@ -261,4 +263,75 @@ for pair in Linux:arm64 Darwin:x86_64 Darwin:arm64; do
     export AGENTCIV_TEST_OS AGENTCIV_TEST_CPU
     run --prefix "$scratch/architecture-$AGENTCIV_TEST_OS-$AGENTCIV_TEST_CPU" --version v0.1.0
 done
+# Published previews are selectable, and a source-only preview is diagnosed.
+run --prefix "$scratch/preview" --version v0.3.0-preview.1
+[ "$(cat "$scratch/preview/current")" = v0.3.0-preview.1 ]
+run --prefix "$scratch/preview" --uninstall
+[ ! -e "$scratch/preview" ]
+reject --prefix "$scratch/source-only" --version v0.1.0-preview.3
+grep -q 'native assets unavailable' "$scratch/stderr"
+[ ! -e "$scratch/source-only" ]
+# Explicit preview discovery never silently changes stable latest behavior.
+cat > "$scratch/commands/jq" <<'SCRIPT'
+#!/bin/sh
+printf '%s\n' v0.3.0-preview.1
+SCRIPT
+chmod 755 "$scratch/commands/jq"
+run --prefix "$scratch/preview-api" --pre
+[ "$(cat "$scratch/preview-api/current")" = v0.3.0-preview.1 ]
+grep -Fq 'https://api.github.com/repos/blisspixel/AgentCiv/releases?per_page=100' "$AGENTCIV_TEST_LOG"
+run --prefix "$scratch/preview-api" --uninstall
+reject --prefix "$scratch/conflict" --pre --from-source
+reject --prefix "$scratch/conflict" --pre --version v0.1.0
+reject --prefix "$scratch/conflict" --from-source --rollback
+[ ! -e "$scratch/conflict" ]
+# A legacy failed-install skeleton can be removed, retaining unknown files.
+mkdir -p "$scratch/legacy/bin" "$scratch/legacy/versions"
+printf '%s\n' agentciv-install/1 > "$scratch/legacy/state"
+: > "$scratch/legacy/owned.sha256"
+printf '%s\n' 'user data' > "$scratch/legacy/keep"
+run --prefix "$scratch/legacy" --uninstall
+[ "$(cat "$scratch/legacy/keep")" = 'user data' ]
+[ ! -e "$scratch/legacy/state" ]
+# Source builds are explicit, locked, commit-labelled and use the same ownership.
+export AGENTCIV_SOURCE_COMMIT=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+export AGENTCIV_SOURCE_DIRTY=no
+export AGENTCIV_SOURCE_FAIL=no
+cat > "$scratch/commands/git" <<'SCRIPT'
+#!/bin/sh
+case "$3" in rev-parse) printf '%s\n' "$AGENTCIV_SOURCE_COMMIT" ;; diff) [ "$AGENTCIV_SOURCE_DIRTY" = no ] ;; *) exit 1 ;; esac
+SCRIPT
+cat > "$scratch/commands/cargo" <<'SCRIPT'
+#!/bin/sh
+set -eu
+[ "$AGENTCIV_SOURCE_FAIL" = no ] || exit 1
+[ "$1" = install ] && [ "$2" = --locked ] && [ "$3" = --path ] && [ "$5" = --root ]
+case "$4" in */reference/host) tool=agentciv-host ;; */conformance/runner) tool=agentciv-conformance ;; *) tool=${4##*/} ;; esac
+mkdir -p "$6/bin"
+cp "$AGENTCIV_FIXTURE/v0.1.0/$tool-v0.1.0-x86_64-unknown-linux-gnu" "$6/bin/$tool"
+chmod 755 "$6/bin/$tool"
+SCRIPT
+chmod 755 "$scratch/commands/git" "$scratch/commands/cargo"
+run --prefix "$scratch/source" --from-source --with-host-tools
+[ "$(cat "$scratch/source/current")" = source-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa ]
+[ "$("$scratch/source/bin/agentciv-conformance" --version)" = 'agentciv-conformance 0.1.0' ]
+run --prefix "$scratch/source" --from-source
+AGENTCIV_SOURCE_COMMIT=bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+export AGENTCIV_SOURCE_COMMIT
+run --prefix "$scratch/source" --from-source
+run --prefix "$scratch/source" --rollback
+[ "$(cat "$scratch/source/current")" = source-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa ]
+AGENTCIV_SOURCE_FAIL=yes
+export AGENTCIV_SOURCE_FAIL
+reject --prefix "$scratch/source" --from-source
+[ "$(cat "$scratch/source/current")" = source-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa ]
+reject --prefix "$scratch/failed-source" --from-source
+[ ! -e "$scratch/failed-source" ]
+AGENTCIV_SOURCE_DIRTY=yes
+export AGENTCIV_SOURCE_DIRTY
+reject --prefix "$scratch/dirty-source" --from-source
+grep -q 'commit tracked changes' "$scratch/stderr"
+[ ! -e "$scratch/dirty-source" ]
+run --prefix "$scratch/source" --uninstall
+[ ! -e "$scratch/source" ]
 printf '%s\n' 'Shell installer offline behavior tests passed.'

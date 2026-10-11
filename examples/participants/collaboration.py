@@ -69,8 +69,11 @@ class DecisionError(RuntimeError):
     """An invalid decision is a client failure, never a participant refusal."""
 
 
-class ModelError(DecisionError):
+class ModelError(DecisionError, loop.ProviderFailure):
     """The model backend could not supply a completed response."""
+
+    def __init__(self, message: str, code: str = "provider_error") -> None:
+        loop.ProviderFailure.__init__(self, code)
 
 
 def object_value(value: object) -> JsonObject:
@@ -344,28 +347,36 @@ def ollama_exchange(origin: str, path: str, payload: JsonObject | None, timeout:
             body = response.read(MAX_RESPONSE_BYTES + 1)
     except urllib.error.HTTPError as error:
         error.close()
-        raise ModelError("local model HTTP request failed") from error
-    except (urllib.error.URLError, TimeoutError) as error:
-        raise ModelError("local model request failed") from error
+        raise ModelError("local model HTTP request failed", f"http_status_{error.code}") from None
+    except TimeoutError:
+        raise ModelError("local model request timed out", "timeout") from None
+    except urllib.error.URLError as error:
+        reason = error.reason
+        code = "timeout" if isinstance(reason, TimeoutError) else "connection_refused" if isinstance(reason, ConnectionRefusedError) else "transport_error"
+        raise ModelError("local model request failed", code) from None
     except wire.ParticipantError as error:
-        raise ModelError("local model redirect was refused") from error
+        raise ModelError("local model redirect was refused", "redirect_refused") from error
     if len(body) > MAX_RESPONSE_BYTES:
-        raise ModelError("model response exceeded byte bound")
+        raise ModelError("model response exceeded byte bound", "response_too_large")
     try:
         return decode(body)
     except DecisionError as error:
-        raise ModelError("local model response was not a JSON object") from error
+        raise ModelError("local model response was not a JSON object", "invalid_json") from error
 
 
 class OllamaDecision:
     def __init__(self, origin: str, model: str, seed: int, trace: Path | None,
-                 *, timeout: float = 120, max_tokens: int = 1024, token: str | None = None) -> None:
+                 *, timeout: float = 120, max_tokens: int = 1024, token: str | None = None, think: bool = False) -> None:
         self.origin = loopback_origin(origin)
         self.model = model
         self.seed = seed
         self.trace = trace
         self.calls = 0
         self.token = token
+        if type(think) is not bool:
+            raise ValueError("think must be boolean")
+        self.think = think
+        self.warmup: JsonObject = {"outcome": "not_requested"}
         if not 1 <= max_tokens <= 2048 or not 1 <= timeout <= 180:
             raise ValueError("model budget exceeds bounds")
         self.timeout = timeout
@@ -387,6 +398,26 @@ class OllamaDecision:
         self.options: JsonObject = {"seed": self.seed, "temperature": 0.4, "num_ctx": 8192, "num_predict": self.max_tokens}
         self.reject_reflection({"model": self.metadata, "show": shown, "version": self.version})
 
+    def warm(self) -> None:
+        """One bounded preload with the decision context, before the decision clock."""
+        started = time.monotonic()
+        self.warmup = {"outcome": "requested", "budget_seconds": 180}
+        try:
+            response = ollama_exchange(self.origin, "/api/generate", {"model": self.model,
+                "stream": False, "keep_alive": "2m", "options": {"num_ctx": self.options["num_ctx"]}}, 180)
+            self.reject_reflection(response)
+            if response.get("done") is not True:
+                raise ModelError("model preload incomplete")
+            self.warmup["outcome"] = "completed"
+            duration = response.get("load_duration")
+            if type(duration) is int and duration >= 0:
+                self.warmup["load_duration"] = duration
+        except ModelError as error:
+            self.warmup.update({"outcome": "failed", "failure_code": error.code})
+            raise
+        finally:
+            self.warmup["elapsed_seconds"] = round(time.monotonic() - started, 6)
+
     def reject_reflection(self, value: object) -> None:
         if self.token is not None and self.token in json.dumps(value, ensure_ascii=False):
             raise ModelError("credential reflected")
@@ -401,11 +432,12 @@ class OllamaDecision:
             "truncate": False, "shift": False,
             "options": options,
             "keep_alive": "2m",
+            "think": self.think,
         }
         try:
             response = ollama_exchange(self.origin, "/api/chat", request, timeout)
-        except DecisionError:
-            self.save_trace({"request": request, "outcome": "model_request_failed"})
+        except ModelError as error:
+            self.save_trace({"request": request, "outcome": "model_request_failed", "failure_code": error.code})
             raise
         self.reject_reflection(response)
         message = response.get("message")
@@ -417,7 +449,7 @@ class OllamaDecision:
             else:
                 self.reject_reflection(decoded_content)
         self.save_trace({"request": request, "response": response, "model": self.metadata})
-        self.metrics = {key: response.get(key) for key in ("prompt_eval_count", "eval_count", "total_duration")}
+        self.metrics = {key: response.get(key) for key in ("prompt_eval_count", "eval_count", "total_duration", "load_duration", "eval_duration")}
         try:
             content = object_value(response.get("message")).get("content")
         except DecisionError as error:
@@ -646,7 +678,7 @@ def main() -> int:
     result = participate(config, decider)
     if model is not None:
         provider = {"runtime": "ollama", "version": model.version,
-                              "model": model.metadata, "options": model.options,
+                              "model": model.metadata, "options": model.options, "think": model.think,
                               "metrics": model.metrics, "truncate": False, "shift": False}
         model.reject_reflection(provider)
         result["provider"] = provider
