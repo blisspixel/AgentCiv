@@ -2451,7 +2451,14 @@
         "schema:prefix-page",
         "fixture:prefix-page"
       ],
-      "observations": [],
+      "observations": [
+        "obs:prefix-2026-10-11:python:members:prefix.baseline",
+        "obs:prefix-2026-10-11:python:addressed:prefix.baseline",
+        "obs:prefix-2026-10-11:python:sender_only:prefix.baseline",
+        "obs:prefix-2026-10-11:rust:members:prefix.baseline",
+        "obs:prefix-2026-10-11:rust:addressed:prefix.baseline",
+        "obs:prefix-2026-10-11:rust:sender_only:prefix.baseline"
+      ],
       "gaps": [
         "gap:prefix-adversarial"
       ]
@@ -2472,7 +2479,20 @@
         "schema:prefix-page",
         "fixture:prefix-page"
       ],
-      "observations": [],
+      "observations": [
+        "obs:prefix-2026-10-11:python:members:prefix.baseline",
+        "obs:prefix-2026-10-11:python:members:prefix.append",
+        "obs:prefix-2026-10-11:python:addressed:prefix.baseline",
+        "obs:prefix-2026-10-11:python:addressed:prefix.append",
+        "obs:prefix-2026-10-11:python:sender_only:prefix.baseline",
+        "obs:prefix-2026-10-11:python:sender_only:prefix.append",
+        "obs:prefix-2026-10-11:rust:members:prefix.baseline",
+        "obs:prefix-2026-10-11:rust:members:prefix.append",
+        "obs:prefix-2026-10-11:rust:addressed:prefix.baseline",
+        "obs:prefix-2026-10-11:rust:addressed:prefix.append",
+        "obs:prefix-2026-10-11:rust:sender_only:prefix.baseline",
+        "obs:prefix-2026-10-11:rust:sender_only:prefix.append"
+      ],
       "gaps": [
         "gap:prefix-adversarial"
       ]
@@ -2493,7 +2513,14 @@
         "schema:prefix-page",
         "fixture:prefix-page"
       ],
-      "observations": [],
+      "observations": [
+        "obs:prefix-2026-10-11:python:members:prefix.baseline",
+        "obs:prefix-2026-10-11:python:addressed:prefix.baseline",
+        "obs:prefix-2026-10-11:python:sender_only:prefix.baseline",
+        "obs:prefix-2026-10-11:rust:members:prefix.baseline",
+        "obs:prefix-2026-10-11:rust:addressed:prefix.baseline",
+        "obs:prefix-2026-10-11:rust:sender_only:prefix.baseline"
+      ],
       "gaps": [
         "gap:prefix-adversarial"
       ]
@@ -2514,7 +2541,14 @@
         "schema:prefix-page",
         "fixture:prefix-page"
       ],
-      "observations": [],
+      "observations": [
+        "obs:prefix-2026-10-11:python:members:prefix.withdrawal",
+        "obs:prefix-2026-10-11:python:addressed:prefix.withdrawal",
+        "obs:prefix-2026-10-11:python:sender_only:prefix.withdrawal",
+        "obs:prefix-2026-10-11:rust:members:prefix.withdrawal",
+        "obs:prefix-2026-10-11:rust:addressed:prefix.withdrawal",
+        "obs:prefix-2026-10-11:rust:sender_only:prefix.withdrawal"
+      ],
       "gaps": [
         "gap:prefix-adversarial"
       ]
@@ -2535,7 +2569,14 @@
         "schema:prefix-page",
         "fixture:prefix-page"
       ],
-      "observations": [],
+      "observations": [
+        "obs:prefix-2026-10-11:python:members:prefix.hidden",
+        "obs:prefix-2026-10-11:python:addressed:prefix.hidden",
+        "obs:prefix-2026-10-11:python:sender_only:prefix.hidden",
+        "obs:prefix-2026-10-11:rust:members:prefix.hidden",
+        "obs:prefix-2026-10-11:rust:addressed:prefix.hidden",
+        "obs:prefix-2026-10-11:rust:sender_only:prefix.hidden"
+      ],
       "gaps": [
         "gap:prefix-adversarial"
       ]
@@ -2556,7 +2597,14 @@
         "schema:prefix-page",
         "fixture:prefix-page"
       ],
-      "observations": [],
+      "observations": [
+        "obs:prefix-2026-10-11:python:members:prefix.append",
+        "obs:prefix-2026-10-11:python:addressed:prefix.append",
+        "obs:prefix-2026-10-11:python:sender_only:prefix.append",
+        "obs:prefix-2026-10-11:rust:members:prefix.append",
+        "obs:prefix-2026-10-11:rust:addressed:prefix.append",
+        "obs:prefix-2026-10-11:rust:sender_only:prefix.append"
+      ],
       "gaps": [
         "gap:prefix-adversarial"
       ]
@@ -2577,7 +2625,14 @@
         "schema:prefix-page",
         "fixture:prefix-page"
       ],
-      "observations": [],
+      "observations": [
+        "obs:prefix-2026-10-11:python:members:prefix.append",
+        "obs:prefix-2026-10-11:python:addressed:prefix.append",
+        "obs:prefix-2026-10-11:python:sender_only:prefix.append",
+        "obs:prefix-2026-10-11:rust:members:prefix.append",
+        "obs:prefix-2026-10-11:rust:addressed:prefix.append",
+        "obs:prefix-2026-10-11:rust:sender_only:prefix.append"
+      ],
       "gaps": [
         "gap:prefix-adversarial"
       ]
@@ -3090,7 +3145,31 @@
     {"id": "obs:same-id-2026-10-11:rust:addressed:collaborate.concurrent_retry_sequence", "path": "conformance/evidence/same-id-2026-10-11/local-validation.json", "pointer": "/results/4/report/cases", "case_id": "collaborate.concurrent_retry_sequence", "status": "passed", "required": true},
     {"id": "obs:same-id-2026-10-11:rust:sender_only:collaborate.concurrent_retry", "path": "conformance/evidence/same-id-2026-10-11/local-validation.json", "pointer": "/results/5/report/cases", "case_id": "collaborate.concurrent_retry", "status": "passed", "required": true},
     {"id": "obs:same-id-2026-10-11:rust:sender_only:collaborate.concurrent_conflict", "path": "conformance/evidence/same-id-2026-10-11/local-validation.json", "pointer": "/results/5/report/cases", "case_id": "collaborate.concurrent_conflict", "status": "passed", "required": true},
-    {"id": "obs:same-id-2026-10-11:rust:sender_only:collaborate.concurrent_retry_sequence", "path": "conformance/evidence/same-id-2026-10-11/local-validation.json", "pointer": "/results/5/report/cases", "case_id": "collaborate.concurrent_retry_sequence", "status": "passed", "required": true}
+    {"id": "obs:same-id-2026-10-11:rust:sender_only:collaborate.concurrent_retry_sequence", "path": "conformance/evidence/same-id-2026-10-11/local-validation.json", "pointer": "/results/5/report/cases", "case_id": "collaborate.concurrent_retry_sequence", "status": "passed", "required": true},
+    {"id": "obs:prefix-2026-10-11:python:members:prefix.baseline", "path": "conformance/evidence/prefix-2026-10-11/local-validation.json", "pointer": "/results/0/report/cases", "case_id": "prefix.baseline", "status": "passed", "required": true},
+    {"id": "obs:prefix-2026-10-11:python:members:prefix.append", "path": "conformance/evidence/prefix-2026-10-11/local-validation.json", "pointer": "/results/0/report/cases", "case_id": "prefix.append", "status": "passed", "required": true},
+    {"id": "obs:prefix-2026-10-11:python:members:prefix.hidden", "path": "conformance/evidence/prefix-2026-10-11/local-validation.json", "pointer": "/results/0/report/cases", "case_id": "prefix.hidden", "status": "skipped", "required": false},
+    {"id": "obs:prefix-2026-10-11:python:members:prefix.withdrawal", "path": "conformance/evidence/prefix-2026-10-11/local-validation.json", "pointer": "/results/0/report/cases", "case_id": "prefix.withdrawal", "status": "passed", "required": true},
+    {"id": "obs:prefix-2026-10-11:python:addressed:prefix.baseline", "path": "conformance/evidence/prefix-2026-10-11/local-validation.json", "pointer": "/results/1/report/cases", "case_id": "prefix.baseline", "status": "passed", "required": true},
+    {"id": "obs:prefix-2026-10-11:python:addressed:prefix.append", "path": "conformance/evidence/prefix-2026-10-11/local-validation.json", "pointer": "/results/1/report/cases", "case_id": "prefix.append", "status": "passed", "required": true},
+    {"id": "obs:prefix-2026-10-11:python:addressed:prefix.hidden", "path": "conformance/evidence/prefix-2026-10-11/local-validation.json", "pointer": "/results/1/report/cases", "case_id": "prefix.hidden", "status": "passed", "required": true},
+    {"id": "obs:prefix-2026-10-11:python:addressed:prefix.withdrawal", "path": "conformance/evidence/prefix-2026-10-11/local-validation.json", "pointer": "/results/1/report/cases", "case_id": "prefix.withdrawal", "status": "passed", "required": true},
+    {"id": "obs:prefix-2026-10-11:python:sender_only:prefix.baseline", "path": "conformance/evidence/prefix-2026-10-11/local-validation.json", "pointer": "/results/2/report/cases", "case_id": "prefix.baseline", "status": "passed", "required": true},
+    {"id": "obs:prefix-2026-10-11:python:sender_only:prefix.append", "path": "conformance/evidence/prefix-2026-10-11/local-validation.json", "pointer": "/results/2/report/cases", "case_id": "prefix.append", "status": "passed", "required": true},
+    {"id": "obs:prefix-2026-10-11:python:sender_only:prefix.hidden", "path": "conformance/evidence/prefix-2026-10-11/local-validation.json", "pointer": "/results/2/report/cases", "case_id": "prefix.hidden", "status": "passed", "required": true},
+    {"id": "obs:prefix-2026-10-11:python:sender_only:prefix.withdrawal", "path": "conformance/evidence/prefix-2026-10-11/local-validation.json", "pointer": "/results/2/report/cases", "case_id": "prefix.withdrawal", "status": "passed", "required": true},
+    {"id": "obs:prefix-2026-10-11:rust:members:prefix.baseline", "path": "conformance/evidence/prefix-2026-10-11/local-validation.json", "pointer": "/results/3/report/cases", "case_id": "prefix.baseline", "status": "passed", "required": true},
+    {"id": "obs:prefix-2026-10-11:rust:members:prefix.append", "path": "conformance/evidence/prefix-2026-10-11/local-validation.json", "pointer": "/results/3/report/cases", "case_id": "prefix.append", "status": "passed", "required": true},
+    {"id": "obs:prefix-2026-10-11:rust:members:prefix.hidden", "path": "conformance/evidence/prefix-2026-10-11/local-validation.json", "pointer": "/results/3/report/cases", "case_id": "prefix.hidden", "status": "skipped", "required": false},
+    {"id": "obs:prefix-2026-10-11:rust:members:prefix.withdrawal", "path": "conformance/evidence/prefix-2026-10-11/local-validation.json", "pointer": "/results/3/report/cases", "case_id": "prefix.withdrawal", "status": "passed", "required": true},
+    {"id": "obs:prefix-2026-10-11:rust:addressed:prefix.baseline", "path": "conformance/evidence/prefix-2026-10-11/local-validation.json", "pointer": "/results/4/report/cases", "case_id": "prefix.baseline", "status": "passed", "required": true},
+    {"id": "obs:prefix-2026-10-11:rust:addressed:prefix.append", "path": "conformance/evidence/prefix-2026-10-11/local-validation.json", "pointer": "/results/4/report/cases", "case_id": "prefix.append", "status": "passed", "required": true},
+    {"id": "obs:prefix-2026-10-11:rust:addressed:prefix.hidden", "path": "conformance/evidence/prefix-2026-10-11/local-validation.json", "pointer": "/results/4/report/cases", "case_id": "prefix.hidden", "status": "passed", "required": true},
+    {"id": "obs:prefix-2026-10-11:rust:addressed:prefix.withdrawal", "path": "conformance/evidence/prefix-2026-10-11/local-validation.json", "pointer": "/results/4/report/cases", "case_id": "prefix.withdrawal", "status": "passed", "required": true},
+    {"id": "obs:prefix-2026-10-11:rust:sender_only:prefix.baseline", "path": "conformance/evidence/prefix-2026-10-11/local-validation.json", "pointer": "/results/5/report/cases", "case_id": "prefix.baseline", "status": "passed", "required": true},
+    {"id": "obs:prefix-2026-10-11:rust:sender_only:prefix.append", "path": "conformance/evidence/prefix-2026-10-11/local-validation.json", "pointer": "/results/5/report/cases", "case_id": "prefix.append", "status": "passed", "required": true},
+    {"id": "obs:prefix-2026-10-11:rust:sender_only:prefix.hidden", "path": "conformance/evidence/prefix-2026-10-11/local-validation.json", "pointer": "/results/5/report/cases", "case_id": "prefix.hidden", "status": "passed", "required": true},
+    {"id": "obs:prefix-2026-10-11:rust:sender_only:prefix.withdrawal", "path": "conformance/evidence/prefix-2026-10-11/local-validation.json", "pointer": "/results/5/report/cases", "case_id": "prefix.withdrawal", "status": "passed", "required": true}
   ],
   "gaps": [
     {
