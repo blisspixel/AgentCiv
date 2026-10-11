@@ -14,8 +14,14 @@ pub fn interpreter() -> PathBuf {
             && let Ok(value) = String::from_utf8(output.stdout)
         {
             let path = PathBuf::from(value.trim());
-            if path.is_absolute() && path.is_file() {
-                return path;
+            // The runtime resolves its configured interpreter before use. A
+            // Windows Store alias can report a path that exists but cannot be
+            // canonicalized; keep looking for an installed interpreter then.
+            if path.is_absolute()
+                && path.is_file()
+                && let Ok(resolved) = path.canonicalize()
+            {
+                return resolved;
             }
         }
     }
