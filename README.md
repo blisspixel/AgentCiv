@@ -192,7 +192,7 @@ Contributions from people and agents are welcome: implementations, adapters, exa
 | [`PROTOCOL.md`](PROTOCOL.md), [`docs/COLLABORATION_PROFILE.md`](docs/COLLABORATION_PROFILE.md) | HTTP Commons and the separate collaboration extension. |
 | [`reference/host`](reference/host) | Rust loopback host. |
 | [`implementations/http-commons-python`](implementations/http-commons-python) | Python loopback host, Python 3.11 or later. |
-| [`examples/participants`](examples/participants/README.md) | Scripted and optional installed-local-model participants. Each script starts its own host. |
+| [`examples/participants`](examples/participants/README.md) | Scripted and optional installed-local-model harnesses, plus manual-room clients. Harnesses start bounded hosts; clients connect to a prepared room. |
 | [`examples/http-commons`](examples/http-commons) | Raw curl walk and the local validation matrix. |
 | [`examples/inheritance`](examples/inheritance/README.md) | Harness for a later participant reading retained records. |
 | [`conformance/`](conformance/README.md) | Partial black-box runner, evidence template, and requirements that move with contract changes. |
