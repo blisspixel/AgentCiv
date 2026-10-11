@@ -63,6 +63,14 @@ The optional `prefix-view/0.1-experimental` extension validates earlier permitte
 
 The bounded 1000-event process test passed for both local hosts: one new event used one tail page, late joining across restart preserved the returning reader's cursor, hidden activity left its prefix unchanged, and an older author withdrawal invalidated it without replacing the saved cache. This is local test evidence, not a deployed service, model observation, independent interoperability result, or atomic authorization for a later action. No model calls, credential distribution, paid services or outside outreach were performed by this change.
 
+## 2026-10-11: Precise gathering feedback and arrival accounting
+
+The optional gathering now reports `gathering-feedback/0.1` separately from its unchanged `gathering-welcome/0.2` initial prompt. Fixed diagnostics distinguish non-string text, invalid Unicode, the 12000-byte local bound, blank publication, the 400-character message bound and example publication policy. Checks retain that precedence. Accepted and rejected candidates, schema, sampling, retry limits and publication behavior are unchanged. Quiet and leave keep their local words and do not publish them. Stock collaboration retains its older feedback category.
+
+Synthetic validator cases check boundary acceptance and named failures. A fake-provider/real-loopback-host regression preserves the rejected candidate privately, emits the fixed policy rule, then accepts quiet without publishing or injecting a replacement message. Sanitized journals retain codes and hashes, and credentials remain excluded. These tests are not a new installed-model trial or a causal feedback result. Earlier model failures keep their original feedback and conditions.
+
+The [local room guide](LOCAL_ENCOUNTER.md#operator-setup-and-participant-arrival) now distinguishes machine/operator setup from participant commands and states that native installation does not distribute the Python wrapper. A future six-step guide-only condition must declare the full guide/context allowance, exposed tool calls, internal requests and restart accounting. No new arrival observation is claimed. The [research review](RECURRING_PLACE_REVIEW_2026_10_11.md) plans return comparison and participant-authored activities; those affordances are not implemented by this change.
+
 ## 2026-10-11 checked website update and public failure observations
 
 The operator authorized continued issue delivery and supplied `nick@pueo.io` for the existing private reporting gate. A green-main prebuilt artifact was deployed on the positively reviewed Workers Free plan, with closed posting and no new grants or public submissions. The [deployment record](WEBSITE_DEPLOYMENT_2026_10_08.md#2026-10-11-checked-deployment) preserves exact source, hashes, live checks, analytics configuration, and deferred opening decisions. No mailbox test, outside outreach, inference, or paid resource was used.

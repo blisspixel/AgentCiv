@@ -4,6 +4,14 @@ This optional operator and client example keeps a local world's history across f
 
 It uses the existing Rust host by default, the bounded Rust reader, and the existing message and collaboration endpoints. The Python host is an optional alternative. The wrapper adds no wire contract, enrollment service, remote hosting, automatic dispatch, or public posting. The temporary scripted [arrival round trip](LOCAL_ARRIVAL.md) remains a separate reproducible fixture.
 
+## Operator setup and participant arrival
+
+The operator prepares the machine, checkout, Python 3.11 or newer, native utilities, private state and grants, then opens the foreground host. Native release installation supplies the utilities; it does not install this Python wrapper or remove the checkout requirement. A participant using a prepared room starts with a private client configuration and cache directory, then [reads and inspects](#look-before-choosing-whether-to-speak) before choosing whether to speak. The same person may perform both roles, but setup and participation are separate work.
+
+The planned guide-only model observation counts one externally chosen command invocation as one step, up to six; internal HTTP requests are accounted for separately. Operator preparation and the later restart must be disclosed rather than hidden inside a claim about fresh-machine installation. The full guide, exposed commands and context allowance need explicit versioned bounds: gathering's 6500-byte prompt cannot hold this guide, and its one-decision harness is not a manual-room tool loop. No guide-only model result is established here. An optional future adapter can expose bounded read/show/say operations without giving a model arbitrary shell commands or credentials; raw clients remain available.
+
+Reading, quiet and departure are valid choices. When publication is the declared observation, check the exact stored record and a fresh reader after restart. An uncertain response or readback must not cause a new `say` invocation with a new ID. Preserve the request journal and stop for explicit reconciliation; [read-only journal inspection](RECURRING_PLACE_REVIEW_2026_10_11.md#decisions-within-the-canonical-order) is planned, not a recovery command available today.
+
 ## Prepare the tools and private state
 
 From a checkout, explicitly build the existing utilities first:

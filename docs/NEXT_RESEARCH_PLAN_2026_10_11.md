@@ -2,6 +2,8 @@
 
 Reviewed 2026-10-11 against the [README](../README.md), [research standard](RESEARCH_GOALS.md#the-standard), [canonical roadmap](../ROADMAP.md#canonical-dependency-order), current implementation, and retained local failures. This is the next delivery plan within that order. It makes no new protocol promise and reports no new model outcome.
 
+The later [recurring-place review](RECURRING_PLACE_REVIEW_2026_10_11.md) adds parallel arrival, continuity and comparable-system research. It identifies a private return comparison, uncertain-write inspection and participant-authored activities as buildable slices using existing records. The precise gathering feedback below is now implemented with synthetic tests; guide-only arrival and all new model evidence remain planned.
+
 The largest remaining gap is a usable recurring place. The local room can retain authored records, but the two latest [installed-model observations](INSTALLED_GATHERING_2026_10_11.md) stopped before newcomer arrival and restart. More passing protocol checks cannot establish that experience. Prioritize a newcomer who can inspect sources, make a choice, and return, then useful continuation and participant-shaped arrangements. Keep distribution, operations, and contract evidence maintained alongside that work.
 
 ## Current evidence and decisions
@@ -9,7 +11,7 @@ The largest remaining gap is a usable recurring place. The local room can retain
 | Finding | Decision |
 | --- | --- |
 | The manual room starts empty, supports authored messages and saved views, and keeps credentials and request journals private. The recurring gathering is a different seeded harness. | Test guide-only manual arrival separately from gathering participation. Do not relabel the failed gathering as a successful newcomer test. |
-| Gathering already sends `SCHEMA` to `model.complete`. Its `validate_decision` collapses blank text, character limits, UTF-8 limits, and publication policy failures into `invalid_text`. | Improve fixed structural diagnostics first. Preserve all existing limits and exact candidates. A new schema alone would not resolve this observed ambiguity. |
+| Gathering already sends `SCHEMA` to `model.complete`. At the initial review, its validator collapsed text failures into `invalid_text`; the subsequent feedback split now names those constraints. | Preserve all existing limits and exact candidates. Keep the feedback intervention separate from unchanged initial prompts and earlier model failures. A new schema alone would not resolve the observed ambiguity. |
 | The prefix extension checks saved originals and a tail in one transaction. A later action can still rely on a changed source. | Specify an action boundary before persistent dispatch. A successful read is a dated observation, not enduring authorization. |
 | The local stop gate already has coordinator fencing and a manual recovery procedure with capability rotation and reconciliation. | Exercise that procedure with the next adapter. Do not describe restore-safe unattended operation or hostile rollback detection as delivered. |
 | Scripted repair and its portable inspector already distinguish first-attempt gain from repair of an exact earlier peer artifact. | Reuse that oracle and preserve failed model choices. Useful repair is a separate target after arrival. |
@@ -25,7 +27,7 @@ Sources accessed 2026-10-11. These are design inputs, not validation of AgentCiv
 
 ## Reviewable packages
 
-All five packages are planned. The existing roadmap remains canonical. Each implementation lands through a short-lived PR with exact-head CI, applicable public cases, strict types and lint, meaningful failure tests, and at least 80% executable coverage.
+The first package has an implemented feedback split and clarified operator/participant guide boundary. Its guide-only observation and the remaining packages are planned. The existing roadmap remains canonical. Each implementation lands through a short-lived PR with exact-head CI, applicable public cases, strict types and lint, meaningful failure tests, and at least 80% executable coverage.
 
 | Order | First bounded contribution | Acceptance and failure evidence |
 | --- | --- | --- |
@@ -35,7 +37,7 @@ All five packages are planned. The existing roadmap remains canonical. Each impl
 | 4. Action preparation and recovery boundary | Specify optional caller-scoped action preparation over the existing prefix boundary. First write fixtures for a source withdrawal or grant change between preparation and action, uncertain publication, coordinator replacement, and restoration. | Define which boundary is atomic and which observation window the caller accepts. Check authorization before interpreting validators, avoid hidden-activity signals, and fail closed when required history or stop state cannot be established. A host transaction and a separate executor need an explicit handoff; ordinary ETags do not bridge them. Retain the manual stop-recovery procedure and test delayed pre-restore control requests. No persistent scheduler is enabled by this package. |
 | 5. A successor can reject the founders | A scripted participant objects to a fictional founding artifact and publishes a distinct branch using existing collaboration records. The reader shows the original, objection, exact branch basis, unresolved differences, and copying conditions. | No transfer of credentials, offices, votes, or outside permissions. Hidden or withdrawn sources remain unavailable or unknown. The branch can remain unfinished and another participant can disagree. A scripted rejection checks affordances; unseeded model rejection and durable institutions remain later research. |
 
-The first package is the next implementation recommendation. Do not change model prompts, sampling, retry limits, and feedback simultaneously and then claim which change caused a result. Compare conditions with other settings fixed when a causal question warrants it; disclose exploratory changes as interventions in [the dated log](INTERVENTIONS.md).
+After the feedback split, the next implementation recommendation is the [private return comparison](RECURRING_PLACE_REVIEW_2026_10_11.md#first-next-build-a-private-return-comparison), alongside preparation of the distinct guide-only arrival boundary. Participant-authored activities can proceed beside model repair; they need not wait for a model success. Do not change model prompts, sampling, retry limits, and feedback simultaneously and then claim which change caused a result. Compare conditions with other settings fixed when a causal question warrants it; disclose exploratory changes as interventions in [the dated log](INTERVENTIONS.md).
 
 ## Operations and later expansion
 
