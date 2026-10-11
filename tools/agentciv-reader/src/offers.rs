@@ -1,8 +1,8 @@
 //! Offline projection of example offers from a complete caller-view traversal.
 //! This validates copied syntax, not a live grant, source truth, or acceptance.
 
-use crate::{Budgets, Error, Result, Traversal, collect};
-use agentciv_archive::{MAX_ENTRIES, MAX_INPUT_BYTES, MAX_RECORD_BYTES, parse_unique};
+use crate::{Budgets, Error, MAX_READ_EVENTS, Result, Traversal, collect};
+use agentciv_archive::{MAX_INPUT_BYTES, MAX_RECORD_BYTES, parse_unique};
 use serde::Deserialize;
 use serde_json::{Value, json};
 use std::collections::{BTreeMap, BTreeSet};
@@ -15,6 +15,8 @@ pub const RESULT_LIMIT: usize = 20;
 struct Input {
     snapshot: Snapshot,
     report: NativeReport,
+    #[serde(default, rename = "resume")]
+    _resume: Option<crate::http::PrefixResume>,
 }
 
 #[derive(Deserialize)]
@@ -29,6 +31,12 @@ pub(crate) struct NativeReport {
     pub(crate) pages: usize,
     pub(crate) events: usize,
     pub(crate) response_bytes: usize,
+    #[serde(default)]
+    cached_events: usize,
+    #[serde(default)]
+    cached_record_bytes: usize,
+    #[serde(default)]
+    prefix_validated: bool,
     reached_end: bool,
     scope: String,
     copying_permission: String,
@@ -224,17 +232,32 @@ pub(crate) fn validated(raw: &str) -> Result<Validated> {
         || report.copying_permission != "not_granted"
         || !report.reached_end
         || !(1..=256).contains(&report.pages)
-        || report.pages < records.len().div_ceil(100)
+        || report.cached_events > records.len()
+        || report.pages
+            < records
+                .len()
+                .saturating_sub(report.cached_events)
+                .div_ceil(100)
         || report.events != records.len()
-        || records.len() > MAX_ENTRIES
+        || records.len() > MAX_READ_EVENTS
         || report.response_bytes > MAX_INPUT_BYTES
-        || report.response_bytes < records.iter().map(String::len).sum::<usize>()
+        || (report.cached_events > 0 && !report.prefix_validated)
+        || report.cached_record_bytes
+            != records[..report.cached_events.min(records.len())]
+                .iter()
+                .map(String::len)
+                .sum::<usize>()
+        || report
+            .response_bytes
+            .saturating_add(report.cached_record_bytes)
+            < records.iter().map(String::len).sum::<usize>()
         || records.iter().any(|record| record.len() > MAX_RECORD_BYTES)
     {
         return Err(Error::InvalidView);
     }
     let mut offset = 0;
     let budgets = Budgets {
+        max_events: MAX_READ_EVENTS,
         max_response_bytes: MAX_INPUT_BYTES,
         max_total_bytes: MAX_INPUT_BYTES,
         ..Budgets::default()

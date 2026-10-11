@@ -5,7 +5,7 @@ use agentciv_archive::parse_unique;
 use reqwest::blocking::Client;
 use reqwest::header::{ACCEPT, CACHE_CONTROL, CONTENT_TYPE};
 use reqwest::{Url, redirect};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::io::Read;
 use std::net::IpAddr;
 use std::time::{Duration, Instant};
@@ -24,6 +24,17 @@ pub struct Config {
     pub traversal: Traversal,
     #[serde(default)]
     pub budgets: Budgets,
+    #[serde(default)]
+    pub prefix_validation: bool,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct PrefixResume {
+    pub origin: String,
+    pub world: String,
+    pub cursor: String,
+    pub prefix_sha256: String,
 }
 
 impl Config {
@@ -39,6 +50,9 @@ impl Config {
 
     fn validate(&self) -> Result<Url> {
         self.budgets.validate()?;
+        if self.prefix_validation && self.traversal != Traversal::All {
+            return Err(Error::Configuration);
+        }
         if self.world.is_empty()
             || self.world.len() > 1024
             || self.token.is_empty()
@@ -186,6 +200,35 @@ fn get(
 /// Read exactly the configured caller's view. No credential is sent during discovery.
 /// Output remains read data; its report explicitly grants no copying permission.
 pub fn read(config: &Config) -> Result<ReadResult> {
+    read_inner(config, None)
+}
+
+pub fn sync(config: &Config, previous: &str) -> Result<ReadResult> {
+    if !config.prefix_validation || config.traversal != Traversal::All {
+        return Err(Error::Configuration);
+    }
+    let validated = crate::offers::validated(previous)?;
+    let value = parse_unique(previous).map_err(|_| Error::InvalidResume)?;
+    let resume: PrefixResume =
+        serde_json::from_value(value["resume"].clone()).map_err(|_| Error::InvalidResume)?;
+    if resume.world != config.world
+        || validated.world != config.world
+        || resume.origin != config.validate()?.to_string()
+        || resume.cursor.is_empty()
+        || resume.cursor.len() > 8192
+        || resume.prefix_sha256 != prefix::digest(&validated.records)
+        || validated.records.len() > config.budgets.max_events
+        || reflected(previous, &value, Some(&config.token))
+    {
+        return Err(Error::InvalidResume);
+    }
+    read_inner(config, Some((resume, validated.records)))
+}
+
+fn read_inner(
+    config: &Config,
+    previous: Option<(PrefixResume, Vec<String>)>,
+) -> Result<ReadResult> {
     let origin = config.validate()?;
     let deadline = Instant::now() + Duration::from_secs(config.budgets.seconds);
     let client = Client::builder()
@@ -217,6 +260,13 @@ pub fn read(config: &Config) -> Result<ReadResult> {
     if !validators()[0].is_valid(&discovery) || discovery["id"] != config.world {
         return Err(Error::InvalidDiscovery);
     }
+    if config.prefix_validation
+        && !discovery["capabilities"]
+            .as_array()
+            .is_some_and(|items| items.iter().any(|item| item == "events.prefix.validate"))
+    {
+        return Err(Error::PrefixUnsupported);
+    }
     for value in discovery["endpoints"]
         .as_object()
         .ok_or(Error::InvalidDiscovery)?
@@ -230,31 +280,81 @@ pub fn read(config: &Config) -> Result<ReadResult> {
             .ok_or(Error::InvalidEndpoint)?,
         &origin,
     )?;
-    if events.query_pairs().any(|(key, _)| key == "after") {
+    if events
+        .query_pairs()
+        .any(|(key, _)| key == "after" || key == "prefix")
+    {
         return Err(Error::InvalidEndpoint);
     }
-    collect_until(
+    let (initial_cursor, cached) = previous.map_or((None, Vec::new()), |(resume, records)| {
+        (Some(resume.cursor), records)
+    });
+    let mut prefix_records = cached.clone();
+    let mut final_cursor = None;
+    let mut tail_budgets = config.budgets.clone();
+    tail_budgets.max_events = config
+        .budgets
+        .max_events
+        .saturating_sub(cached.len())
+        .max(1);
+    let mut result = collect_until(
         &config.world,
-        &config.budgets,
+        &tail_budgets,
         config.traversal,
         Some(&config.token),
         deadline,
         discovery_bytes.len(),
         |after, _remaining, allowance| {
             let mut url = events.clone();
-            if let Some(cursor) = after {
+            if let Some(cursor) = after.or(initial_cursor.as_deref()) {
                 url.query_pairs_mut().append_pair("after", cursor);
             }
-            get(&client, url, Some(&config.token), deadline, allowance, true).map_err(|error| {
-                if error == Error::ResponseLimit && allowance < config.budgets.max_response_bytes {
-                    Error::TotalLimit
-                } else {
-                    error
-                }
-            })
+            if config.prefix_validation {
+                url.query_pairs_mut().append_pair("prefix", "validate");
+            }
+            let bytes = get(&client, url, Some(&config.token), deadline, allowance, true).map_err(
+                |error| {
+                    if error == Error::ResponseLimit
+                        && allowance < config.budgets.max_response_bytes
+                    {
+                        Error::TotalLimit
+                    } else {
+                        error
+                    }
+                },
+            )?;
+            if config.prefix_validation {
+                final_cursor = Some(prefix::validate(
+                    &bytes,
+                    &mut prefix_records,
+                    &config.token,
+                )?);
+            }
+            Ok(bytes)
         },
-    )
+    )?;
+    if config.prefix_validation {
+        if !result.report.reached_end || prefix_records.len() > config.budgets.max_events {
+            return Err(Error::EventLimit);
+        }
+        result.report.cached_events = cached.len();
+        result.report.cached_record_bytes = cached.iter().map(String::len).sum();
+        result.report.prefix_validated = true;
+        result.report.events = prefix_records.len();
+        result.snapshot.records = prefix_records;
+        result.resume = Some(PrefixResume {
+            origin: origin.to_string(),
+            world: config.world.clone(),
+            cursor: final_cursor.ok_or(Error::PrefixMismatch)?,
+            prefix_sha256: prefix::digest(&result.snapshot.records),
+        });
+        // Recheck identity, order and revision uniqueness across the cache/tail boundary.
+        crate::offers::validated(&serde_json::to_string(&result).map_err(|_| Error::Output)?)?;
+    }
+    Ok(result)
 }
+
+mod prefix;
 
 #[cfg(test)]
 mod tests;

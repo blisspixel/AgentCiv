@@ -109,3 +109,5 @@ For the optional [website and bulletin](services/bulletin/README.md), also build
 ## License
 
 By contributing, you agree that your contributions are licensed under the project's [MIT License](LICENSE).
+
+Changes to incremental history return must read [the optional prefix contract](docs/PREFIX_VIEW.md), its schema fixtures, cursor resource policy and freshness limits. Preserve exact originals, validate old prefixes and new tails together, and test withdrawals, hidden activity, grants, legacy migration and failures before calling a saved view current. The archive bundle remains a separate 256-entry offline contract.

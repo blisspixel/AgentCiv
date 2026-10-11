@@ -8,7 +8,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 PATHS = ("Cargo.toml", "Cargo.lock", "rust-toolchain.toml", "pyproject.toml", "SPEC.md", "PROTOCOL.md",
-         "docs/COLLABORATION_PROFILE.md", "schemas", "conformance/runner", "conformance/fixtures",
+         "docs/COLLABORATION_PROFILE.md", "docs/PREFIX_VIEW.md", "schemas", "conformance/runner", "conformance/fixtures",
          "reference/host", "implementations/http-commons-python", "examples/http-commons", "examples/participants",
          "examples/inheritance", "tools/agentciv-archive", "tools/agentciv-reader")
 

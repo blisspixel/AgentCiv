@@ -24,6 +24,7 @@ def report(policy: str = "addressed") -> dict[str, object]:
         "collaborate.revision_sequence", "collaborate.revision_sequence_retry", "collaborate.revision_sequence_rejection",
         "collaborate.concurrent_revisions", "collaborate.concurrent_revisions_retry", "collaborate.concurrent_revisions_isolation",
         "collaborate.concurrent_retry", "collaborate.concurrent_conflict", "collaborate.concurrent_retry_sequence",
+        "prefix.baseline", "prefix.append", "prefix.withdrawal",
     })
     cases = [
         {"id": case_id, "status": "skipped" if policy == "members" and case_id in validate.HIDDEN_CASES else "passed",

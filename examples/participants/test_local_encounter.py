@@ -772,6 +772,68 @@ class LocalEncounterProcessTests(unittest.TestCase):
         cls.reader_binary = binaries["agentciv-reader"]
         cls.host_binary = binaries["agentciv-host"]
 
+    def test_thousand_event_return_validates_prefix_and_late_member_does_not_expire_readers(self) -> None:
+        from concurrent.futures import ThreadPoolExecutor
+        for selected in ("python", "rust"):
+            with self.subTest(host=selected), tempfile.TemporaryDirectory(prefix="agentciv-prefix-room-") as temporary:
+                root = Path(temporary).resolve()
+                state = root / "room"
+                initialized = operator.initialize(state, WORLD, [A, B], [C], free_port(), 2592000)
+                configs = {str(item["principal"]): Path(str(item["config"])) for item in objects(initialized["clients"])}
+                origin = str(initialized["origin"])
+                argv = [str(self.host_binary), "--config", str(state / "host.json")] if selected == "rust" else [
+                    sys.executable, str(operator.ROOT / "implementations/http-commons-python/host.py"), "--config", str(state / "host.json")]
+                settings = load(configs[A])
+
+                def publish(record: JsonObject) -> None:
+                    endpoint = "/submit" if record["type"] == "message" else "/collaborate"
+                    status, _ = wire.exchange("POST", origin + endpoint, token=str(settings["token"]), body=json.dumps(record).encode())
+                    self.assertEqual(status, 200)
+
+                owned = operator._start(argv, origin)
+                try:
+                    operator._wait_ready(owned)
+                    publish(authored("artifact_revision", "revision:prefix-original", A, audience=[C]))
+                    def post(number: int) -> None:
+                        publish(authored("message", f"message:prefix-{number}", A, audience=[C]))
+                    with ThreadPoolExecutor(max_workers=4) as pool:
+                        list(pool.map(post, range(999)))
+                    first = client.sync(configs[C], reader_binary=self.reader_binary)
+                    self.assertEqual((first["events"], first["cached_events"], first["pages"]), (1000, 0, 10))
+                    previous = Path(str(first["view_path"]))
+                    publish(authored("message", "message:prefix-new", A, audience=[C]))
+                    tail = client.sync(configs[C], previous, reader_binary=self.reader_binary)
+                    self.assertEqual((tail["events"], tail["cached_events"], tail["pages"]), (1001, 1000, 1))
+                    self.assertLess(int(str(tail["response_bytes"])), 10000)
+                    previous = Path(str(tail["view_path"]))
+                finally:
+                    operator._stop_owned(owned)
+                added = operator.add_member(state, "agent:late", write=False)
+                late = Path(str(added["config"]))
+                owned = operator._start(argv, origin)
+                try:
+                    operator._wait_ready(owned)
+                    returned = client.sync(configs[C], previous, reader_binary=self.reader_binary)
+                    self.assertEqual((returned["events"], returned["cached_events"], returned["pages"]), (1001, 1001, 1))
+                    late_first = client.sync(late, reader_binary=self.reader_binary)
+                    self.assertEqual(late_first["events"], 0)
+                    publish(authored("message", "message:late-only", A, audience=["agent:late"]))
+                    late_tail = client.sync(late, Path(str(late_first["view_path"])), reader_binary=self.reader_binary)
+                    self.assertEqual(late_tail["events"], 1)
+                    unchanged = client.sync(configs[C], previous, reader_binary=self.reader_binary)
+                    self.assertEqual((unchanged["events"], unchanged["cached_events"]), (1001, 1001))
+                    self.assertEqual(load(Path(str(unchanged["view_path"]))) ["resume"], load(previous)["resume"])
+                    before = previous.read_bytes()
+                    publish(authored("withdrawal", "withdrawal:prefix-original", A))
+                    with self.assertRaises(private.EncounterError) as expired:
+                        client.sync(configs[C], previous, reader_binary=self.reader_binary)
+                    self.assertEqual(expired.exception.code, "cursor_expired")
+                    self.assertEqual(previous.read_bytes(), before)
+                    with self.assertRaises(private.EncounterError):
+                        client.sync(late, previous, reader_binary=self.reader_binary)
+                finally:
+                    operator._stop_owned(owned)
+
     def test_authored_shared_history_survives_restart_without_hidden_material_on_both_hosts(self) -> None:
         for host in ("python", "rust"):
             with self.subTest(host=host), tempfile.TemporaryDirectory(prefix="agentciv-manual-room-") as temporary:

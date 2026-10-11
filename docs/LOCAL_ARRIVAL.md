@@ -57,6 +57,8 @@ Stopping or withdrawing does not recall information another caller already recei
 
 ## What these QA ideas add next
 
+For a larger manual room, use [validated prefix return](LOCAL_ENCOUNTER.md#return-to-a-larger-room). It compares saved exact originals while fetching only new events, and fails if an earlier artifact was withdrawn. Ordinary full re-reading remains available. The prefix result is a bounded observation and grants no copying or action authority.
+
 | Idea | Current boundary and next evidence |
 | --- | --- |
 | A usable arrival | This separately named local round trip composes discovery, source inspection, optional contribution, readback, restart, and a fresh caller. Public enrollment and a persistent hosted encounter remain unbuilt. |

@@ -1,4 +1,4 @@
-use agentciv_reader::http::{Config, MAX_CONFIG_BYTES, read};
+use agentciv_reader::http::{Config, MAX_CONFIG_BYTES, read, sync};
 use agentciv_reader::{Error, Result};
 use std::fs::File;
 use std::io::{Read, Write};
@@ -23,6 +23,13 @@ fn run(args: &[String]) -> Result<serde_json::Value> {
             let result = read(&Config::parse(&input(path, MAX_CONFIG_BYTES)?)?)?;
             serde_json::to_value(result).map_err(|_| Error::Output)
         }
+        [command, path, previous] if command == "sync" => {
+            let result = sync(
+                &Config::parse(&input(path, MAX_CONFIG_BYTES)?)?,
+                &input(previous, agentciv_archive::MAX_INPUT_BYTES)?,
+            )?;
+            serde_json::to_value(result).map_err(|_| Error::Output)
+        }
         [command, path, query] if command == "offers" => agentciv_reader::offers::project(
             &input(path, agentciv_archive::MAX_INPUT_BYTES)?,
             query,
@@ -42,7 +49,7 @@ fn main() -> ExitCode {
     }
     if args == ["--help"] {
         println!(
-            "Usage: agentciv-reader read CONFIG\n       agentciv-reader offers READ_RESULT QUERY\n       agentciv-reader corrections READ_RESULT\nRead-only loopback history. CONFIG supplies origin, token, world, optional traversal and budgets. Offers projects example activities offline from a full caller-view read. Corrections lists visible work citing an objected or superseded revision. Reading grants no copying permission."
+            "Usage: agentciv-reader read CONFIG\n       agentciv-reader sync CONFIG PREVIOUS_READ_RESULT\n       agentciv-reader offers READ_RESULT QUERY\n       agentciv-reader corrections READ_RESULT\nRead-only loopback history. CONFIG supplies origin, token, world, optional traversal, budgets and prefix_validation. Sync validates a private saved prefix and fetches new events. Offers projects example activities offline from a full caller-view read. Corrections lists visible work citing an objected or superseded revision. Reading grants no copying permission."
         );
         return ExitCode::SUCCESS;
     }

@@ -6,6 +6,7 @@ use std::time::Duration;
 
 use rusqlite::{Connection, OptionalExtension, params};
 use serde_json::{Value, json};
+use sha2::{Digest, Sha256};
 
 use crate::Visibility;
 
@@ -13,9 +14,13 @@ const PAGE_LIMIT: i64 = 100;
 pub const MAX_CURSOR_OWNERS: i64 = 128;
 pub const MAX_CURSORS_PER_OWNER: i64 = 4096;
 const MAX_CURSOR_OWNER_BYTES: usize = 1024;
+const MAX_PREFIX_EVENTS: usize = 4096;
+const MAX_PREFIX_BYTES: usize = 16 * 1024 * 1024;
 
 #[cfg(test)]
 mod cursor_capacity_tests;
+#[cfg(test)]
+mod prefix_tests;
 
 #[derive(Debug)]
 pub enum StoreError {
@@ -45,6 +50,8 @@ pub enum ReadError {
     ForeignCursor,
     Expired,
     Capacity,
+    PrefixChanged,
+    PrefixUnavailable,
     Storage,
 }
 
@@ -112,6 +119,25 @@ impl Store {
                WHERE json_extract(message_json, '$.type') = 'artifact_revision';",
         )
         .map_err(|_| StoreError::Storage)?;
+        // Additive migration preserves legacy opaque cursors and their quota.
+        for (table, column, kind) in [
+            ("cursors", "prefix_sha256", "TEXT"),
+            ("cursor_owners", "view_revision", "INTEGER"),
+            ("cursor_owners", "view_fingerprint", "TEXT"),
+        ] {
+            let mut statement = conn
+                .prepare(&format!("PRAGMA table_info({table})"))
+                .map_err(|_| StoreError::Storage)?;
+            let columns = statement
+                .query_map([], |row| row.get::<_, String>(1))
+                .map_err(|_| StoreError::Storage)?
+                .collect::<Result<Vec<_>, _>>()
+                .map_err(|_| StoreError::Storage)?;
+            if !columns.iter().any(|name| name == column) {
+                conn.execute_batch(&format!("ALTER TABLE {table} ADD COLUMN {column} {kind}"))
+                    .map_err(|_| StoreError::Storage)?;
+            }
+        }
         let mode: String = conn
             .query_row("PRAGMA journal_mode", [], |row| row.get(0))
             .map_err(|_| StoreError::Storage)?;
@@ -224,11 +250,24 @@ impl Store {
         if !can_read {
             return Err(ReadError::Forbidden);
         }
-        self.with_write(|conn| read_page_tx(conn, principal, world_id, after))
+        self.with_write(|conn| read_page_tx(conn, principal, world_id, after, false))
             .map_err(|error| match error {
                 ReadError::Storage => ReadError::Storage,
                 other => other,
             })
+    }
+
+    pub fn read_prefix_page(
+        &self,
+        principal: &str,
+        world_id: &str,
+        after: Option<&str>,
+        can_read: bool,
+    ) -> Result<Value, ReadError> {
+        if !can_read {
+            return Err(ReadError::Forbidden);
+        }
+        self.with_write(|conn| read_page_tx(conn, principal, world_id, after, true))
     }
 
     fn sync_policy(
@@ -244,7 +283,7 @@ impl Store {
             let outcome = (|| {
                 // Preserve legacy tokens and reserve each known owner's independent quota.
                 conn.execute(
-                    "INSERT OR IGNORE INTO cursor_owners SELECT DISTINCT principal FROM cursors",
+                    "INSERT OR IGNORE INTO cursor_owners(principal) SELECT DISTINCT principal FROM cursors",
                     [],
                 )
                 .map_err(|_| StoreError::Storage)?;
@@ -273,6 +312,24 @@ impl Store {
                 put_meta(conn, "policy_revision", &revision.to_string())?;
                 put_meta(conn, "visibility", visibility.as_str())?;
                 put_meta(conn, "retention_seconds", &retention_seconds.to_string())?;
+                let owners = {
+                    let mut statement = conn.prepare("SELECT principal, view_revision, view_fingerprint FROM cursor_owners")
+                        .map_err(|_| StoreError::Storage)?;
+                    statement.query_map([], |row| Ok((row.get::<_, String>(0)?, row.get::<_, Option<i64>>(1)?, row.get::<_, Option<String>>(2)?)))
+                        .map_err(|_| StoreError::Storage)?.collect::<Result<Vec<_>, _>>()
+                        .map_err(|_| StoreError::Storage)?
+                };
+                for (principal, prior_revision, prior_fingerprint) in owners {
+                    let read = grants.iter().any(|(owner, read, _)| owner == &principal && *read);
+                    let view = json!([visibility.as_str(), retention_seconds, read]).to_string();
+                    let next = match (prior_revision, prior_fingerprint) {
+                        (Some(previous), Some(stored)) if stored == view => previous,
+                        (Some(previous), Some(_)) => previous.checked_add(1).ok_or(StoreError::Storage)?,
+                        _ => revision,
+                    };
+                    conn.execute("UPDATE cursor_owners SET view_revision = ?1, view_fingerprint = ?2 WHERE principal = ?3", params![next, view, principal])
+                        .map_err(|_| StoreError::Storage)?;
+                }
                 Ok(())
             })();
             match outcome {
@@ -827,29 +884,42 @@ fn read_page_tx(
     principal: &str,
     world_id: &str,
     after: Option<&str>,
+    prefix: bool,
 ) -> Result<Value, ReadError> {
     conn.execute_batch("BEGIN IMMEDIATE")
         .map_err(|_| ReadError::Storage)?;
     let outcome = (|| {
-        let current = policy(conn)?;
+        let mut current = policy(conn)?;
+        current.revision = conn
+            .query_row(
+                "SELECT view_revision FROM cursor_owners WHERE principal = ?1",
+                params![principal],
+                |row| row.get::<_, Option<i64>>(0),
+            )
+            .optional()
+            .map_err(|_| ReadError::Storage)?
+            .flatten()
+            .unwrap_or(current.revision);
+        let mut saved_prefix = None;
         let (start, token_principal) = match after {
             None => (0, None),
             Some(token) => {
                 let row = conn
                     .query_row(
-                        "SELECT principal, last_sequence, revision FROM cursors WHERE token = ?1",
+                        "SELECT principal, last_sequence, revision, prefix_sha256 FROM cursors WHERE token = ?1",
                         params![token],
                         |row| {
                             Ok((
                                 row.get::<_, String>(0)?,
                                 row.get::<_, i64>(1)?,
                                 row.get::<_, i64>(2)?,
+                                row.get::<_, Option<String>>(3)?,
                             ))
                         },
                     )
                     .optional()
                     .map_err(|_| ReadError::Storage)?;
-                let Some((owner, last, revision)) = row else {
+                let Some((owner, last, revision, digest)) = row else {
                     return Err(ReadError::InvalidCursor);
                 };
                 if owner != principal {
@@ -858,10 +928,25 @@ fn read_page_tx(
                 if revision != current.revision {
                     return Err(ReadError::Expired);
                 }
+                saved_prefix = digest;
                 (last, Some(owner))
             }
         };
         let _ = token_principal;
+        let validated_prefix = if prefix {
+            let digest = prefix_digest(conn, principal, current.visibility, start)?;
+            if after.is_some() {
+                let saved = saved_prefix
+                    .as_deref()
+                    .ok_or(ReadError::PrefixUnavailable)?;
+                if saved != digest {
+                    return Err(ReadError::PrefixChanged);
+                }
+            }
+            Some(digest)
+        } else {
+            None
+        };
         let mut rows = conn
             .prepare(
                 "SELECT sequence, actor, event_json, message_json FROM events
@@ -902,20 +987,42 @@ fn read_page_tx(
         } else {
             start
         };
-        let token = cursor_at(conn, principal, current.revision, last_sequence)?;
+        let next_prefix = if prefix {
+            Some(prefix_digest(
+                conn,
+                principal,
+                current.visibility,
+                last_sequence,
+            )?)
+        } else {
+            None
+        };
+        let token = cursor_at_prefix(
+            conn,
+            principal,
+            current.revision,
+            last_sequence,
+            next_prefix.as_deref(),
+        )?;
         let events = visible
             .iter()
             .map(|event| serde_json::from_str(event))
             .collect::<Result<Vec<Value>, _>>()
             .map_err(|_| ReadError::Storage)?;
-        Ok(json!({
+        let mut page = json!({
             "protocol_version": "0.1-draft",
             "type": "event_page",
             "world": world_id,
             "events": events,
             "next_cursor": token,
             "has_more": has_more
-        }))
+        });
+        if let (Some(validated), Some(next)) = (validated_prefix, next_prefix) {
+            page["prefix_validation"] = json!("prefix-view/0.1-experimental");
+            page["validated_prefix_sha256"] = json!(validated);
+            page["prefix_sha256"] = json!(next);
+        }
+        Ok(page)
     })();
     match outcome {
         Ok(page) => {
@@ -928,6 +1035,47 @@ fn read_page_tx(
             Err(error)
         }
     }
+}
+
+fn prefix_digest(
+    conn: &Connection,
+    principal: &str,
+    visibility: Visibility,
+    boundary: i64,
+) -> Result<String, ReadError> {
+    let mut hash = Sha256::new();
+    hash.update(b"agentciv-prefix/0.1\0");
+    let mut statement = conn.prepare("SELECT actor, event_json, message_json FROM events WHERE sequence <= ?1 ORDER BY sequence")
+        .map_err(|_| ReadError::Storage)?;
+    let rows = statement
+        .query_map(params![boundary], |row| {
+            Ok((
+                row.get::<_, String>(0)?,
+                row.get::<_, String>(1)?,
+                row.get::<_, String>(2)?,
+            ))
+        })
+        .map_err(|_| ReadError::Storage)?;
+    let mut count = 0usize;
+    let mut bytes = 0usize;
+    for row in rows {
+        let (actor, event, message) = row.map_err(|_| ReadError::Storage)?;
+        if !visible_to(visibility, principal, &actor, &message) {
+            continue;
+        }
+        let event: Value = serde_json::from_str(&event).map_err(|_| ReadError::Storage)?;
+        let raw = event.to_string();
+        count += 1;
+        bytes = bytes
+            .checked_add(raw.len())
+            .ok_or(ReadError::PrefixUnavailable)?;
+        if count > MAX_PREFIX_EVENTS || bytes > MAX_PREFIX_BYTES {
+            return Err(ReadError::PrefixUnavailable);
+        }
+        hash.update((raw.len() as u64).to_be_bytes());
+        hash.update(raw.as_bytes());
+    }
+    Ok(format!("{:x}", hash.finalize()))
 }
 
 fn admit_cursor_owner(conn: &Connection, principal: &str) -> Result<(), ReadError> {
@@ -955,15 +1103,26 @@ fn admit_cursor_owner(conn: &Connection, principal: &str) -> Result<(), ReadErro
     Ok(())
 }
 
+#[cfg(test)]
 fn cursor_at(
     conn: &Connection,
     principal: &str,
     revision: i64,
     last_sequence: i64,
 ) -> Result<String, ReadError> {
+    cursor_at_prefix(conn, principal, revision, last_sequence, None)
+}
+
+fn cursor_at_prefix(
+    conn: &Connection,
+    principal: &str,
+    revision: i64,
+    last_sequence: i64,
+    prefix: Option<&str>,
+) -> Result<String, ReadError> {
     let saved: Option<String> = conn.query_row(
-            "SELECT token FROM cursors WHERE principal = ?1 AND revision = ?2 AND last_sequence = ?3 LIMIT 1",
-            params![principal, revision, last_sequence], |row| row.get(0),
+            "SELECT token FROM cursors WHERE principal = ?1 AND revision = ?2 AND last_sequence = ?3 AND prefix_sha256 IS ?4 LIMIT 1",
+            params![principal, revision, last_sequence, prefix], |row| row.get(0),
         ).optional().map_err(|_| ReadError::Storage)?;
     if let Some(saved) = saved {
         return Ok(saved);
@@ -981,8 +1140,8 @@ fn cursor_at(
     }
     let token = new_token(conn)?;
     conn.execute(
-        "INSERT INTO cursors (token, principal, last_sequence, revision) VALUES (?1, ?2, ?3, ?4)",
-        params![token, principal, last_sequence, revision],
+        "INSERT INTO cursors (token, principal, last_sequence, revision, prefix_sha256) VALUES (?1, ?2, ?3, ?4, ?5)",
+        params![token, principal, last_sequence, revision, prefix],
     )
     .map_err(|_| ReadError::Storage)?;
     Ok(token)

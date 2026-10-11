@@ -29,8 +29,8 @@ MAX_CONFIG = 65536
 MAX_OUTPUT = 4 * 1024 * 1024
 MAX_CACHE = 16 * 1024 * 1024
 MAX_FILES = 16
-BUDGETS: JsonObject = {"max_pages": 20, "max_events": 256, "max_response_bytes": 262144,
-    "max_record_bytes": 16000, "max_total_bytes": 1048576, "seconds": 30}
+BUDGETS: JsonObject = {"max_pages": 32, "max_events": 2048, "max_response_bytes": 262144,
+    "max_record_bytes": 16000, "max_total_bytes": 4194304, "seconds": 30}
 
 
 def _object(value: object) -> JsonObject:
@@ -93,13 +93,15 @@ def _binary(selected: Path | None) -> Path:
     return Path(found).resolve()
 
 
-def _process(binary: Path, command: str, path: Path) -> JsonObject:
+def _process(binary: Path, command: str, path: Path, previous: Path | None = None) -> JsonObject:
     try:
         arguments = [str(binary), command, str(path)] + ([""] if command == "offers" else [])
+        if previous is not None:
+            arguments.append(str(previous))
         result = subprocess.run(arguments, capture_output=True, timeout=40, check=False)
     except (OSError, subprocess.SubprocessError):
         raise private.EncounterError("reader_process_failed") from None
-    if result.returncode != 0 and command == "read" and len(result.stderr) <= 1024:
+    if result.returncode != 0 and command in ("read", "sync") and len(result.stderr) <= 1024:
         try:
             diagnostic = civic.decode(result.stderr)
         except civic.DecisionError:
@@ -108,6 +110,9 @@ def _process(binary: Path, command: str, path: Path) -> JsonObject:
             raise private.EncounterError("host_unreachable")
         if diagnostic == {"outcome": "failed", "code": "deadline_exceeded"}:
             raise private.EncounterError("host_read_timeout")
+        for code in ("cursor_expired", "prefix_validation_unsupported", "prefix_validation_failed", "invalid_resume_state", "forbidden", "authentication_required"):
+            if diagnostic == {"outcome": "failed", "code": code}:
+                raise private.EncounterError(code)
     if result.returncode != 0 or len(result.stdout) > MAX_OUTPUT:
         raise private.EncounterError("reader_failed")
     try:
@@ -127,11 +132,17 @@ def _temporary(directory: Path, prefix: str) -> Iterator[Path]:
             path.unlink()
 
 
-def _native_read(config: JsonObject, binary: Path) -> JsonObject:
+def _native_read(config: JsonObject, binary: Path, *, incremental: bool = False, previous: JsonObject | None = None) -> JsonObject:
     directory = Path(str(config["cache_directory"]))
-    with _temporary(directory, "reader") as path:
-        private.write_new(path, _json({"origin": config["origin"], "world": config["world"], "token": config["token"],
-            "traversal": "all", "budgets": BUDGETS}))
+    with _temporary(directory, "reader") as path, _temporary(directory, "resume") as saved:
+        settings: JsonObject = {"origin": config["origin"], "world": config["world"], "token": config["token"],
+            "traversal": "all", "budgets": BUDGETS}
+        if incremental:
+            settings["prefix_validation"] = True
+        private.write_new(path, _json(settings))
+        if previous is not None:
+            private.write_new(saved, _json({"snapshot": previous["snapshot"], "report": previous["transport"], "resume": previous.get("resume")}))
+            return _process(binary, "sync", path, saved)
         return _process(binary, "read", path)
 
 
@@ -167,9 +178,9 @@ def _validate_view(view: JsonObject, config: JsonObject) -> None:
         raise private.EncounterError("credential_reflected")
 
 
-def _capture(config: JsonObject, binary: Path) -> JsonObject:
+def _capture(config: JsonObject, binary: Path, *, incremental: bool = False, previous: JsonObject | None = None) -> JsonObject:
     started = datetime.now(timezone.utc).isoformat()
-    native = _native_read(config, binary)
+    native = _native_read(config, binary, incremental=True, previous=previous) if incremental else _native_read(config, binary)
     if str(config["token"]) in json.dumps(native, ensure_ascii=False):
         raise private.EncounterError("credential_reflected")
     projection = _project(native, binary, Path(str(config["cache_directory"])))
@@ -183,6 +194,11 @@ def _capture(config: JsonObject, binary: Path) -> JsonObject:
         "retrieval_started": started, "retrieval_finished": datetime.now(timezone.utc).isoformat(),
         "copying_permission": "not_granted", "private_cache_permission": CACHE_PERMISSION,
         "freshness": "bounded_full_read_not_atomic", "configured_budgets": BUDGETS}
+    if incremental:
+        if _object(native.get("report")).get("prefix_validated") is not True or native.get("resume") is None:
+            raise private.EncounterError("prefix_validation_failed")
+        view["resume"] = native["resume"]
+        view["freshness"] = "validated_prefix_observation_not_atomic_with_action"
     _validate_view(view, config)
     if len(_json(view)) > MAX_OUTPUT:
         raise private.EncounterError("private_view_too_large")
@@ -233,6 +249,26 @@ def read(config: Path, save: Path | None = None, *, reader_binary: Path | None =
     # RuntimeError includes parser RecursionError; no nested input enters diagnostics.
     except (ValueError, OSError, KeyError, TypeError, RuntimeError):
         raise private.EncounterError("private_read_failed") from None
+
+
+def sync(config: Path, previous: Path | None = None, save: Path | None = None, *, reader_binary: Path | None = None) -> JsonObject:
+    settings = _configuration(config)
+    directory = Path(str(settings["cache_directory"]))
+    with private.lock(directory):
+        prior = None
+        if previous is not None:
+            if previous.parent != directory or not previous.name.startswith("view-") or previous.suffix != ".json":
+                raise private.EncounterError("invalid_private_view_path")
+            prior = _decode(private.read_bounded(previous, MAX_OUTPUT))
+            _validate_view(prior, settings)
+        binary = _binary(reader_binary)
+        view = _capture(settings, binary, incremental=True, previous=prior)
+        path = _save_view(view, settings, save)
+    transport = _object(view["transport"])
+    return {"outcome": "synced", "world": settings["world"], "principal": settings["principal"],
+        "events": transport["events"], "cached_events": transport.get("cached_events", 0), "pages": transport["pages"],
+        "response_bytes": transport["response_bytes"], "view_path": str(path), "freshness": view["freshness"],
+        "copying_permission": "not_granted"}
 
 
 def show(config: Path, path: Path) -> str:

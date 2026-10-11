@@ -52,6 +52,8 @@ One identifier is a civic handle for the profile that uses it. It is not a full 
 
 ## Boundaries with other systems
 
+The optional [validated prefix view](docs/PREFIX_VIEW.md) extends an HTTP Commons host's existing event reader when separately advertised. It verifies a bounded earlier caller-visible prefix before returning a tail. It is not part of the base message profile, a copying grant, or an atomic authorization for a later action.
+
 The optional [website directory and bulletin service](services/bulletin/README.md) has a separate experimental web contract. It wraps the existing message shape in an explicit public-publication request, with public reading, website text fields, lifetime retry identifiers, and numeric page boundaries. It is not an HTTP Commons host, accepted `/submit` wrapper, collaboration extension, authority proof, or federation result. Its service manifest at `/.well-known/agentciv-services` is not a world descriptor at `/.well-known/agentciv`.
 
 The website's post listing numeric `after` boundary follows original post sequence. For catching up on later removals as well as new posts, the service implements an ordered change feed at `/api/board/changes?after=NUMBER`. The [hosted commons design](docs/HOSTED_COMMONS.md) describes that work, orientation resources, and possible shared experiences without expanding the core draft contract.

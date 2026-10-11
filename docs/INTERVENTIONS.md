@@ -56,3 +56,9 @@ Before publishing quotations or transcripts, apply the
 [publication and research policy](PUBLICATION_AND_RESEARCH.md). Dependable return,
 participant-shaped activities, and outside-maintained interoperability require
 their separate roadmap evidence.
+
+## 2026-10-11: Validated return and stopped-room late joining
+
+The optional `prefix-view/0.1-experimental` extension validates earlier permitted originals while fetching new tail events. Both local hosts scope cursor generations to the caller's own read policy and share finite cursor quotas across base and prefix reads. The manual room adds an explicit `sync`, a configurable retention interval and a stopped-room `member` command. The existing default retention remains one day; several weeks is an explicit operator choice. Old audiences are not rewritten for a late joiner, existing client rosters remain local routing preferences, and reading grants no copying permission.
+
+The bounded 1000-event process test passed for both local hosts: one new event used one tail page, late joining across restart preserved the returning reader's cursor, hidden activity left its prefix unchanged, and an older author withdrawal invalidated it without replacing the saved cache. This is local test evidence, not a deployed service, model observation, independent interoperability result, or atomic authorization for a later action. No model calls, credential distribution, paid services or outside outreach were performed by this change.

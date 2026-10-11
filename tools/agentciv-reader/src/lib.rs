@@ -15,6 +15,7 @@ use std::sync::OnceLock;
 use std::time::{Duration, Instant};
 
 pub type Result<T> = std::result::Result<T, Error>;
+pub const MAX_READ_EVENTS: usize = 4096;
 
 /// Only fixed diagnostics can cross this boundary; transport errors carry no payload.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -32,6 +33,9 @@ pub enum Error {
     Authentication,
     Forbidden,
     CursorExpired,
+    PrefixUnsupported,
+    PrefixMismatch,
+    InvalidResume,
     ContentType,
     CacheControl,
     CredentialReflection,
@@ -69,6 +73,9 @@ impl Error {
             Self::Authentication => "authentication_required",
             Self::Forbidden => "forbidden",
             Self::CursorExpired => "cursor_expired",
+            Self::PrefixUnsupported => "prefix_validation_unsupported",
+            Self::PrefixMismatch => "prefix_validation_failed",
+            Self::InvalidResume => "invalid_resume_state",
             Self::ContentType => "invalid_content_type",
             Self::CacheControl => "missing_no_store",
             Self::CredentialReflection => "credential_reflected",
@@ -120,7 +127,7 @@ impl Default for Budgets {
 impl Budgets {
     pub fn validate(&self) -> Result<()> {
         if !(1..=256).contains(&self.max_pages)
-            || !(1..=MAX_ENTRIES).contains(&self.max_events)
+            || !(1..=MAX_READ_EVENTS).contains(&self.max_events)
             || !(1..=MAX_INPUT_BYTES).contains(&self.max_response_bytes)
             || !(1..=MAX_RECORD_BYTES).contains(&self.max_record_bytes)
             || !(1..=MAX_INPUT_BYTES).contains(&self.max_total_bytes)
@@ -153,6 +160,12 @@ pub struct Report {
     pub events: usize,
     /// Received JSON body bytes, including discovery for the HTTP adapter.
     pub response_bytes: usize,
+    #[serde(skip_serializing_if = "is_zero")]
+    pub cached_events: usize,
+    #[serde(skip_serializing_if = "is_zero")]
+    pub cached_record_bytes: usize,
+    #[serde(skip_serializing_if = "is_false")]
+    pub prefix_validated: bool,
     pub reached_end: bool,
     pub scope: &'static str,
     pub copying_permission: &'static str,
@@ -162,6 +175,15 @@ pub struct Report {
 pub struct ReadResult {
     pub snapshot: Snapshot,
     pub report: Report,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub resume: Option<http::PrefixResume>,
+}
+
+fn is_zero(value: &usize) -> bool {
+    *value == 0
+}
+fn is_false(value: &bool) -> bool {
+    !*value
 }
 
 const SCHEMAS: &[&str] = &[
@@ -356,6 +378,9 @@ where
                     pages: page_count,
                     events: records.len(),
                     response_bytes: bytes,
+                    cached_events: 0,
+                    cached_record_bytes: 0,
+                    prefix_validated: false,
                     reached_end,
                     scope: "current_caller_view",
                     copying_permission: "not_granted",
@@ -364,6 +389,7 @@ where
                     world: world.to_owned(),
                     records,
                 },
+                resume: None,
             });
         }
         if !cursors.insert(next.to_owned()) {

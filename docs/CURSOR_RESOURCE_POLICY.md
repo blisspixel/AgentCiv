@@ -1,5 +1,7 @@
 # Local host cursor resources
 
+The optional [prefix extension](PREFIX_VIEW.md) shares these quotas. Its saved digest is part of the cursor boundary identity; old digests are never overwritten with changed history. Both hosts now scope generations to each caller's visibility, retention and read grant. Adding another member preserves existing readers' tokens. A legacy cursor can resume a base read, but has no retroactive prefix evidence.
+
 Status: implemented local host policy, separate from mandatory HTTP Commons
 limits. Discovery reports `max_cursor_principals: 128` and
 `max_cursors_per_principal: 4096`. The base profile already permits resource
@@ -65,6 +67,4 @@ wins. HTTP regressions cover exhausted admission, hidden-only polling, a second
 caller's independent quota, fixed errors, and authentication/cursor precedence.
 The public visibility matrix remains separate profile evidence.
 
-The [freshness design](CIVIC_FRESHNESS.md) still needs to distinguish a tail
-position from validation of previously received originals. Finite cursor
-storage alone does not make earlier withdrawals visible through tail polling.
+The optional [prefix extension](PREFIX_VIEW.md) now distinguishes the tail position from validation of previously received originals. Ordinary tail polling still does not detect an earlier withdrawal. Neither finite cursor storage nor prefix validation supplies action-time freshness or restore-boundary detection.

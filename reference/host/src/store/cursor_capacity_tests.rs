@@ -10,7 +10,7 @@ fn concurrent_admission_cannot_overbook_the_last_slot() {
     connection
         .execute(
             "WITH RECURSIVE n(x) AS (SELECT 1 UNION ALL SELECT x+1 FROM n WHERE x < ?1)
-        INSERT INTO cursors SELECT 'existing-' || x,'agent:one',x,1 FROM n",
+        INSERT INTO cursors(token, principal, last_sequence, revision) SELECT 'existing-' || x,'agent:one',x,1 FROM n",
             params![MAX_CURSORS_PER_OWNER - 1],
         )
         .unwrap();
@@ -129,7 +129,7 @@ fn legacy_over_quota_tokens_are_preserved_without_further_growth() {
     connection
         .execute(
             "WITH RECURSIVE n(x) AS (SELECT 0 UNION ALL SELECT x+1 FROM n WHERE x < ?1)
-        INSERT INTO cursors SELECT 'legacy-' || x,'agent:legacy',x,1 FROM n",
+        INSERT INTO cursors(token, principal, last_sequence, revision) SELECT 'legacy-' || x,'agent:legacy',x,1 FROM n",
             params![MAX_CURSORS_PER_OWNER],
         )
         .unwrap();

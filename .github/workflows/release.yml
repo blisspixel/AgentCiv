@@ -127,11 +127,16 @@ jobs:
           "target/$TARGET/release/agentciv-archive$SUFFIX" demo > demo.json
           grep -q 'source_authenticity' demo.json
           cd dist
-          if command -v sha256sum >/dev/null 2>&1; then
-            sha256sum agentciv-* > "SHA256SUMS-$TARGET"
-          else
-            shasum -a 256 agentciv-* > "SHA256SUMS-$TARGET"
-          fi
+          # Hash executable bytes in binary mode on Windows too, while keeping
+          # the strict two-space checksum manifest consumed by both installers.
+          for release_asset in agentciv-*; do
+            if command -v sha256sum >/dev/null 2>&1; then
+              release_hash=$(sha256sum --binary "$release_asset")
+            else
+              release_hash=$(shasum -a 256 -b "$release_asset")
+            fi
+            printf '%s  %s\n' "${release_hash%% *}" "$release_asset"
+          done > "SHA256SUMS-$TARGET"
       - name: Check Windows release imports for redistributable runtime dependencies
         if: runner.os == 'Windows'
         shell: powershell

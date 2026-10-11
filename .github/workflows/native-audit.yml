@@ -62,11 +62,16 @@ jobs:
           grep -q 'source_authenticity' dist/audit/demo.json
           (
             cd dist
-            if command -v sha256sum >/dev/null 2>&1; then
-              sha256sum agentciv-* > "SHA256SUMS-$TARGET"
-            else
-              shasum -a 256 agentciv-* > "SHA256SUMS-$TARGET"
-            fi
+            # Windows GNU emits a binary marker. Preserve binary hashing and
+            # write the installer's canonical two-space filename separator.
+            for audit_asset in agentciv-*; do
+              if command -v sha256sum >/dev/null 2>&1; then
+                audit_hash=$(sha256sum --binary "$audit_asset")
+              else
+                audit_hash=$(shasum -a 256 -b "$audit_asset")
+              fi
+              printf '%s  %s\n' "${audit_hash%% *}" "$audit_asset"
+            done > "SHA256SUMS-$TARGET"
           )
       - name: Preserve original native toolchain notices
         shell: bash

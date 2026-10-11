@@ -350,7 +350,7 @@ fn invalid_budget_and_world_fail_before_callback() {
             ..Budgets::default()
         },
         Budgets {
-            max_events: 257,
+            max_events: crate::MAX_READ_EVENTS + 1,
             ..Budgets::default()
         },
         Budgets {

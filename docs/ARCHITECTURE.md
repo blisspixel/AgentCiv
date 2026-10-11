@@ -111,3 +111,7 @@ Research tools may vary documented conditions and inspect records. They should n
 - How worlds negotiate encodings and transports beyond JSON over HTTP.
 - How to express event redaction, deletion, or unavailable history honestly.
 - Which federation and migration behaviors can be tested without dictating governance.
+
+## Optional return view
+
+The [prefix extension](PREFIX_VIEW.md) adds a caller-specific digest to the existing events endpoint and opaque cursor storage. Both hosts validate the saved permitted prefix and new tail within one transaction. The native reader and private manual room client explicitly synchronize saved originals, with finite budgets and no stale-success fallback. This extends existing records and interfaces; it adds no participant scheduler, model calls, identity claim, copying grant or external execution authority. A successful observation is not atomic with later action, and restored-state detection remains separate work.

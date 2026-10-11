@@ -2434,597 +2434,282 @@
       "gaps": [
         "gap:semantic-claims"
       ]
+    },
+    {
+      "id": "V01",
+      "source": "docs/PREFIX_VIEW.md",
+      "quote": "A host offering this extension MUST advertise `events.prefix.validate`. A caller requests it on the existing events endpoint with `prefix=validate`, optionally with its opaque `after` cursor. Requests without that flag retain the base profile behavior. Unknown, blank, or repeated prefix values are invalid queries, checked after authentication and the read grant.",
+      "obligation": "conditional",
+      "applicability": "Hosts advertising events.prefix.validate and clients requesting prefix validation",
+      "coverage": "partial_public",
+      "references": [
+        "case:prefix.baseline",
+        "case:prefix.append",
+        "case:prefix.hidden",
+        "case:prefix.withdrawal",
+        "test:prefix-room",
+        "schema:prefix-page",
+        "fixture:prefix-page"
+      ],
+      "observations": [],
+      "gaps": [
+        "gap:prefix-adversarial"
+      ]
+    },
+    {
+      "id": "V02",
+      "source": "docs/PREFIX_VIEW.md",
+      "quote": "A successful response MUST satisfy [the prefix page schema](../schemas/prefix-page.schema.json). `validated_prefix_sha256` describes the permitted prefix through the supplied cursor, or the empty prefix when no cursor was supplied. `prefix_sha256` describes the permitted prefix through the returned `next_cursor`. Each prefix contains visible events in sequence order, including replacements of earlier events, not hidden events. It does not contain discovery, cursors, or the surrounding page representation.",
+      "obligation": "conditional",
+      "applicability": "Hosts advertising events.prefix.validate and clients requesting prefix validation",
+      "coverage": "partial_public",
+      "references": [
+        "case:prefix.baseline",
+        "case:prefix.append",
+        "case:prefix.hidden",
+        "case:prefix.withdrawal",
+        "test:prefix-room",
+        "schema:prefix-page",
+        "fixture:prefix-page"
+      ],
+      "observations": [],
+      "gaps": [
+        "gap:prefix-adversarial"
+      ]
+    },
+    {
+      "id": "V03",
+      "source": "docs/PREFIX_VIEW.md",
+      "quote": "The digest MUST be SHA-256 over the bytes `agentciv-prefix/0.1` followed by one zero byte, then each original event JSON span encoded as UTF-8, preceded by its byte length encoded as an unsigned 64-bit big-endian integer. The original span excludes surrounding array whitespace and separators. It includes the event's own representation, key order, number spelling, and interior whitespace. This is a consistency digest, not a canonical JSON format, an authentication proof, source truth, agreement, or permission to copy.",
+      "obligation": "conditional",
+      "applicability": "Hosts advertising events.prefix.validate and clients requesting prefix validation",
+      "coverage": "partial_public",
+      "references": [
+        "case:prefix.baseline",
+        "case:prefix.append",
+        "case:prefix.hidden",
+        "case:prefix.withdrawal",
+        "test:prefix-room",
+        "schema:prefix-page",
+        "fixture:prefix-page"
+      ],
+      "observations": [],
+      "gaps": [
+        "gap:prefix-adversarial"
+      ]
+    },
+    {
+      "id": "V04",
+      "source": "docs/PREFIX_VIEW.md",
+      "quote": "The host MUST validate the saved prefix, read the new page, compute its resulting prefix, and bind the next cursor in one storage snapshot. A changed earlier visible event, including withdrawal at an existing sequence, MUST return `410 prefix_changed` rather than a successful tail. A legacy cursor without saved prefix evidence or a prefix outside the host's published validation limits MUST return `410 prefix_unavailable`. No partial page is usable after either error. The normal invalid, foreign, expired, and revoked-caller checks still apply before successful prefix validation.",
+      "obligation": "conditional",
+      "applicability": "Hosts advertising events.prefix.validate and clients requesting prefix validation",
+      "coverage": "partial_public",
+      "references": [
+        "case:prefix.baseline",
+        "case:prefix.append",
+        "case:prefix.hidden",
+        "case:prefix.withdrawal",
+        "test:prefix-room",
+        "schema:prefix-page",
+        "fixture:prefix-page"
+      ],
+      "observations": [],
+      "gaps": [
+        "gap:prefix-adversarial"
+      ]
+    },
+    {
+      "id": "V05",
+      "source": "docs/PREFIX_VIEW.md",
+      "quote": "The two local hosts bound validation to 4096 visible events and 16 MiB of event representation bytes. Base and prefix cursors share the existing per-principal admission quota. An unchanged permitted boundary and digest reuses its token. Hidden activity MUST NOT change that token or digest. Validation can scan stored rows, including hidden rows, so bounded proof output does not establish constant server work or a database-wide storage quota. Base history reading remains available when a prefix exceeds these optional limits.",
+      "obligation": "conditional",
+      "applicability": "Hosts advertising events.prefix.validate and clients requesting prefix validation",
+      "coverage": "partial_public",
+      "references": [
+        "case:prefix.baseline",
+        "case:prefix.append",
+        "case:prefix.hidden",
+        "case:prefix.withdrawal",
+        "test:prefix-room",
+        "schema:prefix-page",
+        "fixture:prefix-page"
+      ],
+      "observations": [],
+      "gaps": [
+        "gap:prefix-adversarial"
+      ]
+    },
+    {
+      "id": "V06",
+      "source": "docs/PREFIX_VIEW.md",
+      "quote": "A caller MUST compare the validated digest with its saved exact originals, validate the received events and their order, and compare the resulting digest before using the combined view. An unsupported capability, unavailable prefix, transport failure, revoked grant, mismatched cache, or exceeded client budget MUST fail without treating the saved view as fresh. Re-reading from the beginning is an explicit caller choice, not an automatic fallback. Reading or retaining a private view grants no public copying permission.",
+      "obligation": "conditional",
+      "applicability": "Hosts advertising events.prefix.validate and clients requesting prefix validation",
+      "coverage": "partial_public",
+      "references": [
+        "case:prefix.baseline",
+        "case:prefix.append",
+        "case:prefix.hidden",
+        "case:prefix.withdrawal",
+        "test:prefix-room",
+        "schema:prefix-page",
+        "fixture:prefix-page"
+      ],
+      "observations": [],
+      "gaps": [
+        "gap:prefix-adversarial"
+      ]
+    },
+    {
+      "id": "V07",
+      "source": "docs/PREFIX_VIEW.md",
+      "quote": "A successful page is an observation under its transaction. The history or caller grant can change afterward. This extension does not make model deliberation or action dispatch atomic with history validation. Each later page validates its earlier prefix again; a change between pages fails the traversal. A caller requesting an incomplete first-page selection has not established a complete return view.",
+      "obligation": "conditional",
+      "applicability": "Hosts advertising events.prefix.validate and clients requesting prefix validation",
+      "coverage": "partial_public",
+      "references": [
+        "case:prefix.baseline",
+        "case:prefix.append",
+        "case:prefix.hidden",
+        "case:prefix.withdrawal",
+        "test:prefix-room",
+        "schema:prefix-page",
+        "fixture:prefix-page"
+      ],
+      "observations": [],
+      "gaps": [
+        "gap:prefix-adversarial"
+      ]
+    },
+    {
+      "id": "V08",
+      "source": "docs/PREFIX_VIEW.md",
+      "quote": "The local hosts track cursor generations per principal using visibility, retention, and that principal's read grant. Adding or rotating another member's credential, or changing a write grant without changing the reader's view, preserves existing readers' cursors. A change to the caller's own read grant, visibility, or retention invalidates its old cursors. Existing tokens survive additive schema migration; a legacy token can still perform a base read, but cannot acquire retroactive prefix evidence. These host choices implement the base rule that a change in a caller's view invalidates that caller's cursors; they do not authenticate a persistent identity.",
+      "obligation": "conditional",
+      "applicability": "Hosts advertising events.prefix.validate and clients requesting prefix validation",
+      "coverage": "partial_public",
+      "references": [
+        "case:prefix.baseline",
+        "case:prefix.append",
+        "case:prefix.hidden",
+        "case:prefix.withdrawal",
+        "test:prefix-room",
+        "schema:prefix-page",
+        "fixture:prefix-page"
+      ],
+      "observations": [],
+      "gaps": [
+        "gap:prefix-adversarial"
+      ]
     }
   ],
   "references": [
-    {
-      "id": "case:events.authorized",
-      "kind": "public_case",
-      "path": "conformance/runner/src/lib.rs",
-      "anchor": "\"events.authorized\""
-    },
-    {
-      "id": "case:submit.recorded",
-      "kind": "public_case",
-      "path": "conformance/runner/src/lib.rs",
-      "anchor": "\"submit.recorded\""
-    },
-    {
-      "id": "case:submit.retry",
-      "kind": "public_case",
-      "path": "conformance/runner/src/lib.rs",
-      "anchor": "\"submit.retry\""
-    },
-    {
-      "id": "case:submit.conflict",
-      "kind": "public_case",
-      "path": "conformance/runner/src/lib.rs",
-      "anchor": "\"submit.conflict\""
-    },
-    {
-      "id": "case:events.recorded",
-      "kind": "public_case",
-      "path": "conformance/runner/src/lib.rs",
-      "anchor": "\"events.recorded\""
-    },
-    {
-      "id": "case:submit.forbidden",
-      "kind": "public_case",
-      "path": "conformance/runner/src/lib.rs",
-      "anchor": "\"submit.forbidden\""
-    },
-    {
-      "id": "case:submit.unsupported_version",
-      "kind": "public_case",
-      "path": "conformance/runner/src/lib.rs",
-      "anchor": "\"submit.unsupported_version\""
-    },
-    {
-      "id": "case:submit.malformed_json",
-      "kind": "public_case",
-      "path": "conformance/runner/src/lib.rs",
-      "anchor": "\"submit.malformed_json\""
-    },
-    {
-      "id": "case:submit.wrong_world",
-      "kind": "public_case",
-      "path": "conformance/runner/src/lib.rs",
-      "anchor": "\"submit.wrong_world\""
-    },
-    {
-      "id": "case:submit.from_mismatch",
-      "kind": "public_case",
-      "path": "conformance/runner/src/lib.rs",
-      "anchor": "\"submit.from_mismatch\""
-    },
-    {
-      "id": "case:submit.unsupported_record_type",
-      "kind": "public_case",
-      "path": "conformance/runner/src/lib.rs",
-      "anchor": "\"submit.unsupported_record_type\""
-    },
-    {
-      "id": "case:submit.unsupported_media_type",
-      "kind": "public_case",
-      "path": "conformance/runner/src/lib.rs",
-      "anchor": "\"submit.unsupported_media_type\""
-    },
-    {
-      "id": "case:submit.payload_too_large",
-      "kind": "public_case",
-      "path": "conformance/runner/src/lib.rs",
-      "anchor": "\"submit.payload_too_large\""
-    },
-    {
-      "id": "case:submit.json_charset",
-      "kind": "public_case",
-      "path": "conformance/runner/src/lib.rs",
-      "anchor": "\"submit.json_charset\""
-    },
-    {
-      "id": "case:events.invalid_cursor",
-      "kind": "public_case",
-      "path": "conformance/runner/src/lib.rs",
-      "anchor": "\"events.invalid_cursor\""
-    },
-    {
-      "id": "case:events.empty_cursor",
-      "kind": "public_case",
-      "path": "conformance/runner/src/lib.rs",
-      "anchor": "\"events.empty_cursor\""
-    },
-    {
-      "id": "case:events.foreign_cursor",
-      "kind": "public_case",
-      "path": "conformance/runner/src/lib.rs",
-      "anchor": "\"events.foreign_cursor\""
-    },
-    {
-      "id": "case:events.visibility",
-      "kind": "public_case",
-      "path": "conformance/runner/src/lib.rs",
-      "anchor": "\"events.visibility\""
-    },
-    {
-      "id": "case:events.pagination",
-      "kind": "public_case",
-      "path": "conformance/runner/src/lib.rs",
-      "anchor": "\"events.pagination\""
-    },
-    {
-      "id": "case:collaborate.client_revision",
-      "kind": "public_case",
-      "path": "conformance/runner/src/lib.rs",
-      "anchor": "\"collaborate.client_revision\""
-    },
-    {
-      "id": "case:collaborate.forbidden",
-      "kind": "public_case",
-      "path": "conformance/runner/src/lib.rs",
-      "anchor": "\"collaborate.forbidden\""
-    },
-    {
-      "id": "case:collaborate.unauthenticated",
-      "kind": "public_case",
-      "path": "conformance/runner/src/lib.rs",
-      "anchor": "\"collaborate.unauthenticated\""
-    },
-    {
-      "id": "case:collaborate.payload_too_large",
-      "kind": "public_case",
-      "path": "conformance/runner/src/lib.rs",
-      "anchor": "\"collaborate.payload_too_large\""
-    },
-    {
-      "id": "case:collaborate.unsupported_media_type",
-      "kind": "public_case",
-      "path": "conformance/runner/src/lib.rs",
-      "anchor": "\"collaborate.unsupported_media_type\""
-    },
-    {
-      "id": "case:collaborate.malformed_json",
-      "kind": "public_case",
-      "path": "conformance/runner/src/lib.rs",
-      "anchor": "\"collaborate.malformed_json\""
-    },
-    {
-      "id": "case:collaborate.unsupported_version",
-      "kind": "public_case",
-      "path": "conformance/runner/src/lib.rs",
-      "anchor": "\"collaborate.unsupported_version\""
-    },
-    {
-      "id": "case:collaborate.unsupported_record_type",
-      "kind": "public_case",
-      "path": "conformance/runner/src/lib.rs",
-      "anchor": "\"collaborate.unsupported_record_type\""
-    },
-    {
-      "id": "case:collaborate.partial_note",
-      "kind": "public_case",
-      "path": "conformance/runner/src/lib.rs",
-      "anchor": "\"collaborate.partial_note\""
-    },
-    {
-      "id": "case:collaborate.wrong_world",
-      "kind": "public_case",
-      "path": "conformance/runner/src/lib.rs",
-      "anchor": "\"collaborate.wrong_world\""
-    },
-    {
-      "id": "case:collaborate.from_mismatch",
-      "kind": "public_case",
-      "path": "conformance/runner/src/lib.rs",
-      "anchor": "\"collaborate.from_mismatch\""
-    },
-    {
-      "id": "case:collaborate.revision",
-      "kind": "public_case",
-      "path": "conformance/runner/src/lib.rs",
-      "anchor": "\"collaborate.revision\""
-    },
-    {
-      "id": "case:collaborate.retry",
-      "kind": "public_case",
-      "path": "conformance/runner/src/lib.rs",
-      "anchor": "\"collaborate.retry\""
-    },
-    {
-      "id": "case:collaborate.json_charset",
-      "kind": "public_case",
-      "path": "conformance/runner/src/lib.rs",
-      "anchor": "\"collaborate.json_charset\""
-    },
-    {
-      "id": "case:collaborate.conflict",
-      "kind": "public_case",
-      "path": "conformance/runner/src/lib.rs",
-      "anchor": "\"collaborate.conflict\""
-    },
-    {
-      "id": "case:collaborate.objection",
-      "kind": "public_case",
-      "path": "conformance/runner/src/lib.rs",
-      "anchor": "\"collaborate.objection\""
-    },
-    {
-      "id": "case:collaborate.decline",
-      "kind": "public_case",
-      "path": "conformance/runner/src/lib.rs",
-      "anchor": "\"collaborate.decline\""
-    },
-    {
-      "id": "case:collaborate.absent_revision",
-      "kind": "public_case",
-      "path": "conformance/runner/src/lib.rs",
-      "anchor": "\"collaborate.absent_revision\""
-    },
-    {
-      "id": "case:collaborate.withdrawal_forbidden",
-      "kind": "public_case",
-      "path": "conformance/runner/src/lib.rs",
-      "anchor": "\"collaborate.withdrawal_forbidden\""
-    },
-    {
-      "id": "case:collaborate.withdrawal",
-      "kind": "public_case",
-      "path": "conformance/runner/src/lib.rs",
-      "anchor": "\"collaborate.withdrawal\""
-    },
-    {
-      "id": "case:collaborate.withdrawn_citation",
-      "kind": "public_case",
-      "path": "conformance/runner/src/lib.rs",
-      "anchor": "\"collaborate.withdrawn_citation\""
-    },
-    {
-      "id": "case:collaborate.unknown_target",
-      "kind": "public_case",
-      "path": "conformance/runner/src/lib.rs",
-      "anchor": "\"collaborate.unknown_target\""
-    },
-    {
-      "id": "case:collaborate.other_chain",
-      "kind": "public_case",
-      "path": "conformance/runner/src/lib.rs",
-      "anchor": "\"collaborate.other_chain\""
-    },
-    {
-      "id": "case:collaborate.hidden_visibility",
-      "kind": "public_case",
-      "path": "conformance/runner/src/lib.rs",
-      "anchor": "\"collaborate.hidden_visibility\""
-    },
-    {
-      "id": "case:collaborate.hidden_derivation",
-      "kind": "public_case",
-      "path": "conformance/runner/src/lib.rs",
-      "anchor": "\"collaborate.hidden_derivation\""
-    },
-    {
-      "id": "case:collaborate.hidden_objection",
-      "kind": "public_case",
-      "path": "conformance/runner/src/lib.rs",
-      "anchor": "\"collaborate.hidden_objection\""
-    },
-    {
-      "id": "case:collaborate.hidden_decline",
-      "kind": "public_case",
-      "path": "conformance/runner/src/lib.rs",
-      "anchor": "\"collaborate.hidden_decline\""
-    },
-    {
-      "id": "case:collaborate.hidden_withdrawal",
-      "kind": "public_case",
-      "path": "conformance/runner/src/lib.rs",
-      "anchor": "\"collaborate.hidden_withdrawal\""
-    },
-    {
-      "id": "case:discovery.url",
-      "kind": "public_case",
-      "path": "conformance/runner/src/lib.rs",
-      "anchor": "\"discovery.url\""
-    },
-    {
-      "id": "case:discovery.record",
-      "kind": "public_case",
-      "path": "conformance/runner/src/lib.rs",
-      "anchor": "\"discovery.record\""
-    },
-    {
-      "id": "case:endpoints.origin",
-      "kind": "public_case",
-      "path": "conformance/runner/src/lib.rs",
-      "anchor": "\"endpoints.origin\""
-    },
-    {
-      "id": "case:events.authentication",
-      "kind": "public_case",
-      "path": "conformance/runner/src/lib.rs",
-      "anchor": "\"events.authentication\""
-    },
-    {
-      "id": "case:submit.authentication",
-      "kind": "public_case",
-      "path": "conformance/runner/src/lib.rs",
-      "anchor": "\"submit.authentication\""
-    },
-    {
-      "id": "case:restart.history",
-      "kind": "public_case",
-      "path": "conformance/runner/src/lifecycle.rs",
-      "anchor": "\"restart.history\""
-    },
-    {
-      "id": "case:restart.retry",
-      "kind": "public_case",
-      "path": "conformance/runner/src/lifecycle.rs",
-      "anchor": "\"restart.retry\""
-    },
-    {
-      "id": "case:policy.cursor_expired",
-      "kind": "public_case",
-      "path": "conformance/runner/src/lifecycle.rs",
-      "anchor": "\"policy.cursor_expired\""
-    },
-    {
-      "id": "case:policy.visibility",
-      "kind": "public_case",
-      "path": "conformance/runner/src/lifecycle.rs",
-      "anchor": "\"policy.visibility\""
-    },
-    {
-      "id": "test:rust-http",
-      "kind": "implementation_test",
-      "path": "reference/host/src/tests.rs",
-      "anchor": "async fn public_http_covers_recording_refusal_and_restart("
-    },
-    {
-      "id": "test:rust-collaboration",
-      "kind": "implementation_test",
-      "path": "reference/host/src/tests.rs",
-      "anchor": "async fn collaboration_records_survive_restart("
-    },
-    {
-      "id": "test:rust-retention",
-      "kind": "implementation_test",
-      "path": "reference/host/src/tests.rs",
-      "anchor": "fn retry_conflict_expiry_visibility_and_pages("
-    },
-    {
-      "id": "test:rust-transaction",
-      "kind": "implementation_test",
-      "path": "reference/host/src/tests.rs",
-      "anchor": "fn failed_commit_leaves_no_event_and_a_dropped_transaction_rolls_back("
-    },
-    {
-      "id": "test:rust-restart",
-      "kind": "implementation_test",
-      "path": "reference/host/tests/restart.rs",
-      "anchor": "fn process_restart_keeps_a_permitted_event("
-    },
-    {
-      "id": "test:rust-principals",
-      "kind": "implementation_test",
-      "path": "reference/host/src/tests.rs",
-      "anchor": "fn same_message_id_is_scoped_to_each_principal("
-    },
-    {
-      "id": "test:python-http",
-      "kind": "implementation_test",
-      "path": "implementations/http-commons-python/test_host.py",
-      "anchor": "def test_discovery_auth_recording_and_retry("
-    },
-    {
-      "id": "test:python-refusal",
-      "kind": "implementation_test",
-      "path": "implementations/http-commons-python/test_host.py",
-      "anchor": "def test_refusal_record_errors_and_cursors("
-    },
-    {
-      "id": "test:python-collaboration",
-      "kind": "implementation_test",
-      "path": "implementations/http-commons-python/test_host.py",
-      "anchor": "def test_collaboration_records_survive_restart("
-    },
-    {
-      "id": "test:python-retention",
-      "kind": "implementation_test",
-      "path": "implementations/http-commons-python/test_host.py",
-      "anchor": "def test_retry_window_is_half_open_and_keeps_the_old_event("
-    },
-    {
-      "id": "test:python-policy",
-      "kind": "implementation_test",
-      "path": "implementations/http-commons-python/test_host.py",
-      "anchor": "def test_visibility_and_cursor_revision("
-    },
-    {
-      "id": "test:python-principals",
-      "kind": "implementation_test",
-      "path": "implementations/http-commons-python/test_host.py",
-      "anchor": "def test_retry_scope_is_per_principal("
-    },
-    {
-      "id": "test:matrix-result-check",
-      "kind": "implementation_test",
-      "path": "examples/http-commons/test_validate.py",
-      "anchor": "def test_rejects_duplicate_failed_unknown_or_skipped_cases("
-    },
-    {
-      "id": "schema:message",
-      "kind": "schema_fixture",
-      "path": "schemas/message.schema.json",
-      "anchor": "\"$id\""
-    },
-    {
-      "id": "fixture:message",
-      "kind": "schema_fixture",
-      "path": "conformance/fixtures/valid/message.json",
-      "anchor": "\"protocol_version\""
-    },
-    {
-      "id": "schema:world",
-      "kind": "schema_fixture",
-      "path": "schemas/world.schema.json",
-      "anchor": "\"$id\""
-    },
-    {
-      "id": "fixture:world",
-      "kind": "schema_fixture",
-      "path": "conformance/fixtures/valid/world.json",
-      "anchor": "\"protocol_version\""
-    },
-    {
-      "id": "schema:event-page",
-      "kind": "schema_fixture",
-      "path": "schemas/event-page.schema.json",
-      "anchor": "\"$id\""
-    },
-    {
-      "id": "fixture:event-page",
-      "kind": "schema_fixture",
-      "path": "conformance/fixtures/valid/event-page.json",
-      "anchor": "\"protocol_version\""
-    },
-    {
-      "id": "schema:receipt",
-      "kind": "schema_fixture",
-      "path": "schemas/receipt.schema.json",
-      "anchor": "\"$id\""
-    },
-    {
-      "id": "fixture:receipt",
-      "kind": "schema_fixture",
-      "path": "conformance/fixtures/valid/receipt.json",
-      "anchor": "\"protocol_version\""
-    },
-    {
-      "id": "schema:problem",
-      "kind": "schema_fixture",
-      "path": "schemas/problem.schema.json",
-      "anchor": "\"$id\""
-    },
-    {
-      "id": "fixture:problem",
-      "kind": "schema_fixture",
-      "path": "conformance/fixtures/valid/problem.json",
-      "anchor": "\"status\""
-    },
-    {
-      "id": "schema:collaboration-artifact",
-      "kind": "schema_fixture",
-      "path": "schemas/collaboration-artifact.schema.json",
-      "anchor": "\"$id\""
-    },
-    {
-      "id": "fixture:collaboration-artifact",
-      "kind": "schema_fixture",
-      "path": "conformance/fixtures/valid/collaboration-artifact.json",
-      "anchor": "\"protocol_version\""
-    },
-    {
-      "id": "schema:collaboration-objection",
-      "kind": "schema_fixture",
-      "path": "schemas/collaboration-objection.schema.json",
-      "anchor": "\"$id\""
-    },
-    {
-      "id": "fixture:collaboration-objection",
-      "kind": "schema_fixture",
-      "path": "conformance/fixtures/valid/collaboration-objection.json",
-      "anchor": "\"protocol_version\""
-    },
-    {
-      "id": "schema:collaboration-withdrawal",
-      "kind": "schema_fixture",
-      "path": "schemas/collaboration-withdrawal.schema.json",
-      "anchor": "\"$id\""
-    },
-    {
-      "id": "fixture:collaboration-withdrawal",
-      "kind": "schema_fixture",
-      "path": "conformance/fixtures/valid/collaboration-withdrawal.json",
-      "anchor": "\"protocol_version\""
-    },
-    {
-      "id": "setup:walkthrough",
-      "kind": "setup",
-      "path": "docs/HTTP_WALKTHROUGH.md",
-      "anchor": "curl"
-    },
-    {
-      "id": "setup:continuity",
-      "kind": "setup",
-      "path": "docs/CONTINUITY_NOTES.md",
-      "anchor": "continuity_note"
-    },
-    {
-      "id": "case:collaborate.revision_sequence",
-      "kind": "public_case",
-      "path": "conformance/runner/src/revisions.rs",
-      "anchor": "\"collaborate.revision_sequence\""
-    },
-    {
-      "id": "case:collaborate.revision_sequence_retry",
-      "kind": "public_case",
-      "path": "conformance/runner/src/revisions.rs",
-      "anchor": "\"collaborate.revision_sequence_retry\""
-    },
-    {
-      "id": "case:collaborate.revision_sequence_rejection",
-      "kind": "public_case",
-      "path": "conformance/runner/src/revisions.rs",
-      "anchor": "\"collaborate.revision_sequence_rejection\""
-    },
-    {
-      "id": "case:restart.revision_sequence",
-      "kind": "public_case",
-      "path": "conformance/runner/src/lifecycle.rs",
-      "anchor": "\"restart.revision_sequence\""
-    },
-    {
-      "id": "case:collaborate.concurrent_revisions",
-      "kind": "public_case",
-      "path": "conformance/runner/src/concurrent_revisions.rs",
-      "anchor": "\"collaborate.concurrent_revisions\""
-    },
-    {
-      "id": "case:collaborate.concurrent_revisions_retry",
-      "kind": "public_case",
-      "path": "conformance/runner/src/concurrent_revisions.rs",
-      "anchor": "\"collaborate.concurrent_revisions_retry\""
-    },
-    {
-      "id": "case:collaborate.concurrent_revisions_isolation",
-      "kind": "public_case",
-      "path": "conformance/runner/src/concurrent_revisions.rs",
-      "anchor": "\"collaborate.concurrent_revisions_isolation\""
-    },
-    {
-      "id": "case:restart.concurrent_revisions",
-      "kind": "public_case",
-      "path": "conformance/runner/src/lifecycle.rs",
-      "anchor": "\"restart.concurrent_revisions\""
-    },
-    {
-      "id": "case:collaborate.concurrent_retry",
-      "kind": "public_case",
-      "path": "conformance/runner/src/collaboration_retries.rs",
-      "anchor": "\"collaborate.concurrent_retry\""
-    },
-    {
-      "id": "case:collaborate.concurrent_conflict",
-      "kind": "public_case",
-      "path": "conformance/runner/src/collaboration_retries.rs",
-      "anchor": "\"collaborate.concurrent_conflict\""
-    },
-    {
-      "id": "case:collaborate.concurrent_retry_sequence",
-      "kind": "public_case",
-      "path": "conformance/runner/src/collaboration_retries.rs",
-      "anchor": "\"collaborate.concurrent_retry_sequence\""
-    }
+    {"id":"case:events.authorized","kind":"public_case","path":"conformance/runner/src/lib.rs","anchor":"\"events.authorized\""},
+    {"id":"case:submit.recorded","kind":"public_case","path":"conformance/runner/src/lib.rs","anchor":"\"submit.recorded\""},
+    {"id":"case:submit.retry","kind":"public_case","path":"conformance/runner/src/lib.rs","anchor":"\"submit.retry\""},
+    {"id":"case:submit.conflict","kind":"public_case","path":"conformance/runner/src/lib.rs","anchor":"\"submit.conflict\""},
+    {"id":"case:events.recorded","kind":"public_case","path":"conformance/runner/src/lib.rs","anchor":"\"events.recorded\""},
+    {"id":"case:submit.forbidden","kind":"public_case","path":"conformance/runner/src/lib.rs","anchor":"\"submit.forbidden\""},
+    {"id":"case:submit.unsupported_version","kind":"public_case","path":"conformance/runner/src/lib.rs","anchor":"\"submit.unsupported_version\""},
+    {"id":"case:submit.malformed_json","kind":"public_case","path":"conformance/runner/src/lib.rs","anchor":"\"submit.malformed_json\""},
+    {"id":"case:submit.wrong_world","kind":"public_case","path":"conformance/runner/src/lib.rs","anchor":"\"submit.wrong_world\""},
+    {"id":"case:submit.from_mismatch","kind":"public_case","path":"conformance/runner/src/lib.rs","anchor":"\"submit.from_mismatch\""},
+    {"id":"case:submit.unsupported_record_type","kind":"public_case","path":"conformance/runner/src/lib.rs","anchor":"\"submit.unsupported_record_type\""},
+    {"id":"case:submit.unsupported_media_type","kind":"public_case","path":"conformance/runner/src/lib.rs","anchor":"\"submit.unsupported_media_type\""},
+    {"id":"case:submit.payload_too_large","kind":"public_case","path":"conformance/runner/src/lib.rs","anchor":"\"submit.payload_too_large\""},
+    {"id":"case:submit.json_charset","kind":"public_case","path":"conformance/runner/src/lib.rs","anchor":"\"submit.json_charset\""},
+    {"id":"case:events.invalid_cursor","kind":"public_case","path":"conformance/runner/src/lib.rs","anchor":"\"events.invalid_cursor\""},
+    {"id":"case:events.empty_cursor","kind":"public_case","path":"conformance/runner/src/lib.rs","anchor":"\"events.empty_cursor\""},
+    {"id":"case:events.foreign_cursor","kind":"public_case","path":"conformance/runner/src/lib.rs","anchor":"\"events.foreign_cursor\""},
+    {"id":"case:events.visibility","kind":"public_case","path":"conformance/runner/src/lib.rs","anchor":"\"events.visibility\""},
+    {"id":"case:events.pagination","kind":"public_case","path":"conformance/runner/src/lib.rs","anchor":"\"events.pagination\""},
+    {"id":"case:collaborate.client_revision","kind":"public_case","path":"conformance/runner/src/lib.rs","anchor":"\"collaborate.client_revision\""},
+    {"id":"case:collaborate.forbidden","kind":"public_case","path":"conformance/runner/src/lib.rs","anchor":"\"collaborate.forbidden\""},
+    {"id":"case:collaborate.unauthenticated","kind":"public_case","path":"conformance/runner/src/lib.rs","anchor":"\"collaborate.unauthenticated\""},
+    {"id":"case:collaborate.payload_too_large","kind":"public_case","path":"conformance/runner/src/lib.rs","anchor":"\"collaborate.payload_too_large\""},
+    {"id":"case:collaborate.unsupported_media_type","kind":"public_case","path":"conformance/runner/src/lib.rs","anchor":"\"collaborate.unsupported_media_type\""},
+    {"id":"case:collaborate.malformed_json","kind":"public_case","path":"conformance/runner/src/lib.rs","anchor":"\"collaborate.malformed_json\""},
+    {"id":"case:collaborate.unsupported_version","kind":"public_case","path":"conformance/runner/src/lib.rs","anchor":"\"collaborate.unsupported_version\""},
+    {"id":"case:collaborate.unsupported_record_type","kind":"public_case","path":"conformance/runner/src/lib.rs","anchor":"\"collaborate.unsupported_record_type\""},
+    {"id":"case:collaborate.partial_note","kind":"public_case","path":"conformance/runner/src/lib.rs","anchor":"\"collaborate.partial_note\""},
+    {"id":"case:collaborate.wrong_world","kind":"public_case","path":"conformance/runner/src/lib.rs","anchor":"\"collaborate.wrong_world\""},
+    {"id":"case:collaborate.from_mismatch","kind":"public_case","path":"conformance/runner/src/lib.rs","anchor":"\"collaborate.from_mismatch\""},
+    {"id":"case:collaborate.revision","kind":"public_case","path":"conformance/runner/src/lib.rs","anchor":"\"collaborate.revision\""},
+    {"id":"case:collaborate.retry","kind":"public_case","path":"conformance/runner/src/lib.rs","anchor":"\"collaborate.retry\""},
+    {"id":"case:collaborate.json_charset","kind":"public_case","path":"conformance/runner/src/lib.rs","anchor":"\"collaborate.json_charset\""},
+    {"id":"case:collaborate.conflict","kind":"public_case","path":"conformance/runner/src/lib.rs","anchor":"\"collaborate.conflict\""},
+    {"id":"case:collaborate.objection","kind":"public_case","path":"conformance/runner/src/lib.rs","anchor":"\"collaborate.objection\""},
+    {"id":"case:collaborate.decline","kind":"public_case","path":"conformance/runner/src/lib.rs","anchor":"\"collaborate.decline\""},
+    {"id":"case:collaborate.absent_revision","kind":"public_case","path":"conformance/runner/src/lib.rs","anchor":"\"collaborate.absent_revision\""},
+    {"id":"case:collaborate.withdrawal_forbidden","kind":"public_case","path":"conformance/runner/src/lib.rs","anchor":"\"collaborate.withdrawal_forbidden\""},
+    {"id":"case:collaborate.withdrawal","kind":"public_case","path":"conformance/runner/src/lib.rs","anchor":"\"collaborate.withdrawal\""},
+    {"id":"case:collaborate.withdrawn_citation","kind":"public_case","path":"conformance/runner/src/lib.rs","anchor":"\"collaborate.withdrawn_citation\""},
+    {"id":"case:collaborate.unknown_target","kind":"public_case","path":"conformance/runner/src/lib.rs","anchor":"\"collaborate.unknown_target\""},
+    {"id":"case:collaborate.other_chain","kind":"public_case","path":"conformance/runner/src/lib.rs","anchor":"\"collaborate.other_chain\""},
+    {"id":"case:collaborate.hidden_visibility","kind":"public_case","path":"conformance/runner/src/lib.rs","anchor":"\"collaborate.hidden_visibility\""},
+    {"id":"case:collaborate.hidden_derivation","kind":"public_case","path":"conformance/runner/src/lib.rs","anchor":"\"collaborate.hidden_derivation\""},
+    {"id":"case:collaborate.hidden_objection","kind":"public_case","path":"conformance/runner/src/lib.rs","anchor":"\"collaborate.hidden_objection\""},
+    {"id":"case:collaborate.hidden_decline","kind":"public_case","path":"conformance/runner/src/lib.rs","anchor":"\"collaborate.hidden_decline\""},
+    {"id":"case:collaborate.hidden_withdrawal","kind":"public_case","path":"conformance/runner/src/lib.rs","anchor":"\"collaborate.hidden_withdrawal\""},
+    {"id":"case:discovery.url","kind":"public_case","path":"conformance/runner/src/lib.rs","anchor":"\"discovery.url\""},
+    {"id":"case:discovery.record","kind":"public_case","path":"conformance/runner/src/lib.rs","anchor":"\"discovery.record\""},
+    {"id":"case:endpoints.origin","kind":"public_case","path":"conformance/runner/src/lib.rs","anchor":"\"endpoints.origin\""},
+    {"id":"case:events.authentication","kind":"public_case","path":"conformance/runner/src/lib.rs","anchor":"\"events.authentication\""},
+    {"id":"case:submit.authentication","kind":"public_case","path":"conformance/runner/src/lib.rs","anchor":"\"submit.authentication\""},
+    {"id":"case:restart.history","kind":"public_case","path":"conformance/runner/src/lifecycle.rs","anchor":"\"restart.history\""},
+    {"id":"case:restart.retry","kind":"public_case","path":"conformance/runner/src/lifecycle.rs","anchor":"\"restart.retry\""},
+    {"id":"case:policy.cursor_expired","kind":"public_case","path":"conformance/runner/src/lifecycle.rs","anchor":"\"policy.cursor_expired\""},
+    {"id":"case:policy.visibility","kind":"public_case","path":"conformance/runner/src/lifecycle.rs","anchor":"\"policy.visibility\""},
+    {"id":"test:rust-http","kind":"implementation_test","path":"reference/host/src/tests.rs","anchor":"async fn public_http_covers_recording_refusal_and_restart("},
+    {"id":"test:rust-collaboration","kind":"implementation_test","path":"reference/host/src/tests.rs","anchor":"async fn collaboration_records_survive_restart("},
+    {"id":"test:rust-retention","kind":"implementation_test","path":"reference/host/src/tests.rs","anchor":"fn retry_conflict_expiry_visibility_and_pages("},
+    {"id":"test:rust-transaction","kind":"implementation_test","path":"reference/host/src/tests.rs","anchor":"fn failed_commit_leaves_no_event_and_a_dropped_transaction_rolls_back("},
+    {"id":"test:rust-restart","kind":"implementation_test","path":"reference/host/tests/restart.rs","anchor":"fn process_restart_keeps_a_permitted_event("},
+    {"id":"test:rust-principals","kind":"implementation_test","path":"reference/host/src/tests.rs","anchor":"fn same_message_id_is_scoped_to_each_principal("},
+    {"id":"test:python-http","kind":"implementation_test","path":"implementations/http-commons-python/test_host.py","anchor":"def test_discovery_auth_recording_and_retry("},
+    {"id":"test:python-refusal","kind":"implementation_test","path":"implementations/http-commons-python/test_host.py","anchor":"def test_refusal_record_errors_and_cursors("},
+    {"id":"test:python-collaboration","kind":"implementation_test","path":"implementations/http-commons-python/test_host.py","anchor":"def test_collaboration_records_survive_restart("},
+    {"id":"test:python-retention","kind":"implementation_test","path":"implementations/http-commons-python/test_host.py","anchor":"def test_retry_window_is_half_open_and_keeps_the_old_event("},
+    {"id":"test:python-policy","kind":"implementation_test","path":"implementations/http-commons-python/test_host.py","anchor":"def test_visibility_and_cursor_revision("},
+    {"id":"test:python-principals","kind":"implementation_test","path":"implementations/http-commons-python/test_host.py","anchor":"def test_retry_scope_is_per_principal("},
+    {"id":"test:matrix-result-check","kind":"implementation_test","path":"examples/http-commons/test_validate.py","anchor":"def test_rejects_duplicate_failed_unknown_or_skipped_cases("},
+    {"id":"schema:message","kind":"schema_fixture","path":"schemas/message.schema.json","anchor":"\"$id\""},
+    {"id":"fixture:message","kind":"schema_fixture","path":"conformance/fixtures/valid/message.json","anchor":"\"protocol_version\""},
+    {"id":"schema:world","kind":"schema_fixture","path":"schemas/world.schema.json","anchor":"\"$id\""},
+    {"id":"fixture:world","kind":"schema_fixture","path":"conformance/fixtures/valid/world.json","anchor":"\"protocol_version\""},
+    {"id":"schema:event-page","kind":"schema_fixture","path":"schemas/event-page.schema.json","anchor":"\"$id\""},
+    {"id":"fixture:event-page","kind":"schema_fixture","path":"conformance/fixtures/valid/event-page.json","anchor":"\"protocol_version\""},
+    {"id":"schema:receipt","kind":"schema_fixture","path":"schemas/receipt.schema.json","anchor":"\"$id\""},
+    {"id":"fixture:receipt","kind":"schema_fixture","path":"conformance/fixtures/valid/receipt.json","anchor":"\"protocol_version\""},
+    {"id":"schema:problem","kind":"schema_fixture","path":"schemas/problem.schema.json","anchor":"\"$id\""},
+    {"id":"fixture:problem","kind":"schema_fixture","path":"conformance/fixtures/valid/problem.json","anchor":"\"status\""},
+    {"id":"schema:collaboration-artifact","kind":"schema_fixture","path":"schemas/collaboration-artifact.schema.json","anchor":"\"$id\""},
+    {"id":"fixture:collaboration-artifact","kind":"schema_fixture","path":"conformance/fixtures/valid/collaboration-artifact.json","anchor":"\"protocol_version\""},
+    {"id":"schema:collaboration-objection","kind":"schema_fixture","path":"schemas/collaboration-objection.schema.json","anchor":"\"$id\""},
+    {"id":"fixture:collaboration-objection","kind":"schema_fixture","path":"conformance/fixtures/valid/collaboration-objection.json","anchor":"\"protocol_version\""},
+    {"id":"schema:collaboration-withdrawal","kind":"schema_fixture","path":"schemas/collaboration-withdrawal.schema.json","anchor":"\"$id\""},
+    {"id":"fixture:collaboration-withdrawal","kind":"schema_fixture","path":"conformance/fixtures/valid/collaboration-withdrawal.json","anchor":"\"protocol_version\""},
+    {"id":"setup:walkthrough","kind":"setup","path":"docs/HTTP_WALKTHROUGH.md","anchor":"curl"},
+    {"id":"setup:continuity","kind":"setup","path":"docs/CONTINUITY_NOTES.md","anchor":"continuity_note"},
+    {"id":"case:collaborate.revision_sequence","kind":"public_case","path":"conformance/runner/src/revisions.rs","anchor":"\"collaborate.revision_sequence\""},
+    {"id":"case:collaborate.revision_sequence_retry","kind":"public_case","path":"conformance/runner/src/revisions.rs","anchor":"\"collaborate.revision_sequence_retry\""},
+    {"id":"case:collaborate.revision_sequence_rejection","kind":"public_case","path":"conformance/runner/src/revisions.rs","anchor":"\"collaborate.revision_sequence_rejection\""},
+    {"id":"case:restart.revision_sequence","kind":"public_case","path":"conformance/runner/src/lifecycle.rs","anchor":"\"restart.revision_sequence\""},
+    {"id":"case:collaborate.concurrent_revisions","kind":"public_case","path":"conformance/runner/src/concurrent_revisions.rs","anchor":"\"collaborate.concurrent_revisions\""},
+    {"id":"case:collaborate.concurrent_revisions_retry","kind":"public_case","path":"conformance/runner/src/concurrent_revisions.rs","anchor":"\"collaborate.concurrent_revisions_retry\""},
+    {"id":"case:collaborate.concurrent_revisions_isolation","kind":"public_case","path":"conformance/runner/src/concurrent_revisions.rs","anchor":"\"collaborate.concurrent_revisions_isolation\""},
+    {"id":"case:restart.concurrent_revisions","kind":"public_case","path":"conformance/runner/src/lifecycle.rs","anchor":"\"restart.concurrent_revisions\""},
+    {"id":"case:collaborate.concurrent_retry","kind":"public_case","path":"conformance/runner/src/collaboration_retries.rs","anchor":"\"collaborate.concurrent_retry\""},
+    {"id":"case:collaborate.concurrent_conflict","kind":"public_case","path":"conformance/runner/src/collaboration_retries.rs","anchor":"\"collaborate.concurrent_conflict\""},
+    {"id":"case:collaborate.concurrent_retry_sequence","kind":"public_case","path":"conformance/runner/src/collaboration_retries.rs","anchor":"\"collaborate.concurrent_retry_sequence\""},
+    {"id":"case:prefix.baseline","kind":"public_case","path":"conformance/runner/src/prefix.rs","anchor":"\"prefix.baseline\""},
+    {"id":"case:prefix.append","kind":"public_case","path":"conformance/runner/src/prefix.rs","anchor":"\"prefix.append\""},
+    {"id":"case:prefix.hidden","kind":"public_case","path":"conformance/runner/src/prefix.rs","anchor":"\"prefix.hidden\""},
+    {"id":"case:prefix.withdrawal","kind":"public_case","path":"conformance/runner/src/prefix.rs","anchor":"\"prefix.withdrawal\""},
+    {"id":"test:prefix-room","kind":"implementation_test","path":"examples/participants/test_local_encounter.py","anchor":"def test_thousand_event_return_validates_prefix_and_late_member_does_not_expire_readers("},
+    {"id":"schema:prefix-page","kind":"schema_fixture","path":"schemas/prefix-page.schema.json","anchor":"prefix-view/0.1-experimental"},
+    {"id":"fixture:prefix-page","kind":"schema_fixture","path":"conformance/fixtures/valid/prefix-page.json","anchor":"prefix-view/0.1-experimental"}
   ],
   "observations": [
     {"id": "obs:python:members:discovery.url", "path": "conformance/evidence/local-2026-09-30/local-validation-reviewed.json", "pointer": "/results/0/report/cases", "case_id": "discovery.url", "status": "passed", "required": true},
@@ -3482,6 +3167,11 @@
       "id": "gap:collaboration-retry-races",
       "owner": "Collaboration conformance maintainers",
       "proposed_test": "Retain the actual winning outcomes of simultaneous same-ID collaboration exact retries and conflicting bytes across an operator-declared restart, then retry their exact original bytes without a new event or revision. The current public same-ID cases verify both responses, the winning event, post-race exact retry, and subsequent revision 2 before restart; the existing lifecycle distinct-request race does not retain these same-ID outcomes."
+    },
+    {
+      "id": "gap:prefix-adversarial",
+      "owner": "Host and reader maintainers",
+      "proposed_test": "Keep changed old records, cache corruption, unsupported and legacy cursors, caller policy transitions, proof limits, repeated queries and faulty digests distinct. The 1000-event room and public prefix cases cover their stated bounded scenarios, not every adversarial interleaving or action-time freshness."
     }
   ]
 }

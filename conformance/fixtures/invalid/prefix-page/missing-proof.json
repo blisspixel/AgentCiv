@@ -1,0 +1,10 @@
+{
+  "protocol_version": "0.1-draft",
+  "type": "event_page",
+  "world": "civ:local",
+  "events": [],
+  "next_cursor": "opaque:prefix-example",
+  "has_more": false,
+  "prefix_validation": "prefix-view/0.1-experimental",
+  "validated_prefix_sha256": "25026c53a3a16970c241f98c3425d9523df83fa8b02f984288007a439a8ec101"
+}
