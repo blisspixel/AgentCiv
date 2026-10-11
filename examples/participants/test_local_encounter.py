@@ -923,7 +923,7 @@ class NewcomerToolsTests(unittest.TestCase):
                 result = client.read(config, reader_binary=Path(__file__))
             path = Path(str(result["view_path"]))
             original = path.read_bytes()
-            with patch.object(subprocess, "run") as network:
+            with patch.object(wire, "exchange") as network:
                 rendered = client.show(config, path)
             network.assert_not_called()
             self.assertIn('text: "hello\\n\\u001b[31mvisitor"', rendered)

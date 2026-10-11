@@ -74,6 +74,9 @@ class ModelError(DecisionError, loop.ProviderFailure):
 
     def __init__(self, message: str, code: str = "provider_error") -> None:
         loop.ProviderFailure.__init__(self, code)
+        # Local exceptions keep the caller's fixed diagnostic. Public journals
+        # export only the validated category, never this exception's text.
+        DecisionError.__init__(self, message)
 
 
 def object_value(value: object) -> JsonObject:
