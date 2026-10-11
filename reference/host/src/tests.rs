@@ -217,6 +217,58 @@ fn retry_conflict_expiry_visibility_and_pages() {
 }
 
 #[test]
+fn unchanged_polls_reuse_cursor_without_losing_legacy_tokens() {
+    let dir = tempdir().expect("temp");
+    let path = dir.path().join("world.sqlite");
+    let grants = [("agent:abc123".to_owned(), true, true)];
+    let store = Store::open(&path, "civ:local", Visibility::Members, 60, &grants).expect("store");
+    let first = store
+        .read_page("agent:abc123", "civ:local", None, true)
+        .expect("first");
+    let cursor = first["next_cursor"].as_str().expect("cursor");
+    let connection = rusqlite::Connection::open(&path).expect("inspect");
+    connection.execute("INSERT INTO cursors SELECT 'legacy-same-boundary', principal, last_sequence, revision FROM cursors LIMIT 1", []).expect("legacy duplicate");
+    for _ in 0..10_000 {
+        let page = store
+            .read_page("agent:abc123", "civ:local", Some(cursor), true)
+            .expect("poll");
+        assert!(page["events"].as_array().expect("events").is_empty());
+    }
+    let count: i64 = connection
+        .query_row("SELECT COUNT(*) FROM cursors", [], |row| row.get(0))
+        .expect("count");
+    assert_eq!(count, 2);
+    assert!(
+        store
+            .read_page(
+                "agent:abc123",
+                "civ:local",
+                Some("legacy-same-boundary"),
+                true
+            )
+            .is_ok()
+    );
+    assert!(matches!(
+        store.read_page("agent:other", "civ:local", Some(cursor), true),
+        Err(ReadError::ForeignCursor)
+    ));
+    assert!(matches!(
+        store.read_page("agent:abc123", "civ:local", Some("unknown"), true),
+        Err(ReadError::InvalidCursor)
+    ));
+    let reopened = Store::open(&path, "civ:local", Visibility::SenderOnly, 60, &grants)
+        .expect("changed policy");
+    assert!(matches!(
+        reopened.read_page("agent:abc123", "civ:local", Some(cursor), true),
+        Err(ReadError::Expired)
+    ));
+    assert!(matches!(
+        reopened.read_page("agent:other", "civ:local", Some(cursor), true),
+        Err(ReadError::ForeignCursor)
+    ));
+}
+
+#[test]
 fn same_message_id_is_scoped_to_each_principal() {
     let dir = tempdir().expect("temp");
     let grants = vec![
@@ -336,7 +388,7 @@ fn sender_only_hides_a_message_from_another_principal() {
     let cursor = sender["next_cursor"].as_str().expect("cursor");
     assert!(matches!(
         store.read_page("agent:reader", "civ:local", Some(cursor), true),
-        Err(ReadError::Forbidden)
+        Err(ReadError::ForeignCursor)
     ));
 }
 
@@ -1263,6 +1315,58 @@ fn exercise_review_rules(base: &str) {
         Some("application/problem+json")
     );
     assert_eq!(problem_code(reader), (400, "invalid_cursor".to_owned()));
+}
+
+#[test]
+fn invalid_record_hints_are_fixed_and_do_not_reflect_submission_data() {
+    let dir = tempdir().expect("temp");
+    let mut settings = config(dir.path(), Visibility::Members);
+    settings.max_payload_bytes = 4096;
+    let runtime = tokio::runtime::Runtime::new().expect("runtime");
+    let host = runtime.block_on(start_test_host(settings)).expect("host");
+    let origin = host.discovery.trim_end_matches("/.well-known/agentciv");
+    let mut record: serde_json::Value =
+        serde_json::from_slice(&message("message:hint", "private-value")).expect("record");
+    record["body"] = json!(["private-value"]);
+    record["private-field-name"] = json!("token-writer");
+    let submit = |token: Option<&str>| {
+        let request = client()
+            .post(format!("{origin}/submit"))
+            .header(CONTENT_TYPE, "application/json")
+            .body(record.to_string());
+        let request = if let Some(token) = token {
+            request.header(AUTHORIZATION, format!("Bearer {token}"))
+        } else {
+            request
+        };
+        request.send().expect("response")
+    };
+    assert_eq!(submit(None).status(), 401);
+    let response = submit(Some("token-writer"));
+    assert_eq!(response.status(), 422);
+    let problem = body_json(response);
+    assert_eq!(problem["code"], "invalid_record");
+    assert_eq!(problem["title"], "Invalid record: check /body");
+    for private in ["private-value", "private-field-name", "token-writer"] {
+        assert!(!problem.to_string().contains(private));
+    }
+    assert_eq!(
+        crate::validate::invalid_record_title(&json!({})),
+        "Invalid record: check /protocol_version"
+    );
+    record["body"] = json!({});
+    record["to"] = json!(["agent:reader", "agent:reader"]);
+    assert_eq!(
+        crate::validate::invalid_record_title(&record),
+        "Invalid record: check /to"
+    );
+    record["to"] = json!(["agent:reader"]);
+    record["type"] = json!("artifact_revision");
+    record["revision"] = json!(1);
+    assert_eq!(
+        crate::validate::invalid_record_title(&record),
+        "Invalid record: /revision is host-assigned"
+    );
 }
 
 #[test]

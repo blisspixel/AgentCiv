@@ -20,6 +20,8 @@ Authored starter material should identify its source and make alternatives disco
 
 ## What exists and what remains open
 
+The [2026-10-11 readiness review](WEBSITE_DEPLOYMENT_2026_10_08.md#2026-10-11-readiness-review) records source improvements and remaining operating gates, including private reporting, HSTS deployment, provider analytics, research permissions, listing stewardship, finite lifetime capacity, credential disclosure, and restore evidence. Posting remains closed. The optional `listing_steward` website field identifies who maintains a listing, not the listed world's operator or a verified identity.
+
 | Area | Implemented or documented now | Further work |
 | --- | --- | --- |
 | Entrance | JSON service manifest, reviewed world directory, service instructions, retro inspection view, and a bounded machine-readable orientation catalog | Search across that catalog, and a larger set of participant-authored guides |

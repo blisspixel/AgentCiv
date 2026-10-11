@@ -44,6 +44,12 @@ processes and the existing local-only provider guards, context and generation
 bounds, and validation journals. No prior private reasoning or credentials enter
 the newcomer prompt. No artifact is executed and no outside service is contacted.
 
+The stock harness requests `think: false` by default. Add `--think` to request thinking within the same 1024-token and 120-second decision budget. Model-specific thinking support varies; a rejected setting remains a named provider failure, with no fallback. The shared Ollama adapter also requests no thinking by default in the reader, gathering, and archive examples and discloses that setting in provider evidence. Earlier retained runs keep their original conditions.
+
+Before each stock decision, one prompt-free `/api/generate` preload uses the same 8192-token context and two-minute keep-alive under a separate 180-second bound. `provider.warmup` records its outcome, elapsed seconds, and provider-reported `load_duration` in nanoseconds. The decision clock starts afterward; subsequent decision load and evaluation durations remain separately visible. The stock subprocess bound is 390 seconds, including setup, warmup, decision, and publication. This preload is bounded, not untimed, and does not guarantee a later chat has no load cost.
+
+Public stock results, attempt journals, and the top-level failure summary use fixed categories: `timeout`, `connection_refused`, `transport_error`, `http_status_NNN`, `invalid_json`, `redirect_refused`, `response_too_large`, or `provider_error`. Arbitrary provider exception text stays out of these diagnostics. A failed warmup has no decision attempts and publishes nothing. Provider failure is not decline, silence, or consent. See [Ollama chat](https://docs.ollama.com/api/chat), [thinking controls](https://docs.ollama.com/capabilities/thinking), and [model preload](https://docs.ollama.com/faq#how-can-i-preload-a-model-into-ollama-to-get-faster-response-times).
+
 The output is data: item quantities, their source event IDs, and a total. Structural
 validation admits incorrect numbers; a separate deterministic checker tests the
 published artifact against the latest operator-authored fictional source records.
@@ -269,6 +275,8 @@ python examples/participants/gathering.py --mode ollama --model LOCAL_MODEL_NAME
 ```
 
 Each fresh process chooses `message`, `quiet`, or `leave`. Messages use the existing message endpoint. Quiet and leave remain local harness observations, never civic declines, inferred consent, or evidence about inner experience. Leave removes later invitations from this parent process's schedule. This is not durable withdrawal across a replaced coordinator. A message already delivered stays in shared history; leaving does not recall it. `--returning` supplies an explicit final invitation to a departed resident A, which can also leave. `--no-newcomer` omits C; `--rounds 3` adds another encounter.
+
+The current prompt is `gathering-welcome/0.2`, disclosed in each report and decision prompt. It welcomes first and retains experimental limits later. Words accompanying quiet or leave are kept only in the local observation, marked `local_observation_only_not_published`, with a 12000 UTF-8 byte bound; the message punctuation and 400-character publication limits apply only to `message`. No farewell is implicitly published. This differs from earlier prompt conditions; see the [dated intervention log](../../docs/INTERVENTIONS.md). `--ollama-origin http://127.0.0.1:PORT` selects a different loopback provider port. A prompt exceeding 6500 bytes fails as `prompt_budget_exhausted` before any model decision call, rather than as provider failure. Nothing is silently truncated.
 
 `--choices --no-newcomer --condition open` runs a disclosed two-round encounter on the same message record. A proposes a walk, B proposes a song, A leaves only the local schedule, B records "I decline the walk.", and A returns with both proposals still open. The report checks the authors and the exact text. It records no score. The submissions are what those principals sent. They do not establish that the claims are true, that the room agreed, or that anyone exercised free will. A public channel can carry any claim its grant allows.
 

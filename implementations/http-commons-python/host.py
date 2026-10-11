@@ -312,6 +312,23 @@ def collaboration_error(record: object) -> str | None:
     return None
 
 
+def invalid_record_title(record: object) -> str:
+    """Fixed hints only; validators decide acceptance, with no reflected values."""
+    if not isinstance(record, dict):
+        return "Invalid record: check /protocol_version"
+    for field in ("protocol_version", "type", "id", "world", "from"):
+        if not _nonempty_string(record.get(field)):
+            return f"Invalid record: check /{field}"
+    if record.get("type") != "withdrawal":
+        if not isinstance(record.get("body"), dict):
+            return "Invalid record: check /body"
+        if not _audience(record.get("to")):
+            return "Invalid record: check /to"
+    if record.get("type") == "artifact_revision" and "revision" in record:
+        return "Invalid record: /revision is host-assigned"
+    return "Invalid record: check required fields and their declared types"
+
+
 def _audience(value: object) -> bool:
     if not isinstance(value, list) or not value:
         return False
@@ -578,6 +595,11 @@ class Store:
                 last_sequence INTEGER NOT NULL,
                 revision INTEGER NOT NULL
             );
+            CREATE INDEX IF NOT EXISTS cursor_boundaries
+                ON cursors(principal, revision, last_sequence);
+            CREATE INDEX IF NOT EXISTS artifact_chains
+                ON events(actor, json_extract(message_json, '$.artifact_id'), json_extract(message_json, '$.revision'))
+                WHERE json_extract(message_json, '$.type') = 'artifact_revision';
             """
         )
 
@@ -810,26 +832,24 @@ class Store:
             return
         raise StorageFailure
 
-    def _artifact_rows(self, connection: sqlite3.Connection) -> list[sqlite3.Row]:
+    def _artifact_rows(self, connection: sqlite3.Connection, author: object, artifact_id: object,
+                       revision: object) -> list[sqlite3.Row]:
         return connection.execute(
             """
             SELECT sequence, event_id, actor, event_json, message_json
-            FROM events ORDER BY sequence ASC
-            """
+            FROM events WHERE json_extract(message_json, '$.type') = 'artifact_revision'
+              AND actor = ? AND json_extract(message_json, '$.artifact_id') = ?
+              AND json_extract(message_json, '$.revision') = ? ORDER BY sequence ASC
+            """, (author, artifact_id, revision),
         ).fetchall()
 
     def _next_revision(self, connection: sqlite3.Connection, principal: str, artifact_id: str) -> int:
-        maximum = 0
-        for row in self._artifact_rows(connection):
-            event = parse_object(str(row["event_json"]))
-            record = parse_object(str(row["message_json"]))
-            if event.get("kind") not in {"artifact.recorded", "artifact.withdrawn"}:
-                continue
-            if record.get("from") == principal and record.get("artifact_id") == artifact_id:
-                revision = record.get("revision")
-                if isinstance(revision, int) and not isinstance(revision, bool):
-                    maximum = max(maximum, revision)
-        return maximum + 1
+        row = connection.execute("""
+            SELECT COALESCE(MAX(json_extract(message_json, '$.revision')), 0) FROM events
+            WHERE json_extract(message_json, '$.type') = 'artifact_revision'
+              AND actor = ? AND json_extract(message_json, '$.artifact_id') = ?
+            """, (principal, artifact_id)).fetchone()
+        return int(row[0]) + 1
 
     def _require_visible_revision(
         self,
@@ -843,7 +863,7 @@ class Store:
         artifact_id = citation.get("artifact_id")
         revision = citation.get("revision")
         visibility = self._required_meta(connection, "visibility")
-        for row in self._artifact_rows(connection):
+        for row in self._artifact_rows(connection, target_from, artifact_id, revision):
             event = parse_object(str(row["event_json"]))
             record = parse_object(str(row["message_json"]))
             if event.get("kind") not in {"artifact.recorded", "artifact.withdrawn"}:
@@ -960,7 +980,7 @@ class Store:
             FROM events WHERE sequence > ? ORDER BY sequence ASC
             """,
             (start,),
-        ).fetchall()
+        )
         visible: list[JsonObject] = []
         scanned_through = start
         last_included = start
@@ -981,14 +1001,20 @@ class Store:
             visible.append(event)
             last_included = sequence
         last_sequence = last_included if has_more else scanned_through
-        token = secrets.token_urlsafe(24)
-        connection.execute(
-            """
-            INSERT INTO cursors (token, principal, last_sequence, revision)
-            VALUES (?, ?, ?, ?)
-            """,
-            (token, principal, last_sequence, revision),
-        )
+        rows.close()
+        saved = connection.execute(
+            "SELECT token FROM cursors WHERE principal = ? AND revision = ? AND last_sequence = ? LIMIT 1",
+            (principal, revision, last_sequence),
+        ).fetchone()
+        token = str(saved[0]) if saved is not None else secrets.token_urlsafe(24)
+        if saved is None:
+            connection.execute(
+                """
+                INSERT INTO cursors (token, principal, last_sequence, revision)
+                VALUES (?, ?, ?, ?)
+                """,
+                (token, principal, last_sequence, revision),
+            )
         return {
             "protocol_version": PROTOCOL_VERSION,
             "type": "event_page",
@@ -1222,7 +1248,7 @@ class Handler(BaseHTTPRequestHandler):
             self._problem(422, code, "Unsupported record type")
             return
         if code == "invalid_record":
-            self._problem(422, code, "Invalid record")
+            self._problem(422, code, invalid_record_title(record))
             return
         if isinstance(record, dict):
             world = record.get("world")
@@ -1273,7 +1299,7 @@ class Handler(BaseHTTPRequestHandler):
             self._problem(422, code, "Unsupported record type")
             return
         if code == "invalid_record":
-            self._problem(422, code, "Invalid record")
+            self._problem(422, code, invalid_record_title(record))
             return
         if isinstance(record, dict):
             world = record.get("world")

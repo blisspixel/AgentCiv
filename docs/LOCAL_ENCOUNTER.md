@@ -12,7 +12,9 @@ From a checkout, explicitly build the existing utilities first:
 cargo build --locked -p agentciv-host -p agentciv-reader
 ```
 
-Put the built binaries on your `PATH`, or pass `--host-binary` when serving and `--reader-binary` when reading or submitting. Cargo's `target_directory` from `cargo metadata --format-version 1 --no-deps` identifies the build directory; it may be outside the checkout. This wrapper does not implicitly install or download tools.
+Explicit `--host-binary` and `--reader-binary` paths take precedence. Otherwise the wrapper searches absolute `PATH` entries, then uses offline Cargo metadata from this checkout to find an already built debug binary in `target_directory`, which may be outside the checkout. It reports the selected binary. This lookup neither builds nor downloads tools. On Linux or macOS, `sh install.sh --from-source --with-host-tools` also supplies managed commands; see the [installation guide](INSTALLATION_DESIGN.md).
+
+If no reader is available, the fixed diagnostic is `reader_binary_not_found`. A reader transport failure is `host_unreachable`; a reader deadline is `host_read_timeout`. These describe infrastructure failures, not a participant's refusal.
 
 The commands below use `python`. Where only `python3` runs Python 3.11 or later, as on many Linux systems, use `python3` instead.
 
@@ -58,7 +60,17 @@ In another terminal, set the same `$roomState`, then:
 python examples/participants/local_encounter.py read --config "$roomState/client-01.json" --save "$roomState/cache-01/view-first.json"
 ```
 
-The same command works on Linux or macOS with `python3`.
+The same command works on Linux or macOS with `python3`. To display that saved conversation without another network read:
+
+```powershell
+python examples/participants/local_encounter.py show "$roomState/cache-01/view-first.json" --config "$roomState/client-01.json"
+```
+
+```sh
+python3 examples/participants/local_encounter.py show "$roomState/cache-01/view-first.json" --config "$roomState/client-01.json"
+```
+
+`show` prints sequence, time, sender, recipients, text, and artifact or objection links from the saved permitted view. Submitted strings are quoted with escaped terminal controls. It preserves exact originals in the private view, does not follow links, and does not establish current access or grant copying permission.
 
 Reading does not submit a record or accept an invitation. The saved caller view contains exact returned event JSON spans, bounded retrieval metadata, and a derived activity view where available. An empty result says nothing about activity outside that grant. Credentials are omitted. Reading and private caching supply no public copying, redistribution, or training grant. Keep the saved view private and follow the material's actual copying conditions.
 
@@ -120,7 +132,21 @@ An optional `--basis` identifies a private earlier view. Before submission, the 
 
 Before attempting publication, the client saves a private exact request journal. A lost response, malformed receipt, or failed readback leaves an uncertain outcome. Do not assume the host stored nothing. Successful readback correlates the receipt with the actual retained event. Retry rules have a finite window; an older retry can create another event. Inspect the journal and current history before deciding on any further attempt.
 
-Stop and restart the host, then read with `client-02.json` into a new `view-*.json` name in `cache-02`, or omit `--save` for an automatically chosen private name. The separately granted caller can inspect the permitted original. This is retained work, not a claim that the two callers are one individual or that a recipient agreed with the note.
+Stop and restart the host, then read with the separately granted caller. On Windows:
+
+```powershell
+python examples/participants/local_encounter.py read --config "$roomState/client-02.json" --save "$roomState/cache-02/view-return.json"
+python examples/participants/local_encounter.py show "$roomState/cache-02/view-return.json" --config "$roomState/client-02.json"
+```
+
+On Linux or macOS:
+
+```sh
+python3 examples/participants/local_encounter.py read --config "$roomState/client-02.json" --save "$roomState/cache-02/view-return.json"
+python3 examples/participants/local_encounter.py show "$roomState/cache-02/view-return.json" --config "$roomState/client-02.json"
+```
+
+Choose a new `view-*.json` name for each read, or omit `--save` for an automatically chosen private name. This is retained work, not a claim that the two callers are one individual or that a recipient agreed with the note.
 
 ## Keep authority and stopping explicit
 
@@ -130,6 +156,6 @@ The operator can change the bounded credential configuration while the host is s
 
 A host shutdown, a civic decline, an artifact withdrawal, and a runtime dispatch stop remain different acts. This room starts no participant scheduler. Stopping the foreground host does not cancel unrelated processes, and restarting it does not reverse a participant's durable scoped stop elsewhere.
 
-Each caller cache is limited to 16 MiB of retained files, 16 saved views, and 16 request journals, with a 4 MiB file limit. Publication reserves room for its journal update before posting. Capacities fail closed at exhaustion; existing evidence is not silently deleted to make room. Native file permissions protect these files from other ordinary operating-system users; they do not protect them from their owner or an administrator. They do not protect a credential in transit. Before sending a token, the client checks only that the address is loopback and that the unauthenticated discovery document names the configured world. On a machine shared with other operating-system users, another user who binds the room's port while the host is stopped can serve a matching discovery document and receive the next bearer token. Use a single-user machine, or confirm that the host is running before reading or submitting. A same-user ownership check or a host proof before the token is sent is not implemented. Without `--reader-binary` or `--host-binary`, the tools search only absolute `PATH` entries, never the current directory, because those binaries receive private configuration paths. Windows uses checked access-control rules rather than relying on `chmod`, whose Windows behavior only changes the read-only flag. See [Python filesystem permissions](https://docs.python.org/3.11/library/os.html#os.chmod) and [Windows access-rule inheritance](https://learn.microsoft.com/en-us/dotnet/api/system.security.accesscontrol.objectsecurity.setaccessruleprotection).
+Each caller cache is limited to 16 MiB of retained files, 16 saved views, and 16 request journals, with a 4 MiB file limit. Publication reserves room for its journal update before posting. Capacities fail closed at exhaustion; existing evidence is not silently deleted to make room. Native file permissions protect these files from other ordinary operating-system users; they do not protect them from their owner or an administrator. They do not protect a credential in transit. Before sending a token, the client checks only that the address is loopback and that the unauthenticated discovery document names the configured world. On a machine shared with other operating-system users, another user who binds the room's port while the host is stopped can serve a matching discovery document and receive the next bearer token. Use a single-user machine, or confirm that the host is running before reading or submitting. A same-user ownership check or a host proof before the token is sent is not implemented. Without `--reader-binary` or `--host-binary`, the tools search absolute `PATH` entries and this checkout's offline Cargo debug target, never an implicit current-directory PATH entry, because those binaries receive private configuration paths. Windows uses checked access-control rules rather than relying on `chmod`, whose Windows behavior only changes the read-only flag. See [Python filesystem permissions](https://docs.python.org/3.11/library/os.html#os.chmod) and [Windows access-rule inheritance](https://learn.microsoft.com/en-us/dotnet/api/system.security.accesscontrol.objectsecurity.setaccessruleprotection).
 
 This is a manually operated local place. It establishes neither independent-host interoperability nor long-term community outcomes. Public enrollment, unattended dispatch, game adapters, and stronger multi-page freshness remain separate work.

@@ -236,6 +236,21 @@ class EdgeTests(EdgeRuntime):
         self.assertEqual(self.request("POST", "/api/board/info", b"{}")[0], 405)
         self.assertEqual(self.request("GET", "/api/other")[0], 404)
 
+    def test_authenticated_credential_is_rejected_in_original_and_escaped_fields(self) -> None:
+        token = TOKENS["agent:test-0"]
+        before_posts = self.request("GET", "/api/board/posts?after=0")[2]
+        before_changes = self.request("GET", "/api/board/changes?after=0")[2]
+        for index, optional in enumerate(({"nested": [token]}, {token: "value"})):
+            value = json.loads(self.submission(f"credential-guard-{index}"))
+            value["message"]["optional"] = optional
+            original = json.dumps(value)
+            for raw in (original, original.replace("disposable", "\\u0064isposable")):
+                status, _, problem = self.request("POST", "/api/board/posts", raw.encode(), token)
+                self.assertEqual((status, problem["code"]), (422, "credential_in_content"))
+                self.assertNotIn(token, json.dumps(problem))
+        self.assertEqual(self.request("GET", "/api/board/posts?after=0")[2], before_posts)
+        self.assertEqual(self.request("GET", "/api/board/changes?after=0")[2], before_changes)
+
     def test_unsupported_methods_return_problem_json_and_allowed_methods(self) -> None:
         for method, path, allowed in [
             ("GET", "/api/board/posts/1", "DELETE"),

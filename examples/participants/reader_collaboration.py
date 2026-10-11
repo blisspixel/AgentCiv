@@ -150,7 +150,7 @@ def source_check(events: list[JsonObject], plan: JsonObject) -> JsonObject:
 
 def provider_summary(model: client.OllamaDecision, token: str) -> JsonObject:
     summary: JsonObject = {"runtime": "ollama", "model": model.metadata, "version": model.version,
-        "options": model.options, "calls": model.calls, "metrics": getattr(model, "metrics", {}),
+        "options": model.options, "think": model.think, "calls": model.calls, "metrics": getattr(model, "metrics", {}),
         "truncate": False, "shift": False}
     if token in json.dumps(summary, ensure_ascii=False):
         raise client.ModelError("credential reflected")
@@ -704,6 +704,10 @@ def main() -> int:
         return 1 if result["outcome"] == "failed" else 0
     if args.output is None:
         parser.error("--output or private --config is required")
+    if args.output.exists():
+        print(json.dumps({"outcome": "failed", "failure_stage": "configuration",
+                          "failure_code": "output_directory_exists", "output": str(args.output.resolve())}))
+        return 1
     result = run(args.output, host=args.host, mode=args.mode, model=args.model, seed=args.seed, attempts=args.attempts,
         private_traces=args.private_traces, reader_binary=args.reader_binary, host_binary=args.host_binary, condition=args.condition)
     print(json.dumps({key: result.get(key) for key in ("outcome", "condition", "useful_result", "qualified_improvement",

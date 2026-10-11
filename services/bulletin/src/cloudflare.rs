@@ -273,7 +273,8 @@ impl DurableObject for Bulletin {
                 .ok_or_else(|| Problem::new(404, "post_not_found"))
                 .and_then(|number| crate::remove(&self.db, grant, number, &now))
         } else {
-            crate::submit(&self.db, grant, &raw, &now)
+            crate::reject_credential_in_content(&raw, &token)
+                .and_then(|()| crate::submit(&self.db, grant, &raw, &now))
         };
         match result {
             Ok(post) if is_form => {

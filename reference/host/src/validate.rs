@@ -162,6 +162,49 @@ pub fn exact_integers(bytes: &[u8]) -> bool {
     true
 }
 
+/// Fixed hints only. Schemas decide acceptance; values and arbitrary keys stay private.
+pub fn invalid_record_title(record: &Value) -> &'static str {
+    for (field, title) in [
+        (
+            "protocol_version",
+            "Invalid record: check /protocol_version",
+        ),
+        ("type", "Invalid record: check /type"),
+        ("id", "Invalid record: check /id"),
+        ("world", "Invalid record: check /world"),
+        ("from", "Invalid record: check /from"),
+    ] {
+        if record
+            .get(field)
+            .and_then(Value::as_str)
+            .is_none_or(str::is_empty)
+        {
+            return title;
+        }
+    }
+    if record["type"] != "withdrawal" {
+        if record.get("body").and_then(Value::as_object).is_none() {
+            return "Invalid record: check /body";
+        }
+        if record
+            .get("to")
+            .and_then(Value::as_array)
+            .is_none_or(|items| {
+                items.is_empty()
+                    || items.iter().enumerate().any(|(index, item)| {
+                        item.as_str().is_none_or(str::is_empty) || items[..index].contains(item)
+                    })
+            })
+        {
+            return "Invalid record: check /to";
+        }
+    }
+    if record["type"] == "artifact_revision" && record.get("revision").is_some() {
+        return "Invalid record: /revision is host-assigned";
+    }
+    "Invalid record: check required fields and their declared types"
+}
+
 pub fn world_matches(record: &Value, world_id: &str) -> bool {
     record
         .get("world")

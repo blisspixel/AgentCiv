@@ -394,6 +394,49 @@ class DecisionTests(unittest.TestCase):
 
 
 class OllamaTests(unittest.TestCase):
+    def test_transport_categories_do_not_expose_exception_text(self) -> None:
+        errors = [(TimeoutError("private"), "timeout"),
+                  (urllib.error.URLError(TimeoutError("private")), "timeout"),
+                  (urllib.error.URLError(ConnectionRefusedError("private")), "connection_refused"),
+                  (urllib.error.URLError("private"), "transport_error")]
+        for error, code in errors:
+            with self.subTest(code=code), patch.object(urllib.request, "build_opener") as build:
+                build.return_value.open.side_effect = error
+                with self.assertRaises(client.ModelError) as caught:
+                    client.ollama_exchange("http://127.0.0.1:1", "/api/chat", {}, 1)
+                self.assertEqual(caught.exception.code, code)
+                self.assertNotIn("private", str(caught.exception))
+        with patch.object(urllib.request, "build_opener") as build:
+            build.return_value.open.return_value.__enter__.return_value.read.return_value = b"not JSON"
+            with self.assertRaises(client.ModelError) as caught:
+                client.ollama_exchange("http://127.0.0.1:1", "/api/chat", {}, 1)
+            self.assertEqual(caught.exception.code, "invalid_json")
+
+    def test_warmup_is_bounded_and_separate_from_decisions_and_records_thinking(self) -> None:
+        for think in (False, True):
+            responses = [self.inventory(), {}, {"version": "fixture"}, {"done": True, "load_duration": 2000000000},
+                         {"done": True, "message": {"content": json.dumps(choice())}, "load_duration": 3, "eval_duration": 4}]
+            with patch.object(client, "ollama_exchange", side_effect=responses) as exchange:
+                model = client.OllamaDecision("http://127.0.0.1:1", "local:8b", 1, None, think=think)
+                model.warm()
+                self.assertEqual(model.calls, 0)
+                preload = exchange.call_args.args
+                self.assertEqual(preload[1], "/api/generate")
+                self.assertEqual(preload[3], 180)
+                self.assertNotIn("prompt", preload[2])
+                self.assertEqual(preload[2]["options"]["num_ctx"], 8192)
+                self.assertEqual(model.warmup["load_duration"], 2000000000)
+                reply = model.complete("prompt", [], output_tokens=100, timeout=12)
+                self.assertEqual(exchange.call_args.args[2]["think"], think)
+                self.assertEqual(reply.metrics["load_duration"], 3)
+                self.assertEqual(exchange.call_args.args[3], 12)
+        with patch.object(client, "ollama_exchange", side_effect=[self.inventory(), {}, {"version": "fixture"}, client.ModelError("private", "timeout")]):
+            model = client.OllamaDecision("http://127.0.0.1:1", "local:8b", 1, None)
+            with self.assertRaises(client.ModelError):
+                model.warm()
+            self.assertEqual(model.warmup["failure_code"], "timeout")
+            self.assertEqual(model.calls, 0)
+
     def inventory(self) -> client.JsonObject:
         return {"models": [{"name": "local:8b", "digest": "sha256:fixture", "size": 100}]}
 

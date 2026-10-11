@@ -1,8 +1,21 @@
 # Native utility installation
 
-Status: the repository includes installers and offline fixture tests. Native release builds and published-download validation remain pending. The intended bootstrap is not live; the commands below describe the release interface after a verified release exists. Installation will not establish a profile, SDK, interoperability, or collaboration-quality result.
+Status: the repository includes installers, offline fixture tests, and an explicit POSIX source-install path. CI installs, runs, and removes the four real source-built tools on Linux and macOS. Native release builds and published-download validation remain pending. The hosted bootstrap is not live; the release commands below require a verified native release. Installation will not establish a profile, SDK, interoperability, or collaboration-quality result.
 
 The default contains `agentciv-archive` and `agentciv-reader`. `--with-host-tools` or `-WithHostTools` adds the Rust loopback host and public conformance runner. The repository checker is checkout-only and excluded. Native downloads require no Cargo, Python, Node, account, API key, model pull, paid inference, or administrator access. Python collaboration experiments still require the repository and Python. Installing utilities does not install those experiments.
+
+## Install from a checkout today
+
+On Linux or macOS, with Git and Rust available, run from a clean source checkout:
+
+```sh
+sh install.sh --from-source
+sh install.sh --from-source --with-host-tools --prefix "$HOME/.local/share/agentciv-room-tools"
+```
+
+The first command installs the archive and reader. The second uses a separate prefix and includes the host and conformance runner. The installer runs `cargo install --locked --path` for each selected package, using the checkout's pinned toolchain, then activates a `source-COMMIT` generation with verified ownership hashes. Builds can download locked Rust dependencies and the pinned toolchain; they do not download models or start a service. Commit tracked changes first. Source installations retain the current notice inventory, including its incomplete review status, and do not bypass the gate on publishing project-built native assets.
+
+The printed `bin` path is the only shell setup needed. Source generations support the same explicit update, rollback, and uninstall commands as release generations. Failed first downloads or builds remove an empty installer skeleton. `--uninstall` also handles a legacy empty skeleton; unknown files are retained. A failed update keeps the active generation. Unexpected retained files require inspection rather than recursive cleanup.
 
 ## Release interface
 
@@ -22,6 +35,8 @@ Local parameters are:
 
 ```sh
 sh install.sh --version v0.1.0 --prefix '/absolute/path with spaces/agentciv'
+sh install.sh --version v0.1.0-preview.3 --prefix '/absolute/path with spaces/agentciv'
+sh install.sh --pre --prefix '/absolute/path with spaces/agentciv'
 sh install.sh --prefix '/absolute/path with spaces/agentciv' --rollback
 sh install.sh --prefix '/absolute/path with spaces/agentciv' --uninstall
 ```
@@ -32,7 +47,7 @@ sh install.sh --prefix '/absolute/path with spaces/agentciv' --uninstall
 & .\install.ps1 -Prefix 'C:\Users\me\Applications\AgentCiv' -Uninstall
 ```
 
-`latest` resolves a small `VERSION` asset, then fetches binaries from that exact version. Re-running the installer explicitly updates it. There is no background updater. Assets are `COMPONENT-vX.Y.Z-TARGET`, with `.exe` on Windows, plus `SHA256SUMS`, installers, `VERSION`, and `LICENSE`. The intended native matrix is Linux x64/ARM64, Windows x64/ARM64, and macOS Intel/ARM64. Support requires actual release smoke tests; architecture detection alone is insufficient. Linux GNU builds must disclose their runner's libc floor. No source-build or architecture fallback occurs silently. GitHub documents free standard runners for public repositories with these architectures. [Runner reference](https://docs.github.com/en/actions/reference/runners/github-hosted-runners).
+`latest` resolves a small `VERSION` asset from the latest stable release, then fetches binaries from that exact version. POSIX `--version` also accepts bounded prerelease tags. POSIX `--pre` requires `jq` and selects the first published prerelease returned by the bounded GitHub releases API listing; it does not change stable `latest` behavior. A source-only preview has no native assets and produces an actionable diagnostic pointing to `--from-source`. Windows currently accepts stable native-release versions only. Re-running the installer explicitly updates it. There is no background updater. Assets are `COMPONENT-vX.Y.Z-TARGET`, with `.exe` on Windows, plus `SHA256SUMS`, installers, `VERSION`, and `LICENSE`. The intended native matrix is Linux x64/ARM64, Windows x64/ARM64, and macOS Intel/ARM64. Support requires actual release smoke tests; architecture detection alone is insufficient. Linux GNU builds must disclose their runner's libc floor. No source-build or architecture fallback occurs silently. GitHub documents free standard runners for public repositories with these architectures. [Runner reference](https://docs.github.com/en/actions/reference/runners/github-hosted-runners).
 
 ## Installation boundaries
 

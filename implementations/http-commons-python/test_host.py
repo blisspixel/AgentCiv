@@ -14,6 +14,7 @@ import subprocess
 import sys
 import tempfile
 import threading
+import tracemalloc
 import unittest
 from unittest import mock
 import urllib.error
@@ -292,6 +293,26 @@ class RecordTests(unittest.TestCase):
         self.assertEqual(host.collaboration_error(empty_aim), "invalid_record")
 
 
+class FixedDiagnosticTests(unittest.TestCase):
+    def test_invalid_record_hints_do_not_reflect_keys_values_or_credentials(self) -> None:
+        record = json_body(message("message:hint", "agent:abc123"))
+        record["body"] = ["private-value"]
+        record["private-field-name"] = "writer-token-value"
+        self.assertEqual(host.invalid_record_title(record), "Invalid record: check /body")
+        record["body"] = {}
+        record["to"] = ["agent:reader", "agent:reader"]
+        self.assertEqual(host.invalid_record_title(record), "Invalid record: check /to")
+        record["to"] = ["agent:reader"]
+        record["type"] = "artifact_revision"
+        record["revision"] = 1
+        self.assertEqual(host.invalid_record_title(record), "Invalid record: /revision is host-assigned")
+        values: tuple[object, ...] = (None, {}, [])
+        for value in values:
+            title = host.invalid_record_title(value)
+            self.assertNotIn("private", title)
+            self.assertTrue(title.startswith("Invalid record:"))
+
+
 class StoreTests(unittest.TestCase):
     def setUp(self) -> None:
         self.temporary = tempfile.TemporaryDirectory()
@@ -302,6 +323,75 @@ class StoreTests(unittest.TestCase):
 
     def tearDown(self) -> None:
         self.temporary.cleanup()
+
+    def test_unchanged_polls_reuse_cursor_and_preserve_legacy_tokens(self) -> None:
+        first = self.store.read_page("agent:abc123", None, True)
+        cursor = expect_str(first["next_cursor"])
+        with self.store._connect() as connection:
+            connection.execute("INSERT INTO cursors SELECT 'legacy-same-boundary', principal, last_sequence, revision FROM cursors LIMIT 1")
+            for _ in range(10_000):
+                page = self.store._read_page(connection, "agent:abc123", cursor)
+                self.assertEqual(page["events"], [])
+            count = connection.execute("SELECT COUNT(*) FROM cursors").fetchone()[0]
+        connection.close()
+        self.assertEqual(count, 2)
+        self.assertEqual(self.store.read_page("agent:abc123", "legacy-same-boundary", True)["events"], [])
+        with self.assertRaises(host.ReadForbidden):
+            self.store.read_page("agent:reader", cursor, True)
+        changed = host.Store(config(self.directory, visibility="sender_only", retention_seconds=10))
+        with self.assertRaises(host.CursorExpired):
+            changed.read_page("agent:abc123", cursor, True)
+        with self.assertRaises(host.ReadForbidden):
+            changed.read_page("agent:reader", cursor, True)
+        with self.assertRaises(host.InvalidCursor):
+            changed.read_page("agent:abc123", "unknown", True)
+
+    def test_large_history_read_materializes_one_page_not_the_entire_table(self) -> None:
+        record = json_body(message("message:padding", "agent:abc123", text="x" * 2048))
+        event: host.JsonObject = {"protocol_version": "0.1-draft", "type": "event", "world": "civ:local",
+            "id": "event:padding", "sequence": 1, "kind": "message.recorded", "actor": "agent:abc123",
+            "timestamp": "2026-10-11T00:00:00Z", "body": {"message": record}}
+        with self.store._connect() as connection:
+            connection.executemany("INSERT INTO events VALUES (?, ?, ?, ?, ?, ?)",
+                ((index, f"event:{index}", "agent:abc123", json.dumps({**event, "id": f"event:{index}", "sequence": index}),
+                  json.dumps(record), 1000) for index in range(1, 10_001)))
+        connection.close()
+        tracemalloc.start()
+        try:
+            page = self.store.read_page("agent:abc123", None, True)
+            _, peak = tracemalloc.get_traced_memory()
+        finally:
+            tracemalloc.stop()
+        self.assertEqual(len(dicts(page["events"])), host.PAGE_LIMIT)
+        self.assertTrue(page["has_more"])
+        self.assertLess(peak, 8 * 1024 * 1024, "read allocated more than a bounded page")
+
+    def test_artifact_lookup_work_is_independent_of_unrelated_room_history(self) -> None:
+        record = artifact_revision("submission:indexed", "agent:abc123", ["agent:reader"])
+        self.store.collaborate("agent:abc123", json.dumps(record).encode(), can_read=True)
+        self.store.submit("agent:abc123", message("message:padding", "agent:abc123"))
+        with self.store._connect() as connection:
+            connection.execute("""WITH RECURSIVE padding(n) AS (
+                SELECT 3 UNION ALL SELECT n + 1 FROM padding WHERE n < 100002)
+                INSERT INTO events SELECT n, 'event:padding-' || n, actor,
+                  json_set(event_json, '$.sequence', n, '$.id', 'event:padding-' || n),
+                  json_set(message_json, '$.id', 'message:padding-' || n), created_unix
+                FROM padding, events WHERE sequence = 2""")
+            steps = 0
+
+            def bounded_work() -> int:
+                nonlocal steps
+                steps += 1
+                return int(steps > 10)
+
+            connection.set_progress_handler(bounded_work, 1000)
+            self.assertEqual(self.store._next_revision(connection, "agent:abc123", "artifact:plan"), 2)
+            selected = self.store._require_visible_revision(connection, "agent:reader", True,
+                {"from": "agent:abc123", "artifact_id": "artifact:plan", "revision": 1}, "from")
+            self.assertEqual(selected["actor"], "agent:abc123")
+            self.assertLessEqual(steps, 10, "lookup scanned unrelated history")
+            connection.set_progress_handler(None, 0)
+        connection.close()
 
     def test_database_keeps_the_world_it_was_opened_for(self) -> None:
         body = message("message:kept", "agent:abc123", text="stay")

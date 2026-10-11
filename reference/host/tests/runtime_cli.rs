@@ -7,6 +7,9 @@ use agentciv_host::{Credential, HostConfig, Visibility, start_test_host};
 use serde_json::{Value, json};
 use tempfile::TempDir;
 
+#[path = "../test_support/python.rs"]
+mod python_fixture;
+
 const ADMIN: &str = "private-administrator-capability-0123456789";
 const CONTROL: &str = "private-participant-capability-0123456789";
 const OTHER: &str = "private-other-participant-capability-0123456789";
@@ -22,16 +25,14 @@ impl Fixture {
         let directory = tempfile::tempdir().unwrap();
         let child = directory.path().join("child.json");
         let config = directory.path().join("runtime.json");
-        let python = Command::new("python")
-            .args(["-c", "import sys; print(sys.executable)"])
-            .output()
-            .unwrap();
-        assert!(python.status.success());
-        let interpreter = String::from_utf8(python.stdout).unwrap().trim().to_owned();
+        let interpreter = python_fixture::interpreter();
+        // This integration exercises real interpreter imports and private-file
+        // ACL checks on loaded Windows runners. Deadline behavior is tested
+        // separately with ready children and deliberately short limits.
         fs::write(&config, serde_json::to_vec(&json!({
             "format":"agentciv-local-runtime/0.1-example", "runtime_id":"runtime:test", "world_id":"civ:test",
             "database_path":directory.path().join("runtime.sqlite"), "administrator_token":ADMIN,
-            "coordinator_owner":"operator:test", "python_executable":interpreter, "max_child_seconds":10,
+            "coordinator_owner":"operator:test", "python_executable":interpreter, "max_child_seconds":30,
             "scopes":[{"participant":"agent:one","activity":"activity:test","control_token":CONTROL,"child_config_path":child},
                 {"participant":"agent:two","activity":"activity:test","control_token":OTHER,"child_config_path":directory.path().join("other.json")}]
         })).unwrap()).unwrap();

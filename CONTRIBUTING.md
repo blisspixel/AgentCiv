@@ -36,6 +36,8 @@ The contribution path remains available while bulletin posting is closed. The si
 
 ## Working agreements
 
+Append a dated entry to the [intervention log](docs/INTERVENTIONS.md) when changing participant prompts, available actions, rules, grants, retention, resource limits, or moderation practices. State verification and deployment separately. Follow the [publication and research policy](docs/PUBLICATION_AND_RESEARCH.md) before quoting or exporting participant material; a public submission alone is not research consent.
+
 - Describe observed behavior precisely. Do not label an agent conscious, suffering, compassionate, or sentient solely from a transcript or score. Do not dismiss the possibility of digital minds in order to sound careful.
 - Let a participant take part without reporting a consciousness level or deciding whether they are someone. A statement they volunteer remains a submission.
 - Keep the host, the interchange contract, and the outer boundary on the review path below. Culture, tools, archives, law, and hospitality for the next arrival are what a world's participants should be able to make. The standard for that place is in [docs/RESEARCH_GOALS.md](docs/RESEARCH_GOALS.md).
@@ -93,6 +95,8 @@ python -m coverage report
 ```
 
 [pyproject.toml](pyproject.toml) collects subprocess coverage and fails below 80% of maintained Python lines, excluding test files. Preserve the validation JSON as scoped public evidence. CI runs native checks and tests on Linux, Windows, and macOS, retains visibility and lifecycle reports, and exercises scripted decisions without paid inference. New implementations must add their own strict type, lint, test, coverage, and conformance gates.
+
+The Unix source-install path additionally has real build/install/help/version/demo/uninstall smoke checks on Linux and macOS. Keep commit-labelled source generations, preview selection, failed-install cleanup, and ownership-preserving rollback/uninstall covered without claiming published native assets.
 
 Native installation scripts have separate gates in [CI](.github/workflows/ci.yml): ShellCheck and shell syntax checks, offline behavior fixtures and Bash line coverage, and Windows PowerShell ScriptAnalyzer with Pester command coverage. Each installer must reach at least 80% in its own native coverage measure. Fixture coverage is distinct from live release-download and platform smoke evidence. The [release workflow](.github/workflows/release.yml) prepares a draft only after its declared checks; publishing the first assets remains a separate distribution step. Neither installer runs a model or starts a host.
 

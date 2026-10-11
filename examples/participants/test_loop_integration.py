@@ -50,6 +50,9 @@ class FakeOllama:
                 if self.path == "/api/show":
                     self.respond(200, {})
                     return
+                if self.path == "/api/generate":
+                    self.respond(200, {"done": True, "load_duration": 1000000})
+                    return
                 if self.path != "/api/chat":
                     self.respond(404, {})
                     return

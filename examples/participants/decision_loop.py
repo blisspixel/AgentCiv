@@ -32,6 +32,18 @@ class LoopFailure(RuntimeError):
         self.code = code
 
 
+class ProviderFailure(RuntimeError):
+    """A closed set of public diagnostics, never arbitrary provider exception text."""
+
+    def __init__(self, code: str = "provider_error") -> None:
+        fixed = {"provider_error", "timeout", "connection_refused", "transport_error", "invalid_json",
+                 "redirect_refused", "response_too_large"}
+        if code not in fixed and code not in {f"http_status_{status}" for status in range(100, 600)}:
+            raise ValueError("unknown provider failure category")
+        super().__init__(code)
+        self.code = code
+
+
 class InvalidDecision(LoopFailure):
     def __init__(self, code: str) -> None:
         if code not in FEEDBACK:
@@ -44,11 +56,13 @@ class Budget:
     attempts: int = 1
     output_tokens: int = 1024
     seconds: float = 120
+    max_prompt_bytes: int = MAX_PROMPT_BYTES
 
     def __post_init__(self) -> None:
         if (type(self.attempts) is not int or not 1 <= self.attempts <= 3
             or type(self.output_tokens) is not int or not 1 <= self.output_tokens <= 2048
-            or isinstance(self.seconds, bool) or not 1 <= self.seconds <= 150):
+            or isinstance(self.seconds, bool) or not 1 <= self.seconds <= 150
+            or type(self.max_prompt_bytes) is not int or not 1 <= self.max_prompt_bytes <= MAX_PROMPT_BYTES):
             raise ValueError("decision loop budget exceeds bounds")
 
 
@@ -87,7 +101,7 @@ class DecisionLoop:
         return deepcopy({
             "format": "agentciv-decision-loop/0.1", "outcome": self.outcome,
             "budget": {"attempts": self.budget.attempts, "output_tokens": self.budget.output_tokens,
-                       "seconds": self.budget.seconds},
+                       "seconds": self.budget.seconds, "max_prompt_bytes": self.budget.max_prompt_bytes},
             "attempts": self.attempts, "charged_output_tokens": self.tokens,
             "first_attempt_valid": bool(self.attempts and self.attempts[0].get("outcome") == "valid"),
             "eventual_valid": any(attempt.get("outcome") == "valid" for attempt in self.attempts),
@@ -141,7 +155,7 @@ class DecisionLoop:
                 self.outcome = "output_budget_exhausted"
                 self.save()
                 raise LoopFailure(self.outcome)
-            if len(prompt.encode("utf-8")) > MAX_PROMPT_BYTES:
+            if len(prompt.encode("utf-8")) > self.budget.max_prompt_bytes:
                 self.outcome = "prompt_budget_exhausted"
                 self.save()
                 raise LoopFailure(self.outcome)
@@ -154,9 +168,10 @@ class DecisionLoop:
             self.ensure_deadline()
             try:
                 reply = self.request(prompt, remaining, min(120, self.remaining_seconds()))
-            except Exception:
+            except Exception as error:
                 # Do not copy arbitrary provider exception text into public feedback/evidence.
                 attempt["outcome"] = "provider_failed"
+                attempt["failure_code"] = error.code if isinstance(error, ProviderFailure) else "provider_error"
                 self.outcome = "provider_failed"
                 self.save()
                 raise
@@ -178,7 +193,7 @@ class DecisionLoop:
             attempt["charged_output_tokens"] = charged
             attempt["output_usage_measured"] = measured
             attempt["metrics"] = {key: value for key, value in reply.metrics.items()
-                                  if key in {"eval_count", "prompt_eval_count", "total_duration"}
+                                  if key in {"eval_count", "prompt_eval_count", "total_duration", "load_duration", "eval_duration"}
                                   and type(value) is int and value >= 0}
             attempt["candidate_retained_privately"] = False
             if self.private is not None and len(raw) <= MAX_CANDIDATE_BYTES:

@@ -35,6 +35,7 @@ pub enum CollaborateError {
 pub enum ReadError {
     InvalidCursor,
     Forbidden,
+    ForeignCursor,
     Expired,
     Storage,
 }
@@ -94,7 +95,12 @@ impl Store {
                principal TEXT NOT NULL,
                last_sequence INTEGER NOT NULL,
                revision INTEGER NOT NULL
-             );",
+             );
+             CREATE INDEX IF NOT EXISTS cursor_boundaries
+               ON cursors(principal, revision, last_sequence);
+             CREATE INDEX IF NOT EXISTS artifact_chains
+               ON events(actor, json_extract(message_json, '$.artifact_id'), json_extract(message_json, '$.revision'))
+               WHERE json_extract(message_json, '$.type') = 'artifact_revision';",
         )
         .map_err(|_| StoreError::Storage)?;
         let mode: String = conn
@@ -553,14 +559,26 @@ struct ArtifactRow {
     message_json: String,
 }
 
-fn artifact_rows(conn: &Connection) -> Result<Vec<ArtifactRow>, CollaborateError> {
+const ARTIFACT_LOOKUP_SQL: &str = "SELECT sequence, id, actor, event_json, message_json FROM events
+    WHERE json_extract(message_json, '$.type') = 'artifact_revision'
+      AND actor = ?1 AND json_extract(message_json, '$.artifact_id') = ?2
+      AND json_extract(message_json, '$.revision') = ?3 ORDER BY sequence ASC";
+const NEXT_REVISION_SQL: &str =
+    "SELECT COALESCE(MAX(json_extract(message_json, '$.revision')), 0) FROM events
+    WHERE json_extract(message_json, '$.type') = 'artifact_revision'
+      AND actor = ?1 AND json_extract(message_json, '$.artifact_id') = ?2";
+
+fn artifact_rows(
+    conn: &Connection,
+    author: &str,
+    artifact_id: &str,
+    revision: i64,
+) -> Result<Vec<ArtifactRow>, CollaborateError> {
     let mut statement = conn
-        .prepare(
-            "SELECT sequence, id, actor, event_json, message_json FROM events ORDER BY sequence ASC",
-        )
+        .prepare(ARTIFACT_LOOKUP_SQL)
         .map_err(|_| CollaborateError::Storage)?;
     let scanned = statement
-        .query_map([], |row| {
+        .query_map(params![author, artifact_id, revision], |row| {
             Ok((
                 row.get::<_, i64>(0)?,
                 row.get::<_, String>(1)?,
@@ -599,14 +617,11 @@ fn next_revision(
     principal: &str,
     artifact_id: &str,
 ) -> Result<i64, CollaborateError> {
-    let mut max_revision = 0_i64;
-    for row in artifact_rows(conn)? {
-        if row.record["from"].as_str() == Some(principal)
-            && row.record["artifact_id"].as_str() == Some(artifact_id)
-        {
-            max_revision = max_revision.max(row.record["revision"].as_i64().unwrap_or(0));
-        }
-    }
+    let max_revision: i64 = conn
+        .query_row(NEXT_REVISION_SQL, params![principal, artifact_id], |row| {
+            row.get(0)
+        })
+        .map_err(|_| CollaborateError::Storage)?;
     max_revision.checked_add(1).ok_or(CollaborateError::Storage)
 }
 
@@ -630,7 +645,7 @@ fn require_visible_revision(
         .as_i64()
         .ok_or(CollaborateError::Storage)?;
     let current = policy(conn)?;
-    for row in artifact_rows(conn)? {
+    for row in artifact_rows(conn, target_from, artifact_id, revision)? {
         if row.record["from"].as_str() != Some(target_from)
             || row.record["artifact_id"].as_str() != Some(artifact_id)
             || row.record["revision"].as_i64() != Some(revision)
@@ -792,7 +807,7 @@ fn read_page_tx(
                     return Err(ReadError::InvalidCursor);
                 };
                 if owner != principal {
-                    return Err(ReadError::Forbidden);
+                    return Err(ReadError::ForeignCursor);
                 }
                 if revision != current.revision {
                     return Err(ReadError::Expired);
@@ -843,12 +858,20 @@ fn read_page_tx(
         } else {
             scanned_through
         };
-        let token = new_token(conn)?;
-        conn.execute(
-            "INSERT INTO cursors (token, principal, last_sequence, revision) VALUES (?1, ?2, ?3, ?4)",
-            params![token, principal, last_sequence, current.revision],
-        )
-        .map_err(|_| ReadError::Storage)?;
+        let saved: Option<String> = conn.query_row(
+            "SELECT token FROM cursors WHERE principal = ?1 AND revision = ?2 AND last_sequence = ?3 LIMIT 1",
+            params![principal, current.revision, last_sequence], |row| row.get(0),
+        ).optional().map_err(|_| ReadError::Storage)?;
+        let token = if let Some(saved) = saved {
+            saved
+        } else {
+            let token = new_token(conn)?;
+            conn.execute(
+                "INSERT INTO cursors (token, principal, last_sequence, revision) VALUES (?1, ?2, ?3, ?4)",
+                params![token, principal, last_sequence, current.revision],
+            ).map_err(|_| ReadError::Storage)?;
+            token
+        };
         let events = visible
             .iter()
             .map(|event| serde_json::from_str(event))
@@ -981,4 +1004,76 @@ fn civil_from_days(days: i64) -> Option<(i64, u32, u32)> {
         return None;
     }
     Some((year, u32::try_from(month).ok()?, u32::try_from(day).ok()?))
+}
+
+#[cfg(test)]
+mod growth_tests {
+    use super::*;
+    use rusqlite::StatementStatus;
+
+    #[test]
+    fn artifact_queries_do_not_scan_unrelated_large_histories() {
+        let directory = tempfile::tempdir().expect("temp");
+        let store = Store::open(
+            &directory.path().join("world.sqlite"),
+            "civ:test",
+            Visibility::Members,
+            60,
+            &[("agent:writer".into(), true, true)],
+        )
+        .expect("store");
+        let record = json!({"protocol_version":"0.1-draft", "type":"artifact_revision", "id":"submission:one",
+            "world":"civ:test", "from":"agent:writer", "to":["agent:reader"], "artifact_id":"artifact:one",
+            "media_type":"application/json", "body":{"text":"one"}});
+        store
+            .collaborate(
+                "agent:writer",
+                true,
+                "civ:test",
+                record.to_string().as_bytes(),
+            )
+            .expect("artifact");
+        let conn = store.conn.lock().expect("lock");
+        for count in [100, 100_000] {
+            conn.execute("WITH RECURSIVE padding(n) AS (
+                SELECT COALESCE(MAX(sequence), 0) + 1 FROM events UNION ALL SELECT n + 1 FROM padding WHERE n < ?1)
+                INSERT INTO events SELECT n, 'event:padding-' || n, 'agent:other',
+                  json_object('kind', 'message.recorded', 'sequence', n),
+                  json_object('type', 'message', 'id', 'message:padding-' || n, 'body', json_object('text', 'padding'))
+                FROM padding", params![count]).expect("padding");
+            assert_eq!(
+                next_revision(&conn, "agent:writer", "artifact:one").expect("next"),
+                2
+            );
+            assert_eq!(
+                artifact_rows(&conn, "agent:writer", "artifact:one", 1)
+                    .expect("lookup")
+                    .len(),
+                1
+            );
+            for sql in [NEXT_REVISION_SQL, ARTIFACT_LOOKUP_SQL] {
+                let mut statement = conn.prepare(sql).expect("prepare");
+                let values: Vec<rusqlite::types::Value> = if sql == NEXT_REVISION_SQL {
+                    vec![
+                        "agent:writer".to_owned().into(),
+                        "artifact:one".to_owned().into(),
+                    ]
+                } else {
+                    vec![
+                        "agent:writer".to_owned().into(),
+                        "artifact:one".to_owned().into(),
+                        1.into(),
+                    ]
+                };
+                statement
+                    .query_row(rusqlite::params_from_iter(values), |_| Ok(()))
+                    .expect("query");
+                assert_eq!(
+                    statement.get_status(StatementStatus::FullscanStep),
+                    0,
+                    "unrelated rows scanned at {count}"
+                );
+            }
+        }
+    }
 }

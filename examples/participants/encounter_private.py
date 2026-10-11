@@ -117,6 +117,29 @@ def find_executable(name: str) -> Path | None:
                 return candidate
     return None
 
+
+def find_tool(name: str) -> Path | None:
+    """Prefer absolute PATH entries, then this checkout's Cargo debug output."""
+    found = find_executable(name)
+    if found is not None:
+        return found
+    cargo = find_executable("cargo")
+    if cargo is None:
+        return None
+    try:
+        result = subprocess.run([str(cargo), "metadata", "--locked", "--offline", "--no-deps",
+            "--format-version", "1"], cwd=ROOT, env={**os.environ, "RUSTUP_AUTO_INSTALL": "0"},
+            capture_output=True, timeout=15, check=False)
+        if result.returncode != 0 or len(result.stdout) > 1048576:
+            return None
+        target = json.loads(result.stdout).get("target_directory")
+        if not isinstance(target, str) or not Path(target).is_absolute():
+            return None
+        candidate = Path(target) / "debug" / (name + (".exe" if sys.platform == "win32" else ""))
+        return candidate if candidate.is_file() and (sys.platform == "win32" or os.access(candidate, os.X_OK)) else None
+    except (OSError, ValueError, AttributeError, subprocess.SubprocessError):
+        return None
+
 def _path(path: Path) -> Path:
     if not path.is_absolute() or path.drive.startswith("\\\\"):
         raise EncounterError("private_path_invalid")

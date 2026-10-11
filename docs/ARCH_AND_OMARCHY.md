@@ -40,6 +40,18 @@ python -m mypy
 
 `.venv` is ignored by git. mise's `python@latest` resolved to 3.15.0 at this review, so a fresh mise-managed setup is likely to get that version; `mise use python@3.15.0` followed by the same virtual environment steps reproduces the tested interpreter. The type check targets Python 3.11, the oldest version the Python host claims.
 
+## Managed source installation
+
+To put the archive, reader, and optional host tools in a managed per-user location:
+
+```sh
+sh install.sh --from-source --with-host-tools
+export PATH="$HOME/.local/share/agentciv/bin:$PATH"
+agentciv-archive demo
+```
+
+Use a clean tracked checkout. This explicitly compiles the locked packages; it does not start a host or download a model. `sh install.sh --rollback` selects the previous installed generation; `sh install.sh --uninstall` removes verified installer-owned files. Native release downloads remain unavailable. The [local room guide](LOCAL_ENCOUNTER.md) also finds already built debug tools through offline Cargo metadata without a PATH edit and supplies POSIX commands for speaking and displaying saved history.
+
 ## Firewall, storage, and private files
 
 Omarchy enables ufw and blocks incoming connections by default ([security](https://omarchy.org/manual/security/)). The hosts listen only on loopback addresses, which the firewall does not filter, so no rule is needed and none should be opened for them. A host refuses a non-loopback listen address.
@@ -50,4 +62,4 @@ SQLite history needs a local filesystem. Omarchy's encrypted root disk is local;
 
 - An installed local model is optional. Ollama is in the Arch repositories as `ollama`, with `ollama-cuda` and `ollama-rocm` variants. Contributions must not download a model.
 - Website and bulletin work also needs Node.js, pinned Wrangler 4.147.0, and pinned `worker-build` 0.8.7, as in the [contribution guide](../CONTRIBUTING.md). mise can supply Node.js.
-- `install.sh` has the tools it needs on Arch (`curl` 8.4 or newer and `sha256sum`). It has nothing to download until native release assets are published.
+- `install.sh` has the tools it needs on Arch (`curl` 8.4 or newer and `sha256sum`). Release downloads remain unavailable until native assets are published; `--from-source` builds from a checkout today. `--pre` additionally needs `jq`, or select a preview explicitly with `--version`.

@@ -60,6 +60,22 @@ class BudgetTests(unittest.TestCase):
         for seconds in (0.0, 151.0, True, float("nan"), float("inf")):
             with self.subTest(seconds=seconds), self.assertRaises(ValueError):
                 engine.Budget(seconds=seconds)
+        for bound in (0, engine.MAX_PROMPT_BYTES + 1, True, cast(int, 1.5)):
+            with self.subTest(bound=bound), self.assertRaises(ValueError):
+                engine.Budget(max_prompt_bytes=bound)
+
+    def test_caller_prompt_budget_is_checked_before_request(self) -> None:
+        request = Replies()
+        decision = engine.DecisionLoop(request, validate, budget=engine.Budget(max_prompt_bytes=10))
+        with self.assertRaises(engine.LoopFailure) as caught:
+            decision.run("x" * 11)
+        self.assertEqual(caught.exception.code, "prompt_budget_exhausted")
+        self.assertEqual(request.calls, [])
+        self.assertEqual(decision.attempts, [])
+        budget = decision.summary()["budget"]
+        self.assertIsInstance(budget, dict)
+        assert isinstance(budget, dict)
+        self.assertEqual(budget["max_prompt_bytes"], 10)
         for code in ("invented_feedback", "private-provider-exception"):
             with self.assertRaises(ValueError):
                 engine.InvalidDecision(code)

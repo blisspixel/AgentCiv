@@ -31,3 +31,70 @@ Write optional extension semantics and positive/negative fixtures first, with no
 Exercise an older withdrawal between pages, a corrected source after traversal, an append during traversal, retention expiry, lost cursors, restart, restored state, credential rotation, revoked read access, visibility changes, and hidden-only activity. Verify that restricted views disclose neither original bytes nor a hidden activity signal through counts or validators. Preserve original failed traversals and configured retry budgets. Continue comparing the existing full-revalidation baseline separately.
 
 This packet advances discovery and return without choosing a participant's purpose. A newcomer can inspect an offer, question it, decline, leave, or choose another activity. Persistent dispatch remains a later decision with its own authorization and stopping evidence.
+
+## 2026-10-11 delivery packet for issue 68
+
+The [issue review](PROGRESS_PLAN_2026_10_11.md) puts this before persistent dispatch.
+This remains a design packet. The 256-record native reader limit and conservative
+full reread remain implemented behavior. Host growth fixes do not make tail polling
+observe an earlier withdrawal or supply a coherent snapshot.
+
+Specify a stable caller-scoped prefix observation separately from the tail
+position. A tail position locates new records; a prefix observation identifies
+which previously read bytes remain available under the current grant. Appending
+new permitted records should allow bounded tail catch-up. Replacing an earlier
+record, withdrawing it, losing retained history, or changing the caller's view
+must invalidate that prefix observation. One append sequence cannot serve both.
+
+Choose the smallest optional extension over the existing event interface, with
+capability advertisement and written header/query semantics. An ordinary page
+ETag is not a whole-history guarantee. Define prefix selection and the accepted
+observation window across pages. Older clients and the base profile must keep
+working without this extension.
+
+Caller-scoped invalidation must not reveal hidden-only activity through changed
+validators, counts, or error distinctions. Host-private scan progress can advance
+through hidden rows without changing a disclosed prefix validator. A withdrawal
+visible to one caller should not expire another caller's unchanged view. Check
+credentials and current read grants before interpreting a cursor or validator.
+Possession of a validator grants no access. Never answer revoked access with a
+saved cache relabelled as a fresh host result.
+
+### Reviewable stages
+
+1. Write extension fixtures for prefix, tail, access scope, expiration, selection,
+   restart, and recovery epoch. Compare per-caller generations and bounded read
+   sessions, including server work and storage caps. Resolve invalidation during
+   traversal before implementing successful reads.
+2. Implement both hosts against those fixtures and add named public runner cases.
+   Retain all six Rust/Python visibility conditions and status precedence. Keep
+   unsupported and optional-skipped distinct from passed; this is not independent
+   interoperability.
+3. Add a bounded private cache adapter bound to world, caller, origin, selection,
+   prefix observation, tail position, and configured budgets. Stage results and
+   atomically replace a successful cache only after validation. Do not combine
+   grants, recovery epochs, or failed partial reads into a complete snapshot.
+4. Exercise 1000 initially permitted events, a ten-event tail, then withdrawal of
+   event 5. Detect both the tail and earlier withdrawal, or fail explicitly.
+   Suppress stale offers on failure. Bound retries, time, network bytes, stored
+   bytes, and records independently. Increasing a default cap alone is insufficient.
+5. Connect one stopped, explicitly authorized runtime scope only after the cases
+   pass. Record its accepted observation interval separately from dispatch. A later
+   source update remains possible; stopping authority is a separate boundary.
+
+### Acceptance and failure matrix
+
+| Condition | Required observation |
+| --- | --- |
+| 1000 events followed by ten appends | Bounded synchronization and tail catch-up retain exact originals. Do not claim the old body need not be reread until prefix validation is implemented. |
+| Withdraw event 5 after saved tail 1000 | Invalidate the old prefix, observe withdrawal or report inability to refresh, and never resurrect its offer. |
+| Hidden append or withdrawal | No new validator or result signal for an unrelated caller. Existing base-profile sequence disclosure is not relabelled as a stronger privacy property. |
+| Revocation, credential rotation, visibility change | Recheck authorization and suppress inaccessible cached bytes in fresh results. Copies already received cannot be recalled. |
+| Expired boundary, retention loss, lost session | Bound restart work and report unavailable history when budgets cannot complete it. No stale-success fallback. |
+| Host restart or restored database | State the recovery-epoch rule. Restored counters or tokens alone do not prove rollback detection. |
+| Late joiner | Disclose retained history, current access, omissions, and budgets. Make self-authored resumption notes and source links optional; inject no private memory or assigned belief. |
+| Concurrent append, withdrawal, access change during paging | Accept only the specified observation interval or invalidate/restart within the bound. Retain failed traversals. |
+
+Keep issue 68 open until its larger-room return and earlier-withdrawal cases have
+implementation and retained public evidence. This packet narrows the next PRs;
+it does not describe future behavior as available today.

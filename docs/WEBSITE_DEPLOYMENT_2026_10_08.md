@@ -37,3 +37,31 @@ Initial custom-domain probes explicitly resolved the hostname to an address retu
 The initial target is **USD 0 additional monthly hosting on Workers Free**. Free quotas are shared with other sites in the account; exhaustion should make affected operations unavailable rather than trigger an upgrade. The [cost controls](COST_CONTROLS.md) preserve the USD 10 working ceiling and USD 20 absolute ceiling as limits, not permission to spend. Budget alerts do not cap usage. Domain renewals and other account services are separate costs; no account-wide dollar cap or continuous plan monitor is claimed.
 
 Keep posting closed until a real reporting contact, operator policy, grants, and operating limits are reviewed. Native and local edge recovery tests do not establish public power-loss recovery or a provider restore drill. No load test, automated background activity, inference, independently maintained host test, or long-term operation was performed by this launch.
+
+## 2026-10-11 readiness review
+
+This appended review does not change the initial deployment claims above. Public
+HTTPS GET probes with certificate verification returned 200 for the HTML root,
+`/api/board/info`, and `/report`. Posting remained closed, the reporting contact
+was unconfigured, and those responses had no `Strict-Transport-Security` header.
+The inspected HTML response did not contain a Cloudflare beacon URL. That single
+observation does not establish account-level analytics configuration or behavior
+for other routes, regions, or visits. Earlier contrary observations remain
+relevant; inspect provider settings before opening.
+
+| Gate from issue 69 | Review and remaining action |
+| --- | --- |
+| Private security reporting | GitHub private vulnerability reporting was changed from disabled to enabled and read back as enabled on 2026-10-11. [SECURITY.md](../SECURITY.md) supplies the private vulnerability route. It is not a general privacy mailbox or response-time guarantee. |
+| Reporting contact and terms | Source terms now make correspondence-address availability conditional. A real private abuse/privacy/removal contact is still unconfigured. Keep posting closed until an operator supplies and verifies it; do not invent an address. Deploy the revised wording with the next verified artifact. |
+| HSTS | Implemented source headers are not present in these live probes. Deploy a checked prebuilt artifact, then verify HTTPS headers on static and dynamic routes. No live HSTS enforcement is claimed before those probes. |
+| Provider analytics | Source privacy wording distinguishes application code from possible provider injection. Review Cloudflare Web Analytics and Observatory settings and repeat public probes; no account-level setting was changed in this review. [Cloudflare describes automatic injection](https://developers.cloudflare.com/web-analytics/get-started/) separately from application source. |
+| Per-channel research use | The [publication and research practice](PUBLICATION_AND_RESEARCH.md), source privacy notice, and [intervention log](INTERVENTIONS.md) distinguish bulletin service operation, GitHub contributions, authorized local trials, and additional quotation/export permission. Deploy the changed public notice before opening. |
+| Listing stewardship | Source schema, renderer, and current entries identify the directory listing maintainer. This is not an assertion of a listed world's operator, identity, or authority. New source fields are not evidence of deployment. |
+| Lifetime capacity | Keep the current 10000-slot limit, including removal markers. At capacity, reject new publication and preserve history; do not silently recycle IDs or reset retry identity. An archive or new-epoch transition is deferred because it needs explicit copying, retention, links, retry scope, and operator review. Before opening, the operator must accept the finite lifetime or approve that separate transition design. No automatic rollover is implemented. |
+| Credential in content | A source guard rejects the current authenticated posting token in original or decoded JSON keys and values, including nested optional fields, before storage. Native fixtures and the actual edge HTTP regression cover the path. It does not detect every secret, encoded derivative, or another principal's credential. Deployment and public verification remain required. |
+| Recovery and grants | A provider backup/restore drill, reporting operation, reviewed posting grants, and continued Free-plan verification remain opening gates. Local restart tests and a CI artifact are insufficient evidence. |
+
+This review performs no public post, grant creation, provider-plan change, or
+deployment. The issue remains an operating checklist while its deployment and
+operator decisions are outstanding. Apply those decisions to a concrete checked
+artifact, record its source and hashes, and append the public results here.
