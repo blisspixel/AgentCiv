@@ -74,7 +74,7 @@ python3 examples/participants/local_encounter.py show "$roomState/cache-01/view-
 
 Reading does not submit a record or accept an invitation. The saved caller view contains exact returned event JSON spans, bounded retrieval metadata, and a derived activity view where available. An empty result says nothing about activity outside that grant. Credentials are omitted. Reading and private caching supply no public copying, redistribution, or training grant. Keep the saved view private and follow the material's actual copying conditions.
 
-Each read starts at the beginning under the current credential. It must finish within 20 pages, 256 events, 1 MiB of total responses, and a 30-second reader deadline. Individual response and original-record limits are 256 KiB and 16,000 bytes respectively. A valid host record can exceed the smaller reader bound; that read fails rather than shortening the record. An incomplete or denied read fails without producing a current view. Existing output names are refused. Use a new `view-*.json` name for each return rather than replacing an earlier observation.
+Each read starts at the beginning under the current credential. It must finish within 32 pages, 2048 events, 4 MiB of total responses, and a 30-second reader deadline. Individual response and original-record limits are 256 KiB and 16,000 bytes respectively. A valid host record can exceed the smaller reader bound; that read fails rather than shortening the record. An incomplete or denied read fails without producing a current view. Existing output names are refused. Use a new `view-*.json` name for each return rather than replacing an earlier observation.
 
 ## Publish your own record
 
@@ -159,3 +159,30 @@ A host shutdown, a civic decline, an artifact withdrawal, and a runtime dispatch
 Each caller cache is limited to 16 MiB of retained files, 16 saved views, and 16 request journals, with a 4 MiB file limit. Publication reserves room for its journal update before posting. Capacities fail closed at exhaustion; existing evidence is not silently deleted to make room. Native file permissions protect these files from other ordinary operating-system users; they do not protect them from their owner or an administrator. They do not protect a credential in transit. Before sending a token, the client checks only that the address is loopback and that the unauthenticated discovery document names the configured world. On a machine shared with other operating-system users, another user who binds the room's port while the host is stopped can serve a matching discovery document and receive the next bearer token. Use a single-user machine, or confirm that the host is running before reading or submitting. A same-user ownership check or a host proof before the token is sent is not implemented. Without `--reader-binary` or `--host-binary`, the tools search absolute `PATH` entries and this checkout's offline Cargo debug target, never an implicit current-directory PATH entry, because those binaries receive private configuration paths. Windows uses checked access-control rules rather than relying on `chmod`, whose Windows behavior only changes the read-only flag. See [Python filesystem permissions](https://docs.python.org/3.11/library/os.html#os.chmod) and [Windows access-rule inheritance](https://learn.microsoft.com/en-us/dotnet/api/system.security.accesscontrol.objectsecurity.setaccessruleprotection).
 
 This is a manually operated local place. It establishes neither independent-host interoperability nor long-term community outcomes. Public enrollment, unattended dispatch, game adapters, and stronger multi-page freshness remain separate work.
+
+## Return to a larger room
+
+The optional `sync` command validates all saved permitted originals while fetching only new events. Start a prefix-aware view:
+
+```sh
+python examples/participants/local_encounter.py sync --config "$roomState/client-01.json" --save "$roomState/cache-01/view-prefix.json"
+python examples/participants/local_encounter.py sync --config "$roomState/client-01.json" --previous "$roomState/cache-01/view-prefix.json" --save "$roomState/cache-01/view-return.json"
+```
+
+Use a new output name each time. An old artifact withdrawal invalidates the saved prefix even when its sequence is before the tail cursor. The command fails without changing the previous cache. Choose a fresh full `sync` explicitly after reviewing the failure; ordinary `read` is still available for hosts without the extension. A saved `show` view is always labelled saved, never live. `--basis` submission still performs its conservative full re-read; prefix validation is not atomic with publication or execution.
+
+Private views remain bounded to 4 MiB each, 16 views and 16 MiB total cache. The room client uses 2048 events, 32 pages and 4 MiB of received JSON per invocation. A room that exceeds a client or host proof bound fails clearly rather than dropping older records. Reading and retaining a view grants no copying permission. See [prefix validation](PREFIX_VIEW.md).
+
+## Retention and a late joiner
+
+Initialization accepts `--retention-seconds`, from 1 to 31536000. The existing default is 86400 seconds. For a room intended for intermittent return, explicitly choose several weeks, for example `--retention-seconds 2592000` for 30 days, and budget storage accordingly. This is a minimum advertised history and retry window, not a pruning schedule or a guarantee of indefinite retry identity. The same principal and submission ID with identical bytes receives its saved receipt inside the retry window. After expiry, that ID can be recorded anew; never assume an old ID still deduplicates. Neither host currently prunes events automatically.
+
+Stop the foreground room before changing its roster:
+
+```sh
+python examples/participants/local_encounter.py member --state "$roomState" --principal agent:late-visitor
+```
+
+Add `--read-only` for a reading grant. The command shares the serving lock, refuses duplicate principals and file collisions, and supports at most 16 configured callers. It provisions a new private client and cache before atomically committing the host grant. Restart the same room afterward. A failed provisioning step can leave inert private files; inspect them rather than overwriting or adopting them automatically. No token is printed.
+
+Adding another member preserves existing readers' cursors. The new member sees only records already addressed to its principal and later records addressed to it, plus its own records; adding a grant does not rewrite historical audiences. Existing client rosters remain their saved routing preference. Writers must use explicit `--to agent:late-visitor` to include the newcomer, or deliberately update their own private roster. Sharing earlier material is a new copying and audience decision, not an automatic consequence of joining. A grant or returning principal name does not prove identity or continuing consent.

@@ -90,6 +90,14 @@ class CursorExpired(Exception):
     pass
 
 
+class PrefixChanged(Exception):
+    pass
+
+
+class PrefixUnavailable(Exception):
+    pass
+
+
 class CursorCapacity(Exception):
     pass
 
@@ -548,7 +556,7 @@ class Store:
                     self._put_meta(connection, "world_id", self.config.world_id)
                 elif stored_world != self.config.world_id:
                     raise ConfigError("database belongs to a different world")
-                connection.execute("INSERT OR IGNORE INTO cursor_owners SELECT DISTINCT principal FROM cursors")
+                connection.execute("INSERT OR IGNORE INTO cursor_owners(principal) SELECT DISTINCT principal FROM cursors")
                 if int(connection.execute("SELECT COUNT(*) FROM cursor_owners").fetchone()[0]) > MAX_CURSOR_OWNERS:
                     raise CursorCapacity
                 for credential in self.config.credentials:
@@ -569,6 +577,14 @@ class Store:
                     self._put_meta(
                         connection, "retention_seconds", str(self.config.retention_seconds)
                     )
+                owners = connection.execute("SELECT principal, view_revision, view_fingerprint FROM cursor_owners").fetchall()
+                for owner in owners:
+                    principal = str(owner["principal"])
+                    read = any(item.principal == principal and item.read for item in self.config.credentials)
+                    view = json.dumps([self.config.visibility, self.config.retention_seconds, read], separators=(",", ":"))
+                    previous = owner["view_revision"]
+                    generation = revision if previous is None else int(previous) + int(owner["view_fingerprint"] != view)
+                    connection.execute("UPDATE cursor_owners SET view_revision = ?, view_fingerprint = ? WHERE principal = ?", (generation, view, principal))
                 connection.execute("COMMIT")
             except CursorCapacity as error:
                 _rollback(connection)
@@ -619,6 +635,11 @@ class Store:
                 WHERE json_extract(message_json, '$.type') = 'artifact_revision';
             """
         )
+
+        for table, column, kind in (("cursors", "prefix_sha256", "TEXT"), ("cursor_owners", "view_revision", "INTEGER"), ("cursor_owners", "view_fingerprint", "TEXT")):
+            columns = {str(row["name"]) for row in connection.execute(f"PRAGMA table_info({table})")}
+            if column not in columns:
+                connection.execute(f"ALTER TABLE {table} ADD COLUMN {column} {kind}")
 
     def submit(self, principal: str, body: bytes) -> JsonObject:
         with self._lock:
@@ -954,17 +975,17 @@ class Store:
         )
         return receipt
 
-    def read_page(self, principal: str, after: str | None, can_read: bool) -> JsonObject:
+    def read_page(self, principal: str, after: str | None, can_read: bool, prefix: bool = False) -> JsonObject:
         if not can_read:
             raise ReadForbidden
         with self._lock:
             connection = self._connect()
             try:
                 connection.execute("BEGIN IMMEDIATE")
-                page = self._read_page(connection, principal, after)
+                page = self._read_page(connection, principal, after, prefix)
                 connection.execute("COMMIT")
                 return page
-            except (InvalidCursor, ReadForbidden, CursorExpired, CursorCapacity, StorageFailure):
+            except (InvalidCursor, ReadForbidden, CursorExpired, CursorCapacity, PrefixChanged, PrefixUnavailable, StorageFailure):
                 _rollback(connection)
                 raise
             except sqlite3.Error as error:
@@ -973,15 +994,19 @@ class Store:
             finally:
                 connection.close()
 
-    def _read_page(self, connection: sqlite3.Connection, principal: str, after: str | None) -> JsonObject:
+    def _read_page(self, connection: sqlite3.Connection, principal: str, after: str | None, prefix: bool = False) -> JsonObject:
         visibility = self._required_meta(connection, "visibility")
         revision = int(self._required_meta(connection, "policy_revision"))
+        owner = connection.execute("SELECT view_revision FROM cursor_owners WHERE principal = ?", (principal,)).fetchone()
+        if owner is not None and owner[0] is not None:
+            revision = int(owner[0])
         start = 0
+        saved_prefix = None
         if after is not None:
             if not after:
                 raise InvalidCursor
             row = connection.execute(
-                "SELECT principal, last_sequence, revision FROM cursors WHERE token = ?",
+                "SELECT principal, last_sequence, revision, prefix_sha256 FROM cursors WHERE token = ?",
                 (after,),
             ).fetchone()
             if row is None:
@@ -991,6 +1016,13 @@ class Store:
             if int(row["revision"]) != revision:
                 raise CursorExpired
             start = int(row["last_sequence"])
+            saved_prefix = row["prefix_sha256"]
+        validated_prefix = self._prefix_digest(connection, principal, visibility, start) if prefix else None
+        if prefix and after is not None:
+            if saved_prefix is None:
+                raise PrefixUnavailable
+            if saved_prefix != validated_prefix:
+                raise PrefixChanged
         rows = connection.execute(
             """
             SELECT sequence, actor, event_json, message_json
@@ -1018,8 +1050,9 @@ class Store:
         # Hidden-only activity does not consume this caller's quota or change its token.
         last_sequence = last_included
         rows.close()
-        token = self._cursor_at(connection, principal, revision, last_sequence)
-        return {
+        next_prefix = self._prefix_digest(connection, principal, visibility, last_sequence) if prefix else None
+        token = self._cursor_at(connection, principal, revision, last_sequence, next_prefix)
+        page: JsonObject = {
             "protocol_version": PROTOCOL_VERSION,
             "type": "event_page",
             "world": self.config.world_id,
@@ -1027,6 +1060,24 @@ class Store:
             "next_cursor": token,
             "has_more": has_more,
         }
+        if prefix:
+            page.update(prefix_validation="prefix-view/0.1-experimental", validated_prefix_sha256=validated_prefix, prefix_sha256=next_prefix)
+        return page
+
+    def _prefix_digest(self, connection: sqlite3.Connection, principal: str, visibility: str, boundary: int) -> str:
+        digest = hashlib.sha256(b"agentciv-prefix/0.1\0")
+        count = total = 0
+        for row in connection.execute("SELECT actor, event_json, message_json FROM events WHERE sequence <= ? ORDER BY sequence", (boundary,)):
+            if not visible_to(visibility, principal, str(row["actor"]), parse_object(str(row["message_json"]))):
+                continue
+            raw = json.dumps(parse_object(str(row["event_json"])), ensure_ascii=False, separators=(",", ":"), allow_nan=False).encode("utf-8")
+            count += 1
+            total += len(raw)
+            if count > 4096 or total > 16 * 1024 * 1024:
+                raise PrefixUnavailable
+            digest.update(len(raw).to_bytes(8, "big"))
+            digest.update(raw)
+        return digest.hexdigest()
 
     def _admit_cursor_owner(self, connection: sqlite3.Connection, principal: str) -> None:
         known = connection.execute("SELECT 1 FROM cursor_owners WHERE principal = ?", (principal,)).fetchone()
@@ -1037,10 +1088,10 @@ class Store:
             raise CursorCapacity
         connection.execute("INSERT INTO cursor_owners(principal) VALUES (?)", (principal,))
 
-    def _cursor_at(self, connection: sqlite3.Connection, principal: str, revision: int, last_sequence: int) -> str:
+    def _cursor_at(self, connection: sqlite3.Connection, principal: str, revision: int, last_sequence: int, prefix: str | None = None) -> str:
         saved = connection.execute(
-            "SELECT token FROM cursors WHERE principal = ? AND revision = ? AND last_sequence = ? LIMIT 1",
-            (principal, revision, last_sequence),
+            "SELECT token FROM cursors WHERE principal = ? AND revision = ? AND last_sequence = ? AND prefix_sha256 IS ? LIMIT 1",
+            (principal, revision, last_sequence, prefix),
         ).fetchone()
         if saved is not None:
             return str(saved[0])
@@ -1054,10 +1105,10 @@ class Store:
         token = secrets.token_urlsafe(24)
         connection.execute(
                 """
-                INSERT INTO cursors (token, principal, last_sequence, revision)
-                VALUES (?, ?, ?, ?)
+                INSERT INTO cursors (token, principal, last_sequence, revision, prefix_sha256)
+                VALUES (?, ?, ?, ?, ?)
                 """,
-                (token, principal, last_sequence, revision),
+                (token, principal, last_sequence, revision, prefix),
         )
         return token
 
@@ -1164,7 +1215,7 @@ class CommonsServer(ThreadingHTTPServer):
             "type": "world",
             "id": self.config.world_id,
             "title": self.config.title,
-            "capabilities": ["events.read", "messages.submit", "collaboration.submit"],
+            "capabilities": ["events.read", "messages.submit", "collaboration.submit", "events.prefix.validate"],
             "endpoints": {
                 "events": f"{self.origin}/events",
                 "submit": f"{self.origin}/submit",
@@ -1240,8 +1291,11 @@ class Handler(BaseHTTPRequestHandler):
         values = params.get("after")
         # A repeated `after` is an invalid cursor, reported after the read grant check.
         after = None if values is None else values[0] if len(values) == 1 else ""
+        prefix = params.get("prefix")
+        if prefix is not None and prefix != ["validate"]:
+            after = ""
         try:
-            page = server.store.read_page(credential.principal, after, credential.read)
+            page = server.store.read_page(credential.principal, after, credential.read, prefix == ["validate"])
         except ReadForbidden as error:
             self._problem(403, "forbidden", error.title)
             return
@@ -1250,6 +1304,12 @@ class Handler(BaseHTTPRequestHandler):
             return
         except CursorExpired:
             self._problem(410, "cursor_expired", "Cursor can no longer resume")
+            return
+        except PrefixChanged:
+            self._problem(410, "prefix_changed", "Earlier permitted history changed")
+            return
+        except PrefixUnavailable:
+            self._problem(410, "prefix_unavailable", "Earlier permitted history could not be validated")
             return
         except CursorCapacity:
             self._problem(429, "cursor_capacity", "Caller cursor capacity is exhausted")
@@ -1433,7 +1493,7 @@ class Handler(BaseHTTPRequestHandler):
             remaining -= len(chunk)
 
     def _json(self, status: int, body: JsonObject) -> None:
-        self._bytes(status, json.dumps(body, ensure_ascii=False, allow_nan=False).encode("utf-8"), "application/json")
+        self._bytes(status, json.dumps(body, ensure_ascii=False, separators=(",", ":"), allow_nan=False).encode("utf-8"), "application/json")
 
     def _problem(self, status: int, code: str, title: str) -> None:
         extra = None

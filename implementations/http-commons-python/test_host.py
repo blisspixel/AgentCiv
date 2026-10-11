@@ -324,6 +324,52 @@ class StoreTests(unittest.TestCase):
     def tearDown(self) -> None:
         self.temporary.cleanup()
 
+    def test_prefix_rejects_legacy_foreign_changed_and_over_limit_history(self) -> None:
+        store = host.Store(config(self.directory, visibility="sender_only"))
+        principal = "agent:abc123"
+        base = store.read_page(principal, None, True)
+        with self.assertRaises(host.PrefixUnavailable):
+            store.read_page(principal, str(base["next_cursor"]), True, True)
+        first = store.read_page(principal, None, True, True)
+        cursor = str(first["next_cursor"])
+        with self.assertRaises(host.ReadForbidden):
+            store.read_page("agent:two", cursor, True, True)
+        with self.assertRaises(host.ReadForbidden):
+            store.read_page(principal, "unknown", False, True)
+        with self.assertRaises(host.InvalidCursor):
+            store.read_page(principal, "unknown", True, True)
+        store.submit("agent:two", message("message:prefix-hidden", "agent:two"))
+        self.assertEqual(store.read_page(principal, cursor, True, True), first)
+        store.submit(principal, message("message:prefix-visible", principal))
+        next_page = store.read_page(principal, cursor, True, True)
+        self.assertEqual(next_page["validated_prefix_sha256"], first["prefix_sha256"])
+        self.assertNotEqual(next_page["prefix_sha256"], first["prefix_sha256"])
+        connection = store._connect()
+        try:
+            connection.execute("UPDATE events SET event_json=json_set(event_json, '$.kind', 'event.redacted', '$.body', json('{}')) WHERE actor=?", (principal,))
+            with self.assertRaises(host.PrefixChanged):
+                store.read_page(principal, str(next_page["next_cursor"]), True, True)
+            connection.execute("UPDATE events SET event_json=json_set(event_json, '$.extension', ?)", ("x" * (16 * 1024 * 1024),))
+            with self.assertRaises(host.PrefixUnavailable):
+                store.read_page(principal, None, True, True)
+            self.assertIsInstance(store.read_page(principal, None, True), dict)
+        finally:
+            connection.close()
+
+    def test_adding_and_rotating_other_grants_preserves_existing_cursor_generation(self) -> None:
+        principal = "agent:abc123"
+        first = self.store.read_page(principal, None, True, True)
+        old = self.config.credentials
+        changed = tuple(host.Credential(item.principal, item.token, item.read, False) if item.principal == principal else item for item in old)
+        changed += (host.Credential("agent:late", "late-random-fixture-token", True, False),)
+        added = host.Store(config(self.directory, retention_seconds=10, credentials=changed))
+        self.assertEqual(added.read_page(principal, str(first["next_cursor"]), True, True), first)
+        revoked = tuple(host.Credential(item.principal, item.token, False, True) if item.principal == principal else item for item in changed)
+        host.Store(config(self.directory, retention_seconds=10, credentials=revoked))
+        restored = host.Store(self.config)
+        with self.assertRaises(host.CursorExpired):
+            restored.read_page(principal, str(first["next_cursor"]), True, True)
+
     def test_cursor_admission_bounds_ten_thousand_distinct_boundaries_and_generations(self) -> None:
         for changing_policy in (False, True):
             principal = "agent:policy" if changing_policy else "agent:boundaries"
@@ -364,7 +410,7 @@ class StoreTests(unittest.TestCase):
         connection = self.store._connect()
         try:
             connection.execute("WITH RECURSIVE n(x) AS (SELECT 0 UNION ALL SELECT x+1 FROM n WHERE x < ?) "
-                "INSERT INTO cursors SELECT 'legacy-' || x, 'agent:legacy', x, 1 FROM n", (host.MAX_CURSORS_PER_OWNER,))
+                "INSERT INTO cursors(token, principal, last_sequence, revision) SELECT 'legacy-' || x, 'agent:legacy', x, 1 FROM n", (host.MAX_CURSORS_PER_OWNER,))
         finally:
             connection.close()
         replacement = host.Store(self.config)
@@ -382,7 +428,7 @@ class StoreTests(unittest.TestCase):
         connection = self.store._connect()
         try:
             connection.execute("WITH RECURSIVE n(x) AS (SELECT 1 UNION ALL SELECT x+1 FROM n WHERE x < ?) "
-                "INSERT INTO cursors SELECT 'existing-' || x,'agent:abc123',x,1 FROM n",
+                "INSERT INTO cursors(token, principal, last_sequence, revision) SELECT 'existing-' || x,'agent:abc123',x,1 FROM n",
                 (host.MAX_CURSORS_PER_OWNER - 1,))
         finally:
             connection.close()
@@ -418,7 +464,7 @@ class StoreTests(unittest.TestCase):
         first = self.store.read_page("agent:abc123", None, True)
         cursor = expect_str(first["next_cursor"])
         with self.store._connect() as connection:
-            connection.execute("INSERT INTO cursors SELECT 'legacy-same-boundary', principal, last_sequence, revision FROM cursors LIMIT 1")
+            connection.execute("INSERT INTO cursors(token, principal, last_sequence, revision) SELECT 'legacy-same-boundary', principal, last_sequence, revision FROM cursors LIMIT 1")
             for _ in range(10_000):
                 page = self.store._read_page(connection, "agent:abc123", cursor)
                 self.assertEqual(page["events"], [])
@@ -597,7 +643,7 @@ class HttpTests(unittest.TestCase):
         connection = server.store._connect()
         try:
             connection.execute("WITH RECURSIVE n(x) AS (SELECT 1 UNION ALL SELECT x+1 FROM n WHERE x < ?) "
-                "INSERT INTO cursors SELECT 'padding-' || x,'agent:abc123',x + 100000,1 FROM n",
+                "INSERT INTO cursors(token, principal, last_sequence, revision) SELECT 'padding-' || x,'agent:abc123',x + 100000,1 FROM n",
                 (host.MAX_CURSORS_PER_OWNER - 1,))
         finally:
             connection.close()
@@ -633,7 +679,7 @@ class HttpTests(unittest.TestCase):
         close_started = threading.Event()
         closed = threading.Event()
 
-        def held_read(principal: str, after: str | None, can_read: bool) -> host.JsonObject:
+        def held_read(principal: str, after: str | None, can_read: bool, prefix: bool = False) -> host.JsonObject:
             connection = server.store._connect()
             try:
                 active.set()
@@ -1356,16 +1402,17 @@ class PublicRunnerTest(unittest.TestCase):
         self.assertEqual(report["runner_scope"], "credentialed-extended")
         summary = expect_dict(report["summary"])
         self.assertEqual(summary["failed"], 0)
-        self.assertEqual(summary["skipped"], 5)
-        self.assertEqual(summary["passed"], 59)
+        self.assertEqual(summary["skipped"], 6)
+        self.assertEqual(summary["passed"], 62)
         cases = dicts(report["cases"])
         ids = {expect_str(case["id"]) for case in cases}
-        self.assertEqual(len(ids), 64)
+        self.assertEqual(len(ids), 68)
         self.assertTrue({"collaborate.concurrent_retry", "collaborate.concurrent_conflict",
                          "collaborate.concurrent_retry_sequence"}.issubset(ids))
         self.assertIn("submit.json_charset", ids)
         self.assertIn("events.empty_cursor", ids)
         hidden_ids = {
+            "prefix.hidden",
             "collaborate.hidden_visibility",
             "collaborate.hidden_derivation",
             "collaborate.hidden_objection",

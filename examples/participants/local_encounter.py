@@ -71,11 +71,13 @@ def _provision_sidecars(state: Path) -> None:
             private.write_new(path, b"")
 
 
-def initialize(state: Path, world: str, writers: list[str], readers: list[str], port: int = 8787) -> JsonObject:
+def initialize(state: Path, world: str, writers: list[str], readers: list[str], port: int = 8787,
+               retention_seconds: int = 86400) -> JsonObject:
     principals = writers + readers
     if (not _identifier(world) or not writers or len(principals) > 16
         or any(not _identifier(item) for item in principals) or len(set(principals)) != len(principals)
-        or type(port) is not int or not 1 <= port <= 65535):
+        or type(port) is not int or not 1 <= port <= 65535
+        or type(retention_seconds) is not int or not 1 <= retention_seconds <= 31536000):
         raise private.EncounterError("configuration_invalid")
     private.create_directory(state)
     # Elevated Windows processes can otherwise create SQLite's main file with
@@ -100,10 +102,10 @@ def initialize(state: Path, world: str, writers: list[str], readers: list[str], 
         clients.append({"principal": principal, "config": str(config), "write": writable})
     private.write_new(state / "host.json", _bytes({"world_id": world, "title": "Manual local encounter",
         "database_path": str(state / "world.sqlite"), "listen": f"127.0.0.1:{port}",
-        "visibility": "addressed", "retention_seconds": 86400, "max_payload_bytes": PAYLOAD_BYTES,
+        "visibility": "addressed", "retention_seconds": retention_seconds, "max_payload_bytes": PAYLOAD_BYTES,
         "credentials": credentials}))
     return {"outcome": "initialized", "world": world, "origin": origin, "clients": clients,
-        "visibility": "addressed", "retention_seconds": 86400, "payload_bytes": PAYLOAD_BYTES,
+        "visibility": "addressed", "retention_seconds": retention_seconds, "payload_bytes": PAYLOAD_BYTES,
         "copying_permission": "not_granted", "external_spend_usd": 0}
 
 
@@ -114,7 +116,7 @@ def _configuration(state: Path) -> JsonObject:
                        "max_payload_bytes", "credentials"}
         or not _identifier(config.get("world_id")) or not _identifier(config.get("title"))
         or config.get("database_path") != str(state / "world.sqlite") or config.get("visibility") != "addressed"
-        or type(config.get("retention_seconds")) is not int or config["retention_seconds"] != 86400
+        or type(config.get("retention_seconds")) is not int or not 1 <= int(str(config["retention_seconds"])) <= 31536000
         or type(config.get("max_payload_bytes")) is not int or config["max_payload_bytes"] != PAYLOAD_BYTES):
         raise private.EncounterError("configuration_invalid")
     listen = config.get("listen")
@@ -146,6 +148,34 @@ def _configuration(state: Path) -> JsonObject:
     # A missing or foreign-owned database is not permission to start a new world.
     private.check_file(state / "world.sqlite")
     return config
+
+
+def add_member(state: Path, principal: str, *, write: bool = True) -> JsonObject:
+    """Change only a stopped room, committing the host grant after private provisioning."""
+    private.check_directory(state)
+    with private.lock(state):
+        config = _configuration(state)
+        _storage_bytes(state, verify=True)
+        credentials = config["credentials"]
+        if not isinstance(credentials, list):
+            raise private.EncounterError("configuration_invalid")
+        principals = [str(item["principal"]) for item in credentials if isinstance(item, dict)]
+        if not _identifier(principal) or principal in principals or len(principals) >= 16:
+            raise private.EncounterError("configuration_invalid")
+        number = len(principals) + 1
+        cache = state / f"cache-{number:02}"
+        client = state / f"client-{number:02}.json"
+        if cache.exists() or client.exists():
+            raise private.EncounterError("member_files_exist")
+        token = secrets.token_urlsafe(32)
+        private.create_directory(cache)
+        private.write_new(client, _bytes({"format": CLIENT_FORMAT, "origin": "http://" + str(config["listen"]),
+            "world": config["world_id"], "principal": principal, "token": token, "payload_bytes": PAYLOAD_BYTES,
+            "cache_directory": str(cache), "private_cache_permission": CACHE_PERMISSION, "members": principals + [principal]}))
+        credentials.append({"principal": principal, "token": token, "read": True, "write": write})
+        private.replace_private(state / "host.json", _bytes(config))
+        return {"outcome": "member_added", "principal": principal, "config": str(client), "write": write,
+            "history": "existing_addressed_records_are_not_readdressed", "restart_required": True}
 
 
 def _check_named(state: Path, path: Path, *, directory: bool) -> None:
@@ -366,6 +396,11 @@ def main() -> int:
     init.add_argument("--writer", required=True, action="append")
     init.add_argument("--reader", action="append", default=[])
     init.add_argument("--port", type=int, default=8787)
+    init.add_argument("--retention-seconds", type=int, default=86400)
+    member = commands.add_parser("member", help="add a member while the room is stopped")
+    member.add_argument("--state", required=True, type=Path)
+    member.add_argument("--principal", required=True)
+    member.add_argument("--read-only", action="store_true")
     hosting = commands.add_parser("serve")
     hosting.add_argument("--state", required=True, type=Path)
     hosting.add_argument("--host", choices=("rust", "python"), default="rust")
@@ -376,6 +411,11 @@ def main() -> int:
     reading.add_argument("--config", required=True, type=Path)
     reading.add_argument("--save", type=Path)
     reading.add_argument("--reader-binary", type=Path)
+    syncing = commands.add_parser("sync", help="validate saved history and fetch only new events")
+    syncing.add_argument("--config", required=True, type=Path)
+    syncing.add_argument("--previous", type=Path)
+    syncing.add_argument("--save", type=Path)
+    syncing.add_argument("--reader-binary", type=Path)
     showing = commands.add_parser("show", help="render a saved private caller view without network access")
     showing.add_argument("view", type=Path)
     showing.add_argument("--config", required=True, type=Path)
@@ -393,7 +433,9 @@ def main() -> int:
     args = parser.parse_args()
     try:
         if args.command == "init":
-            result = initialize(args.state, args.world, args.writer, args.reader, args.port)
+            result = initialize(args.state, args.world, args.writer, args.reader, args.port, args.retention_seconds)
+        elif args.command == "member":
+            result = add_member(args.state, args.principal, write=not args.read_only)
         elif args.command == "serve":
             result = serve(args.state, args.host, args.host_binary, seconds=args.seconds,
                 max_storage_bytes=args.max_storage_bytes)
@@ -404,12 +446,14 @@ def main() -> int:
                 return 0
             elif args.command == "read":
                 result = encounter_client.read(args.config, args.save, reader_binary=args.reader_binary)
+            elif args.command == "sync":
+                result = encounter_client.sync(args.config, args.previous, args.save, reader_binary=args.reader_binary)
             elif args.command == "say":
                 result = encounter_client.say(args.config, args.text, args.to, args.basis, reader_binary=args.reader_binary)
             else:
                 result = encounter_client.submit(args.config, args.record, args.basis, reader_binary=args.reader_binary)
         print(json.dumps(result, ensure_ascii=True))
-        return 0 if result.get("outcome") in ("initialized", "stopped", "read", "recorded") else 1
+        return 0 if result.get("outcome") in ("initialized", "member_added", "stopped", "read", "synced", "recorded") else 1
     except private.EncounterError as error:
         failure: JsonObject = {"outcome": "failed", "code": error.code}
         if error.name is not None:

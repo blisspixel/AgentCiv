@@ -152,7 +152,141 @@ fn config(origin: &str) -> Config {
         world: WORLD.into(),
         traversal: Traversal::All,
         budgets: Budgets::default(),
+        prefix_validation: false,
     }
+}
+
+fn prefix_page(before: &[String], records: &[String], more: bool, cursor: &str) -> Vec<u8> {
+    let mut bytes = page(records, more, cursor);
+    bytes.pop();
+    let all: Vec<_> = before.iter().chain(records).cloned().collect();
+    bytes.extend(format!(",\"prefix_validation\":\"prefix-view/0.1-experimental\",\"validated_prefix_sha256\":\"{}\",\"prefix_sha256\":\"{}\"}}", prefix::digest(before), prefix::digest(&all)).bytes());
+    bytes
+}
+
+#[test]
+fn prefix_sync_preserves_exact_cached_bytes_and_fetches_only_the_tail() {
+    let first = event("event:first", 1, "agent:a");
+    let second = event("event:second", 2, "agent:b");
+    let one = first.clone();
+    let two = second.clone();
+    let mock = Mock::new(move |index, origin| {
+        Reply::json(match index {
+            0 | 2 => {
+                let mut discovery = descriptor(origin);
+                discovery["capabilities"]
+                    .as_array_mut()
+                    .unwrap()
+                    .push(json!("events.prefix.validate"));
+                discovery.to_string().into_bytes()
+            }
+            1 => prefix_page(&[], std::slice::from_ref(&one), false, "saved:one"),
+            _ => prefix_page(
+                std::slice::from_ref(&one),
+                std::slice::from_ref(&two),
+                false,
+                "saved:two",
+            ),
+        })
+    });
+    let mut settings = config(&mock.origin);
+    settings.prefix_validation = true;
+    let result = read(&settings).unwrap();
+    assert_eq!(
+        result.snapshot.records.as_slice(),
+        std::slice::from_ref(&first)
+    );
+    let raw = serde_json::to_string(&result).unwrap();
+    let resumed = sync(&settings, &raw).unwrap();
+    assert_eq!(resumed.snapshot.records, [first, second]);
+    assert_eq!(
+        (
+            resumed.report.pages,
+            resumed.report.cached_events,
+            resumed.report.events
+        ),
+        (1, 1, 2)
+    );
+    assert!(resumed.report.prefix_validated);
+    assert!(
+        mock.requests()[3]
+            .starts_with("GET /history?format=json&after=saved%3Aone&prefix=validate ")
+    );
+    let mut corrupt: Value = serde_json::from_str(&raw).unwrap();
+    corrupt["resume"]["prefix_sha256"] = json!("0".repeat(64));
+    assert_eq!(
+        sync(&settings, &corrupt.to_string()).unwrap_err(),
+        Error::InvalidResume
+    );
+    assert_eq!(mock.requests().len(), 4);
+    corrupt = serde_json::from_str(&raw).unwrap();
+    corrupt["resume"]["origin"] = json!("http://127.0.0.1:9/");
+    assert_eq!(
+        sync(&settings, &corrupt.to_string()).unwrap_err(),
+        Error::InvalidResume
+    );
+    assert_eq!(mock.requests().len(), 4);
+}
+
+#[test]
+fn prefix_failures_never_return_a_stale_or_partial_view() {
+    for bad in [
+        "missing",
+        "wrong",
+        "credential",
+        "repeated-identity",
+        "invalid-page",
+        "changed-prefix",
+    ] {
+        let mock = Mock::new(move |index, origin| {
+            if index == 0 {
+                let mut discovery = descriptor(origin);
+                discovery["capabilities"]
+                    .as_array_mut()
+                    .unwrap()
+                    .push(json!("events.prefix.validate"));
+                return Reply::json(discovery.to_string().into_bytes());
+            }
+            if bad == "changed-prefix" {
+                let mut reply = Reply::json(b"{}".to_vec());
+                reply.status = 410;
+                return reply;
+            }
+            let record = event("event:one", 1, "agent:a");
+            let records = if bad == "repeated-identity" {
+                vec![record.clone(), record]
+            } else {
+                vec![record]
+            };
+            let raw = prefix_page(&[], &records, false, "saved");
+            if bad == "repeated-identity" {
+                return Reply::json(raw);
+            }
+            let mut value: Value = serde_json::from_slice(&raw).unwrap();
+            match bad {
+                "missing" => {
+                    value.as_object_mut().unwrap().remove("prefix_validation");
+                }
+                "wrong" => value["prefix_sha256"] = json!("0".repeat(64)),
+                "credential" => value["prefix_sha256"] = json!(TOKEN),
+                "invalid-page" => value["world"] = json!("civ:wrong"),
+                _ => unreachable!(),
+            }
+            Reply::json(value.to_string().into_bytes())
+        });
+        let mut settings = config(&mock.origin);
+        settings.prefix_validation = true;
+        assert!(read(&settings).is_err(), "{bad}");
+        assert_eq!(mock.requests().len(), 2);
+    }
+    let mock = Mock::new(|_, origin| Reply::json(descriptor(origin).to_string().into_bytes()));
+    let mut settings = config(&mock.origin);
+    settings.prefix_validation = true;
+    assert_eq!(read(&settings).unwrap_err(), Error::PrefixUnsupported);
+    assert_eq!(mock.requests().len(), 1);
+    settings.traversal = Traversal::FirstPage;
+    assert_eq!(read(&settings).unwrap_err(), Error::Configuration);
+    assert_eq!(mock.requests().len(), 1);
 }
 
 #[test]

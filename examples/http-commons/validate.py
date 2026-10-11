@@ -23,6 +23,7 @@ from evidence import source_identity
 ROOT = Path(__file__).resolve().parents[2]
 POLICIES = ("members", "addressed", "sender_only")
 HIDDEN_CASES = {
+    "prefix.hidden",
     "collaborate.hidden_visibility",
     "collaborate.hidden_derivation",
     "collaborate.hidden_objection",
@@ -88,6 +89,7 @@ def checked_report(text: str, returncode: int, policy: str) -> dict[str, object]
         "collaborate.revision_sequence", "collaborate.revision_sequence_retry", "collaborate.revision_sequence_rejection",
         "collaborate.concurrent_revisions", "collaborate.concurrent_revisions_retry", "collaborate.concurrent_revisions_isolation",
         "collaborate.concurrent_retry", "collaborate.concurrent_conflict", "collaborate.concurrent_retry_sequence",
+        "prefix.baseline", "prefix.append", "prefix.withdrawal",
     }
     if not expected.issubset(seen):
         raise ValidationFailure("report omitted required matrix cases")

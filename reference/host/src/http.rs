@@ -44,7 +44,7 @@ async fn discover(State(app): State<Arc<App>>) -> Response {
         "type": "world",
         "id": app.world_id,
         "title": app.title,
-        "capabilities": ["events.read", "messages.submit", "collaboration.submit"],
+        "capabilities": ["events.read", "messages.submit", "collaboration.submit", "events.prefix.validate"],
         "endpoints": {
             "events": format!("{}/events", app.origin),
             "submit": format!("{}/submit", app.origin),
@@ -177,12 +177,23 @@ async fn events(
     let store = app.store.clone();
     // A malformed query, such as a repeated `after`, is an invalid cursor. It is reported
     // after the credential and read grant, in the profile's check order.
-    let after = match query {
-        Ok(Query(query)) => query.after,
-        Err(_) => Some(String::new()),
+    let (after, prefix) = match query {
+        Ok(Query(query))
+            if query
+                .prefix
+                .as_deref()
+                .is_none_or(|value| value == "validate") =>
+        {
+            (query.after, query.prefix.is_some())
+        }
+        _ => (Some(String::new()), false),
     };
     let page = tokio::task::spawn_blocking(move || {
-        store.read_page(&principal, &world_id, after.as_deref(), can_read)
+        if prefix {
+            store.read_prefix_page(&principal, &world_id, after.as_deref(), can_read)
+        } else {
+            store.read_page(&principal, &world_id, after.as_deref(), can_read)
+        }
     })
     .await;
     match page {
@@ -211,6 +222,16 @@ async fn events(
             StatusCode::TOO_MANY_REQUESTS,
             "cursor_capacity",
             "Caller cursor capacity is exhausted",
+        ),
+        Ok(Err(ReadError::PrefixChanged)) => problem(
+            StatusCode::GONE,
+            "prefix_changed",
+            "Earlier permitted history changed",
+        ),
+        Ok(Err(ReadError::PrefixUnavailable)) => problem(
+            StatusCode::GONE,
+            "prefix_unavailable",
+            "Earlier permitted history could not be validated",
         ),
         Ok(Err(ReadError::Storage)) | Err(_) => problem(
             StatusCode::INTERNAL_SERVER_ERROR,
@@ -347,6 +368,7 @@ fn accept_collaboration(
 #[derive(Deserialize)]
 pub struct EventQuery {
     after: Option<String>,
+    prefix: Option<String>,
 }
 
 async fn read_body(body: Body, limit: usize) -> Result<Vec<u8>, Box<Response>> {

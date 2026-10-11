@@ -11,7 +11,11 @@ use serde_json::Value;
 use crate::CheckResult;
 
 const INVENTORY: &str = "conformance/requirements.json";
-const SOURCES: [&str; 2] = ["PROTOCOL.md", "docs/COLLABORATION_PROFILE.md"];
+const SOURCES: [&str; 3] = [
+    "PROTOCOL.md",
+    "docs/COLLABORATION_PROFILE.md",
+    "docs/PREFIX_VIEW.md",
+];
 const MAX_INVENTORY_BYTES: u64 = 262_144;
 const MAX_REFERENCE_BYTES: u64 = 1_048_576;
 

@@ -1288,6 +1288,7 @@ fn run_collaboration_cases(input: &CollaborationInput<'_>, cases: &mut Vec<Case>
     revisions::run(&ctx, cases);
     concurrent_revisions::run(&ctx, cases);
     collaboration_retries::run(&ctx, cases);
+    prefix::run(input.world, &ctx, cases);
     let recorded = match recorded_revision(&ctx) {
         Ok(recorded) => {
             cases.push(Case::passed("collaborate.revision"));
@@ -2270,5 +2271,6 @@ mod adversarial;
 mod collaboration_retries;
 mod concurrent_revisions;
 mod lifecycle;
+mod prefix;
 mod revisions;
 pub use lifecycle::run_lifecycle;

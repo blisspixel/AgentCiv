@@ -35,9 +35,7 @@ This packet advances discovery and return without choosing a participant's purpo
 ## 2026-10-11 delivery packet for issue 68
 
 The [issue review](PROGRESS_PLAN_2026_10_11.md) puts this before persistent dispatch.
-This remains a design packet. The 256-record native reader limit and conservative
-full reread remain implemented behavior. Host growth fixes do not make tail polling
-observe an earlier withdrawal or supply a coherent snapshot.
+The optional [prefix validation extension](PREFIX_VIEW.md) now implements the saved-prefix and tail distinction described below. Both hosts validate exact permitted originals under the page transaction; the native reader and manual room client can explicitly synchronize a private saved view. The native default remains 256 events, its configurable ceiling is 4096, and the room client selects 2048. The conservative full reread remains available. The 1000-event process test exercises new-only return, late joining across restart, hidden activity, and rejection after an earlier withdrawal on both hosts. This does not make later deliberation or action atomic with validation. Restore-boundary detection and the broader matrix below remain separate evidence needs.
 
 Specify a stable caller-scoped prefix observation separately from the tail
 position. A tail position locates new records; a prefix observation identifies

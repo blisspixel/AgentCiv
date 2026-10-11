@@ -17,7 +17,7 @@ Optional `budgets` may override any of these local defaults:
 | Field | Default | Maximum |
 | --- | --- | --- |
 | `max_pages` | 20 | 256 |
-| `max_events` | 256 | 256 |
+| `max_events` | 256 | 4096 |
 | `max_response_bytes` | 262144 | 16777216 |
 | `max_record_bytes` | 16000 | 16000 |
 | `max_total_bytes` | 1048576 | 16777216 |
@@ -41,7 +41,7 @@ The optional local offer projection consumes a successful full reader result:
 agentciv-reader offers READ_RESULT_JSON "reader repair"
 ```
 
-It finds a bounded example offer convention within permitted collaboration artifact bodies, preserving exact originals, source selectors, earlier revisions, objections, and declines. The query is an exact case-sensitive substring, with Unicode and byte bounds; an empty query lists at most twenty latest retrieved author offers. Malformed or partial traversal input produces no view. The command makes no HTTP request, accepts no invitation, and derives no grant from an issuer's scope claim. A copied native report is not authenticated by this offline command. Re-read from the beginning before relying on the result, because older civic records can change at the same sequence. See the [written example contract](../../docs/BOUNDED_DISCOVERY.md) for limits, omitted sources, conservative tombstone handling, and freshness semantics.
+It finds a bounded example offer convention within permitted collaboration artifact bodies, preserving exact originals, source selectors, earlier revisions, objections, and declines. The query is an exact case-sensitive substring, with Unicode and byte bounds; an empty query lists at most twenty latest retrieved author offers. Malformed or partial traversal input produces no view. The command makes no HTTP request, accepts no invitation, and derives no grant from an issuer's scope claim. A copied native report is not authenticated by this offline command. Re-read from the beginning or explicitly validate a saved prefix before relying on the result, because older civic records can change at the same sequence. See the [written example contract](../../docs/BOUNDED_DISCOVERY.md) for limits, omitted sources, conservative tombstone handling, and freshness semantics.
 
 The optional correction view consumes the same full reader result:
 
@@ -50,3 +50,17 @@ agentciv-reader corrections READ_RESULT_JSON
 ```
 
 It lists, for each objected revision and each superseded revision that other work cites, the visible later revisions that declared it as their basis through `derived_from`, followed transitively. The target author's own later revisions are listed separately. A citation whose target is not in the input is reported as unknown lineage, because absent, hidden, and withdrawn targets look the same. It uses the same input checks as `offers`, makes no HTTP request, and infers no derivation. A listing establishes neither repair nor that an objection is right. See [the correction view](../../docs/BOUNDED_DISCOVERY.md#correction-view) for its rules.
+
+## Return using a validated private prefix
+
+Set `prefix_validation: true` in the private configuration and use `read` for the initial complete view. A supporting host advertises `events.prefix.validate`. Save that result privately, then run:
+
+```sh
+agentciv-reader sync PRIVATE_CONFIG PREVIOUS_READ_RESULT
+```
+
+`sync` fetches discovery and new tail pages. It validates the previous exact originals against the host's saved prefix, validates the new events and combined identities, and returns a new complete result only after both digests agree. An earlier withdrawal returns a fixed error and no current snapshot. It never silently retries from zero or treats a stale cache as current. Old hosts remain usable with ordinary `read`; incremental return fails explicitly when unsupported. Legacy base cursors have no retroactive prefix evidence.
+
+The optional `resume` object contains origin, world, opaque cursor, and digest, without credentials. Keep it with its private originals. The report adds `prefix_validated`, `cached_events`, and `cached_record_bytes`. `pages` and `response_bytes` describe only this invocation, including discovery bytes, while `events` counts the combined view. Cached bytes do not consume the new network allowance; the combined event count, input size, record size, cache validation and output bounds still apply. The default event budget remains 256; select a larger explicit budget, up to 4096, for a larger room. The archive bundle remains independently bounded to 256 entries.
+
+This is an observation of permitted history, not atomic authorization for a later action. See the [extension contract](../../docs/PREFIX_VIEW.md). `first_page` cannot produce a complete return view.

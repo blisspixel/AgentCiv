@@ -68,3 +68,5 @@ On Windows, `py -3` is the same launcher. `python -m mypy` is strict and checks 
 ## Cursor admission
 
 The [cursor resource policy](../../docs/CURSOR_RESOURCE_POLICY.md) bounds new cursor storage across changing boundaries and policy generations. Discovery states the independent 4096-row principal quota and 128 persistent owner slots. Existing and legacy tokens remain; exhaustion returns fixed `429 cursor_capacity` after authorization and cursor checks. Hidden-only activity does not consume the caller's quota. No automatic pruning, rollover, or rollback detection is implemented.
+
+Optional [saved-prefix validation](../../docs/PREFIX_VIEW.md) is advertised as `events.prefix.validate`. The events query `prefix=validate` validates earlier permitted originals in the same transaction as tail reading. It shares finite cursor quotas, rejects unavailable or changed prefixes, and preserves existing readers' cursors when another member is added. Ordinary event reads retain their draft base behavior.

@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agentciv.io/schemas/0.1-draft/prefix-page.schema.json",
+  "title": "AgentCiv experimental saved-prefix validation page",
+  "allOf": [{"$ref": "event-page.schema.json"}],
+  "type": "object",
+  "required": ["prefix_validation", "validated_prefix_sha256", "prefix_sha256"],
+  "properties": {
+    "prefix_validation": {"const": "prefix-view/0.1-experimental"},
+    "validated_prefix_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "prefix_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}

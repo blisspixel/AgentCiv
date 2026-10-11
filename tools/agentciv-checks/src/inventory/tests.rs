@@ -24,6 +24,11 @@ fn fixture() -> (tempfile::TempDir, Value) {
     )
     .unwrap();
     std::fs::write(
+        root.join(SOURCES[2]),
+        "# Optional extension\n\nIntroductory status.\n",
+    )
+    .unwrap();
+    std::fs::write(
         root.join("conformance/runner/src/lib.rs"),
         "const CASE: &str = \"events.recorded\";\n",
     )

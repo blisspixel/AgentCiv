@@ -3,6 +3,7 @@
 
 # Published evidence hashes refer to these JSON bytes.
 conformance/evidence/**/*.json text eol=lf
+conformance/requirements.json text eol=lf
 
 # Original third-party notice bytes must not be rewritten by checkout.
 release/THIRD_PARTY_NOTICES.txt -text

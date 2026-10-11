@@ -227,7 +227,7 @@ fn unchanged_polls_reuse_cursor_without_losing_legacy_tokens() {
         .expect("first");
     let cursor = first["next_cursor"].as_str().expect("cursor");
     let connection = rusqlite::Connection::open(&path).expect("inspect");
-    connection.execute("INSERT INTO cursors SELECT 'legacy-same-boundary', principal, last_sequence, revision FROM cursors LIMIT 1", []).expect("legacy duplicate");
+    connection.execute("INSERT INTO cursors(token, principal, last_sequence, revision) SELECT 'legacy-same-boundary', principal, last_sequence, revision FROM cursors LIMIT 1", []).expect("legacy duplicate");
     for _ in 0..10_000 {
         let page = store
             .read_page("agent:abc123", "civ:local", Some(cursor), true)
@@ -288,7 +288,7 @@ fn cursor_capacity_is_caller_scoped_and_preserves_public_error_precedence() {
     connection
         .execute(
             "WITH RECURSIVE n(x) AS (SELECT 1 UNION ALL SELECT x+1 FROM n WHERE x < ?1)
-        INSERT INTO cursors SELECT 'padding-' || x,'agent:abc123',x + 100000,1 FROM n",
+        INSERT INTO cursors(token, principal, last_sequence, revision) SELECT 'padding-' || x,'agent:abc123',x + 100000,1 FROM n",
             [crate::store::MAX_CURSORS_PER_OWNER - 1],
         )
         .unwrap();
@@ -573,8 +573,9 @@ async fn public_http_covers_recording_refusal_and_restart() {
     })
     .await
     .expect("runner");
-    assert_eq!(report.cases.len(), 64, "{report:?}");
+    assert_eq!(report.cases.len(), 68, "{report:?}");
     let hidden_cases = [
+        "prefix.hidden",
         "collaborate.hidden_visibility",
         "collaborate.hidden_derivation",
         "collaborate.hidden_objection",
