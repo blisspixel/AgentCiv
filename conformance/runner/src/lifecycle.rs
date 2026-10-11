@@ -55,13 +55,43 @@ pub fn run_lifecycle(
                 "policy.visibility",
             ],
         ),
+        "revoke" => (
+            "lifecycle-revoke",
+            &[
+                "lifecycle.world",
+                "access.revoked_before_cursor",
+                "access.writer_unchanged",
+            ],
+        ),
+        "restore" => (
+            "lifecycle-restore",
+            &[
+                "lifecycle.world",
+                "access.restored_cursor_expired",
+                "access.restored_history",
+            ],
+        ),
+        "remove" => (
+            "lifecycle-remove",
+            &[
+                "lifecycle.world",
+                "access.removed_before_cursor",
+                "access.writer_unchanged",
+            ],
+        ),
+        "rotate" => (
+            "lifecycle-rotate",
+            &[
+                "lifecycle.world",
+                "access.old_credential_rejected",
+                "access.rotation_cursor_preserved",
+                "access.restored_history",
+            ],
+        ),
         _ => {
             return Report {
                 scope: "lifecycle-invalid",
-                cases: vec![Case::failed(
-                    "lifecycle.input",
-                    "lifecycle phase must be prepare, verify, or policy",
-                )],
+                cases: vec![Case::failed("lifecycle.input", "unknown lifecycle phase")],
             };
         }
     };
@@ -92,6 +122,11 @@ pub fn run_lifecycle(
     }
     let mut report = Report { scope, cases };
     redact(&mut report, &secret_tokens(writer.1, reader.1, peer));
+    if phase == "rotate"
+        && let Ok(previous) = std::env::var("AGENTCIV_CONFORMANCE_OLD_READER_TOKEN")
+    {
+        redact(&mut report, &[&previous]);
+    }
     report
 }
 
@@ -171,7 +206,9 @@ fn run_phase(
     }
     cases.push(Case::passed("lifecycle.world"));
     let phase_result = if let Some(saved) = saved {
-        if phase == "policy" {
+        if matches!(phase, "revoke" | "restore" | "remove" | "rotate") {
+            verify_access(&ctx, &saved, &parties, phase, cases)?;
+        } else if phase == "policy" {
             verify_policy(&ctx, &saved, &parties, cases);
         } else {
             verify_restart(&ctx, &submit, &saved, &parties, cases);
@@ -999,6 +1036,98 @@ fn verify_policy(
             compare_history(&actual, &Value::Object(expected))
         })(),
     ));
+}
+
+fn verify_access(
+    ctx: &CollaborationRun<'_>,
+    saved: &Value,
+    parties: &[(&str, &str)],
+    phase: &str,
+    cases: &mut Vec<Case>,
+) -> Result<(), String> {
+    let cursor = saved["reader_cursor"]
+        .as_str()
+        .ok_or("saved reader cursor missing")?;
+    if phase == "revoke" || phase == "remove" {
+        let (status, code, id) = if phase == "remove" {
+            (
+                StatusCode::UNAUTHORIZED,
+                "authentication_required",
+                "access.removed_before_cursor",
+            )
+        } else {
+            (
+                StatusCode::FORBIDDEN,
+                "forbidden",
+                "access.revoked_before_cursor",
+            )
+        };
+        let result = (|| {
+            for after in [None, Some(""), Some("cursor:unknown-access"), Some(cursor)] {
+                expect_problem(
+                    read_events(ctx.client, ctx.events, ctx.reader.token, after)?,
+                    status,
+                    code,
+                )?;
+            }
+            Ok(())
+        })();
+        cases.push(result_case(id, result));
+        cases.push(result_case(
+            "access.writer_unchanged",
+            read_history(ctx, ctx.writer.token).and_then(|history| {
+                if json!(history) != saved["history"][ctx.writer.principal] {
+                    return Err("reader access change altered the writer's originals".to_owned());
+                }
+                Ok(())
+            }),
+        ));
+    } else {
+        if phase == "rotate" {
+            let previous = std::env::var("AGENTCIV_CONFORMANCE_OLD_READER_TOKEN")
+                .map_err(|_| "rotation needs the previous reader token environment variable")?;
+            if previous.is_empty() || previous == ctx.reader.token {
+                return Err("rotation needs distinct old and current credentials".to_owned());
+            }
+            cases.push(result_case(
+                "access.old_credential_rejected",
+                read_events(ctx.client, ctx.events, &previous, Some("")).and_then(|response| {
+                    expect_problem(
+                        response,
+                        StatusCode::UNAUTHORIZED,
+                        "authentication_required",
+                    )
+                }),
+            ));
+            cases.push(result_case(
+                "access.rotation_cursor_preserved",
+                (|| {
+                    let page = check_page(
+                        read_events(ctx.client, ctx.events, ctx.reader.token, Some(cursor))?,
+                        ctx.world_id,
+                    )?;
+                    if page["events"] != saved["history"][ctx.reader.principal] {
+                        return Err(
+                            "rotation changed the caller's original permitted view".to_owned()
+                        );
+                    }
+                    Ok(())
+                })(),
+            ));
+        } else {
+            cases.push(result_case(
+                "access.restored_cursor_expired",
+                read_events(ctx.client, ctx.events, ctx.reader.token, Some(cursor)).and_then(
+                    |response| expect_problem(response, StatusCode::GONE, "cursor_expired"),
+                ),
+            ));
+        }
+        cases.push(result_case(
+            "access.restored_history",
+            snapshot(ctx, parties).and_then(|history| compare_history(&history, &saved["history"])),
+        ));
+    }
+    Ok(())
 }
 
 #[cfg(test)]

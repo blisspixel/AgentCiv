@@ -1,7 +1,7 @@
 use std::env;
 use std::process::ExitCode;
 
-const USAGE: &str = "usage: agentciv-conformance --discovery URL [--principal ID] [--reader ID] [--peer ID] [--lifecycle prepare|verify|policy --checkpoint PATH]";
+const USAGE: &str = "usage: agentciv-conformance --discovery URL [--principal ID] [--reader ID] [--peer ID] [--retention-window-test] [--lifecycle prepare|verify|policy --checkpoint PATH]";
 
 fn main() -> ExitCode {
     let args: Vec<String> = env::args().skip(1).collect();
@@ -22,10 +22,16 @@ fn main() -> ExitCode {
     let mut peer = None;
     let mut lifecycle = None;
     let mut checkpoint = None;
+    let mut retention = false;
     let mut index = 0;
     while index < args.len() {
         let value = args.get(index + 1).map(String::as_str);
         match args[index].as_str() {
+            "--retention-window-test" => {
+                retention = true;
+                index += 1;
+                continue;
+            }
             "--discovery" => discovery = value,
             "--principal" => principal = value,
             "--reader" => reader = value,
@@ -45,6 +51,18 @@ fn main() -> ExitCode {
     }
     if peer.is_some() && reader.is_none() {
         eprintln!("--peer requires --reader");
+        return ExitCode::FAILURE;
+    }
+    if retention
+        && (principal.is_none()
+            || reader.is_none()
+            || lifecycle.is_some()
+            || checkpoint.is_some()
+            || peer.is_some())
+    {
+        eprintln!(
+            "retention testing requires writer and reader, without lifecycle or peer options"
+        );
         return ExitCode::FAILURE;
     }
     if lifecycle.is_some() || checkpoint.is_some() {
@@ -120,7 +138,13 @@ fn main() -> ExitCode {
                 eprintln!("tokens and principals must be nonempty");
                 return ExitCode::FAILURE;
             }
-            if let Some(peer) = peer {
+            if retention {
+                agentciv_conformance::run_retention(
+                    discovery.expect("discovery"),
+                    (principal, &token),
+                    (reader, &reader_token),
+                )
+            } else if let Some(peer) = peer {
                 let Ok(peer_token) = env::var("AGENTCIV_CONFORMANCE_PEER_TOKEN") else {
                     eprintln!("set AGENTCIV_CONFORMANCE_PEER_TOKEN for the second writer");
                     return ExitCode::FAILURE;

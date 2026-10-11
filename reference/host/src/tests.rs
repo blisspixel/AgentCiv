@@ -573,7 +573,7 @@ async fn public_http_covers_recording_refusal_and_restart() {
     })
     .await
     .expect("runner");
-    assert_eq!(report.cases.len(), 68, "{report:?}");
+    assert_eq!(report.cases.len(), 73, "{report:?}");
     let hidden_cases = [
         "prefix.hidden",
         "collaborate.hidden_visibility",

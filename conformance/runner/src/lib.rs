@@ -968,6 +968,21 @@ fn run_extended_cases(
         },
         cases,
     );
+    boundaries::base(
+        client,
+        world,
+        events,
+        submit,
+        Party {
+            principal: writer,
+            token: writer_token,
+        },
+        Party {
+            principal: reader,
+            token: reader_token,
+        },
+        cases,
+    );
     run_collaboration_cases(
         &CollaborationInput {
             client,
@@ -1289,6 +1304,14 @@ fn run_collaboration_cases(input: &CollaborationInput<'_>, cases: &mut Vec<Case>
     concurrent_revisions::run(&ctx, cases);
     collaboration_retries::run(&ctx, cases);
     prefix::run(input.world, &ctx, cases);
+    let submit = match endpoint_url(input.discovery, input.world, "submit") {
+        Ok(url) => url,
+        Err(detail) => {
+            cases.push(Case::failed("collaborate.retry_namespace", detail));
+            return;
+        }
+    };
+    boundaries::collaboration(input.world, &ctx, &submit, cases);
     let recorded = match recorded_revision(&ctx) {
         Ok(recorded) => {
             cases.push(Case::passed("collaborate.revision"));
@@ -2268,9 +2291,12 @@ fn run_internal(discovery_url: &str, credential: Option<(&str, &str)>) -> Report
 mod tests;
 
 mod adversarial;
+mod boundaries;
 mod collaboration_retries;
 mod concurrent_revisions;
 mod lifecycle;
 mod prefix;
+mod retention;
+pub use retention::run_retention;
 mod revisions;
 pub use lifecycle::run_lifecycle;
