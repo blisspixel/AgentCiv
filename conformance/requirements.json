@@ -9,38 +9,9 @@
       "obligation": "required",
       "applicability": "Every HTTP Commons host",
       "coverage": "partial_public",
-      "references": [
-        "case:submit.recorded",
-        "case:events.recorded",
-        "case:collaborate.revision",
-        "test:rust-http",
-        "test:python-http",
-        "schema:message",
-        "fixture:message"
-      ],
-      "observations": [
-        "obs:python:members:submit.recorded",
-        "obs:python:members:events.recorded",
-        "obs:python:members:collaborate.revision",
-        "obs:python:addressed:submit.recorded",
-        "obs:python:addressed:events.recorded",
-        "obs:python:addressed:collaborate.revision",
-        "obs:python:sender_only:submit.recorded",
-        "obs:python:sender_only:events.recorded",
-        "obs:python:sender_only:collaborate.revision",
-        "obs:rust:members:submit.recorded",
-        "obs:rust:members:events.recorded",
-        "obs:rust:members:collaborate.revision",
-        "obs:rust:addressed:submit.recorded",
-        "obs:rust:addressed:events.recorded",
-        "obs:rust:addressed:collaborate.revision",
-        "obs:rust:sender_only:submit.recorded",
-        "obs:rust:sender_only:events.recorded",
-        "obs:rust:sender_only:collaborate.revision"
-      ],
-      "gaps": [
-        "gap:semantic-claims"
-      ]
+      "references": ["case:submit.recorded", "case:events.recorded", "case:collaborate.revision", "test:rust-http", "test:python-http", "schema:message", "fixture:message"],
+      "observations": ["obs:python:members:submit.recorded", "obs:python:members:events.recorded", "obs:python:members:collaborate.revision", "obs:python:addressed:submit.recorded", "obs:python:addressed:events.recorded", "obs:python:addressed:collaborate.revision", "obs:python:sender_only:submit.recorded", "obs:python:sender_only:events.recorded", "obs:python:sender_only:collaborate.revision", "obs:rust:members:submit.recorded", "obs:rust:members:events.recorded", "obs:rust:members:collaborate.revision", "obs:rust:addressed:submit.recorded", "obs:rust:addressed:events.recorded", "obs:rust:addressed:collaborate.revision", "obs:rust:sender_only:submit.recorded", "obs:rust:sender_only:events.recorded", "obs:rust:sender_only:collaborate.revision"],
+      "gaps": ["gap:semantic-claims"]
     },
     {
       "id": "P02",
@@ -49,38 +20,9 @@
       "obligation": "required",
       "applicability": "Every HTTP Commons host",
       "coverage": "partial_public",
-      "references": [
-        "case:submit.wrong_world",
-        "case:submit.retry",
-        "case:submit.conflict",
-        "test:rust-principals",
-        "test:python-principals",
-        "schema:message",
-        "fixture:message"
-      ],
-      "observations": [
-        "obs:python:members:submit.retry",
-        "obs:python:members:submit.conflict",
-        "obs:python:members:submit.wrong_world",
-        "obs:python:addressed:submit.retry",
-        "obs:python:addressed:submit.conflict",
-        "obs:python:addressed:submit.wrong_world",
-        "obs:python:sender_only:submit.retry",
-        "obs:python:sender_only:submit.conflict",
-        "obs:python:sender_only:submit.wrong_world",
-        "obs:rust:members:submit.retry",
-        "obs:rust:members:submit.conflict",
-        "obs:rust:members:submit.wrong_world",
-        "obs:rust:addressed:submit.retry",
-        "obs:rust:addressed:submit.conflict",
-        "obs:rust:addressed:submit.wrong_world",
-        "obs:rust:sender_only:submit.retry",
-        "obs:rust:sender_only:submit.conflict",
-        "obs:rust:sender_only:submit.wrong_world"
-      ],
-      "gaps": [
-        "gap:retention"
-      ]
+      "references": ["case:submit.wrong_world", "case:submit.retry", "case:submit.conflict", "test:rust-principals", "test:python-principals", "schema:message", "fixture:message"],
+      "observations": ["obs:python:members:submit.retry", "obs:python:members:submit.conflict", "obs:python:members:submit.wrong_world", "obs:python:addressed:submit.retry", "obs:python:addressed:submit.conflict", "obs:python:addressed:submit.wrong_world", "obs:python:sender_only:submit.retry", "obs:python:sender_only:submit.conflict", "obs:python:sender_only:submit.wrong_world", "obs:rust:members:submit.retry", "obs:rust:members:submit.conflict", "obs:rust:members:submit.wrong_world", "obs:rust:addressed:submit.retry", "obs:rust:addressed:submit.conflict", "obs:rust:addressed:submit.wrong_world", "obs:rust:sender_only:submit.retry", "obs:rust:sender_only:submit.conflict", "obs:rust:sender_only:submit.wrong_world"],
+      "gaps": ["gap:retention"]
     },
     {
       "id": "P03",
@@ -89,37 +31,9 @@
       "obligation": "required",
       "applicability": "Every HTTP Commons host",
       "coverage": "partial_public",
-      "references": [
-        "case:discovery.url",
-        "case:discovery.record",
-        "case:endpoints.origin",
-        "test:rust-http",
-        "schema:world",
-        "fixture:world"
-      ],
-      "observations": [
-        "obs:python:members:discovery.url",
-        "obs:python:members:discovery.record",
-        "obs:python:members:endpoints.origin",
-        "obs:python:addressed:discovery.url",
-        "obs:python:addressed:discovery.record",
-        "obs:python:addressed:endpoints.origin",
-        "obs:python:sender_only:discovery.url",
-        "obs:python:sender_only:discovery.record",
-        "obs:python:sender_only:endpoints.origin",
-        "obs:rust:members:discovery.url",
-        "obs:rust:members:discovery.record",
-        "obs:rust:members:endpoints.origin",
-        "obs:rust:addressed:discovery.url",
-        "obs:rust:addressed:discovery.record",
-        "obs:rust:addressed:endpoints.origin",
-        "obs:rust:sender_only:discovery.url",
-        "obs:rust:sender_only:discovery.record",
-        "obs:rust:sender_only:endpoints.origin"
-      ],
-      "gaps": [
-        "gap:remote-https"
-      ]
+      "references": ["case:discovery.url", "case:discovery.record", "case:endpoints.origin", "test:rust-http", "schema:world", "fixture:world"],
+      "observations": ["obs:python:members:discovery.url", "obs:python:members:discovery.record", "obs:python:members:endpoints.origin", "obs:python:addressed:discovery.url", "obs:python:addressed:discovery.record", "obs:python:addressed:endpoints.origin", "obs:python:sender_only:discovery.url", "obs:python:sender_only:discovery.record", "obs:python:sender_only:endpoints.origin", "obs:rust:members:discovery.url", "obs:rust:members:discovery.record", "obs:rust:members:endpoints.origin", "obs:rust:addressed:discovery.url", "obs:rust:addressed:discovery.record", "obs:rust:addressed:endpoints.origin", "obs:rust:sender_only:discovery.url", "obs:rust:sender_only:discovery.record", "obs:rust:sender_only:endpoints.origin"],
+      "gaps": ["gap:remote-https"]
     },
     {
       "id": "P04",
@@ -128,45 +42,9 @@
       "obligation": "required",
       "applicability": "Every HTTP Commons host",
       "coverage": "partial_public",
-      "references": [
-        "case:events.authentication",
-        "case:submit.authentication",
-        "case:submit.forbidden",
-        "case:submit.from_mismatch",
-        "test:python-refusal",
-        "schema:message",
-        "fixture:message"
-      ],
-      "observations": [
-        "obs:python:members:events.authentication",
-        "obs:python:members:submit.authentication",
-        "obs:python:members:submit.forbidden",
-        "obs:python:members:submit.from_mismatch",
-        "obs:python:addressed:events.authentication",
-        "obs:python:addressed:submit.authentication",
-        "obs:python:addressed:submit.forbidden",
-        "obs:python:addressed:submit.from_mismatch",
-        "obs:python:sender_only:events.authentication",
-        "obs:python:sender_only:submit.authentication",
-        "obs:python:sender_only:submit.forbidden",
-        "obs:python:sender_only:submit.from_mismatch",
-        "obs:rust:members:events.authentication",
-        "obs:rust:members:submit.authentication",
-        "obs:rust:members:submit.forbidden",
-        "obs:rust:members:submit.from_mismatch",
-        "obs:rust:addressed:events.authentication",
-        "obs:rust:addressed:submit.authentication",
-        "obs:rust:addressed:submit.forbidden",
-        "obs:rust:addressed:submit.from_mismatch",
-        "obs:rust:sender_only:events.authentication",
-        "obs:rust:sender_only:submit.authentication",
-        "obs:rust:sender_only:submit.forbidden",
-        "obs:rust:sender_only:submit.from_mismatch"
-      ],
-      "gaps": [
-        "gap:access-transitions",
-        "gap:content-authority"
-      ]
+      "references": ["case:events.authentication", "case:submit.authentication", "case:submit.forbidden", "case:submit.from_mismatch", "test:python-refusal", "schema:message", "fixture:message"],
+      "observations": ["obs:python:members:events.authentication", "obs:python:members:submit.authentication", "obs:python:members:submit.forbidden", "obs:python:members:submit.from_mismatch", "obs:python:addressed:events.authentication", "obs:python:addressed:submit.authentication", "obs:python:addressed:submit.forbidden", "obs:python:addressed:submit.from_mismatch", "obs:python:sender_only:events.authentication", "obs:python:sender_only:submit.authentication", "obs:python:sender_only:submit.forbidden", "obs:python:sender_only:submit.from_mismatch", "obs:rust:members:events.authentication", "obs:rust:members:submit.authentication", "obs:rust:members:submit.forbidden", "obs:rust:members:submit.from_mismatch", "obs:rust:addressed:events.authentication", "obs:rust:addressed:submit.authentication", "obs:rust:addressed:submit.forbidden", "obs:rust:addressed:submit.from_mismatch", "obs:rust:sender_only:events.authentication", "obs:rust:sender_only:submit.authentication", "obs:rust:sender_only:submit.forbidden", "obs:rust:sender_only:submit.from_mismatch"],
+      "gaps": ["gap:access-transitions", "gap:content-authority"]
     },
     {
       "id": "P05",
@@ -175,27 +53,8 @@
       "obligation": "required",
       "applicability": "Every HTTP Commons host",
       "coverage": "partial_public",
-      "references": [
-        "case:discovery.record",
-        "case:endpoints.origin",
-        "test:rust-http",
-        "schema:world",
-        "fixture:world"
-      ],
-      "observations": [
-        "obs:python:members:discovery.record",
-        "obs:python:members:endpoints.origin",
-        "obs:python:addressed:discovery.record",
-        "obs:python:addressed:endpoints.origin",
-        "obs:python:sender_only:discovery.record",
-        "obs:python:sender_only:endpoints.origin",
-        "obs:rust:members:discovery.record",
-        "obs:rust:members:endpoints.origin",
-        "obs:rust:addressed:discovery.record",
-        "obs:rust:addressed:endpoints.origin",
-        "obs:rust:sender_only:discovery.record",
-        "obs:rust:sender_only:endpoints.origin"
-      ],
+      "references": ["case:discovery.record", "case:endpoints.origin", "test:rust-http", "schema:world", "fixture:world"],
+      "observations": ["obs:python:members:discovery.record", "obs:python:members:endpoints.origin", "obs:python:addressed:discovery.record", "obs:python:addressed:endpoints.origin", "obs:python:sender_only:discovery.record", "obs:python:sender_only:endpoints.origin", "obs:rust:members:discovery.record", "obs:rust:members:endpoints.origin", "obs:rust:addressed:discovery.record", "obs:rust:addressed:endpoints.origin", "obs:rust:sender_only:discovery.record", "obs:rust:sender_only:endpoints.origin"],
       "gaps": []
     },
     {
@@ -205,25 +64,9 @@
       "obligation": "required",
       "applicability": "Every HTTP Commons host",
       "coverage": "partial_public",
-      "references": [
-        "case:discovery.record",
-        "test:rust-retention",
-        "test:python-retention",
-        "schema:world",
-        "fixture:world"
-      ],
-      "observations": [
-        "obs:python:members:discovery.record",
-        "obs:python:addressed:discovery.record",
-        "obs:python:sender_only:discovery.record",
-        "obs:rust:members:discovery.record",
-        "obs:rust:addressed:discovery.record",
-        "obs:rust:sender_only:discovery.record"
-      ],
-      "gaps": [
-        "gap:retention",
-        "gap:redaction"
-      ]
+      "references": ["case:discovery.record", "test:rust-retention", "test:python-retention", "schema:world", "fixture:world"],
+      "observations": ["obs:python:members:discovery.record", "obs:python:addressed:discovery.record", "obs:python:sender_only:discovery.record", "obs:rust:members:discovery.record", "obs:rust:addressed:discovery.record", "obs:rust:sender_only:discovery.record"],
+      "gaps": ["gap:retention", "gap:redaction"]
     },
     {
       "id": "P07",
@@ -232,29 +75,9 @@
       "obligation": "required",
       "applicability": "Every HTTP Commons host",
       "coverage": "partial_public",
-      "references": [
-        "case:events.visibility",
-        "case:policy.visibility",
-        "case:policy.cursor_expired",
-        "test:python-policy",
-        "schema:world",
-        "fixture:world"
-      ],
-      "observations": [
-        "obs:python:members:events.visibility",
-        "obs:python:addressed:events.visibility",
-        "obs:python:sender_only:events.visibility",
-        "obs:rust:members:events.visibility",
-        "obs:rust:addressed:events.visibility",
-        "obs:rust:sender_only:events.visibility",
-        "obs:python:policy:policy.cursor_expired",
-        "obs:python:policy:policy.visibility",
-        "obs:rust:policy:policy.cursor_expired",
-        "obs:rust:policy:policy.visibility"
-      ],
-      "gaps": [
-        "gap:access-transitions"
-      ]
+      "references": ["case:events.visibility", "case:policy.visibility", "case:policy.cursor_expired", "test:python-policy", "schema:world", "fixture:world"],
+      "observations": ["obs:python:members:events.visibility", "obs:python:addressed:events.visibility", "obs:python:sender_only:events.visibility", "obs:rust:members:events.visibility", "obs:rust:addressed:events.visibility", "obs:rust:sender_only:events.visibility", "obs:python:policy:policy.cursor_expired", "obs:python:policy:policy.visibility", "obs:rust:policy:policy.cursor_expired", "obs:rust:policy:policy.visibility"],
+      "gaps": ["gap:access-transitions"]
     },
     {
       "id": "P08",
@@ -263,30 +86,9 @@
       "obligation": "required",
       "applicability": "Every HTTP Commons host",
       "coverage": "partial_public",
-      "references": [
-        "case:submit.recorded",
-        "case:submit.json_charset",
-        "test:python-http",
-        "schema:message",
-        "fixture:message"
-      ],
-      "observations": [
-        "obs:python:members:submit.recorded",
-        "obs:python:members:submit.json_charset",
-        "obs:python:addressed:submit.recorded",
-        "obs:python:addressed:submit.json_charset",
-        "obs:python:sender_only:submit.recorded",
-        "obs:python:sender_only:submit.json_charset",
-        "obs:rust:members:submit.recorded",
-        "obs:rust:members:submit.json_charset",
-        "obs:rust:addressed:submit.recorded",
-        "obs:rust:addressed:submit.json_charset",
-        "obs:rust:sender_only:submit.recorded",
-        "obs:rust:sender_only:submit.json_charset"
-      ],
-      "gaps": [
-        "gap:content-authority"
-      ]
+      "references": ["case:submit.recorded", "case:submit.json_charset", "test:python-http", "schema:message", "fixture:message"],
+      "observations": ["obs:python:members:submit.recorded", "obs:python:members:submit.json_charset", "obs:python:addressed:submit.recorded", "obs:python:addressed:submit.json_charset", "obs:python:sender_only:submit.recorded", "obs:python:sender_only:submit.json_charset", "obs:rust:members:submit.recorded", "obs:rust:members:submit.json_charset", "obs:rust:addressed:submit.recorded", "obs:rust:addressed:submit.json_charset", "obs:rust:sender_only:submit.recorded", "obs:rust:sender_only:submit.json_charset"],
+      "gaps": ["gap:content-authority"]
     },
     {
       "id": "P09",
@@ -295,34 +97,9 @@
       "obligation": "required",
       "applicability": "Every HTTP Commons host",
       "coverage": "partial_public",
-      "references": [
-        "case:submit.recorded",
-        "case:events.recorded",
-        "case:restart.history",
-        "test:rust-transaction",
-        "test:rust-restart",
-        "schema:receipt",
-        "fixture:receipt"
-      ],
-      "observations": [
-        "obs:python:members:submit.recorded",
-        "obs:python:members:events.recorded",
-        "obs:python:addressed:submit.recorded",
-        "obs:python:addressed:events.recorded",
-        "obs:python:sender_only:submit.recorded",
-        "obs:python:sender_only:events.recorded",
-        "obs:rust:members:submit.recorded",
-        "obs:rust:members:events.recorded",
-        "obs:rust:addressed:submit.recorded",
-        "obs:rust:addressed:events.recorded",
-        "obs:rust:sender_only:submit.recorded",
-        "obs:rust:sender_only:events.recorded",
-        "obs:python:verify:restart.history",
-        "obs:rust:verify:restart.history"
-      ],
-      "gaps": [
-        "gap:crash-recovery"
-      ]
+      "references": ["case:submit.recorded", "case:events.recorded", "case:restart.history", "test:rust-transaction", "test:rust-restart", "schema:receipt", "fixture:receipt"],
+      "observations": ["obs:python:members:submit.recorded", "obs:python:members:events.recorded", "obs:python:addressed:submit.recorded", "obs:python:addressed:events.recorded", "obs:python:sender_only:submit.recorded", "obs:python:sender_only:events.recorded", "obs:rust:members:submit.recorded", "obs:rust:members:events.recorded", "obs:rust:addressed:submit.recorded", "obs:rust:addressed:events.recorded", "obs:rust:sender_only:submit.recorded", "obs:rust:sender_only:events.recorded", "obs:python:verify:restart.history", "obs:rust:verify:restart.history"],
+      "gaps": ["gap:crash-recovery"]
     },
     {
       "id": "P10",
@@ -331,38 +108,9 @@
       "obligation": "required",
       "applicability": "Every HTTP Commons host",
       "coverage": "partial_public",
-      "references": [
-        "case:submit.retry",
-        "case:submit.conflict",
-        "case:restart.retry",
-        "test:rust-retention",
-        "test:python-retention",
-        "test:rust-principals",
-        "test:python-principals",
-        "schema:message",
-        "fixture:message"
-      ],
-      "observations": [
-        "obs:python:members:submit.retry",
-        "obs:python:members:submit.conflict",
-        "obs:python:addressed:submit.retry",
-        "obs:python:addressed:submit.conflict",
-        "obs:python:sender_only:submit.retry",
-        "obs:python:sender_only:submit.conflict",
-        "obs:rust:members:submit.retry",
-        "obs:rust:members:submit.conflict",
-        "obs:rust:addressed:submit.retry",
-        "obs:rust:addressed:submit.conflict",
-        "obs:rust:sender_only:submit.retry",
-        "obs:rust:sender_only:submit.conflict",
-        "obs:python:verify:restart.retry",
-        "obs:rust:verify:restart.retry",
-        "obs:python:members:retention-boundary-omitted"
-      ],
-      "gaps": [
-        "gap:retention",
-        "gap:cross-endpoint-retry"
-      ]
+      "references": ["case:submit.retry", "case:submit.conflict", "case:restart.retry", "test:rust-retention", "test:python-retention", "test:rust-principals", "test:python-principals", "schema:message", "fixture:message"],
+      "observations": ["obs:python:members:submit.retry", "obs:python:members:submit.conflict", "obs:python:addressed:submit.retry", "obs:python:addressed:submit.conflict", "obs:python:sender_only:submit.retry", "obs:python:sender_only:submit.conflict", "obs:rust:members:submit.retry", "obs:rust:members:submit.conflict", "obs:rust:addressed:submit.retry", "obs:rust:addressed:submit.conflict", "obs:rust:sender_only:submit.retry", "obs:rust:sender_only:submit.conflict", "obs:python:verify:restart.retry", "obs:rust:verify:restart.retry", "obs:python:members:retention-boundary-omitted"],
+      "gaps": ["gap:retention", "gap:cross-endpoint-retry"]
     },
     {
       "id": "P11",
@@ -371,9 +119,7 @@
       "obligation": "informational",
       "applicability": "Every HTTP Commons host",
       "coverage": "informational",
-      "references": [
-        "setup:walkthrough"
-      ],
+      "references": ["setup:walkthrough"],
       "observations": [],
       "gaps": []
     },
@@ -384,9 +130,7 @@
       "obligation": "informational",
       "applicability": "Every HTTP Commons host",
       "coverage": "informational",
-      "references": [
-        "setup:walkthrough"
-      ],
+      "references": ["setup:walkthrough"],
       "observations": [],
       "gaps": []
     },
@@ -397,27 +141,8 @@
       "obligation": "required",
       "applicability": "Every HTTP Commons host",
       "coverage": "partial_public",
-      "references": [
-        "case:events.authorized",
-        "case:events.pagination",
-        "test:rust-retention",
-        "schema:event-page",
-        "fixture:event-page"
-      ],
-      "observations": [
-        "obs:python:members:events.authorized",
-        "obs:python:members:events.pagination",
-        "obs:python:addressed:events.authorized",
-        "obs:python:addressed:events.pagination",
-        "obs:python:sender_only:events.authorized",
-        "obs:python:sender_only:events.pagination",
-        "obs:rust:members:events.authorized",
-        "obs:rust:members:events.pagination",
-        "obs:rust:addressed:events.authorized",
-        "obs:rust:addressed:events.pagination",
-        "obs:rust:sender_only:events.authorized",
-        "obs:rust:sender_only:events.pagination"
-      ],
+      "references": ["case:events.authorized", "case:events.pagination", "test:rust-retention", "schema:event-page", "fixture:event-page"],
+      "observations": ["obs:python:members:events.authorized", "obs:python:members:events.pagination", "obs:python:addressed:events.authorized", "obs:python:addressed:events.pagination", "obs:python:sender_only:events.authorized", "obs:python:sender_only:events.pagination", "obs:rust:members:events.authorized", "obs:rust:members:events.pagination", "obs:rust:addressed:events.authorized", "obs:rust:addressed:events.pagination", "obs:rust:sender_only:events.authorized", "obs:rust:sender_only:events.pagination"],
       "gaps": []
     },
     {
@@ -427,34 +152,9 @@
       "obligation": "required",
       "applicability": "Every HTTP Commons host",
       "coverage": "partial_public",
-      "references": [
-        "case:events.pagination",
-        "case:events.foreign_cursor",
-        "case:policy.cursor_expired",
-        "test:python-policy",
-        "schema:event-page",
-        "fixture:event-page"
-      ],
-      "observations": [
-        "obs:python:members:events.foreign_cursor",
-        "obs:python:members:events.pagination",
-        "obs:python:addressed:events.foreign_cursor",
-        "obs:python:addressed:events.pagination",
-        "obs:python:sender_only:events.foreign_cursor",
-        "obs:python:sender_only:events.pagination",
-        "obs:rust:members:events.foreign_cursor",
-        "obs:rust:members:events.pagination",
-        "obs:rust:addressed:events.foreign_cursor",
-        "obs:rust:addressed:events.pagination",
-        "obs:rust:sender_only:events.foreign_cursor",
-        "obs:rust:sender_only:events.pagination",
-        "obs:python:policy:policy.cursor_expired",
-        "obs:rust:policy:policy.cursor_expired"
-      ],
-      "gaps": [
-        "gap:cursor-history-expiry",
-        "gap:access-transitions"
-      ]
+      "references": ["case:events.pagination", "case:events.foreign_cursor", "case:policy.cursor_expired", "test:python-policy", "schema:event-page", "fixture:event-page"],
+      "observations": ["obs:python:members:events.foreign_cursor", "obs:python:members:events.pagination", "obs:python:addressed:events.foreign_cursor", "obs:python:addressed:events.pagination", "obs:python:sender_only:events.foreign_cursor", "obs:python:sender_only:events.pagination", "obs:rust:members:events.foreign_cursor", "obs:rust:members:events.pagination", "obs:rust:addressed:events.foreign_cursor", "obs:rust:addressed:events.pagination", "obs:rust:sender_only:events.foreign_cursor", "obs:rust:sender_only:events.pagination", "obs:python:policy:policy.cursor_expired", "obs:rust:policy:policy.cursor_expired"],
+      "gaps": ["gap:cursor-history-expiry", "gap:access-transitions"]
     },
     {
       "id": "P15",
@@ -463,37 +163,9 @@
       "obligation": "required",
       "applicability": "Every HTTP Commons host",
       "coverage": "partial_public",
-      "references": [
-        "case:events.authentication",
-        "case:submit.authentication",
-        "case:submit.recorded",
-        "test:python-http",
-        "schema:event-page",
-        "fixture:event-page"
-      ],
-      "observations": [
-        "obs:python:members:events.authentication",
-        "obs:python:members:submit.authentication",
-        "obs:python:members:submit.recorded",
-        "obs:python:addressed:events.authentication",
-        "obs:python:addressed:submit.authentication",
-        "obs:python:addressed:submit.recorded",
-        "obs:python:sender_only:events.authentication",
-        "obs:python:sender_only:submit.authentication",
-        "obs:python:sender_only:submit.recorded",
-        "obs:rust:members:events.authentication",
-        "obs:rust:members:submit.authentication",
-        "obs:rust:members:submit.recorded",
-        "obs:rust:addressed:events.authentication",
-        "obs:rust:addressed:submit.authentication",
-        "obs:rust:addressed:submit.recorded",
-        "obs:rust:sender_only:events.authentication",
-        "obs:rust:sender_only:submit.authentication",
-        "obs:rust:sender_only:submit.recorded"
-      ],
-      "gaps": [
-        "gap:remote-https"
-      ]
+      "references": ["case:events.authentication", "case:submit.authentication", "case:submit.recorded", "test:python-http", "schema:event-page", "fixture:event-page"],
+      "observations": ["obs:python:members:events.authentication", "obs:python:members:submit.authentication", "obs:python:members:submit.recorded", "obs:python:addressed:events.authentication", "obs:python:addressed:submit.authentication", "obs:python:addressed:submit.recorded", "obs:python:sender_only:events.authentication", "obs:python:sender_only:submit.authentication", "obs:python:sender_only:submit.recorded", "obs:rust:members:events.authentication", "obs:rust:members:submit.authentication", "obs:rust:members:submit.recorded", "obs:rust:addressed:events.authentication", "obs:rust:addressed:submit.authentication", "obs:rust:addressed:submit.recorded", "obs:rust:sender_only:events.authentication", "obs:rust:sender_only:submit.authentication", "obs:rust:sender_only:submit.recorded"],
+      "gaps": ["gap:remote-https"]
     },
     {
       "id": "P16",
@@ -502,30 +174,9 @@
       "obligation": "required",
       "applicability": "Every HTTP Commons host",
       "coverage": "partial_public",
-      "references": [
-        "case:submit.malformed_json",
-        "case:submit.unsupported_version",
-        "test:python-refusal",
-        "schema:problem",
-        "fixture:problem"
-      ],
-      "observations": [
-        "obs:python:members:submit.unsupported_version",
-        "obs:python:members:submit.malformed_json",
-        "obs:python:addressed:submit.unsupported_version",
-        "obs:python:addressed:submit.malformed_json",
-        "obs:python:sender_only:submit.unsupported_version",
-        "obs:python:sender_only:submit.malformed_json",
-        "obs:rust:members:submit.unsupported_version",
-        "obs:rust:members:submit.malformed_json",
-        "obs:rust:addressed:submit.unsupported_version",
-        "obs:rust:addressed:submit.malformed_json",
-        "obs:rust:sender_only:submit.unsupported_version",
-        "obs:rust:sender_only:submit.malformed_json"
-      ],
-      "gaps": [
-        "gap:failure-precedence"
-      ]
+      "references": ["case:submit.malformed_json", "case:submit.unsupported_version", "test:python-refusal", "schema:problem", "fixture:problem"],
+      "observations": ["obs:python:members:submit.unsupported_version", "obs:python:members:submit.malformed_json", "obs:python:addressed:submit.unsupported_version", "obs:python:addressed:submit.malformed_json", "obs:python:sender_only:submit.unsupported_version", "obs:python:sender_only:submit.malformed_json", "obs:rust:members:submit.unsupported_version", "obs:rust:members:submit.malformed_json", "obs:rust:addressed:submit.unsupported_version", "obs:rust:addressed:submit.malformed_json", "obs:rust:sender_only:submit.unsupported_version", "obs:rust:sender_only:submit.malformed_json"],
+      "gaps": ["gap:failure-precedence"]
     },
     {
       "id": "P17",
@@ -534,59 +185,9 @@
       "obligation": "required",
       "applicability": "Every HTTP Commons host",
       "coverage": "partial_public",
-      "references": [
-        "case:submit.malformed_json",
-        "case:events.invalid_cursor",
-        "case:submit.forbidden",
-        "case:submit.conflict",
-        "case:submit.payload_too_large",
-        "case:submit.unsupported_media_type",
-        "test:python-refusal",
-        "schema:problem",
-        "fixture:problem"
-      ],
-      "observations": [
-        "obs:python:members:submit.conflict",
-        "obs:python:members:submit.forbidden",
-        "obs:python:members:submit.malformed_json",
-        "obs:python:members:submit.unsupported_media_type",
-        "obs:python:members:submit.payload_too_large",
-        "obs:python:members:events.invalid_cursor",
-        "obs:python:addressed:submit.conflict",
-        "obs:python:addressed:submit.forbidden",
-        "obs:python:addressed:submit.malformed_json",
-        "obs:python:addressed:submit.unsupported_media_type",
-        "obs:python:addressed:submit.payload_too_large",
-        "obs:python:addressed:events.invalid_cursor",
-        "obs:python:sender_only:submit.conflict",
-        "obs:python:sender_only:submit.forbidden",
-        "obs:python:sender_only:submit.malformed_json",
-        "obs:python:sender_only:submit.unsupported_media_type",
-        "obs:python:sender_only:submit.payload_too_large",
-        "obs:python:sender_only:events.invalid_cursor",
-        "obs:rust:members:submit.conflict",
-        "obs:rust:members:submit.forbidden",
-        "obs:rust:members:submit.malformed_json",
-        "obs:rust:members:submit.unsupported_media_type",
-        "obs:rust:members:submit.payload_too_large",
-        "obs:rust:members:events.invalid_cursor",
-        "obs:rust:addressed:submit.conflict",
-        "obs:rust:addressed:submit.forbidden",
-        "obs:rust:addressed:submit.malformed_json",
-        "obs:rust:addressed:submit.unsupported_media_type",
-        "obs:rust:addressed:submit.payload_too_large",
-        "obs:rust:addressed:events.invalid_cursor",
-        "obs:rust:sender_only:submit.conflict",
-        "obs:rust:sender_only:submit.forbidden",
-        "obs:rust:sender_only:submit.malformed_json",
-        "obs:rust:sender_only:submit.unsupported_media_type",
-        "obs:rust:sender_only:submit.payload_too_large",
-        "obs:rust:sender_only:events.invalid_cursor"
-      ],
-      "gaps": [
-        "gap:failure-precedence",
-        "gap:cursor-history-expiry"
-      ]
+      "references": ["case:submit.malformed_json", "case:events.invalid_cursor", "case:submit.forbidden", "case:submit.conflict", "case:submit.payload_too_large", "case:submit.unsupported_media_type", "test:python-refusal", "schema:problem", "fixture:problem"],
+      "observations": ["obs:python:members:submit.conflict", "obs:python:members:submit.forbidden", "obs:python:members:submit.malformed_json", "obs:python:members:submit.unsupported_media_type", "obs:python:members:submit.payload_too_large", "obs:python:members:events.invalid_cursor", "obs:python:addressed:submit.conflict", "obs:python:addressed:submit.forbidden", "obs:python:addressed:submit.malformed_json", "obs:python:addressed:submit.unsupported_media_type", "obs:python:addressed:submit.payload_too_large", "obs:python:addressed:events.invalid_cursor", "obs:python:sender_only:submit.conflict", "obs:python:sender_only:submit.forbidden", "obs:python:sender_only:submit.malformed_json", "obs:python:sender_only:submit.unsupported_media_type", "obs:python:sender_only:submit.payload_too_large", "obs:python:sender_only:events.invalid_cursor", "obs:rust:members:submit.conflict", "obs:rust:members:submit.forbidden", "obs:rust:members:submit.malformed_json", "obs:rust:members:submit.unsupported_media_type", "obs:rust:members:submit.payload_too_large", "obs:rust:members:events.invalid_cursor", "obs:rust:addressed:submit.conflict", "obs:rust:addressed:submit.forbidden", "obs:rust:addressed:submit.malformed_json", "obs:rust:addressed:submit.unsupported_media_type", "obs:rust:addressed:submit.payload_too_large", "obs:rust:addressed:events.invalid_cursor", "obs:rust:sender_only:submit.conflict", "obs:rust:sender_only:submit.forbidden", "obs:rust:sender_only:submit.malformed_json", "obs:rust:sender_only:submit.unsupported_media_type", "obs:rust:sender_only:submit.payload_too_large", "obs:rust:sender_only:events.invalid_cursor"],
+      "gaps": ["gap:failure-precedence", "gap:cursor-history-expiry"]
     },
     {
       "id": "P18",
@@ -595,31 +196,9 @@
       "obligation": "required",
       "applicability": "Every HTTP Commons host",
       "coverage": "partial_public",
-      "references": [
-        "case:events.authentication",
-        "case:submit.authentication",
-        "test:python-refusal",
-        "schema:problem",
-        "fixture:problem"
-      ],
-      "observations": [
-        "obs:python:members:events.authentication",
-        "obs:python:members:submit.authentication",
-        "obs:python:addressed:events.authentication",
-        "obs:python:addressed:submit.authentication",
-        "obs:python:sender_only:events.authentication",
-        "obs:python:sender_only:submit.authentication",
-        "obs:rust:members:events.authentication",
-        "obs:rust:members:submit.authentication",
-        "obs:rust:addressed:events.authentication",
-        "obs:rust:addressed:submit.authentication",
-        "obs:rust:sender_only:events.authentication",
-        "obs:rust:sender_only:submit.authentication"
-      ],
-      "gaps": [
-        "gap:rate-limit",
-        "gap:content-authority"
-      ]
+      "references": ["case:events.authentication", "case:submit.authentication", "test:python-refusal", "schema:problem", "fixture:problem"],
+      "observations": ["obs:python:members:events.authentication", "obs:python:members:submit.authentication", "obs:python:addressed:events.authentication", "obs:python:addressed:submit.authentication", "obs:python:sender_only:events.authentication", "obs:python:sender_only:submit.authentication", "obs:rust:members:events.authentication", "obs:rust:members:submit.authentication", "obs:rust:addressed:events.authentication", "obs:rust:addressed:submit.authentication", "obs:rust:sender_only:events.authentication", "obs:rust:sender_only:submit.authentication"],
+      "gaps": ["gap:rate-limit", "gap:content-authority"]
     },
     {
       "id": "P19",
@@ -628,30 +207,9 @@
       "obligation": "required",
       "applicability": "Every HTTP Commons host",
       "coverage": "partial_public",
-      "references": [
-        "case:submit.authentication",
-        "case:submit.forbidden",
-        "test:python-refusal",
-        "schema:problem",
-        "fixture:problem"
-      ],
-      "observations": [
-        "obs:python:members:submit.authentication",
-        "obs:python:members:submit.forbidden",
-        "obs:python:addressed:submit.authentication",
-        "obs:python:addressed:submit.forbidden",
-        "obs:python:sender_only:submit.authentication",
-        "obs:python:sender_only:submit.forbidden",
-        "obs:rust:members:submit.authentication",
-        "obs:rust:members:submit.forbidden",
-        "obs:rust:addressed:submit.authentication",
-        "obs:rust:addressed:submit.forbidden",
-        "obs:rust:sender_only:submit.authentication",
-        "obs:rust:sender_only:submit.forbidden"
-      ],
-      "gaps": [
-        "gap:failure-precedence"
-      ]
+      "references": ["case:submit.authentication", "case:submit.forbidden", "test:python-refusal", "schema:problem", "fixture:problem"],
+      "observations": ["obs:python:members:submit.authentication", "obs:python:members:submit.forbidden", "obs:python:addressed:submit.authentication", "obs:python:addressed:submit.forbidden", "obs:python:sender_only:submit.authentication", "obs:python:sender_only:submit.forbidden", "obs:rust:members:submit.authentication", "obs:rust:members:submit.forbidden", "obs:rust:addressed:submit.authentication", "obs:rust:addressed:submit.forbidden", "obs:rust:sender_only:submit.authentication", "obs:rust:sender_only:submit.forbidden"],
+      "gaps": ["gap:failure-precedence"]
     },
     {
       "id": "P20",
@@ -660,23 +218,9 @@
       "obligation": "required",
       "applicability": "Every HTTP Commons host",
       "coverage": "partial_public",
-      "references": [
-        "case:submit.authentication",
-        "test:python-refusal",
-        "schema:problem",
-        "fixture:problem"
-      ],
-      "observations": [
-        "obs:python:members:submit.authentication",
-        "obs:python:addressed:submit.authentication",
-        "obs:python:sender_only:submit.authentication",
-        "obs:rust:members:submit.authentication",
-        "obs:rust:addressed:submit.authentication",
-        "obs:rust:sender_only:submit.authentication"
-      ],
-      "gaps": [
-        "gap:failure-precedence"
-      ]
+      "references": ["case:submit.authentication", "test:python-refusal", "schema:problem", "fixture:problem"],
+      "observations": ["obs:python:members:submit.authentication", "obs:python:addressed:submit.authentication", "obs:python:sender_only:submit.authentication", "obs:rust:members:submit.authentication", "obs:rust:addressed:submit.authentication", "obs:rust:sender_only:submit.authentication"],
+      "gaps": ["gap:failure-precedence"]
     },
     {
       "id": "P21",
@@ -685,24 +229,9 @@
       "obligation": "required",
       "applicability": "Every HTTP Commons host",
       "coverage": "partial_public",
-      "references": [
-        "case:submit.forbidden",
-        "test:python-refusal",
-        "schema:problem",
-        "fixture:problem"
-      ],
-      "observations": [
-        "obs:python:members:submit.forbidden",
-        "obs:python:addressed:submit.forbidden",
-        "obs:python:sender_only:submit.forbidden",
-        "obs:rust:members:submit.forbidden",
-        "obs:rust:addressed:submit.forbidden",
-        "obs:rust:sender_only:submit.forbidden"
-      ],
-      "gaps": [
-        "gap:failure-precedence",
-        "gap:access-transitions"
-      ]
+      "references": ["case:submit.forbidden", "test:python-refusal", "schema:problem", "fixture:problem"],
+      "observations": ["obs:python:members:submit.forbidden", "obs:python:addressed:submit.forbidden", "obs:python:sender_only:submit.forbidden", "obs:rust:members:submit.forbidden", "obs:rust:addressed:submit.forbidden", "obs:rust:sender_only:submit.forbidden"],
+      "gaps": ["gap:failure-precedence", "gap:access-transitions"]
     },
     {
       "id": "P22",
@@ -711,23 +240,9 @@
       "obligation": "required",
       "applicability": "Every HTTP Commons host",
       "coverage": "partial_public",
-      "references": [
-        "case:submit.payload_too_large",
-        "test:python-refusal",
-        "schema:problem",
-        "fixture:problem"
-      ],
-      "observations": [
-        "obs:python:members:submit.payload_too_large",
-        "obs:python:addressed:submit.payload_too_large",
-        "obs:python:sender_only:submit.payload_too_large",
-        "obs:rust:members:submit.payload_too_large",
-        "obs:rust:addressed:submit.payload_too_large",
-        "obs:rust:sender_only:submit.payload_too_large"
-      ],
-      "gaps": [
-        "gap:failure-precedence"
-      ]
+      "references": ["case:submit.payload_too_large", "test:python-refusal", "schema:problem", "fixture:problem"],
+      "observations": ["obs:python:members:submit.payload_too_large", "obs:python:addressed:submit.payload_too_large", "obs:python:sender_only:submit.payload_too_large", "obs:rust:members:submit.payload_too_large", "obs:rust:addressed:submit.payload_too_large", "obs:rust:sender_only:submit.payload_too_large"],
+      "gaps": ["gap:failure-precedence"]
     },
     {
       "id": "P23",
@@ -736,30 +251,9 @@
       "obligation": "required",
       "applicability": "Every HTTP Commons host",
       "coverage": "partial_public",
-      "references": [
-        "case:submit.unsupported_media_type",
-        "case:submit.json_charset",
-        "test:python-refusal",
-        "schema:problem",
-        "fixture:problem"
-      ],
-      "observations": [
-        "obs:python:members:submit.unsupported_media_type",
-        "obs:python:members:submit.json_charset",
-        "obs:python:addressed:submit.unsupported_media_type",
-        "obs:python:addressed:submit.json_charset",
-        "obs:python:sender_only:submit.unsupported_media_type",
-        "obs:python:sender_only:submit.json_charset",
-        "obs:rust:members:submit.unsupported_media_type",
-        "obs:rust:members:submit.json_charset",
-        "obs:rust:addressed:submit.unsupported_media_type",
-        "obs:rust:addressed:submit.json_charset",
-        "obs:rust:sender_only:submit.unsupported_media_type",
-        "obs:rust:sender_only:submit.json_charset"
-      ],
-      "gaps": [
-        "gap:failure-precedence"
-      ]
+      "references": ["case:submit.unsupported_media_type", "case:submit.json_charset", "test:python-refusal", "schema:problem", "fixture:problem"],
+      "observations": ["obs:python:members:submit.unsupported_media_type", "obs:python:members:submit.json_charset", "obs:python:addressed:submit.unsupported_media_type", "obs:python:addressed:submit.json_charset", "obs:python:sender_only:submit.unsupported_media_type", "obs:python:sender_only:submit.json_charset", "obs:rust:members:submit.unsupported_media_type", "obs:rust:members:submit.json_charset", "obs:rust:addressed:submit.unsupported_media_type", "obs:rust:addressed:submit.json_charset", "obs:rust:sender_only:submit.unsupported_media_type", "obs:rust:sender_only:submit.json_charset"],
+      "gaps": ["gap:failure-precedence"]
     },
     {
       "id": "P24",
@@ -768,23 +262,9 @@
       "obligation": "required",
       "applicability": "Every HTTP Commons host",
       "coverage": "partial_public",
-      "references": [
-        "case:submit.malformed_json",
-        "test:python-refusal",
-        "schema:problem",
-        "fixture:problem"
-      ],
-      "observations": [
-        "obs:python:members:submit.malformed_json",
-        "obs:python:addressed:submit.malformed_json",
-        "obs:python:sender_only:submit.malformed_json",
-        "obs:rust:members:submit.malformed_json",
-        "obs:rust:addressed:submit.malformed_json",
-        "obs:rust:sender_only:submit.malformed_json"
-      ],
-      "gaps": [
-        "gap:failure-precedence"
-      ]
+      "references": ["case:submit.malformed_json", "test:python-refusal", "schema:problem", "fixture:problem"],
+      "observations": ["obs:python:members:submit.malformed_json", "obs:python:addressed:submit.malformed_json", "obs:python:sender_only:submit.malformed_json", "obs:rust:members:submit.malformed_json", "obs:rust:addressed:submit.malformed_json", "obs:rust:sender_only:submit.malformed_json"],
+      "gaps": ["gap:failure-precedence"]
     },
     {
       "id": "P25",
@@ -793,23 +273,9 @@
       "obligation": "required",
       "applicability": "Every HTTP Commons host",
       "coverage": "partial_public",
-      "references": [
-        "case:submit.unsupported_version",
-        "test:python-refusal",
-        "schema:problem",
-        "fixture:problem"
-      ],
-      "observations": [
-        "obs:python:members:submit.unsupported_version",
-        "obs:python:addressed:submit.unsupported_version",
-        "obs:python:sender_only:submit.unsupported_version",
-        "obs:rust:members:submit.unsupported_version",
-        "obs:rust:addressed:submit.unsupported_version",
-        "obs:rust:sender_only:submit.unsupported_version"
-      ],
-      "gaps": [
-        "gap:failure-precedence"
-      ]
+      "references": ["case:submit.unsupported_version", "test:python-refusal", "schema:problem", "fixture:problem"],
+      "observations": ["obs:python:members:submit.unsupported_version", "obs:python:addressed:submit.unsupported_version", "obs:python:sender_only:submit.unsupported_version", "obs:rust:members:submit.unsupported_version", "obs:rust:addressed:submit.unsupported_version", "obs:rust:sender_only:submit.unsupported_version"],
+      "gaps": ["gap:failure-precedence"]
     },
     {
       "id": "P26",
@@ -818,23 +284,9 @@
       "obligation": "required",
       "applicability": "Every HTTP Commons host",
       "coverage": "partial_public",
-      "references": [
-        "case:submit.unsupported_record_type",
-        "test:python-refusal",
-        "schema:problem",
-        "fixture:problem"
-      ],
-      "observations": [
-        "obs:python:members:submit.unsupported_record_type",
-        "obs:python:addressed:submit.unsupported_record_type",
-        "obs:python:sender_only:submit.unsupported_record_type",
-        "obs:rust:members:submit.unsupported_record_type",
-        "obs:rust:addressed:submit.unsupported_record_type",
-        "obs:rust:sender_only:submit.unsupported_record_type"
-      ],
-      "gaps": [
-        "gap:failure-precedence"
-      ]
+      "references": ["case:submit.unsupported_record_type", "test:python-refusal", "schema:problem", "fixture:problem"],
+      "observations": ["obs:python:members:submit.unsupported_record_type", "obs:python:addressed:submit.unsupported_record_type", "obs:python:sender_only:submit.unsupported_record_type", "obs:rust:members:submit.unsupported_record_type", "obs:rust:addressed:submit.unsupported_record_type", "obs:rust:sender_only:submit.unsupported_record_type"],
+      "gaps": ["gap:failure-precedence"]
     },
     {
       "id": "P27",
@@ -843,15 +295,9 @@
       "obligation": "required",
       "applicability": "Every HTTP Commons host",
       "coverage": "implementation_only",
-      "references": [
-        "test:python-refusal",
-        "schema:message",
-        "fixture:message"
-      ],
+      "references": ["test:python-refusal", "schema:message", "fixture:message"],
       "observations": [],
-      "gaps": [
-        "gap:failure-precedence"
-      ]
+      "gaps": ["gap:failure-precedence"]
     },
     {
       "id": "P28",
@@ -860,23 +306,9 @@
       "obligation": "required",
       "applicability": "Every HTTP Commons host",
       "coverage": "partial_public",
-      "references": [
-        "case:submit.wrong_world",
-        "test:python-refusal",
-        "schema:problem",
-        "fixture:problem"
-      ],
-      "observations": [
-        "obs:python:members:submit.wrong_world",
-        "obs:python:addressed:submit.wrong_world",
-        "obs:python:sender_only:submit.wrong_world",
-        "obs:rust:members:submit.wrong_world",
-        "obs:rust:addressed:submit.wrong_world",
-        "obs:rust:sender_only:submit.wrong_world"
-      ],
-      "gaps": [
-        "gap:failure-precedence"
-      ]
+      "references": ["case:submit.wrong_world", "test:python-refusal", "schema:problem", "fixture:problem"],
+      "observations": ["obs:python:members:submit.wrong_world", "obs:python:addressed:submit.wrong_world", "obs:python:sender_only:submit.wrong_world", "obs:rust:members:submit.wrong_world", "obs:rust:addressed:submit.wrong_world", "obs:rust:sender_only:submit.wrong_world"],
+      "gaps": ["gap:failure-precedence"]
     },
     {
       "id": "P29",
@@ -885,23 +317,9 @@
       "obligation": "required",
       "applicability": "Every HTTP Commons host",
       "coverage": "partial_public",
-      "references": [
-        "case:submit.from_mismatch",
-        "test:python-refusal",
-        "schema:problem",
-        "fixture:problem"
-      ],
-      "observations": [
-        "obs:python:members:submit.from_mismatch",
-        "obs:python:addressed:submit.from_mismatch",
-        "obs:python:sender_only:submit.from_mismatch",
-        "obs:rust:members:submit.from_mismatch",
-        "obs:rust:addressed:submit.from_mismatch",
-        "obs:rust:sender_only:submit.from_mismatch"
-      ],
-      "gaps": [
-        "gap:failure-precedence"
-      ]
+      "references": ["case:submit.from_mismatch", "test:python-refusal", "schema:problem", "fixture:problem"],
+      "observations": ["obs:python:members:submit.from_mismatch", "obs:python:addressed:submit.from_mismatch", "obs:python:sender_only:submit.from_mismatch", "obs:rust:members:submit.from_mismatch", "obs:rust:addressed:submit.from_mismatch", "obs:rust:sender_only:submit.from_mismatch"],
+      "gaps": ["gap:failure-precedence"]
     },
     {
       "id": "P30",
@@ -910,24 +328,9 @@
       "obligation": "required",
       "applicability": "Every HTTP Commons host",
       "coverage": "partial_public",
-      "references": [
-        "case:submit.conflict",
-        "test:python-retention",
-        "schema:problem",
-        "fixture:problem"
-      ],
-      "observations": [
-        "obs:python:members:submit.conflict",
-        "obs:python:addressed:submit.conflict",
-        "obs:python:sender_only:submit.conflict",
-        "obs:rust:members:submit.conflict",
-        "obs:rust:addressed:submit.conflict",
-        "obs:rust:sender_only:submit.conflict"
-      ],
-      "gaps": [
-        "gap:retention",
-        "gap:failure-precedence"
-      ]
+      "references": ["case:submit.conflict", "test:python-retention", "schema:problem", "fixture:problem"],
+      "observations": ["obs:python:members:submit.conflict", "obs:python:addressed:submit.conflict", "obs:python:sender_only:submit.conflict", "obs:rust:members:submit.conflict", "obs:rust:addressed:submit.conflict", "obs:rust:sender_only:submit.conflict"],
+      "gaps": ["gap:retention", "gap:failure-precedence"]
     },
     {
       "id": "P31",
@@ -936,41 +339,9 @@
       "obligation": "required",
       "applicability": "Every HTTP Commons host",
       "coverage": "partial_public",
-      "references": [
-        "case:events.invalid_cursor",
-        "case:events.empty_cursor",
-        "case:events.foreign_cursor",
-        "case:policy.cursor_expired",
-        "test:python-policy",
-        "schema:problem",
-        "fixture:problem"
-      ],
-      "observations": [
-        "obs:python:members:events.invalid_cursor",
-        "obs:python:members:events.empty_cursor",
-        "obs:python:members:events.foreign_cursor",
-        "obs:python:addressed:events.invalid_cursor",
-        "obs:python:addressed:events.empty_cursor",
-        "obs:python:addressed:events.foreign_cursor",
-        "obs:python:sender_only:events.invalid_cursor",
-        "obs:python:sender_only:events.empty_cursor",
-        "obs:python:sender_only:events.foreign_cursor",
-        "obs:rust:members:events.invalid_cursor",
-        "obs:rust:members:events.empty_cursor",
-        "obs:rust:members:events.foreign_cursor",
-        "obs:rust:addressed:events.invalid_cursor",
-        "obs:rust:addressed:events.empty_cursor",
-        "obs:rust:addressed:events.foreign_cursor",
-        "obs:rust:sender_only:events.invalid_cursor",
-        "obs:rust:sender_only:events.empty_cursor",
-        "obs:rust:sender_only:events.foreign_cursor",
-        "obs:python:policy:policy.cursor_expired",
-        "obs:rust:policy:policy.cursor_expired"
-      ],
-      "gaps": [
-        "gap:access-transitions",
-        "gap:cursor-history-expiry"
-      ]
+      "references": ["case:events.invalid_cursor", "case:events.empty_cursor", "case:events.foreign_cursor", "case:policy.cursor_expired", "test:python-policy", "schema:problem", "fixture:problem"],
+      "observations": ["obs:python:members:events.invalid_cursor", "obs:python:members:events.empty_cursor", "obs:python:members:events.foreign_cursor", "obs:python:addressed:events.invalid_cursor", "obs:python:addressed:events.empty_cursor", "obs:python:addressed:events.foreign_cursor", "obs:python:sender_only:events.invalid_cursor", "obs:python:sender_only:events.empty_cursor", "obs:python:sender_only:events.foreign_cursor", "obs:rust:members:events.invalid_cursor", "obs:rust:members:events.empty_cursor", "obs:rust:members:events.foreign_cursor", "obs:rust:addressed:events.invalid_cursor", "obs:rust:addressed:events.empty_cursor", "obs:rust:addressed:events.foreign_cursor", "obs:rust:sender_only:events.invalid_cursor", "obs:rust:sender_only:events.empty_cursor", "obs:rust:sender_only:events.foreign_cursor", "obs:python:policy:policy.cursor_expired", "obs:rust:policy:policy.cursor_expired"],
+      "gaps": ["gap:access-transitions", "gap:cursor-history-expiry"]
     },
     {
       "id": "P32",
@@ -979,23 +350,9 @@
       "obligation": "required",
       "applicability": "Every HTTP Commons host",
       "coverage": "partial_public",
-      "references": [
-        "case:submit.unsupported_version",
-        "test:python-refusal",
-        "schema:message",
-        "fixture:message"
-      ],
-      "observations": [
-        "obs:python:members:submit.unsupported_version",
-        "obs:python:addressed:submit.unsupported_version",
-        "obs:python:sender_only:submit.unsupported_version",
-        "obs:rust:members:submit.unsupported_version",
-        "obs:rust:addressed:submit.unsupported_version",
-        "obs:rust:sender_only:submit.unsupported_version"
-      ],
-      "gaps": [
-        "gap:version-maintenance"
-      ]
+      "references": ["case:submit.unsupported_version", "test:python-refusal", "schema:message", "fixture:message"],
+      "observations": ["obs:python:members:submit.unsupported_version", "obs:python:addressed:submit.unsupported_version", "obs:python:sender_only:submit.unsupported_version", "obs:rust:members:submit.unsupported_version", "obs:rust:addressed:submit.unsupported_version", "obs:rust:sender_only:submit.unsupported_version"],
+      "gaps": ["gap:version-maintenance"]
     },
     {
       "id": "C01",
@@ -1004,20 +361,8 @@
       "obligation": "conditional",
       "applicability": "When collaboration.submit is advertised; continuity_note remains optional",
       "coverage": "partial_public",
-      "references": [
-        "case:discovery.record",
-        "test:rust-collaboration",
-        "schema:world",
-        "fixture:world"
-      ],
-      "observations": [
-        "obs:python:members:discovery.record",
-        "obs:python:addressed:discovery.record",
-        "obs:python:sender_only:discovery.record",
-        "obs:rust:members:discovery.record",
-        "obs:rust:addressed:discovery.record",
-        "obs:rust:sender_only:discovery.record"
-      ],
+      "references": ["case:discovery.record", "test:rust-collaboration", "schema:world", "fixture:world"],
+      "observations": ["obs:python:members:discovery.record", "obs:python:addressed:discovery.record", "obs:python:sender_only:discovery.record", "obs:rust:members:discovery.record", "obs:rust:addressed:discovery.record", "obs:rust:sender_only:discovery.record"],
       "gaps": []
     },
     {
@@ -1027,27 +372,8 @@
       "obligation": "conditional",
       "applicability": "When collaboration.submit is advertised; continuity_note remains optional",
       "coverage": "partial_public",
-      "references": [
-        "case:endpoints.origin",
-        "case:collaborate.revision",
-        "test:rust-collaboration",
-        "schema:world",
-        "fixture:world"
-      ],
-      "observations": [
-        "obs:python:members:endpoints.origin",
-        "obs:python:members:collaborate.revision",
-        "obs:python:addressed:endpoints.origin",
-        "obs:python:addressed:collaborate.revision",
-        "obs:python:sender_only:endpoints.origin",
-        "obs:python:sender_only:collaborate.revision",
-        "obs:rust:members:endpoints.origin",
-        "obs:rust:members:collaborate.revision",
-        "obs:rust:addressed:endpoints.origin",
-        "obs:rust:addressed:collaborate.revision",
-        "obs:rust:sender_only:endpoints.origin",
-        "obs:rust:sender_only:collaborate.revision"
-      ],
+      "references": ["case:endpoints.origin", "case:collaborate.revision", "test:rust-collaboration", "schema:world", "fixture:world"],
+      "observations": ["obs:python:members:endpoints.origin", "obs:python:members:collaborate.revision", "obs:python:addressed:endpoints.origin", "obs:python:addressed:collaborate.revision", "obs:python:sender_only:endpoints.origin", "obs:python:sender_only:collaborate.revision", "obs:rust:members:endpoints.origin", "obs:rust:members:collaborate.revision", "obs:rust:addressed:endpoints.origin", "obs:rust:addressed:collaborate.revision", "obs:rust:sender_only:endpoints.origin", "obs:rust:sender_only:collaborate.revision"],
       "gaps": []
     },
     {
@@ -1057,9 +383,7 @@
       "obligation": "informational",
       "applicability": "When collaboration.submit is advertised; continuity_note remains optional",
       "coverage": "informational",
-      "references": [
-        "setup:continuity"
-      ],
+      "references": ["setup:continuity"],
       "observations": [],
       "gaps": []
     },
@@ -1070,54 +394,9 @@
       "obligation": "conditional",
       "applicability": "When collaboration.submit is advertised; continuity_note remains optional",
       "coverage": "partial_public",
-      "references": [
-        "case:collaborate.retry",
-        "case:collaborate.conflict",
-        "test:python-collaboration",
-        "schema:collaboration-artifact",
-        "fixture:collaboration-artifact",
-        "case:collaborate.concurrent_retry",
-        "case:collaborate.concurrent_conflict",
-        "case:collaborate.concurrent_retry_sequence"
-      ],
-      "observations": [
-        "obs:python:members:collaborate.retry",
-        "obs:python:members:collaborate.conflict",
-        "obs:python:addressed:collaborate.retry",
-        "obs:python:addressed:collaborate.conflict",
-        "obs:python:sender_only:collaborate.retry",
-        "obs:python:sender_only:collaborate.conflict",
-        "obs:rust:members:collaborate.retry",
-        "obs:rust:members:collaborate.conflict",
-        "obs:rust:addressed:collaborate.retry",
-        "obs:rust:addressed:collaborate.conflict",
-        "obs:rust:sender_only:collaborate.retry",
-        "obs:rust:sender_only:collaborate.conflict",
-        "obs:same-id-2026-10-11:python:members:collaborate.concurrent_retry",
-        "obs:same-id-2026-10-11:python:members:collaborate.concurrent_conflict",
-        "obs:same-id-2026-10-11:python:members:collaborate.concurrent_retry_sequence",
-        "obs:same-id-2026-10-11:python:addressed:collaborate.concurrent_retry",
-        "obs:same-id-2026-10-11:python:addressed:collaborate.concurrent_conflict",
-        "obs:same-id-2026-10-11:python:addressed:collaborate.concurrent_retry_sequence",
-        "obs:same-id-2026-10-11:python:sender_only:collaborate.concurrent_retry",
-        "obs:same-id-2026-10-11:python:sender_only:collaborate.concurrent_conflict",
-        "obs:same-id-2026-10-11:python:sender_only:collaborate.concurrent_retry_sequence",
-        "obs:same-id-2026-10-11:rust:members:collaborate.concurrent_retry",
-        "obs:same-id-2026-10-11:rust:members:collaborate.concurrent_conflict",
-        "obs:same-id-2026-10-11:rust:members:collaborate.concurrent_retry_sequence",
-        "obs:same-id-2026-10-11:rust:addressed:collaborate.concurrent_retry",
-        "obs:same-id-2026-10-11:rust:addressed:collaborate.concurrent_conflict",
-        "obs:same-id-2026-10-11:rust:addressed:collaborate.concurrent_retry_sequence",
-        "obs:same-id-2026-10-11:rust:sender_only:collaborate.concurrent_retry",
-        "obs:same-id-2026-10-11:rust:sender_only:collaborate.concurrent_conflict",
-        "obs:same-id-2026-10-11:rust:sender_only:collaborate.concurrent_retry_sequence"
-      ],
-      "gaps": [
-        "gap:retention",
-        "gap:cross-endpoint-retry",
-        "gap:content-authority",
-        "gap:collaboration-retry-races"
-      ]
+      "references": ["case:collaborate.retry", "case:collaborate.conflict", "test:python-collaboration", "schema:collaboration-artifact", "fixture:collaboration-artifact", "case:collaborate.concurrent_retry", "case:collaborate.concurrent_conflict", "case:collaborate.concurrent_retry_sequence"],
+      "observations": ["obs:python:members:collaborate.retry", "obs:python:members:collaborate.conflict", "obs:python:addressed:collaborate.retry", "obs:python:addressed:collaborate.conflict", "obs:python:sender_only:collaborate.retry", "obs:python:sender_only:collaborate.conflict", "obs:rust:members:collaborate.retry", "obs:rust:members:collaborate.conflict", "obs:rust:addressed:collaborate.retry", "obs:rust:addressed:collaborate.conflict", "obs:rust:sender_only:collaborate.retry", "obs:rust:sender_only:collaborate.conflict", "obs:same-id-2026-10-11:python:members:collaborate.concurrent_retry", "obs:same-id-2026-10-11:python:members:collaborate.concurrent_conflict", "obs:same-id-2026-10-11:python:members:collaborate.concurrent_retry_sequence", "obs:same-id-2026-10-11:python:addressed:collaborate.concurrent_retry", "obs:same-id-2026-10-11:python:addressed:collaborate.concurrent_conflict", "obs:same-id-2026-10-11:python:addressed:collaborate.concurrent_retry_sequence", "obs:same-id-2026-10-11:python:sender_only:collaborate.concurrent_retry", "obs:same-id-2026-10-11:python:sender_only:collaborate.concurrent_conflict", "obs:same-id-2026-10-11:python:sender_only:collaborate.concurrent_retry_sequence", "obs:same-id-2026-10-11:rust:members:collaborate.concurrent_retry", "obs:same-id-2026-10-11:rust:members:collaborate.concurrent_conflict", "obs:same-id-2026-10-11:rust:members:collaborate.concurrent_retry_sequence", "obs:same-id-2026-10-11:rust:addressed:collaborate.concurrent_retry", "obs:same-id-2026-10-11:rust:addressed:collaborate.concurrent_conflict", "obs:same-id-2026-10-11:rust:addressed:collaborate.concurrent_retry_sequence", "obs:same-id-2026-10-11:rust:sender_only:collaborate.concurrent_retry", "obs:same-id-2026-10-11:rust:sender_only:collaborate.concurrent_conflict", "obs:same-id-2026-10-11:rust:sender_only:collaborate.concurrent_retry_sequence"],
+      "gaps": ["gap:retention", "gap:cross-endpoint-retry", "gap:content-authority", "gap:collaboration-retry-races"]
     },
     {
       "id": "C05",
@@ -1126,68 +405,9 @@
       "obligation": "conditional",
       "applicability": "When collaboration.submit is advertised; continuity_note remains optional",
       "coverage": "partial_public",
-      "references": [
-        "case:collaborate.other_chain",
-        "test:rust-collaboration",
-        "schema:collaboration-artifact",
-        "fixture:collaboration-artifact",
-        "case:collaborate.revision_sequence",
-        "case:collaborate.revision_sequence_retry",
-        "case:collaborate.revision_sequence_rejection",
-        "case:collaborate.concurrent_revisions",
-        "case:collaborate.concurrent_revisions_retry",
-        "case:collaborate.concurrent_revisions_isolation",
-        "case:restart.concurrent_revisions"
-      ],
-      "observations": [
-        "obs:python:members:collaborate.other_chain",
-        "obs:python:addressed:collaborate.other_chain",
-        "obs:python:sender_only:collaborate.other_chain",
-        "obs:rust:members:collaborate.other_chain",
-        "obs:rust:addressed:collaborate.other_chain",
-        "obs:rust:sender_only:collaborate.other_chain",
-        "obs:revisions-2026-10-08:python:members:collaborate.revision_sequence",
-        "obs:revisions-2026-10-08:python:members:collaborate.revision_sequence_retry",
-        "obs:revisions-2026-10-08:python:members:collaborate.revision_sequence_rejection",
-        "obs:revisions-2026-10-08:python:addressed:collaborate.revision_sequence",
-        "obs:revisions-2026-10-08:python:addressed:collaborate.revision_sequence_retry",
-        "obs:revisions-2026-10-08:python:addressed:collaborate.revision_sequence_rejection",
-        "obs:revisions-2026-10-08:python:sender_only:collaborate.revision_sequence",
-        "obs:revisions-2026-10-08:python:sender_only:collaborate.revision_sequence_retry",
-        "obs:revisions-2026-10-08:python:sender_only:collaborate.revision_sequence_rejection",
-        "obs:revisions-2026-10-08:rust:members:collaborate.revision_sequence",
-        "obs:revisions-2026-10-08:rust:members:collaborate.revision_sequence_retry",
-        "obs:revisions-2026-10-08:rust:members:collaborate.revision_sequence_rejection",
-        "obs:revisions-2026-10-08:rust:addressed:collaborate.revision_sequence",
-        "obs:revisions-2026-10-08:rust:addressed:collaborate.revision_sequence_retry",
-        "obs:revisions-2026-10-08:rust:addressed:collaborate.revision_sequence_rejection",
-        "obs:revisions-2026-10-08:rust:sender_only:collaborate.revision_sequence",
-        "obs:revisions-2026-10-08:rust:sender_only:collaborate.revision_sequence_retry",
-        "obs:revisions-2026-10-08:rust:sender_only:collaborate.revision_sequence_rejection",
-        "obs:concurrent-revisions-2026-10-08:python:members:collaborate.concurrent_revisions",
-        "obs:concurrent-revisions-2026-10-08:python:members:collaborate.concurrent_revisions_retry",
-        "obs:concurrent-revisions-2026-10-08:python:members:collaborate.concurrent_revisions_isolation",
-        "obs:concurrent-revisions-2026-10-08:python:addressed:collaborate.concurrent_revisions",
-        "obs:concurrent-revisions-2026-10-08:python:addressed:collaborate.concurrent_revisions_retry",
-        "obs:concurrent-revisions-2026-10-08:python:addressed:collaborate.concurrent_revisions_isolation",
-        "obs:concurrent-revisions-2026-10-08:python:sender_only:collaborate.concurrent_revisions",
-        "obs:concurrent-revisions-2026-10-08:python:sender_only:collaborate.concurrent_revisions_retry",
-        "obs:concurrent-revisions-2026-10-08:python:sender_only:collaborate.concurrent_revisions_isolation",
-        "obs:concurrent-revisions-2026-10-08:rust:members:collaborate.concurrent_revisions",
-        "obs:concurrent-revisions-2026-10-08:rust:members:collaborate.concurrent_revisions_retry",
-        "obs:concurrent-revisions-2026-10-08:rust:members:collaborate.concurrent_revisions_isolation",
-        "obs:concurrent-revisions-2026-10-08:rust:addressed:collaborate.concurrent_revisions",
-        "obs:concurrent-revisions-2026-10-08:rust:addressed:collaborate.concurrent_revisions_retry",
-        "obs:concurrent-revisions-2026-10-08:rust:addressed:collaborate.concurrent_revisions_isolation",
-        "obs:concurrent-revisions-2026-10-08:rust:sender_only:collaborate.concurrent_revisions",
-        "obs:concurrent-revisions-2026-10-08:rust:sender_only:collaborate.concurrent_revisions_retry",
-        "obs:concurrent-revisions-2026-10-08:rust:sender_only:collaborate.concurrent_revisions_isolation",
-        "obs:concurrent-revisions-2026-10-08:python:verify:restart.concurrent_revisions",
-        "obs:concurrent-revisions-2026-10-08:rust:verify:restart.concurrent_revisions"
-      ],
-      "gaps": [
-        "gap:semantic-claims"
-      ]
+      "references": ["case:collaborate.other_chain", "test:rust-collaboration", "schema:collaboration-artifact", "fixture:collaboration-artifact", "case:collaborate.revision_sequence", "case:collaborate.revision_sequence_retry", "case:collaborate.revision_sequence_rejection", "case:collaborate.concurrent_revisions", "case:collaborate.concurrent_revisions_retry", "case:collaborate.concurrent_revisions_isolation", "case:restart.concurrent_revisions"],
+      "observations": ["obs:python:members:collaborate.other_chain", "obs:python:addressed:collaborate.other_chain", "obs:python:sender_only:collaborate.other_chain", "obs:rust:members:collaborate.other_chain", "obs:rust:addressed:collaborate.other_chain", "obs:rust:sender_only:collaborate.other_chain", "obs:revisions-2026-10-08:python:members:collaborate.revision_sequence", "obs:revisions-2026-10-08:python:members:collaborate.revision_sequence_retry", "obs:revisions-2026-10-08:python:members:collaborate.revision_sequence_rejection", "obs:revisions-2026-10-08:python:addressed:collaborate.revision_sequence", "obs:revisions-2026-10-08:python:addressed:collaborate.revision_sequence_retry", "obs:revisions-2026-10-08:python:addressed:collaborate.revision_sequence_rejection", "obs:revisions-2026-10-08:python:sender_only:collaborate.revision_sequence", "obs:revisions-2026-10-08:python:sender_only:collaborate.revision_sequence_retry", "obs:revisions-2026-10-08:python:sender_only:collaborate.revision_sequence_rejection", "obs:revisions-2026-10-08:rust:members:collaborate.revision_sequence", "obs:revisions-2026-10-08:rust:members:collaborate.revision_sequence_retry", "obs:revisions-2026-10-08:rust:members:collaborate.revision_sequence_rejection", "obs:revisions-2026-10-08:rust:addressed:collaborate.revision_sequence", "obs:revisions-2026-10-08:rust:addressed:collaborate.revision_sequence_retry", "obs:revisions-2026-10-08:rust:addressed:collaborate.revision_sequence_rejection", "obs:revisions-2026-10-08:rust:sender_only:collaborate.revision_sequence", "obs:revisions-2026-10-08:rust:sender_only:collaborate.revision_sequence_retry", "obs:revisions-2026-10-08:rust:sender_only:collaborate.revision_sequence_rejection", "obs:concurrent-revisions-2026-10-08:python:members:collaborate.concurrent_revisions", "obs:concurrent-revisions-2026-10-08:python:members:collaborate.concurrent_revisions_retry", "obs:concurrent-revisions-2026-10-08:python:members:collaborate.concurrent_revisions_isolation", "obs:concurrent-revisions-2026-10-08:python:addressed:collaborate.concurrent_revisions", "obs:concurrent-revisions-2026-10-08:python:addressed:collaborate.concurrent_revisions_retry", "obs:concurrent-revisions-2026-10-08:python:addressed:collaborate.concurrent_revisions_isolation", "obs:concurrent-revisions-2026-10-08:python:sender_only:collaborate.concurrent_revisions", "obs:concurrent-revisions-2026-10-08:python:sender_only:collaborate.concurrent_revisions_retry", "obs:concurrent-revisions-2026-10-08:python:sender_only:collaborate.concurrent_revisions_isolation", "obs:concurrent-revisions-2026-10-08:rust:members:collaborate.concurrent_revisions", "obs:concurrent-revisions-2026-10-08:rust:members:collaborate.concurrent_revisions_retry", "obs:concurrent-revisions-2026-10-08:rust:members:collaborate.concurrent_revisions_isolation", "obs:concurrent-revisions-2026-10-08:rust:addressed:collaborate.concurrent_revisions", "obs:concurrent-revisions-2026-10-08:rust:addressed:collaborate.concurrent_revisions_retry", "obs:concurrent-revisions-2026-10-08:rust:addressed:collaborate.concurrent_revisions_isolation", "obs:concurrent-revisions-2026-10-08:rust:sender_only:collaborate.concurrent_revisions", "obs:concurrent-revisions-2026-10-08:rust:sender_only:collaborate.concurrent_revisions_retry", "obs:concurrent-revisions-2026-10-08:rust:sender_only:collaborate.concurrent_revisions_isolation", "obs:concurrent-revisions-2026-10-08:python:verify:restart.concurrent_revisions", "obs:concurrent-revisions-2026-10-08:rust:verify:restart.concurrent_revisions"],
+      "gaps": ["gap:semantic-claims"]
     },
     {
       "id": "C06",
@@ -1196,82 +416,8 @@
       "obligation": "conditional",
       "applicability": "When collaboration.submit is advertised; continuity_note remains optional",
       "coverage": "partial_public",
-      "references": [
-        "case:collaborate.client_revision",
-        "case:collaborate.revision",
-        "case:events.visibility",
-        "test:python-collaboration",
-        "schema:collaboration-artifact",
-        "fixture:collaboration-artifact",
-        "case:collaborate.revision_sequence",
-        "case:collaborate.revision_sequence_retry",
-        "case:collaborate.revision_sequence_rejection",
-        "case:restart.revision_sequence",
-        "case:collaborate.concurrent_revisions",
-        "case:collaborate.concurrent_revisions_retry",
-        "case:collaborate.concurrent_revisions_isolation",
-        "case:restart.concurrent_revisions"
-      ],
-      "observations": [
-        "obs:python:members:events.visibility",
-        "obs:python:members:collaborate.client_revision",
-        "obs:python:members:collaborate.revision",
-        "obs:python:addressed:events.visibility",
-        "obs:python:addressed:collaborate.client_revision",
-        "obs:python:addressed:collaborate.revision",
-        "obs:python:sender_only:events.visibility",
-        "obs:python:sender_only:collaborate.client_revision",
-        "obs:python:sender_only:collaborate.revision",
-        "obs:rust:members:events.visibility",
-        "obs:rust:members:collaborate.client_revision",
-        "obs:rust:members:collaborate.revision",
-        "obs:rust:addressed:events.visibility",
-        "obs:rust:addressed:collaborate.client_revision",
-        "obs:rust:addressed:collaborate.revision",
-        "obs:rust:sender_only:events.visibility",
-        "obs:rust:sender_only:collaborate.client_revision",
-        "obs:rust:sender_only:collaborate.revision",
-        "obs:revisions-2026-10-08:python:members:collaborate.revision_sequence",
-        "obs:revisions-2026-10-08:python:members:collaborate.revision_sequence_retry",
-        "obs:revisions-2026-10-08:python:members:collaborate.revision_sequence_rejection",
-        "obs:revisions-2026-10-08:python:addressed:collaborate.revision_sequence",
-        "obs:revisions-2026-10-08:python:addressed:collaborate.revision_sequence_retry",
-        "obs:revisions-2026-10-08:python:addressed:collaborate.revision_sequence_rejection",
-        "obs:revisions-2026-10-08:python:sender_only:collaborate.revision_sequence",
-        "obs:revisions-2026-10-08:python:sender_only:collaborate.revision_sequence_retry",
-        "obs:revisions-2026-10-08:python:sender_only:collaborate.revision_sequence_rejection",
-        "obs:revisions-2026-10-08:rust:members:collaborate.revision_sequence",
-        "obs:revisions-2026-10-08:rust:members:collaborate.revision_sequence_retry",
-        "obs:revisions-2026-10-08:rust:members:collaborate.revision_sequence_rejection",
-        "obs:revisions-2026-10-08:rust:addressed:collaborate.revision_sequence",
-        "obs:revisions-2026-10-08:rust:addressed:collaborate.revision_sequence_retry",
-        "obs:revisions-2026-10-08:rust:addressed:collaborate.revision_sequence_rejection",
-        "obs:revisions-2026-10-08:rust:sender_only:collaborate.revision_sequence",
-        "obs:revisions-2026-10-08:rust:sender_only:collaborate.revision_sequence_retry",
-        "obs:revisions-2026-10-08:rust:sender_only:collaborate.revision_sequence_rejection",
-        "obs:revisions-2026-10-08:python:verify:restart.revision_sequence",
-        "obs:revisions-2026-10-08:rust:verify:restart.revision_sequence",
-        "obs:concurrent-revisions-2026-10-08:python:members:collaborate.concurrent_revisions",
-        "obs:concurrent-revisions-2026-10-08:python:members:collaborate.concurrent_revisions_retry",
-        "obs:concurrent-revisions-2026-10-08:python:members:collaborate.concurrent_revisions_isolation",
-        "obs:concurrent-revisions-2026-10-08:python:addressed:collaborate.concurrent_revisions",
-        "obs:concurrent-revisions-2026-10-08:python:addressed:collaborate.concurrent_revisions_retry",
-        "obs:concurrent-revisions-2026-10-08:python:addressed:collaborate.concurrent_revisions_isolation",
-        "obs:concurrent-revisions-2026-10-08:python:sender_only:collaborate.concurrent_revisions",
-        "obs:concurrent-revisions-2026-10-08:python:sender_only:collaborate.concurrent_revisions_retry",
-        "obs:concurrent-revisions-2026-10-08:python:sender_only:collaborate.concurrent_revisions_isolation",
-        "obs:concurrent-revisions-2026-10-08:rust:members:collaborate.concurrent_revisions",
-        "obs:concurrent-revisions-2026-10-08:rust:members:collaborate.concurrent_revisions_retry",
-        "obs:concurrent-revisions-2026-10-08:rust:members:collaborate.concurrent_revisions_isolation",
-        "obs:concurrent-revisions-2026-10-08:rust:addressed:collaborate.concurrent_revisions",
-        "obs:concurrent-revisions-2026-10-08:rust:addressed:collaborate.concurrent_revisions_retry",
-        "obs:concurrent-revisions-2026-10-08:rust:addressed:collaborate.concurrent_revisions_isolation",
-        "obs:concurrent-revisions-2026-10-08:rust:sender_only:collaborate.concurrent_revisions",
-        "obs:concurrent-revisions-2026-10-08:rust:sender_only:collaborate.concurrent_revisions_retry",
-        "obs:concurrent-revisions-2026-10-08:rust:sender_only:collaborate.concurrent_revisions_isolation",
-        "obs:concurrent-revisions-2026-10-08:python:verify:restart.concurrent_revisions",
-        "obs:concurrent-revisions-2026-10-08:rust:verify:restart.concurrent_revisions"
-      ],
+      "references": ["case:collaborate.client_revision", "case:collaborate.revision", "case:events.visibility", "test:python-collaboration", "schema:collaboration-artifact", "fixture:collaboration-artifact", "case:collaborate.revision_sequence", "case:collaborate.revision_sequence_retry", "case:collaborate.revision_sequence_rejection", "case:restart.revision_sequence", "case:collaborate.concurrent_revisions", "case:collaborate.concurrent_revisions_retry", "case:collaborate.concurrent_revisions_isolation", "case:restart.concurrent_revisions"],
+      "observations": ["obs:python:members:events.visibility", "obs:python:members:collaborate.client_revision", "obs:python:members:collaborate.revision", "obs:python:addressed:events.visibility", "obs:python:addressed:collaborate.client_revision", "obs:python:addressed:collaborate.revision", "obs:python:sender_only:events.visibility", "obs:python:sender_only:collaborate.client_revision", "obs:python:sender_only:collaborate.revision", "obs:rust:members:events.visibility", "obs:rust:members:collaborate.client_revision", "obs:rust:members:collaborate.revision", "obs:rust:addressed:events.visibility", "obs:rust:addressed:collaborate.client_revision", "obs:rust:addressed:collaborate.revision", "obs:rust:sender_only:events.visibility", "obs:rust:sender_only:collaborate.client_revision", "obs:rust:sender_only:collaborate.revision", "obs:revisions-2026-10-08:python:members:collaborate.revision_sequence", "obs:revisions-2026-10-08:python:members:collaborate.revision_sequence_retry", "obs:revisions-2026-10-08:python:members:collaborate.revision_sequence_rejection", "obs:revisions-2026-10-08:python:addressed:collaborate.revision_sequence", "obs:revisions-2026-10-08:python:addressed:collaborate.revision_sequence_retry", "obs:revisions-2026-10-08:python:addressed:collaborate.revision_sequence_rejection", "obs:revisions-2026-10-08:python:sender_only:collaborate.revision_sequence", "obs:revisions-2026-10-08:python:sender_only:collaborate.revision_sequence_retry", "obs:revisions-2026-10-08:python:sender_only:collaborate.revision_sequence_rejection", "obs:revisions-2026-10-08:rust:members:collaborate.revision_sequence", "obs:revisions-2026-10-08:rust:members:collaborate.revision_sequence_retry", "obs:revisions-2026-10-08:rust:members:collaborate.revision_sequence_rejection", "obs:revisions-2026-10-08:rust:addressed:collaborate.revision_sequence", "obs:revisions-2026-10-08:rust:addressed:collaborate.revision_sequence_retry", "obs:revisions-2026-10-08:rust:addressed:collaborate.revision_sequence_rejection", "obs:revisions-2026-10-08:rust:sender_only:collaborate.revision_sequence", "obs:revisions-2026-10-08:rust:sender_only:collaborate.revision_sequence_retry", "obs:revisions-2026-10-08:rust:sender_only:collaborate.revision_sequence_rejection", "obs:revisions-2026-10-08:python:verify:restart.revision_sequence", "obs:revisions-2026-10-08:rust:verify:restart.revision_sequence", "obs:concurrent-revisions-2026-10-08:python:members:collaborate.concurrent_revisions", "obs:concurrent-revisions-2026-10-08:python:members:collaborate.concurrent_revisions_retry", "obs:concurrent-revisions-2026-10-08:python:members:collaborate.concurrent_revisions_isolation", "obs:concurrent-revisions-2026-10-08:python:addressed:collaborate.concurrent_revisions", "obs:concurrent-revisions-2026-10-08:python:addressed:collaborate.concurrent_revisions_retry", "obs:concurrent-revisions-2026-10-08:python:addressed:collaborate.concurrent_revisions_isolation", "obs:concurrent-revisions-2026-10-08:python:sender_only:collaborate.concurrent_revisions", "obs:concurrent-revisions-2026-10-08:python:sender_only:collaborate.concurrent_revisions_retry", "obs:concurrent-revisions-2026-10-08:python:sender_only:collaborate.concurrent_revisions_isolation", "obs:concurrent-revisions-2026-10-08:rust:members:collaborate.concurrent_revisions", "obs:concurrent-revisions-2026-10-08:rust:members:collaborate.concurrent_revisions_retry", "obs:concurrent-revisions-2026-10-08:rust:members:collaborate.concurrent_revisions_isolation", "obs:concurrent-revisions-2026-10-08:rust:addressed:collaborate.concurrent_revisions", "obs:concurrent-revisions-2026-10-08:rust:addressed:collaborate.concurrent_revisions_retry", "obs:concurrent-revisions-2026-10-08:rust:addressed:collaborate.concurrent_revisions_isolation", "obs:concurrent-revisions-2026-10-08:rust:sender_only:collaborate.concurrent_revisions", "obs:concurrent-revisions-2026-10-08:rust:sender_only:collaborate.concurrent_revisions_retry", "obs:concurrent-revisions-2026-10-08:rust:sender_only:collaborate.concurrent_revisions_isolation", "obs:concurrent-revisions-2026-10-08:python:verify:restart.concurrent_revisions", "obs:concurrent-revisions-2026-10-08:rust:verify:restart.concurrent_revisions"],
       "gaps": []
     },
     {
@@ -1281,30 +427,9 @@
       "obligation": "conditional",
       "applicability": "When collaboration.submit is advertised; continuity_note remains optional",
       "coverage": "partial_public",
-      "references": [
-        "case:collaborate.hidden_derivation",
-        "case:collaborate.unknown_target",
-        "test:rust-collaboration",
-        "schema:collaboration-artifact",
-        "fixture:collaboration-artifact"
-      ],
-      "observations": [
-        "obs:python:members:collaborate.hidden_derivation",
-        "obs:python:members:collaborate.unknown_target",
-        "obs:python:addressed:collaborate.hidden_derivation",
-        "obs:python:addressed:collaborate.unknown_target",
-        "obs:python:sender_only:collaborate.hidden_derivation",
-        "obs:python:sender_only:collaborate.unknown_target",
-        "obs:rust:members:collaborate.hidden_derivation",
-        "obs:rust:members:collaborate.unknown_target",
-        "obs:rust:addressed:collaborate.hidden_derivation",
-        "obs:rust:addressed:collaborate.unknown_target",
-        "obs:rust:sender_only:collaborate.hidden_derivation",
-        "obs:rust:sender_only:collaborate.unknown_target"
-      ],
-      "gaps": [
-        "gap:semantic-claims"
-      ]
+      "references": ["case:collaborate.hidden_derivation", "case:collaborate.unknown_target", "test:rust-collaboration", "schema:collaboration-artifact", "fixture:collaboration-artifact"],
+      "observations": ["obs:python:members:collaborate.hidden_derivation", "obs:python:members:collaborate.unknown_target", "obs:python:addressed:collaborate.hidden_derivation", "obs:python:addressed:collaborate.unknown_target", "obs:python:sender_only:collaborate.hidden_derivation", "obs:python:sender_only:collaborate.unknown_target", "obs:rust:members:collaborate.hidden_derivation", "obs:rust:members:collaborate.unknown_target", "obs:rust:addressed:collaborate.hidden_derivation", "obs:rust:addressed:collaborate.unknown_target", "obs:rust:sender_only:collaborate.hidden_derivation", "obs:rust:sender_only:collaborate.unknown_target"],
+      "gaps": ["gap:semantic-claims"]
     },
     {
       "id": "C08",
@@ -1315,9 +440,7 @@
       "coverage": "gap",
       "references": [],
       "observations": [],
-      "gaps": [
-        "gap:content-authority"
-      ]
+      "gaps": ["gap:content-authority"]
     },
     {
       "id": "C09",
@@ -1326,30 +449,9 @@
       "obligation": "conditional",
       "applicability": "When collaboration.submit is advertised; continuity_note remains optional",
       "coverage": "partial_public",
-      "references": [
-        "case:collaborate.objection",
-        "case:collaborate.decline",
-        "test:python-collaboration",
-        "schema:collaboration-objection",
-        "fixture:collaboration-objection"
-      ],
-      "observations": [
-        "obs:python:members:collaborate.objection",
-        "obs:python:members:collaborate.decline",
-        "obs:python:addressed:collaborate.objection",
-        "obs:python:addressed:collaborate.decline",
-        "obs:python:sender_only:collaborate.objection",
-        "obs:python:sender_only:collaborate.decline",
-        "obs:rust:members:collaborate.objection",
-        "obs:rust:members:collaborate.decline",
-        "obs:rust:addressed:collaborate.objection",
-        "obs:rust:addressed:collaborate.decline",
-        "obs:rust:sender_only:collaborate.objection",
-        "obs:rust:sender_only:collaborate.decline"
-      ],
-      "gaps": [
-        "gap:semantic-claims"
-      ]
+      "references": ["case:collaborate.objection", "case:collaborate.decline", "test:python-collaboration", "schema:collaboration-objection", "fixture:collaboration-objection"],
+      "observations": ["obs:python:members:collaborate.objection", "obs:python:members:collaborate.decline", "obs:python:addressed:collaborate.objection", "obs:python:addressed:collaborate.decline", "obs:python:sender_only:collaborate.objection", "obs:python:sender_only:collaborate.decline", "obs:rust:members:collaborate.objection", "obs:rust:members:collaborate.decline", "obs:rust:addressed:collaborate.objection", "obs:rust:addressed:collaborate.decline", "obs:rust:sender_only:collaborate.objection", "obs:rust:sender_only:collaborate.decline"],
+      "gaps": ["gap:semantic-claims"]
     },
     {
       "id": "C10",
@@ -1358,42 +460,9 @@
       "obligation": "conditional",
       "applicability": "When collaboration.submit is advertised; continuity_note remains optional",
       "coverage": "partial_public",
-      "references": [
-        "case:collaborate.withdrawal",
-        "case:collaborate.withdrawal_forbidden",
-        "case:collaborate.withdrawn_citation",
-        "case:restart.history",
-        "test:rust-collaboration",
-        "test:python-collaboration",
-        "schema:collaboration-withdrawal",
-        "fixture:collaboration-withdrawal"
-      ],
-      "observations": [
-        "obs:python:members:collaborate.withdrawal_forbidden",
-        "obs:python:members:collaborate.withdrawal",
-        "obs:python:members:collaborate.withdrawn_citation",
-        "obs:python:addressed:collaborate.withdrawal_forbidden",
-        "obs:python:addressed:collaborate.withdrawal",
-        "obs:python:addressed:collaborate.withdrawn_citation",
-        "obs:python:sender_only:collaborate.withdrawal_forbidden",
-        "obs:python:sender_only:collaborate.withdrawal",
-        "obs:python:sender_only:collaborate.withdrawn_citation",
-        "obs:rust:members:collaborate.withdrawal_forbidden",
-        "obs:rust:members:collaborate.withdrawal",
-        "obs:rust:members:collaborate.withdrawn_citation",
-        "obs:rust:addressed:collaborate.withdrawal_forbidden",
-        "obs:rust:addressed:collaborate.withdrawal",
-        "obs:rust:addressed:collaborate.withdrawn_citation",
-        "obs:rust:sender_only:collaborate.withdrawal_forbidden",
-        "obs:rust:sender_only:collaborate.withdrawal",
-        "obs:rust:sender_only:collaborate.withdrawn_citation",
-        "obs:python:verify:restart.history",
-        "obs:rust:verify:restart.history"
-      ],
-      "gaps": [
-        "gap:retention",
-        "gap:crash-recovery"
-      ]
+      "references": ["case:collaborate.withdrawal", "case:collaborate.withdrawal_forbidden", "case:collaborate.withdrawn_citation", "case:restart.history", "test:rust-collaboration", "test:python-collaboration", "schema:collaboration-withdrawal", "fixture:collaboration-withdrawal"],
+      "observations": ["obs:python:members:collaborate.withdrawal_forbidden", "obs:python:members:collaborate.withdrawal", "obs:python:members:collaborate.withdrawn_citation", "obs:python:addressed:collaborate.withdrawal_forbidden", "obs:python:addressed:collaborate.withdrawal", "obs:python:addressed:collaborate.withdrawn_citation", "obs:python:sender_only:collaborate.withdrawal_forbidden", "obs:python:sender_only:collaborate.withdrawal", "obs:python:sender_only:collaborate.withdrawn_citation", "obs:rust:members:collaborate.withdrawal_forbidden", "obs:rust:members:collaborate.withdrawal", "obs:rust:members:collaborate.withdrawn_citation", "obs:rust:addressed:collaborate.withdrawal_forbidden", "obs:rust:addressed:collaborate.withdrawal", "obs:rust:addressed:collaborate.withdrawn_citation", "obs:rust:sender_only:collaborate.withdrawal_forbidden", "obs:rust:sender_only:collaborate.withdrawal", "obs:rust:sender_only:collaborate.withdrawn_citation", "obs:python:verify:restart.history", "obs:rust:verify:restart.history"],
+      "gaps": ["gap:retention", "gap:crash-recovery"]
     },
     {
       "id": "C11",
@@ -1402,51 +471,9 @@
       "obligation": "conditional",
       "applicability": "When collaboration.submit is advertised; continuity_note remains optional",
       "coverage": "partial_public",
-      "references": [
-        "case:collaborate.unauthenticated",
-        "case:collaborate.forbidden",
-        "case:collaborate.payload_too_large",
-        "case:collaborate.unsupported_media_type",
-        "case:collaborate.malformed_json",
-        "test:python-collaboration",
-        "schema:problem",
-        "fixture:problem"
-      ],
-      "observations": [
-        "obs:python:members:collaborate.forbidden",
-        "obs:python:members:collaborate.unauthenticated",
-        "obs:python:members:collaborate.payload_too_large",
-        "obs:python:members:collaborate.unsupported_media_type",
-        "obs:python:members:collaborate.malformed_json",
-        "obs:python:addressed:collaborate.forbidden",
-        "obs:python:addressed:collaborate.unauthenticated",
-        "obs:python:addressed:collaborate.payload_too_large",
-        "obs:python:addressed:collaborate.unsupported_media_type",
-        "obs:python:addressed:collaborate.malformed_json",
-        "obs:python:sender_only:collaborate.forbidden",
-        "obs:python:sender_only:collaborate.unauthenticated",
-        "obs:python:sender_only:collaborate.payload_too_large",
-        "obs:python:sender_only:collaborate.unsupported_media_type",
-        "obs:python:sender_only:collaborate.malformed_json",
-        "obs:rust:members:collaborate.forbidden",
-        "obs:rust:members:collaborate.unauthenticated",
-        "obs:rust:members:collaborate.payload_too_large",
-        "obs:rust:members:collaborate.unsupported_media_type",
-        "obs:rust:members:collaborate.malformed_json",
-        "obs:rust:addressed:collaborate.forbidden",
-        "obs:rust:addressed:collaborate.unauthenticated",
-        "obs:rust:addressed:collaborate.payload_too_large",
-        "obs:rust:addressed:collaborate.unsupported_media_type",
-        "obs:rust:addressed:collaborate.malformed_json",
-        "obs:rust:sender_only:collaborate.forbidden",
-        "obs:rust:sender_only:collaborate.unauthenticated",
-        "obs:rust:sender_only:collaborate.payload_too_large",
-        "obs:rust:sender_only:collaborate.unsupported_media_type",
-        "obs:rust:sender_only:collaborate.malformed_json"
-      ],
-      "gaps": [
-        "gap:failure-precedence"
-      ]
+      "references": ["case:collaborate.unauthenticated", "case:collaborate.forbidden", "case:collaborate.payload_too_large", "case:collaborate.unsupported_media_type", "case:collaborate.malformed_json", "test:python-collaboration", "schema:problem", "fixture:problem"],
+      "observations": ["obs:python:members:collaborate.forbidden", "obs:python:members:collaborate.unauthenticated", "obs:python:members:collaborate.payload_too_large", "obs:python:members:collaborate.unsupported_media_type", "obs:python:members:collaborate.malformed_json", "obs:python:addressed:collaborate.forbidden", "obs:python:addressed:collaborate.unauthenticated", "obs:python:addressed:collaborate.payload_too_large", "obs:python:addressed:collaborate.unsupported_media_type", "obs:python:addressed:collaborate.malformed_json", "obs:python:sender_only:collaborate.forbidden", "obs:python:sender_only:collaborate.unauthenticated", "obs:python:sender_only:collaborate.payload_too_large", "obs:python:sender_only:collaborate.unsupported_media_type", "obs:python:sender_only:collaborate.malformed_json", "obs:rust:members:collaborate.forbidden", "obs:rust:members:collaborate.unauthenticated", "obs:rust:members:collaborate.payload_too_large", "obs:rust:members:collaborate.unsupported_media_type", "obs:rust:members:collaborate.malformed_json", "obs:rust:addressed:collaborate.forbidden", "obs:rust:addressed:collaborate.unauthenticated", "obs:rust:addressed:collaborate.payload_too_large", "obs:rust:addressed:collaborate.unsupported_media_type", "obs:rust:addressed:collaborate.malformed_json", "obs:rust:sender_only:collaborate.forbidden", "obs:rust:sender_only:collaborate.unauthenticated", "obs:rust:sender_only:collaborate.payload_too_large", "obs:rust:sender_only:collaborate.unsupported_media_type", "obs:rust:sender_only:collaborate.malformed_json"],
+      "gaps": ["gap:failure-precedence"]
     },
     {
       "id": "C12",
@@ -1455,23 +482,9 @@
       "obligation": "conditional",
       "applicability": "When collaboration.submit is advertised; continuity_note remains optional",
       "coverage": "partial_public",
-      "references": [
-        "case:collaborate.unsupported_record_type",
-        "test:python-collaboration",
-        "schema:problem",
-        "fixture:problem"
-      ],
-      "observations": [
-        "obs:python:members:collaborate.unsupported_record_type",
-        "obs:python:addressed:collaborate.unsupported_record_type",
-        "obs:python:sender_only:collaborate.unsupported_record_type",
-        "obs:rust:members:collaborate.unsupported_record_type",
-        "obs:rust:addressed:collaborate.unsupported_record_type",
-        "obs:rust:sender_only:collaborate.unsupported_record_type"
-      ],
-      "gaps": [
-        "gap:failure-precedence"
-      ]
+      "references": ["case:collaborate.unsupported_record_type", "test:python-collaboration", "schema:problem", "fixture:problem"],
+      "observations": ["obs:python:members:collaborate.unsupported_record_type", "obs:python:addressed:collaborate.unsupported_record_type", "obs:python:sender_only:collaborate.unsupported_record_type", "obs:rust:members:collaborate.unsupported_record_type", "obs:rust:addressed:collaborate.unsupported_record_type", "obs:rust:sender_only:collaborate.unsupported_record_type"],
+      "gaps": ["gap:failure-precedence"]
     },
     {
       "id": "C13",
@@ -1480,31 +493,9 @@
       "obligation": "conditional",
       "applicability": "When collaboration.submit is advertised; continuity_note remains optional",
       "coverage": "partial_public",
-      "references": [
-        "case:collaborate.partial_note",
-        "case:collaborate.client_revision",
-        "test:python-collaboration",
-        "schema:collaboration-artifact",
-        "fixture:collaboration-artifact"
-      ],
-      "observations": [
-        "obs:python:members:collaborate.client_revision",
-        "obs:python:members:collaborate.partial_note",
-        "obs:python:addressed:collaborate.client_revision",
-        "obs:python:addressed:collaborate.partial_note",
-        "obs:python:sender_only:collaborate.client_revision",
-        "obs:python:sender_only:collaborate.partial_note",
-        "obs:rust:members:collaborate.client_revision",
-        "obs:rust:members:collaborate.partial_note",
-        "obs:rust:addressed:collaborate.client_revision",
-        "obs:rust:addressed:collaborate.partial_note",
-        "obs:rust:sender_only:collaborate.client_revision",
-        "obs:rust:sender_only:collaborate.partial_note"
-      ],
-      "gaps": [
-        "gap:continuity-boundaries",
-        "gap:failure-precedence"
-      ]
+      "references": ["case:collaborate.partial_note", "case:collaborate.client_revision", "test:python-collaboration", "schema:collaboration-artifact", "fixture:collaboration-artifact"],
+      "observations": ["obs:python:members:collaborate.client_revision", "obs:python:members:collaborate.partial_note", "obs:python:addressed:collaborate.client_revision", "obs:python:addressed:collaborate.partial_note", "obs:python:sender_only:collaborate.client_revision", "obs:python:sender_only:collaborate.partial_note", "obs:rust:members:collaborate.client_revision", "obs:rust:members:collaborate.partial_note", "obs:rust:addressed:collaborate.client_revision", "obs:rust:addressed:collaborate.partial_note", "obs:rust:sender_only:collaborate.client_revision", "obs:rust:sender_only:collaborate.partial_note"],
+      "gaps": ["gap:continuity-boundaries", "gap:failure-precedence"]
     },
     {
       "id": "C14",
@@ -1513,23 +504,9 @@
       "obligation": "conditional",
       "applicability": "When collaboration.submit is advertised; continuity_note remains optional",
       "coverage": "partial_public",
-      "references": [
-        "case:collaborate.wrong_world",
-        "test:python-collaboration",
-        "schema:problem",
-        "fixture:problem"
-      ],
-      "observations": [
-        "obs:python:members:collaborate.wrong_world",
-        "obs:python:addressed:collaborate.wrong_world",
-        "obs:python:sender_only:collaborate.wrong_world",
-        "obs:rust:members:collaborate.wrong_world",
-        "obs:rust:addressed:collaborate.wrong_world",
-        "obs:rust:sender_only:collaborate.wrong_world"
-      ],
-      "gaps": [
-        "gap:failure-precedence"
-      ]
+      "references": ["case:collaborate.wrong_world", "test:python-collaboration", "schema:problem", "fixture:problem"],
+      "observations": ["obs:python:members:collaborate.wrong_world", "obs:python:addressed:collaborate.wrong_world", "obs:python:sender_only:collaborate.wrong_world", "obs:rust:members:collaborate.wrong_world", "obs:rust:addressed:collaborate.wrong_world", "obs:rust:sender_only:collaborate.wrong_world"],
+      "gaps": ["gap:failure-precedence"]
     },
     {
       "id": "C15",
@@ -1538,23 +515,9 @@
       "obligation": "conditional",
       "applicability": "When collaboration.submit is advertised; continuity_note remains optional",
       "coverage": "partial_public",
-      "references": [
-        "case:collaborate.from_mismatch",
-        "test:python-collaboration",
-        "schema:problem",
-        "fixture:problem"
-      ],
-      "observations": [
-        "obs:python:members:collaborate.from_mismatch",
-        "obs:python:addressed:collaborate.from_mismatch",
-        "obs:python:sender_only:collaborate.from_mismatch",
-        "obs:rust:members:collaborate.from_mismatch",
-        "obs:rust:addressed:collaborate.from_mismatch",
-        "obs:rust:sender_only:collaborate.from_mismatch"
-      ],
-      "gaps": [
-        "gap:failure-precedence"
-      ]
+      "references": ["case:collaborate.from_mismatch", "test:python-collaboration", "schema:problem", "fixture:problem"],
+      "observations": ["obs:python:members:collaborate.from_mismatch", "obs:python:addressed:collaborate.from_mismatch", "obs:python:sender_only:collaborate.from_mismatch", "obs:rust:members:collaborate.from_mismatch", "obs:rust:addressed:collaborate.from_mismatch", "obs:rust:sender_only:collaborate.from_mismatch"],
+      "gaps": ["gap:failure-precedence"]
     },
     {
       "id": "C16",
@@ -1563,48 +526,8 @@
       "obligation": "conditional",
       "applicability": "When collaboration.submit is advertised; continuity_note remains optional",
       "coverage": "partial_public",
-      "references": [
-        "case:collaborate.unknown_target",
-        "case:collaborate.hidden_derivation",
-        "case:collaborate.hidden_objection",
-        "case:collaborate.hidden_decline",
-        "case:collaborate.hidden_withdrawal",
-        "test:rust-collaboration",
-        "schema:problem",
-        "fixture:problem"
-      ],
-      "observations": [
-        "obs:python:members:collaborate.hidden_derivation",
-        "obs:python:members:collaborate.hidden_objection",
-        "obs:python:members:collaborate.hidden_decline",
-        "obs:python:members:collaborate.hidden_withdrawal",
-        "obs:python:members:collaborate.unknown_target",
-        "obs:python:addressed:collaborate.hidden_derivation",
-        "obs:python:addressed:collaborate.hidden_objection",
-        "obs:python:addressed:collaborate.hidden_decline",
-        "obs:python:addressed:collaborate.hidden_withdrawal",
-        "obs:python:addressed:collaborate.unknown_target",
-        "obs:python:sender_only:collaborate.hidden_derivation",
-        "obs:python:sender_only:collaborate.hidden_objection",
-        "obs:python:sender_only:collaborate.hidden_decline",
-        "obs:python:sender_only:collaborate.hidden_withdrawal",
-        "obs:python:sender_only:collaborate.unknown_target",
-        "obs:rust:members:collaborate.hidden_derivation",
-        "obs:rust:members:collaborate.hidden_objection",
-        "obs:rust:members:collaborate.hidden_decline",
-        "obs:rust:members:collaborate.hidden_withdrawal",
-        "obs:rust:members:collaborate.unknown_target",
-        "obs:rust:addressed:collaborate.hidden_derivation",
-        "obs:rust:addressed:collaborate.hidden_objection",
-        "obs:rust:addressed:collaborate.hidden_decline",
-        "obs:rust:addressed:collaborate.hidden_withdrawal",
-        "obs:rust:addressed:collaborate.unknown_target",
-        "obs:rust:sender_only:collaborate.hidden_derivation",
-        "obs:rust:sender_only:collaborate.hidden_objection",
-        "obs:rust:sender_only:collaborate.hidden_decline",
-        "obs:rust:sender_only:collaborate.hidden_withdrawal",
-        "obs:rust:sender_only:collaborate.unknown_target"
-      ],
+      "references": ["case:collaborate.unknown_target", "case:collaborate.hidden_derivation", "case:collaborate.hidden_objection", "case:collaborate.hidden_decline", "case:collaborate.hidden_withdrawal", "test:rust-collaboration", "schema:problem", "fixture:problem"],
+      "observations": ["obs:python:members:collaborate.hidden_derivation", "obs:python:members:collaborate.hidden_objection", "obs:python:members:collaborate.hidden_decline", "obs:python:members:collaborate.hidden_withdrawal", "obs:python:members:collaborate.unknown_target", "obs:python:addressed:collaborate.hidden_derivation", "obs:python:addressed:collaborate.hidden_objection", "obs:python:addressed:collaborate.hidden_decline", "obs:python:addressed:collaborate.hidden_withdrawal", "obs:python:addressed:collaborate.unknown_target", "obs:python:sender_only:collaborate.hidden_derivation", "obs:python:sender_only:collaborate.hidden_objection", "obs:python:sender_only:collaborate.hidden_decline", "obs:python:sender_only:collaborate.hidden_withdrawal", "obs:python:sender_only:collaborate.unknown_target", "obs:rust:members:collaborate.hidden_derivation", "obs:rust:members:collaborate.hidden_objection", "obs:rust:members:collaborate.hidden_decline", "obs:rust:members:collaborate.hidden_withdrawal", "obs:rust:members:collaborate.unknown_target", "obs:rust:addressed:collaborate.hidden_derivation", "obs:rust:addressed:collaborate.hidden_objection", "obs:rust:addressed:collaborate.hidden_decline", "obs:rust:addressed:collaborate.hidden_withdrawal", "obs:rust:addressed:collaborate.unknown_target", "obs:rust:sender_only:collaborate.hidden_derivation", "obs:rust:sender_only:collaborate.hidden_objection", "obs:rust:sender_only:collaborate.hidden_decline", "obs:rust:sender_only:collaborate.hidden_withdrawal", "obs:rust:sender_only:collaborate.unknown_target"],
       "gaps": []
     },
     {
@@ -1614,23 +537,9 @@
       "obligation": "conditional",
       "applicability": "When collaboration.submit is advertised; continuity_note remains optional",
       "coverage": "partial_public",
-      "references": [
-        "case:collaborate.withdrawal_forbidden",
-        "test:python-collaboration",
-        "schema:problem",
-        "fixture:problem"
-      ],
-      "observations": [
-        "obs:python:members:collaborate.withdrawal_forbidden",
-        "obs:python:addressed:collaborate.withdrawal_forbidden",
-        "obs:python:sender_only:collaborate.withdrawal_forbidden",
-        "obs:rust:members:collaborate.withdrawal_forbidden",
-        "obs:rust:addressed:collaborate.withdrawal_forbidden",
-        "obs:rust:sender_only:collaborate.withdrawal_forbidden"
-      ],
-      "gaps": [
-        "gap:failure-precedence"
-      ]
+      "references": ["case:collaborate.withdrawal_forbidden", "test:python-collaboration", "schema:problem", "fixture:problem"],
+      "observations": ["obs:python:members:collaborate.withdrawal_forbidden", "obs:python:addressed:collaborate.withdrawal_forbidden", "obs:python:sender_only:collaborate.withdrawal_forbidden", "obs:rust:members:collaborate.withdrawal_forbidden", "obs:rust:addressed:collaborate.withdrawal_forbidden", "obs:rust:sender_only:collaborate.withdrawal_forbidden"],
+      "gaps": ["gap:failure-precedence"]
     },
     {
       "id": "C18",
@@ -1639,46 +548,9 @@
       "obligation": "conditional",
       "applicability": "When collaboration.submit is advertised; continuity_note remains optional",
       "coverage": "partial_public",
-      "references": [
-        "case:collaborate.conflict",
-        "test:python-collaboration",
-        "schema:problem",
-        "fixture:problem",
-        "case:collaborate.concurrent_retry",
-        "case:collaborate.concurrent_conflict",
-        "case:collaborate.concurrent_retry_sequence"
-      ],
-      "observations": [
-        "obs:python:members:collaborate.conflict",
-        "obs:python:addressed:collaborate.conflict",
-        "obs:python:sender_only:collaborate.conflict",
-        "obs:rust:members:collaborate.conflict",
-        "obs:rust:addressed:collaborate.conflict",
-        "obs:rust:sender_only:collaborate.conflict",
-        "obs:same-id-2026-10-11:python:members:collaborate.concurrent_retry",
-        "obs:same-id-2026-10-11:python:members:collaborate.concurrent_conflict",
-        "obs:same-id-2026-10-11:python:members:collaborate.concurrent_retry_sequence",
-        "obs:same-id-2026-10-11:python:addressed:collaborate.concurrent_retry",
-        "obs:same-id-2026-10-11:python:addressed:collaborate.concurrent_conflict",
-        "obs:same-id-2026-10-11:python:addressed:collaborate.concurrent_retry_sequence",
-        "obs:same-id-2026-10-11:python:sender_only:collaborate.concurrent_retry",
-        "obs:same-id-2026-10-11:python:sender_only:collaborate.concurrent_conflict",
-        "obs:same-id-2026-10-11:python:sender_only:collaborate.concurrent_retry_sequence",
-        "obs:same-id-2026-10-11:rust:members:collaborate.concurrent_retry",
-        "obs:same-id-2026-10-11:rust:members:collaborate.concurrent_conflict",
-        "obs:same-id-2026-10-11:rust:members:collaborate.concurrent_retry_sequence",
-        "obs:same-id-2026-10-11:rust:addressed:collaborate.concurrent_retry",
-        "obs:same-id-2026-10-11:rust:addressed:collaborate.concurrent_conflict",
-        "obs:same-id-2026-10-11:rust:addressed:collaborate.concurrent_retry_sequence",
-        "obs:same-id-2026-10-11:rust:sender_only:collaborate.concurrent_retry",
-        "obs:same-id-2026-10-11:rust:sender_only:collaborate.concurrent_conflict",
-        "obs:same-id-2026-10-11:rust:sender_only:collaborate.concurrent_retry_sequence"
-      ],
-      "gaps": [
-        "gap:cross-endpoint-retry",
-        "gap:failure-precedence",
-        "gap:collaboration-retry-races"
-      ]
+      "references": ["case:collaborate.conflict", "test:python-collaboration", "schema:problem", "fixture:problem", "case:collaborate.concurrent_retry", "case:collaborate.concurrent_conflict", "case:collaborate.concurrent_retry_sequence"],
+      "observations": ["obs:python:members:collaborate.conflict", "obs:python:addressed:collaborate.conflict", "obs:python:sender_only:collaborate.conflict", "obs:rust:members:collaborate.conflict", "obs:rust:addressed:collaborate.conflict", "obs:rust:sender_only:collaborate.conflict", "obs:same-id-2026-10-11:python:members:collaborate.concurrent_retry", "obs:same-id-2026-10-11:python:members:collaborate.concurrent_conflict", "obs:same-id-2026-10-11:python:members:collaborate.concurrent_retry_sequence", "obs:same-id-2026-10-11:python:addressed:collaborate.concurrent_retry", "obs:same-id-2026-10-11:python:addressed:collaborate.concurrent_conflict", "obs:same-id-2026-10-11:python:addressed:collaborate.concurrent_retry_sequence", "obs:same-id-2026-10-11:python:sender_only:collaborate.concurrent_retry", "obs:same-id-2026-10-11:python:sender_only:collaborate.concurrent_conflict", "obs:same-id-2026-10-11:python:sender_only:collaborate.concurrent_retry_sequence", "obs:same-id-2026-10-11:rust:members:collaborate.concurrent_retry", "obs:same-id-2026-10-11:rust:members:collaborate.concurrent_conflict", "obs:same-id-2026-10-11:rust:members:collaborate.concurrent_retry_sequence", "obs:same-id-2026-10-11:rust:addressed:collaborate.concurrent_retry", "obs:same-id-2026-10-11:rust:addressed:collaborate.concurrent_conflict", "obs:same-id-2026-10-11:rust:addressed:collaborate.concurrent_retry_sequence", "obs:same-id-2026-10-11:rust:sender_only:collaborate.concurrent_retry", "obs:same-id-2026-10-11:rust:sender_only:collaborate.concurrent_conflict", "obs:same-id-2026-10-11:rust:sender_only:collaborate.concurrent_retry_sequence"],
+      "gaps": ["gap:cross-endpoint-retry", "gap:failure-precedence", "gap:collaboration-retry-races"]
     },
     {
       "id": "C19",
@@ -1687,49 +559,9 @@
       "obligation": "conditional",
       "applicability": "When collaboration.submit is advertised; continuity_note remains optional",
       "coverage": "partial_public",
-      "references": [
-        "case:collaborate.retry",
-        "case:restart.retry",
-        "test:rust-collaboration",
-        "schema:collaboration-artifact",
-        "fixture:collaboration-artifact",
-        "case:collaborate.concurrent_retry",
-        "case:collaborate.concurrent_conflict",
-        "case:collaborate.concurrent_retry_sequence"
-      ],
-      "observations": [
-        "obs:python:members:collaborate.retry",
-        "obs:python:addressed:collaborate.retry",
-        "obs:python:sender_only:collaborate.retry",
-        "obs:rust:members:collaborate.retry",
-        "obs:rust:addressed:collaborate.retry",
-        "obs:rust:sender_only:collaborate.retry",
-        "obs:python:verify:restart.retry",
-        "obs:rust:verify:restart.retry",
-        "obs:same-id-2026-10-11:python:members:collaborate.concurrent_retry",
-        "obs:same-id-2026-10-11:python:members:collaborate.concurrent_conflict",
-        "obs:same-id-2026-10-11:python:members:collaborate.concurrent_retry_sequence",
-        "obs:same-id-2026-10-11:python:addressed:collaborate.concurrent_retry",
-        "obs:same-id-2026-10-11:python:addressed:collaborate.concurrent_conflict",
-        "obs:same-id-2026-10-11:python:addressed:collaborate.concurrent_retry_sequence",
-        "obs:same-id-2026-10-11:python:sender_only:collaborate.concurrent_retry",
-        "obs:same-id-2026-10-11:python:sender_only:collaborate.concurrent_conflict",
-        "obs:same-id-2026-10-11:python:sender_only:collaborate.concurrent_retry_sequence",
-        "obs:same-id-2026-10-11:rust:members:collaborate.concurrent_retry",
-        "obs:same-id-2026-10-11:rust:members:collaborate.concurrent_conflict",
-        "obs:same-id-2026-10-11:rust:members:collaborate.concurrent_retry_sequence",
-        "obs:same-id-2026-10-11:rust:addressed:collaborate.concurrent_retry",
-        "obs:same-id-2026-10-11:rust:addressed:collaborate.concurrent_conflict",
-        "obs:same-id-2026-10-11:rust:addressed:collaborate.concurrent_retry_sequence",
-        "obs:same-id-2026-10-11:rust:sender_only:collaborate.concurrent_retry",
-        "obs:same-id-2026-10-11:rust:sender_only:collaborate.concurrent_conflict",
-        "obs:same-id-2026-10-11:rust:sender_only:collaborate.concurrent_retry_sequence"
-      ],
-      "gaps": [
-        "gap:cross-endpoint-retry",
-        "gap:failure-precedence",
-        "gap:collaboration-retry-races"
-      ]
+      "references": ["case:collaborate.retry", "case:restart.retry", "test:rust-collaboration", "schema:collaboration-artifact", "fixture:collaboration-artifact", "case:collaborate.concurrent_retry", "case:collaborate.concurrent_conflict", "case:collaborate.concurrent_retry_sequence"],
+      "observations": ["obs:python:members:collaborate.retry", "obs:python:addressed:collaborate.retry", "obs:python:sender_only:collaborate.retry", "obs:rust:members:collaborate.retry", "obs:rust:addressed:collaborate.retry", "obs:rust:sender_only:collaborate.retry", "obs:python:verify:restart.retry", "obs:rust:verify:restart.retry", "obs:same-id-2026-10-11:python:members:collaborate.concurrent_retry", "obs:same-id-2026-10-11:python:members:collaborate.concurrent_conflict", "obs:same-id-2026-10-11:python:members:collaborate.concurrent_retry_sequence", "obs:same-id-2026-10-11:python:addressed:collaborate.concurrent_retry", "obs:same-id-2026-10-11:python:addressed:collaborate.concurrent_conflict", "obs:same-id-2026-10-11:python:addressed:collaborate.concurrent_retry_sequence", "obs:same-id-2026-10-11:python:sender_only:collaborate.concurrent_retry", "obs:same-id-2026-10-11:python:sender_only:collaborate.concurrent_conflict", "obs:same-id-2026-10-11:python:sender_only:collaborate.concurrent_retry_sequence", "obs:same-id-2026-10-11:rust:members:collaborate.concurrent_retry", "obs:same-id-2026-10-11:rust:members:collaborate.concurrent_conflict", "obs:same-id-2026-10-11:rust:members:collaborate.concurrent_retry_sequence", "obs:same-id-2026-10-11:rust:addressed:collaborate.concurrent_retry", "obs:same-id-2026-10-11:rust:addressed:collaborate.concurrent_conflict", "obs:same-id-2026-10-11:rust:addressed:collaborate.concurrent_retry_sequence", "obs:same-id-2026-10-11:rust:sender_only:collaborate.concurrent_retry", "obs:same-id-2026-10-11:rust:sender_only:collaborate.concurrent_conflict", "obs:same-id-2026-10-11:rust:sender_only:collaborate.concurrent_retry_sequence"],
+      "gaps": ["gap:cross-endpoint-retry", "gap:failure-precedence", "gap:collaboration-retry-races"]
     },
     {
       "id": "C20",
@@ -1738,65 +570,9 @@
       "obligation": "conditional",
       "applicability": "When collaboration.submit is advertised; continuity_note remains optional",
       "coverage": "partial_public",
-      "references": [
-        "case:collaborate.revision",
-        "case:collaborate.objection",
-        "case:collaborate.decline",
-        "case:collaborate.withdrawal",
-        "test:rust-transaction",
-        "test:python-collaboration",
-        "schema:receipt",
-        "fixture:receipt",
-        "case:restart.revision_sequence",
-        "case:collaborate.concurrent_revisions",
-        "case:collaborate.concurrent_revisions_retry",
-        "case:restart.concurrent_revisions"
-      ],
-      "observations": [
-        "obs:python:members:collaborate.revision",
-        "obs:python:members:collaborate.objection",
-        "obs:python:members:collaborate.decline",
-        "obs:python:members:collaborate.withdrawal",
-        "obs:python:addressed:collaborate.revision",
-        "obs:python:addressed:collaborate.objection",
-        "obs:python:addressed:collaborate.decline",
-        "obs:python:addressed:collaborate.withdrawal",
-        "obs:python:sender_only:collaborate.revision",
-        "obs:python:sender_only:collaborate.objection",
-        "obs:python:sender_only:collaborate.decline",
-        "obs:python:sender_only:collaborate.withdrawal",
-        "obs:rust:members:collaborate.revision",
-        "obs:rust:members:collaborate.objection",
-        "obs:rust:members:collaborate.decline",
-        "obs:rust:members:collaborate.withdrawal",
-        "obs:rust:addressed:collaborate.revision",
-        "obs:rust:addressed:collaborate.objection",
-        "obs:rust:addressed:collaborate.decline",
-        "obs:rust:addressed:collaborate.withdrawal",
-        "obs:rust:sender_only:collaborate.revision",
-        "obs:rust:sender_only:collaborate.objection",
-        "obs:rust:sender_only:collaborate.decline",
-        "obs:rust:sender_only:collaborate.withdrawal",
-        "obs:revisions-2026-10-08:python:verify:restart.revision_sequence",
-        "obs:revisions-2026-10-08:rust:verify:restart.revision_sequence",
-        "obs:concurrent-revisions-2026-10-08:python:members:collaborate.concurrent_revisions",
-        "obs:concurrent-revisions-2026-10-08:python:members:collaborate.concurrent_revisions_retry",
-        "obs:concurrent-revisions-2026-10-08:python:addressed:collaborate.concurrent_revisions",
-        "obs:concurrent-revisions-2026-10-08:python:addressed:collaborate.concurrent_revisions_retry",
-        "obs:concurrent-revisions-2026-10-08:python:sender_only:collaborate.concurrent_revisions",
-        "obs:concurrent-revisions-2026-10-08:python:sender_only:collaborate.concurrent_revisions_retry",
-        "obs:concurrent-revisions-2026-10-08:rust:members:collaborate.concurrent_revisions",
-        "obs:concurrent-revisions-2026-10-08:rust:members:collaborate.concurrent_revisions_retry",
-        "obs:concurrent-revisions-2026-10-08:rust:addressed:collaborate.concurrent_revisions",
-        "obs:concurrent-revisions-2026-10-08:rust:addressed:collaborate.concurrent_revisions_retry",
-        "obs:concurrent-revisions-2026-10-08:rust:sender_only:collaborate.concurrent_revisions",
-        "obs:concurrent-revisions-2026-10-08:rust:sender_only:collaborate.concurrent_revisions_retry",
-        "obs:concurrent-revisions-2026-10-08:python:verify:restart.concurrent_revisions",
-        "obs:concurrent-revisions-2026-10-08:rust:verify:restart.concurrent_revisions"
-      ],
-      "gaps": [
-        "gap:crash-recovery"
-      ]
+      "references": ["case:collaborate.revision", "case:collaborate.objection", "case:collaborate.decline", "case:collaborate.withdrawal", "test:rust-transaction", "test:python-collaboration", "schema:receipt", "fixture:receipt", "case:restart.revision_sequence", "case:collaborate.concurrent_revisions", "case:collaborate.concurrent_revisions_retry", "case:restart.concurrent_revisions"],
+      "observations": ["obs:python:members:collaborate.revision", "obs:python:members:collaborate.objection", "obs:python:members:collaborate.decline", "obs:python:members:collaborate.withdrawal", "obs:python:addressed:collaborate.revision", "obs:python:addressed:collaborate.objection", "obs:python:addressed:collaborate.decline", "obs:python:addressed:collaborate.withdrawal", "obs:python:sender_only:collaborate.revision", "obs:python:sender_only:collaborate.objection", "obs:python:sender_only:collaborate.decline", "obs:python:sender_only:collaborate.withdrawal", "obs:rust:members:collaborate.revision", "obs:rust:members:collaborate.objection", "obs:rust:members:collaborate.decline", "obs:rust:members:collaborate.withdrawal", "obs:rust:addressed:collaborate.revision", "obs:rust:addressed:collaborate.objection", "obs:rust:addressed:collaborate.decline", "obs:rust:addressed:collaborate.withdrawal", "obs:rust:sender_only:collaborate.revision", "obs:rust:sender_only:collaborate.objection", "obs:rust:sender_only:collaborate.decline", "obs:rust:sender_only:collaborate.withdrawal", "obs:revisions-2026-10-08:python:verify:restart.revision_sequence", "obs:revisions-2026-10-08:rust:verify:restart.revision_sequence", "obs:concurrent-revisions-2026-10-08:python:members:collaborate.concurrent_revisions", "obs:concurrent-revisions-2026-10-08:python:members:collaborate.concurrent_revisions_retry", "obs:concurrent-revisions-2026-10-08:python:addressed:collaborate.concurrent_revisions", "obs:concurrent-revisions-2026-10-08:python:addressed:collaborate.concurrent_revisions_retry", "obs:concurrent-revisions-2026-10-08:python:sender_only:collaborate.concurrent_revisions", "obs:concurrent-revisions-2026-10-08:python:sender_only:collaborate.concurrent_revisions_retry", "obs:concurrent-revisions-2026-10-08:rust:members:collaborate.concurrent_revisions", "obs:concurrent-revisions-2026-10-08:rust:members:collaborate.concurrent_revisions_retry", "obs:concurrent-revisions-2026-10-08:rust:addressed:collaborate.concurrent_revisions", "obs:concurrent-revisions-2026-10-08:rust:addressed:collaborate.concurrent_revisions_retry", "obs:concurrent-revisions-2026-10-08:rust:sender_only:collaborate.concurrent_revisions", "obs:concurrent-revisions-2026-10-08:rust:sender_only:collaborate.concurrent_revisions_retry", "obs:concurrent-revisions-2026-10-08:python:verify:restart.concurrent_revisions", "obs:concurrent-revisions-2026-10-08:rust:verify:restart.concurrent_revisions"],
+      "gaps": ["gap:crash-recovery"]
     },
     {
       "id": "C21",
@@ -1805,64 +581,9 @@
       "obligation": "conditional",
       "applicability": "When collaboration.submit is advertised; continuity_note remains optional",
       "coverage": "partial_public",
-      "references": [
-        "case:collaborate.revision",
-        "case:collaborate.objection",
-        "case:collaborate.decline",
-        "case:collaborate.withdrawal",
-        "test:rust-collaboration",
-        "schema:event-page",
-        "fixture:event-page",
-        "case:restart.revision_sequence",
-        "case:collaborate.concurrent_revisions",
-        "case:collaborate.concurrent_revisions_retry",
-        "case:restart.concurrent_revisions"
-      ],
-      "observations": [
-        "obs:python:members:collaborate.revision",
-        "obs:python:members:collaborate.objection",
-        "obs:python:members:collaborate.decline",
-        "obs:python:members:collaborate.withdrawal",
-        "obs:python:addressed:collaborate.revision",
-        "obs:python:addressed:collaborate.objection",
-        "obs:python:addressed:collaborate.decline",
-        "obs:python:addressed:collaborate.withdrawal",
-        "obs:python:sender_only:collaborate.revision",
-        "obs:python:sender_only:collaborate.objection",
-        "obs:python:sender_only:collaborate.decline",
-        "obs:python:sender_only:collaborate.withdrawal",
-        "obs:rust:members:collaborate.revision",
-        "obs:rust:members:collaborate.objection",
-        "obs:rust:members:collaborate.decline",
-        "obs:rust:members:collaborate.withdrawal",
-        "obs:rust:addressed:collaborate.revision",
-        "obs:rust:addressed:collaborate.objection",
-        "obs:rust:addressed:collaborate.decline",
-        "obs:rust:addressed:collaborate.withdrawal",
-        "obs:rust:sender_only:collaborate.revision",
-        "obs:rust:sender_only:collaborate.objection",
-        "obs:rust:sender_only:collaborate.decline",
-        "obs:rust:sender_only:collaborate.withdrawal",
-        "obs:revisions-2026-10-08:python:verify:restart.revision_sequence",
-        "obs:revisions-2026-10-08:rust:verify:restart.revision_sequence",
-        "obs:concurrent-revisions-2026-10-08:python:members:collaborate.concurrent_revisions",
-        "obs:concurrent-revisions-2026-10-08:python:members:collaborate.concurrent_revisions_retry",
-        "obs:concurrent-revisions-2026-10-08:python:addressed:collaborate.concurrent_revisions",
-        "obs:concurrent-revisions-2026-10-08:python:addressed:collaborate.concurrent_revisions_retry",
-        "obs:concurrent-revisions-2026-10-08:python:sender_only:collaborate.concurrent_revisions",
-        "obs:concurrent-revisions-2026-10-08:python:sender_only:collaborate.concurrent_revisions_retry",
-        "obs:concurrent-revisions-2026-10-08:rust:members:collaborate.concurrent_revisions",
-        "obs:concurrent-revisions-2026-10-08:rust:members:collaborate.concurrent_revisions_retry",
-        "obs:concurrent-revisions-2026-10-08:rust:addressed:collaborate.concurrent_revisions",
-        "obs:concurrent-revisions-2026-10-08:rust:addressed:collaborate.concurrent_revisions_retry",
-        "obs:concurrent-revisions-2026-10-08:rust:sender_only:collaborate.concurrent_revisions",
-        "obs:concurrent-revisions-2026-10-08:rust:sender_only:collaborate.concurrent_revisions_retry",
-        "obs:concurrent-revisions-2026-10-08:python:verify:restart.concurrent_revisions",
-        "obs:concurrent-revisions-2026-10-08:rust:verify:restart.concurrent_revisions"
-      ],
-      "gaps": [
-        "gap:unknown-event-reader"
-      ]
+      "references": ["case:collaborate.revision", "case:collaborate.objection", "case:collaborate.decline", "case:collaborate.withdrawal", "test:rust-collaboration", "schema:event-page", "fixture:event-page", "case:restart.revision_sequence", "case:collaborate.concurrent_revisions", "case:collaborate.concurrent_revisions_retry", "case:restart.concurrent_revisions"],
+      "observations": ["obs:python:members:collaborate.revision", "obs:python:members:collaborate.objection", "obs:python:members:collaborate.decline", "obs:python:members:collaborate.withdrawal", "obs:python:addressed:collaborate.revision", "obs:python:addressed:collaborate.objection", "obs:python:addressed:collaborate.decline", "obs:python:addressed:collaborate.withdrawal", "obs:python:sender_only:collaborate.revision", "obs:python:sender_only:collaborate.objection", "obs:python:sender_only:collaborate.decline", "obs:python:sender_only:collaborate.withdrawal", "obs:rust:members:collaborate.revision", "obs:rust:members:collaborate.objection", "obs:rust:members:collaborate.decline", "obs:rust:members:collaborate.withdrawal", "obs:rust:addressed:collaborate.revision", "obs:rust:addressed:collaborate.objection", "obs:rust:addressed:collaborate.decline", "obs:rust:addressed:collaborate.withdrawal", "obs:rust:sender_only:collaborate.revision", "obs:rust:sender_only:collaborate.objection", "obs:rust:sender_only:collaborate.decline", "obs:rust:sender_only:collaborate.withdrawal", "obs:revisions-2026-10-08:python:verify:restart.revision_sequence", "obs:revisions-2026-10-08:rust:verify:restart.revision_sequence", "obs:concurrent-revisions-2026-10-08:python:members:collaborate.concurrent_revisions", "obs:concurrent-revisions-2026-10-08:python:members:collaborate.concurrent_revisions_retry", "obs:concurrent-revisions-2026-10-08:python:addressed:collaborate.concurrent_revisions", "obs:concurrent-revisions-2026-10-08:python:addressed:collaborate.concurrent_revisions_retry", "obs:concurrent-revisions-2026-10-08:python:sender_only:collaborate.concurrent_revisions", "obs:concurrent-revisions-2026-10-08:python:sender_only:collaborate.concurrent_revisions_retry", "obs:concurrent-revisions-2026-10-08:rust:members:collaborate.concurrent_revisions", "obs:concurrent-revisions-2026-10-08:rust:members:collaborate.concurrent_revisions_retry", "obs:concurrent-revisions-2026-10-08:rust:addressed:collaborate.concurrent_revisions", "obs:concurrent-revisions-2026-10-08:rust:addressed:collaborate.concurrent_revisions_retry", "obs:concurrent-revisions-2026-10-08:rust:sender_only:collaborate.concurrent_revisions", "obs:concurrent-revisions-2026-10-08:rust:sender_only:collaborate.concurrent_revisions_retry", "obs:concurrent-revisions-2026-10-08:python:verify:restart.concurrent_revisions", "obs:concurrent-revisions-2026-10-08:rust:verify:restart.concurrent_revisions"],
+      "gaps": ["gap:unknown-event-reader"]
     },
     {
       "id": "C22",
@@ -1871,20 +592,8 @@
       "obligation": "conditional",
       "applicability": "When collaboration.submit is advertised; continuity_note remains optional",
       "coverage": "partial_public",
-      "references": [
-        "case:collaborate.revision",
-        "test:python-collaboration",
-        "schema:receipt",
-        "fixture:receipt"
-      ],
-      "observations": [
-        "obs:python:members:collaborate.revision",
-        "obs:python:addressed:collaborate.revision",
-        "obs:python:sender_only:collaborate.revision",
-        "obs:rust:members:collaborate.revision",
-        "obs:rust:addressed:collaborate.revision",
-        "obs:rust:sender_only:collaborate.revision"
-      ],
+      "references": ["case:collaborate.revision", "test:python-collaboration", "schema:receipt", "fixture:receipt"],
+      "observations": ["obs:python:members:collaborate.revision", "obs:python:addressed:collaborate.revision", "obs:python:sender_only:collaborate.revision", "obs:rust:members:collaborate.revision", "obs:rust:addressed:collaborate.revision", "obs:rust:sender_only:collaborate.revision"],
       "gaps": []
     },
     {
@@ -1894,35 +603,9 @@
       "obligation": "optional",
       "applicability": "When collaboration.submit is advertised; continuity_note remains optional",
       "coverage": "partial_public",
-      "references": [
-        "case:collaborate.revision",
-        "case:collaborate.partial_note",
-        "case:restart.history",
-        "test:rust-collaboration",
-        "test:python-collaboration",
-        "schema:collaboration-artifact",
-        "fixture:collaboration-artifact"
-      ],
-      "observations": [
-        "obs:python:members:collaborate.partial_note",
-        "obs:python:members:collaborate.revision",
-        "obs:python:addressed:collaborate.partial_note",
-        "obs:python:addressed:collaborate.revision",
-        "obs:python:sender_only:collaborate.partial_note",
-        "obs:python:sender_only:collaborate.revision",
-        "obs:rust:members:collaborate.partial_note",
-        "obs:rust:members:collaborate.revision",
-        "obs:rust:addressed:collaborate.partial_note",
-        "obs:rust:addressed:collaborate.revision",
-        "obs:rust:sender_only:collaborate.partial_note",
-        "obs:rust:sender_only:collaborate.revision",
-        "obs:python:verify:restart.history",
-        "obs:rust:verify:restart.history"
-      ],
-      "gaps": [
-        "gap:continuity-boundaries",
-        "gap:semantic-claims"
-      ]
+      "references": ["case:collaborate.revision", "case:collaborate.partial_note", "case:restart.history", "test:rust-collaboration", "test:python-collaboration", "schema:collaboration-artifact", "fixture:collaboration-artifact"],
+      "observations": ["obs:python:members:collaborate.partial_note", "obs:python:members:collaborate.revision", "obs:python:addressed:collaborate.partial_note", "obs:python:addressed:collaborate.revision", "obs:python:sender_only:collaborate.partial_note", "obs:python:sender_only:collaborate.revision", "obs:rust:members:collaborate.partial_note", "obs:rust:members:collaborate.revision", "obs:rust:addressed:collaborate.partial_note", "obs:rust:addressed:collaborate.revision", "obs:rust:sender_only:collaborate.partial_note", "obs:rust:sender_only:collaborate.revision", "obs:python:verify:restart.history", "obs:rust:verify:restart.history"],
+      "gaps": ["gap:continuity-boundaries", "gap:semantic-claims"]
     },
     {
       "id": "C24",
@@ -1931,9 +614,7 @@
       "obligation": "informational",
       "applicability": "When collaboration.submit is advertised; continuity_note remains optional",
       "coverage": "informational",
-      "references": [
-        "setup:continuity"
-      ],
+      "references": ["setup:continuity"],
       "observations": [],
       "gaps": []
     },
@@ -1944,35 +625,9 @@
       "obligation": "conditional",
       "applicability": "When collaboration.submit is advertised; continuity_note remains optional",
       "coverage": "partial_public",
-      "references": [
-        "case:collaborate.objection",
-        "case:collaborate.decline",
-        "case:collaborate.withdrawal",
-        "test:python-collaboration"
-      ],
-      "observations": [
-        "obs:python:members:collaborate.objection",
-        "obs:python:members:collaborate.decline",
-        "obs:python:members:collaborate.withdrawal",
-        "obs:python:addressed:collaborate.objection",
-        "obs:python:addressed:collaborate.decline",
-        "obs:python:addressed:collaborate.withdrawal",
-        "obs:python:sender_only:collaborate.objection",
-        "obs:python:sender_only:collaborate.decline",
-        "obs:python:sender_only:collaborate.withdrawal",
-        "obs:rust:members:collaborate.objection",
-        "obs:rust:members:collaborate.decline",
-        "obs:rust:members:collaborate.withdrawal",
-        "obs:rust:addressed:collaborate.objection",
-        "obs:rust:addressed:collaborate.decline",
-        "obs:rust:addressed:collaborate.withdrawal",
-        "obs:rust:sender_only:collaborate.objection",
-        "obs:rust:sender_only:collaborate.decline",
-        "obs:rust:sender_only:collaborate.withdrawal"
-      ],
-      "gaps": [
-        "gap:semantic-claims"
-      ]
+      "references": ["case:collaborate.objection", "case:collaborate.decline", "case:collaborate.withdrawal", "test:python-collaboration"],
+      "observations": ["obs:python:members:collaborate.objection", "obs:python:members:collaborate.decline", "obs:python:members:collaborate.withdrawal", "obs:python:addressed:collaborate.objection", "obs:python:addressed:collaborate.decline", "obs:python:addressed:collaborate.withdrawal", "obs:python:sender_only:collaborate.objection", "obs:python:sender_only:collaborate.decline", "obs:python:sender_only:collaborate.withdrawal", "obs:rust:members:collaborate.objection", "obs:rust:members:collaborate.decline", "obs:rust:members:collaborate.withdrawal", "obs:rust:addressed:collaborate.objection", "obs:rust:addressed:collaborate.decline", "obs:rust:addressed:collaborate.withdrawal", "obs:rust:sender_only:collaborate.objection", "obs:rust:sender_only:collaborate.decline", "obs:rust:sender_only:collaborate.withdrawal"],
+      "gaps": ["gap:semantic-claims"]
     },
     {
       "id": "C26",
@@ -1981,9 +636,7 @@
       "obligation": "informational",
       "applicability": "When collaboration.submit is advertised; continuity_note remains optional",
       "coverage": "informational",
-      "references": [
-        "setup:continuity"
-      ],
+      "references": ["setup:continuity"],
       "observations": [],
       "gaps": []
     },
@@ -1994,9 +647,7 @@
       "obligation": "informational",
       "applicability": "When collaboration.submit is advertised; continuity_note remains optional",
       "coverage": "informational",
-      "references": [
-        "setup:continuity"
-      ],
+      "references": ["setup:continuity"],
       "observations": [],
       "gaps": []
     },
@@ -2007,20 +658,8 @@
       "obligation": "conditional",
       "applicability": "When collaboration.submit is advertised; continuity_note remains optional",
       "coverage": "partial_public",
-      "references": [
-        "case:collaborate.client_revision",
-        "test:rust-collaboration",
-        "schema:collaboration-artifact",
-        "fixture:collaboration-artifact"
-      ],
-      "observations": [
-        "obs:python:members:collaborate.client_revision",
-        "obs:python:addressed:collaborate.client_revision",
-        "obs:python:sender_only:collaborate.client_revision",
-        "obs:rust:members:collaborate.client_revision",
-        "obs:rust:addressed:collaborate.client_revision",
-        "obs:rust:sender_only:collaborate.client_revision"
-      ],
+      "references": ["case:collaborate.client_revision", "test:rust-collaboration", "schema:collaboration-artifact", "fixture:collaboration-artifact"],
+      "observations": ["obs:python:members:collaborate.client_revision", "obs:python:addressed:collaborate.client_revision", "obs:python:sender_only:collaborate.client_revision", "obs:rust:members:collaborate.client_revision", "obs:rust:addressed:collaborate.client_revision", "obs:rust:sender_only:collaborate.client_revision"],
       "gaps": []
     },
     {
@@ -2030,37 +669,9 @@
       "obligation": "conditional",
       "applicability": "When collaboration.submit is advertised; continuity_note remains optional",
       "coverage": "partial_public",
-      "references": [
-        "case:collaborate.revision",
-        "case:collaborate.retry",
-        "case:collaborate.conflict",
-        "test:python-collaboration",
-        "schema:collaboration-artifact",
-        "fixture:collaboration-artifact"
-      ],
-      "observations": [
-        "obs:python:members:collaborate.revision",
-        "obs:python:members:collaborate.retry",
-        "obs:python:members:collaborate.conflict",
-        "obs:python:addressed:collaborate.revision",
-        "obs:python:addressed:collaborate.retry",
-        "obs:python:addressed:collaborate.conflict",
-        "obs:python:sender_only:collaborate.revision",
-        "obs:python:sender_only:collaborate.retry",
-        "obs:python:sender_only:collaborate.conflict",
-        "obs:rust:members:collaborate.revision",
-        "obs:rust:members:collaborate.retry",
-        "obs:rust:members:collaborate.conflict",
-        "obs:rust:addressed:collaborate.revision",
-        "obs:rust:addressed:collaborate.retry",
-        "obs:rust:addressed:collaborate.conflict",
-        "obs:rust:sender_only:collaborate.revision",
-        "obs:rust:sender_only:collaborate.retry",
-        "obs:rust:sender_only:collaborate.conflict"
-      ],
-      "gaps": [
-        "gap:continuity-boundaries"
-      ]
+      "references": ["case:collaborate.revision", "case:collaborate.retry", "case:collaborate.conflict", "test:python-collaboration", "schema:collaboration-artifact", "fixture:collaboration-artifact"],
+      "observations": ["obs:python:members:collaborate.revision", "obs:python:members:collaborate.retry", "obs:python:members:collaborate.conflict", "obs:python:addressed:collaborate.revision", "obs:python:addressed:collaborate.retry", "obs:python:addressed:collaborate.conflict", "obs:python:sender_only:collaborate.revision", "obs:python:sender_only:collaborate.retry", "obs:python:sender_only:collaborate.conflict", "obs:rust:members:collaborate.revision", "obs:rust:members:collaborate.retry", "obs:rust:members:collaborate.conflict", "obs:rust:addressed:collaborate.revision", "obs:rust:addressed:collaborate.retry", "obs:rust:addressed:collaborate.conflict", "obs:rust:sender_only:collaborate.revision", "obs:rust:sender_only:collaborate.retry", "obs:rust:sender_only:collaborate.conflict"],
+      "gaps": ["gap:continuity-boundaries"]
     },
     {
       "id": "C30",
@@ -2069,27 +680,8 @@
       "obligation": "conditional",
       "applicability": "When collaboration.submit is advertised; continuity_note remains optional",
       "coverage": "partial_public",
-      "references": [
-        "case:collaborate.objection",
-        "case:collaborate.decline",
-        "test:python-collaboration",
-        "schema:collaboration-objection",
-        "fixture:collaboration-objection"
-      ],
-      "observations": [
-        "obs:python:members:collaborate.objection",
-        "obs:python:members:collaborate.decline",
-        "obs:python:addressed:collaborate.objection",
-        "obs:python:addressed:collaborate.decline",
-        "obs:python:sender_only:collaborate.objection",
-        "obs:python:sender_only:collaborate.decline",
-        "obs:rust:members:collaborate.objection",
-        "obs:rust:members:collaborate.decline",
-        "obs:rust:addressed:collaborate.objection",
-        "obs:rust:addressed:collaborate.decline",
-        "obs:rust:sender_only:collaborate.objection",
-        "obs:rust:sender_only:collaborate.decline"
-      ],
+      "references": ["case:collaborate.objection", "case:collaborate.decline", "test:python-collaboration", "schema:collaboration-objection", "fixture:collaboration-objection"],
+      "observations": ["obs:python:members:collaborate.objection", "obs:python:members:collaborate.decline", "obs:python:addressed:collaborate.objection", "obs:python:addressed:collaborate.decline", "obs:python:sender_only:collaborate.objection", "obs:python:sender_only:collaborate.decline", "obs:rust:members:collaborate.objection", "obs:rust:members:collaborate.decline", "obs:rust:addressed:collaborate.objection", "obs:rust:addressed:collaborate.decline", "obs:rust:sender_only:collaborate.objection", "obs:rust:sender_only:collaborate.decline"],
       "gaps": []
     },
     {
@@ -2099,27 +691,8 @@
       "obligation": "conditional",
       "applicability": "When collaboration.submit is advertised; continuity_note remains optional",
       "coverage": "partial_public",
-      "references": [
-        "case:collaborate.withdrawal_forbidden",
-        "case:collaborate.withdrawal",
-        "test:rust-collaboration",
-        "schema:collaboration-withdrawal",
-        "fixture:collaboration-withdrawal"
-      ],
-      "observations": [
-        "obs:python:members:collaborate.withdrawal_forbidden",
-        "obs:python:members:collaborate.withdrawal",
-        "obs:python:addressed:collaborate.withdrawal_forbidden",
-        "obs:python:addressed:collaborate.withdrawal",
-        "obs:python:sender_only:collaborate.withdrawal_forbidden",
-        "obs:python:sender_only:collaborate.withdrawal",
-        "obs:rust:members:collaborate.withdrawal_forbidden",
-        "obs:rust:members:collaborate.withdrawal",
-        "obs:rust:addressed:collaborate.withdrawal_forbidden",
-        "obs:rust:addressed:collaborate.withdrawal",
-        "obs:rust:sender_only:collaborate.withdrawal_forbidden",
-        "obs:rust:sender_only:collaborate.withdrawal"
-      ],
+      "references": ["case:collaborate.withdrawal_forbidden", "case:collaborate.withdrawal", "test:rust-collaboration", "schema:collaboration-withdrawal", "fixture:collaboration-withdrawal"],
+      "observations": ["obs:python:members:collaborate.withdrawal_forbidden", "obs:python:members:collaborate.withdrawal", "obs:python:addressed:collaborate.withdrawal_forbidden", "obs:python:addressed:collaborate.withdrawal", "obs:python:sender_only:collaborate.withdrawal_forbidden", "obs:python:sender_only:collaborate.withdrawal", "obs:rust:members:collaborate.withdrawal_forbidden", "obs:rust:members:collaborate.withdrawal", "obs:rust:addressed:collaborate.withdrawal_forbidden", "obs:rust:addressed:collaborate.withdrawal", "obs:rust:sender_only:collaborate.withdrawal_forbidden", "obs:rust:sender_only:collaborate.withdrawal"],
       "gaps": []
     },
     {
@@ -2129,20 +702,8 @@
       "obligation": "conditional",
       "applicability": "When collaboration.submit is advertised; continuity_note remains optional",
       "coverage": "partial_public",
-      "references": [
-        "case:collaborate.unknown_target",
-        "test:python-collaboration",
-        "schema:problem",
-        "fixture:problem"
-      ],
-      "observations": [
-        "obs:python:members:collaborate.unknown_target",
-        "obs:python:addressed:collaborate.unknown_target",
-        "obs:python:sender_only:collaborate.unknown_target",
-        "obs:rust:members:collaborate.unknown_target",
-        "obs:rust:addressed:collaborate.unknown_target",
-        "obs:rust:sender_only:collaborate.unknown_target"
-      ],
+      "references": ["case:collaborate.unknown_target", "test:python-collaboration", "schema:problem", "fixture:problem"],
+      "observations": ["obs:python:members:collaborate.unknown_target", "obs:python:addressed:collaborate.unknown_target", "obs:python:sender_only:collaborate.unknown_target", "obs:rust:members:collaborate.unknown_target", "obs:rust:addressed:collaborate.unknown_target", "obs:rust:sender_only:collaborate.unknown_target"],
       "gaps": []
     },
     {
@@ -2152,20 +713,8 @@
       "obligation": "conditional",
       "applicability": "When collaboration.submit is advertised; continuity_note remains optional",
       "coverage": "partial_public",
-      "references": [
-        "case:collaborate.forbidden",
-        "test:python-collaboration",
-        "schema:problem",
-        "fixture:problem"
-      ],
-      "observations": [
-        "obs:python:members:collaborate.forbidden",
-        "obs:python:addressed:collaborate.forbidden",
-        "obs:python:sender_only:collaborate.forbidden",
-        "obs:rust:members:collaborate.forbidden",
-        "obs:rust:addressed:collaborate.forbidden",
-        "obs:rust:sender_only:collaborate.forbidden"
-      ],
+      "references": ["case:collaborate.forbidden", "test:python-collaboration", "schema:problem", "fixture:problem"],
+      "observations": ["obs:python:members:collaborate.forbidden", "obs:python:addressed:collaborate.forbidden", "obs:python:sender_only:collaborate.forbidden", "obs:rust:members:collaborate.forbidden", "obs:rust:addressed:collaborate.forbidden", "obs:rust:sender_only:collaborate.forbidden"],
       "gaps": []
     },
     {
@@ -2175,20 +724,8 @@
       "obligation": "conditional",
       "applicability": "When collaboration.submit is advertised; continuity_note remains optional",
       "coverage": "partial_public",
-      "references": [
-        "case:collaborate.absent_revision",
-        "test:rust-collaboration",
-        "schema:problem",
-        "fixture:problem"
-      ],
-      "observations": [
-        "obs:python:members:collaborate.absent_revision",
-        "obs:python:addressed:collaborate.absent_revision",
-        "obs:python:sender_only:collaborate.absent_revision",
-        "obs:rust:members:collaborate.absent_revision",
-        "obs:rust:addressed:collaborate.absent_revision",
-        "obs:rust:sender_only:collaborate.absent_revision"
-      ],
+      "references": ["case:collaborate.absent_revision", "test:rust-collaboration", "schema:problem", "fixture:problem"],
+      "observations": ["obs:python:members:collaborate.absent_revision", "obs:python:addressed:collaborate.absent_revision", "obs:python:sender_only:collaborate.absent_revision", "obs:rust:members:collaborate.absent_revision", "obs:rust:addressed:collaborate.absent_revision", "obs:rust:sender_only:collaborate.absent_revision"],
       "gaps": []
     },
     {
@@ -2198,20 +735,8 @@
       "obligation": "conditional",
       "applicability": "When collaboration.submit is advertised; continuity_note remains optional",
       "coverage": "partial_public",
-      "references": [
-        "case:collaborate.unauthenticated",
-        "test:python-collaboration",
-        "schema:problem",
-        "fixture:problem"
-      ],
-      "observations": [
-        "obs:python:members:collaborate.unauthenticated",
-        "obs:python:addressed:collaborate.unauthenticated",
-        "obs:python:sender_only:collaborate.unauthenticated",
-        "obs:rust:members:collaborate.unauthenticated",
-        "obs:rust:addressed:collaborate.unauthenticated",
-        "obs:rust:sender_only:collaborate.unauthenticated"
-      ],
+      "references": ["case:collaborate.unauthenticated", "test:python-collaboration", "schema:problem", "fixture:problem"],
+      "observations": ["obs:python:members:collaborate.unauthenticated", "obs:python:addressed:collaborate.unauthenticated", "obs:python:sender_only:collaborate.unauthenticated", "obs:rust:members:collaborate.unauthenticated", "obs:rust:addressed:collaborate.unauthenticated", "obs:rust:sender_only:collaborate.unauthenticated"],
       "gaps": []
     },
     {
@@ -2221,34 +746,8 @@
       "obligation": "conditional",
       "applicability": "When collaboration.submit is advertised; continuity_note remains optional",
       "coverage": "partial_public",
-      "references": [
-        "case:collaborate.payload_too_large",
-        "case:collaborate.unsupported_media_type",
-        "case:collaborate.malformed_json",
-        "test:python-collaboration",
-        "schema:problem",
-        "fixture:problem"
-      ],
-      "observations": [
-        "obs:python:members:collaborate.payload_too_large",
-        "obs:python:members:collaborate.unsupported_media_type",
-        "obs:python:members:collaborate.malformed_json",
-        "obs:python:addressed:collaborate.payload_too_large",
-        "obs:python:addressed:collaborate.unsupported_media_type",
-        "obs:python:addressed:collaborate.malformed_json",
-        "obs:python:sender_only:collaborate.payload_too_large",
-        "obs:python:sender_only:collaborate.unsupported_media_type",
-        "obs:python:sender_only:collaborate.malformed_json",
-        "obs:rust:members:collaborate.payload_too_large",
-        "obs:rust:members:collaborate.unsupported_media_type",
-        "obs:rust:members:collaborate.malformed_json",
-        "obs:rust:addressed:collaborate.payload_too_large",
-        "obs:rust:addressed:collaborate.unsupported_media_type",
-        "obs:rust:addressed:collaborate.malformed_json",
-        "obs:rust:sender_only:collaborate.payload_too_large",
-        "obs:rust:sender_only:collaborate.unsupported_media_type",
-        "obs:rust:sender_only:collaborate.malformed_json"
-      ],
+      "references": ["case:collaborate.payload_too_large", "case:collaborate.unsupported_media_type", "case:collaborate.malformed_json", "test:python-collaboration", "schema:problem", "fixture:problem"],
+      "observations": ["obs:python:members:collaborate.payload_too_large", "obs:python:members:collaborate.unsupported_media_type", "obs:python:members:collaborate.malformed_json", "obs:python:addressed:collaborate.payload_too_large", "obs:python:addressed:collaborate.unsupported_media_type", "obs:python:addressed:collaborate.malformed_json", "obs:python:sender_only:collaborate.payload_too_large", "obs:python:sender_only:collaborate.unsupported_media_type", "obs:python:sender_only:collaborate.malformed_json", "obs:rust:members:collaborate.payload_too_large", "obs:rust:members:collaborate.unsupported_media_type", "obs:rust:members:collaborate.malformed_json", "obs:rust:addressed:collaborate.payload_too_large", "obs:rust:addressed:collaborate.unsupported_media_type", "obs:rust:addressed:collaborate.malformed_json", "obs:rust:sender_only:collaborate.payload_too_large", "obs:rust:sender_only:collaborate.unsupported_media_type", "obs:rust:sender_only:collaborate.malformed_json"],
       "gaps": []
     },
     {
@@ -2258,51 +757,9 @@
       "obligation": "conditional",
       "applicability": "When collaboration.submit is advertised; continuity_note remains optional",
       "coverage": "partial_public",
-      "references": [
-        "case:collaborate.unsupported_version",
-        "case:collaborate.unsupported_record_type",
-        "case:collaborate.partial_note",
-        "case:collaborate.wrong_world",
-        "case:collaborate.from_mismatch",
-        "test:python-collaboration",
-        "schema:collaboration-artifact",
-        "fixture:collaboration-artifact"
-      ],
-      "observations": [
-        "obs:python:members:collaborate.unsupported_version",
-        "obs:python:members:collaborate.unsupported_record_type",
-        "obs:python:members:collaborate.partial_note",
-        "obs:python:members:collaborate.wrong_world",
-        "obs:python:members:collaborate.from_mismatch",
-        "obs:python:addressed:collaborate.unsupported_version",
-        "obs:python:addressed:collaborate.unsupported_record_type",
-        "obs:python:addressed:collaborate.partial_note",
-        "obs:python:addressed:collaborate.wrong_world",
-        "obs:python:addressed:collaborate.from_mismatch",
-        "obs:python:sender_only:collaborate.unsupported_version",
-        "obs:python:sender_only:collaborate.unsupported_record_type",
-        "obs:python:sender_only:collaborate.partial_note",
-        "obs:python:sender_only:collaborate.wrong_world",
-        "obs:python:sender_only:collaborate.from_mismatch",
-        "obs:rust:members:collaborate.unsupported_version",
-        "obs:rust:members:collaborate.unsupported_record_type",
-        "obs:rust:members:collaborate.partial_note",
-        "obs:rust:members:collaborate.wrong_world",
-        "obs:rust:members:collaborate.from_mismatch",
-        "obs:rust:addressed:collaborate.unsupported_version",
-        "obs:rust:addressed:collaborate.unsupported_record_type",
-        "obs:rust:addressed:collaborate.partial_note",
-        "obs:rust:addressed:collaborate.wrong_world",
-        "obs:rust:addressed:collaborate.from_mismatch",
-        "obs:rust:sender_only:collaborate.unsupported_version",
-        "obs:rust:sender_only:collaborate.unsupported_record_type",
-        "obs:rust:sender_only:collaborate.partial_note",
-        "obs:rust:sender_only:collaborate.wrong_world",
-        "obs:rust:sender_only:collaborate.from_mismatch"
-      ],
-      "gaps": [
-        "gap:continuity-boundaries"
-      ]
+      "references": ["case:collaborate.unsupported_version", "case:collaborate.unsupported_record_type", "case:collaborate.partial_note", "case:collaborate.wrong_world", "case:collaborate.from_mismatch", "test:python-collaboration", "schema:collaboration-artifact", "fixture:collaboration-artifact"],
+      "observations": ["obs:python:members:collaborate.unsupported_version", "obs:python:members:collaborate.unsupported_record_type", "obs:python:members:collaborate.partial_note", "obs:python:members:collaborate.wrong_world", "obs:python:members:collaborate.from_mismatch", "obs:python:addressed:collaborate.unsupported_version", "obs:python:addressed:collaborate.unsupported_record_type", "obs:python:addressed:collaborate.partial_note", "obs:python:addressed:collaborate.wrong_world", "obs:python:addressed:collaborate.from_mismatch", "obs:python:sender_only:collaborate.unsupported_version", "obs:python:sender_only:collaborate.unsupported_record_type", "obs:python:sender_only:collaborate.partial_note", "obs:python:sender_only:collaborate.wrong_world", "obs:python:sender_only:collaborate.from_mismatch", "obs:rust:members:collaborate.unsupported_version", "obs:rust:members:collaborate.unsupported_record_type", "obs:rust:members:collaborate.partial_note", "obs:rust:members:collaborate.wrong_world", "obs:rust:members:collaborate.from_mismatch", "obs:rust:addressed:collaborate.unsupported_version", "obs:rust:addressed:collaborate.unsupported_record_type", "obs:rust:addressed:collaborate.partial_note", "obs:rust:addressed:collaborate.wrong_world", "obs:rust:addressed:collaborate.from_mismatch", "obs:rust:sender_only:collaborate.unsupported_version", "obs:rust:sender_only:collaborate.unsupported_record_type", "obs:rust:sender_only:collaborate.partial_note", "obs:rust:sender_only:collaborate.wrong_world", "obs:rust:sender_only:collaborate.from_mismatch"],
+      "gaps": ["gap:continuity-boundaries"]
     },
     {
       "id": "C38",
@@ -2311,20 +768,8 @@
       "obligation": "conditional",
       "applicability": "When collaboration.submit is advertised; continuity_note remains optional",
       "coverage": "partial_public",
-      "references": [
-        "case:collaborate.json_charset",
-        "test:python-collaboration",
-        "schema:receipt",
-        "fixture:receipt"
-      ],
-      "observations": [
-        "obs:python:members:collaborate.json_charset",
-        "obs:python:addressed:collaborate.json_charset",
-        "obs:python:sender_only:collaborate.json_charset",
-        "obs:rust:members:collaborate.json_charset",
-        "obs:rust:addressed:collaborate.json_charset",
-        "obs:rust:sender_only:collaborate.json_charset"
-      ],
+      "references": ["case:collaborate.json_charset", "test:python-collaboration", "schema:receipt", "fixture:receipt"],
+      "observations": ["obs:python:members:collaborate.json_charset", "obs:python:addressed:collaborate.json_charset", "obs:python:sender_only:collaborate.json_charset", "obs:rust:members:collaborate.json_charset", "obs:rust:addressed:collaborate.json_charset", "obs:rust:sender_only:collaborate.json_charset"],
       "gaps": []
     },
     {
@@ -2334,20 +779,8 @@
       "obligation": "conditional",
       "applicability": "When collaboration.submit is advertised; continuity_note remains optional",
       "coverage": "partial_public",
-      "references": [
-        "case:collaborate.withdrawn_citation",
-        "test:rust-collaboration",
-        "schema:collaboration-objection",
-        "fixture:collaboration-objection"
-      ],
-      "observations": [
-        "obs:python:members:collaborate.withdrawn_citation",
-        "obs:python:addressed:collaborate.withdrawn_citation",
-        "obs:python:sender_only:collaborate.withdrawn_citation",
-        "obs:rust:members:collaborate.withdrawn_citation",
-        "obs:rust:addressed:collaborate.withdrawn_citation",
-        "obs:rust:sender_only:collaborate.withdrawn_citation"
-      ],
+      "references": ["case:collaborate.withdrawn_citation", "test:rust-collaboration", "schema:collaboration-objection", "fixture:collaboration-objection"],
+      "observations": ["obs:python:members:collaborate.withdrawn_citation", "obs:python:addressed:collaborate.withdrawn_citation", "obs:python:sender_only:collaborate.withdrawn_citation", "obs:rust:members:collaborate.withdrawn_citation", "obs:rust:addressed:collaborate.withdrawn_citation", "obs:rust:sender_only:collaborate.withdrawn_citation"],
       "gaps": []
     },
     {
@@ -2357,20 +790,8 @@
       "obligation": "conditional",
       "applicability": "When collaboration.submit is advertised; continuity_note remains optional",
       "coverage": "partial_public",
-      "references": [
-        "case:collaborate.other_chain",
-        "test:rust-collaboration",
-        "schema:collaboration-artifact",
-        "fixture:collaboration-artifact"
-      ],
-      "observations": [
-        "obs:python:members:collaborate.other_chain",
-        "obs:python:addressed:collaborate.other_chain",
-        "obs:python:sender_only:collaborate.other_chain",
-        "obs:rust:members:collaborate.other_chain",
-        "obs:rust:addressed:collaborate.other_chain",
-        "obs:rust:sender_only:collaborate.other_chain"
-      ],
+      "references": ["case:collaborate.other_chain", "test:rust-collaboration", "schema:collaboration-artifact", "fixture:collaboration-artifact"],
+      "observations": ["obs:python:members:collaborate.other_chain", "obs:python:addressed:collaborate.other_chain", "obs:python:sender_only:collaborate.other_chain", "obs:rust:members:collaborate.other_chain", "obs:rust:addressed:collaborate.other_chain", "obs:rust:sender_only:collaborate.other_chain"],
       "gaps": []
     },
     {
@@ -2380,60 +801,9 @@
       "obligation": "conditional",
       "applicability": "When collaboration.submit is advertised; continuity_note remains optional",
       "coverage": "partial_public",
-      "references": [
-        "case:collaborate.hidden_visibility",
-        "case:collaborate.hidden_derivation",
-        "case:collaborate.hidden_objection",
-        "case:collaborate.hidden_decline",
-        "case:collaborate.hidden_withdrawal",
-        "case:restart.history",
-        "case:restart.retry",
-        "case:policy.cursor_expired",
-        "test:matrix-result-check",
-        "schema:event-page",
-        "fixture:event-page"
-      ],
-      "observations": [
-        "obs:python:members:collaborate.hidden_visibility",
-        "obs:python:members:collaborate.hidden_derivation",
-        "obs:python:members:collaborate.hidden_objection",
-        "obs:python:members:collaborate.hidden_decline",
-        "obs:python:members:collaborate.hidden_withdrawal",
-        "obs:python:addressed:collaborate.hidden_visibility",
-        "obs:python:addressed:collaborate.hidden_derivation",
-        "obs:python:addressed:collaborate.hidden_objection",
-        "obs:python:addressed:collaborate.hidden_decline",
-        "obs:python:addressed:collaborate.hidden_withdrawal",
-        "obs:python:sender_only:collaborate.hidden_visibility",
-        "obs:python:sender_only:collaborate.hidden_derivation",
-        "obs:python:sender_only:collaborate.hidden_objection",
-        "obs:python:sender_only:collaborate.hidden_decline",
-        "obs:python:sender_only:collaborate.hidden_withdrawal",
-        "obs:rust:members:collaborate.hidden_visibility",
-        "obs:rust:members:collaborate.hidden_derivation",
-        "obs:rust:members:collaborate.hidden_objection",
-        "obs:rust:members:collaborate.hidden_decline",
-        "obs:rust:members:collaborate.hidden_withdrawal",
-        "obs:rust:addressed:collaborate.hidden_visibility",
-        "obs:rust:addressed:collaborate.hidden_derivation",
-        "obs:rust:addressed:collaborate.hidden_objection",
-        "obs:rust:addressed:collaborate.hidden_decline",
-        "obs:rust:addressed:collaborate.hidden_withdrawal",
-        "obs:rust:sender_only:collaborate.hidden_visibility",
-        "obs:rust:sender_only:collaborate.hidden_derivation",
-        "obs:rust:sender_only:collaborate.hidden_objection",
-        "obs:rust:sender_only:collaborate.hidden_decline",
-        "obs:rust:sender_only:collaborate.hidden_withdrawal",
-        "obs:python:verify:restart.history",
-        "obs:python:verify:restart.retry",
-        "obs:python:policy:policy.cursor_expired",
-        "obs:rust:verify:restart.history",
-        "obs:rust:verify:restart.retry",
-        "obs:rust:policy:policy.cursor_expired"
-      ],
-      "gaps": [
-        "gap:semantic-claims"
-      ]
+      "references": ["case:collaborate.hidden_visibility", "case:collaborate.hidden_derivation", "case:collaborate.hidden_objection", "case:collaborate.hidden_decline", "case:collaborate.hidden_withdrawal", "case:restart.history", "case:restart.retry", "case:policy.cursor_expired", "test:matrix-result-check", "schema:event-page", "fixture:event-page"],
+      "observations": ["obs:python:members:collaborate.hidden_visibility", "obs:python:members:collaborate.hidden_derivation", "obs:python:members:collaborate.hidden_objection", "obs:python:members:collaborate.hidden_decline", "obs:python:members:collaborate.hidden_withdrawal", "obs:python:addressed:collaborate.hidden_visibility", "obs:python:addressed:collaborate.hidden_derivation", "obs:python:addressed:collaborate.hidden_objection", "obs:python:addressed:collaborate.hidden_decline", "obs:python:addressed:collaborate.hidden_withdrawal", "obs:python:sender_only:collaborate.hidden_visibility", "obs:python:sender_only:collaborate.hidden_derivation", "obs:python:sender_only:collaborate.hidden_objection", "obs:python:sender_only:collaborate.hidden_decline", "obs:python:sender_only:collaborate.hidden_withdrawal", "obs:rust:members:collaborate.hidden_visibility", "obs:rust:members:collaborate.hidden_derivation", "obs:rust:members:collaborate.hidden_objection", "obs:rust:members:collaborate.hidden_decline", "obs:rust:members:collaborate.hidden_withdrawal", "obs:rust:addressed:collaborate.hidden_visibility", "obs:rust:addressed:collaborate.hidden_derivation", "obs:rust:addressed:collaborate.hidden_objection", "obs:rust:addressed:collaborate.hidden_decline", "obs:rust:addressed:collaborate.hidden_withdrawal", "obs:rust:sender_only:collaborate.hidden_visibility", "obs:rust:sender_only:collaborate.hidden_derivation", "obs:rust:sender_only:collaborate.hidden_objection", "obs:rust:sender_only:collaborate.hidden_decline", "obs:rust:sender_only:collaborate.hidden_withdrawal", "obs:python:verify:restart.history", "obs:python:verify:restart.retry", "obs:python:policy:policy.cursor_expired", "obs:rust:verify:restart.history", "obs:rust:verify:restart.retry", "obs:rust:policy:policy.cursor_expired"],
+      "gaps": ["gap:semantic-claims"]
     },
     {
       "id": "V01",
@@ -2442,26 +812,9 @@
       "obligation": "conditional",
       "applicability": "Hosts advertising events.prefix.validate and clients requesting prefix validation",
       "coverage": "partial_public",
-      "references": [
-        "case:prefix.baseline",
-        "case:prefix.append",
-        "case:prefix.hidden",
-        "case:prefix.withdrawal",
-        "test:prefix-room",
-        "schema:prefix-page",
-        "fixture:prefix-page"
-      ],
-      "observations": [
-        "obs:prefix-2026-10-11:python:members:prefix.baseline",
-        "obs:prefix-2026-10-11:python:addressed:prefix.baseline",
-        "obs:prefix-2026-10-11:python:sender_only:prefix.baseline",
-        "obs:prefix-2026-10-11:rust:members:prefix.baseline",
-        "obs:prefix-2026-10-11:rust:addressed:prefix.baseline",
-        "obs:prefix-2026-10-11:rust:sender_only:prefix.baseline"
-      ],
-      "gaps": [
-        "gap:prefix-adversarial"
-      ]
+      "references": ["case:prefix.baseline", "case:prefix.append", "case:prefix.hidden", "case:prefix.withdrawal", "test:prefix-room", "schema:prefix-page", "fixture:prefix-page"],
+      "observations": ["obs:prefix-2026-10-11:python:members:prefix.baseline", "obs:prefix-2026-10-11:python:addressed:prefix.baseline", "obs:prefix-2026-10-11:python:sender_only:prefix.baseline", "obs:prefix-2026-10-11:rust:members:prefix.baseline", "obs:prefix-2026-10-11:rust:addressed:prefix.baseline", "obs:prefix-2026-10-11:rust:sender_only:prefix.baseline"],
+      "gaps": ["gap:prefix-adversarial"]
     },
     {
       "id": "V02",
@@ -2470,32 +823,9 @@
       "obligation": "conditional",
       "applicability": "Hosts advertising events.prefix.validate and clients requesting prefix validation",
       "coverage": "partial_public",
-      "references": [
-        "case:prefix.baseline",
-        "case:prefix.append",
-        "case:prefix.hidden",
-        "case:prefix.withdrawal",
-        "test:prefix-room",
-        "schema:prefix-page",
-        "fixture:prefix-page"
-      ],
-      "observations": [
-        "obs:prefix-2026-10-11:python:members:prefix.baseline",
-        "obs:prefix-2026-10-11:python:members:prefix.append",
-        "obs:prefix-2026-10-11:python:addressed:prefix.baseline",
-        "obs:prefix-2026-10-11:python:addressed:prefix.append",
-        "obs:prefix-2026-10-11:python:sender_only:prefix.baseline",
-        "obs:prefix-2026-10-11:python:sender_only:prefix.append",
-        "obs:prefix-2026-10-11:rust:members:prefix.baseline",
-        "obs:prefix-2026-10-11:rust:members:prefix.append",
-        "obs:prefix-2026-10-11:rust:addressed:prefix.baseline",
-        "obs:prefix-2026-10-11:rust:addressed:prefix.append",
-        "obs:prefix-2026-10-11:rust:sender_only:prefix.baseline",
-        "obs:prefix-2026-10-11:rust:sender_only:prefix.append"
-      ],
-      "gaps": [
-        "gap:prefix-adversarial"
-      ]
+      "references": ["case:prefix.baseline", "case:prefix.append", "case:prefix.hidden", "case:prefix.withdrawal", "test:prefix-room", "schema:prefix-page", "fixture:prefix-page"],
+      "observations": ["obs:prefix-2026-10-11:python:members:prefix.baseline", "obs:prefix-2026-10-11:python:members:prefix.append", "obs:prefix-2026-10-11:python:addressed:prefix.baseline", "obs:prefix-2026-10-11:python:addressed:prefix.append", "obs:prefix-2026-10-11:python:sender_only:prefix.baseline", "obs:prefix-2026-10-11:python:sender_only:prefix.append", "obs:prefix-2026-10-11:rust:members:prefix.baseline", "obs:prefix-2026-10-11:rust:members:prefix.append", "obs:prefix-2026-10-11:rust:addressed:prefix.baseline", "obs:prefix-2026-10-11:rust:addressed:prefix.append", "obs:prefix-2026-10-11:rust:sender_only:prefix.baseline", "obs:prefix-2026-10-11:rust:sender_only:prefix.append"],
+      "gaps": ["gap:prefix-adversarial"]
     },
     {
       "id": "V03",
@@ -2504,26 +834,9 @@
       "obligation": "conditional",
       "applicability": "Hosts advertising events.prefix.validate and clients requesting prefix validation",
       "coverage": "partial_public",
-      "references": [
-        "case:prefix.baseline",
-        "case:prefix.append",
-        "case:prefix.hidden",
-        "case:prefix.withdrawal",
-        "test:prefix-room",
-        "schema:prefix-page",
-        "fixture:prefix-page"
-      ],
-      "observations": [
-        "obs:prefix-2026-10-11:python:members:prefix.baseline",
-        "obs:prefix-2026-10-11:python:addressed:prefix.baseline",
-        "obs:prefix-2026-10-11:python:sender_only:prefix.baseline",
-        "obs:prefix-2026-10-11:rust:members:prefix.baseline",
-        "obs:prefix-2026-10-11:rust:addressed:prefix.baseline",
-        "obs:prefix-2026-10-11:rust:sender_only:prefix.baseline"
-      ],
-      "gaps": [
-        "gap:prefix-adversarial"
-      ]
+      "references": ["case:prefix.baseline", "case:prefix.append", "case:prefix.hidden", "case:prefix.withdrawal", "test:prefix-room", "schema:prefix-page", "fixture:prefix-page"],
+      "observations": ["obs:prefix-2026-10-11:python:members:prefix.baseline", "obs:prefix-2026-10-11:python:addressed:prefix.baseline", "obs:prefix-2026-10-11:python:sender_only:prefix.baseline", "obs:prefix-2026-10-11:rust:members:prefix.baseline", "obs:prefix-2026-10-11:rust:addressed:prefix.baseline", "obs:prefix-2026-10-11:rust:sender_only:prefix.baseline"],
+      "gaps": ["gap:prefix-adversarial"]
     },
     {
       "id": "V04",
@@ -2532,26 +845,9 @@
       "obligation": "conditional",
       "applicability": "Hosts advertising events.prefix.validate and clients requesting prefix validation",
       "coverage": "partial_public",
-      "references": [
-        "case:prefix.baseline",
-        "case:prefix.append",
-        "case:prefix.hidden",
-        "case:prefix.withdrawal",
-        "test:prefix-room",
-        "schema:prefix-page",
-        "fixture:prefix-page"
-      ],
-      "observations": [
-        "obs:prefix-2026-10-11:python:members:prefix.withdrawal",
-        "obs:prefix-2026-10-11:python:addressed:prefix.withdrawal",
-        "obs:prefix-2026-10-11:python:sender_only:prefix.withdrawal",
-        "obs:prefix-2026-10-11:rust:members:prefix.withdrawal",
-        "obs:prefix-2026-10-11:rust:addressed:prefix.withdrawal",
-        "obs:prefix-2026-10-11:rust:sender_only:prefix.withdrawal"
-      ],
-      "gaps": [
-        "gap:prefix-adversarial"
-      ]
+      "references": ["case:prefix.baseline", "case:prefix.append", "case:prefix.hidden", "case:prefix.withdrawal", "test:prefix-room", "schema:prefix-page", "fixture:prefix-page"],
+      "observations": ["obs:prefix-2026-10-11:python:members:prefix.withdrawal", "obs:prefix-2026-10-11:python:addressed:prefix.withdrawal", "obs:prefix-2026-10-11:python:sender_only:prefix.withdrawal", "obs:prefix-2026-10-11:rust:members:prefix.withdrawal", "obs:prefix-2026-10-11:rust:addressed:prefix.withdrawal", "obs:prefix-2026-10-11:rust:sender_only:prefix.withdrawal"],
+      "gaps": ["gap:prefix-adversarial"]
     },
     {
       "id": "V05",
@@ -2560,26 +856,9 @@
       "obligation": "conditional",
       "applicability": "Hosts advertising events.prefix.validate and clients requesting prefix validation",
       "coverage": "partial_public",
-      "references": [
-        "case:prefix.baseline",
-        "case:prefix.append",
-        "case:prefix.hidden",
-        "case:prefix.withdrawal",
-        "test:prefix-room",
-        "schema:prefix-page",
-        "fixture:prefix-page"
-      ],
-      "observations": [
-        "obs:prefix-2026-10-11:python:members:prefix.hidden",
-        "obs:prefix-2026-10-11:python:addressed:prefix.hidden",
-        "obs:prefix-2026-10-11:python:sender_only:prefix.hidden",
-        "obs:prefix-2026-10-11:rust:members:prefix.hidden",
-        "obs:prefix-2026-10-11:rust:addressed:prefix.hidden",
-        "obs:prefix-2026-10-11:rust:sender_only:prefix.hidden"
-      ],
-      "gaps": [
-        "gap:prefix-adversarial"
-      ]
+      "references": ["case:prefix.baseline", "case:prefix.append", "case:prefix.hidden", "case:prefix.withdrawal", "test:prefix-room", "schema:prefix-page", "fixture:prefix-page"],
+      "observations": ["obs:prefix-2026-10-11:python:members:prefix.hidden", "obs:prefix-2026-10-11:python:addressed:prefix.hidden", "obs:prefix-2026-10-11:python:sender_only:prefix.hidden", "obs:prefix-2026-10-11:rust:members:prefix.hidden", "obs:prefix-2026-10-11:rust:addressed:prefix.hidden", "obs:prefix-2026-10-11:rust:sender_only:prefix.hidden"],
+      "gaps": ["gap:prefix-adversarial"]
     },
     {
       "id": "V06",
@@ -2588,26 +867,9 @@
       "obligation": "conditional",
       "applicability": "Hosts advertising events.prefix.validate and clients requesting prefix validation",
       "coverage": "partial_public",
-      "references": [
-        "case:prefix.baseline",
-        "case:prefix.append",
-        "case:prefix.hidden",
-        "case:prefix.withdrawal",
-        "test:prefix-room",
-        "schema:prefix-page",
-        "fixture:prefix-page"
-      ],
-      "observations": [
-        "obs:prefix-2026-10-11:python:members:prefix.append",
-        "obs:prefix-2026-10-11:python:addressed:prefix.append",
-        "obs:prefix-2026-10-11:python:sender_only:prefix.append",
-        "obs:prefix-2026-10-11:rust:members:prefix.append",
-        "obs:prefix-2026-10-11:rust:addressed:prefix.append",
-        "obs:prefix-2026-10-11:rust:sender_only:prefix.append"
-      ],
-      "gaps": [
-        "gap:prefix-adversarial"
-      ]
+      "references": ["case:prefix.baseline", "case:prefix.append", "case:prefix.hidden", "case:prefix.withdrawal", "test:prefix-room", "schema:prefix-page", "fixture:prefix-page"],
+      "observations": ["obs:prefix-2026-10-11:python:members:prefix.append", "obs:prefix-2026-10-11:python:addressed:prefix.append", "obs:prefix-2026-10-11:python:sender_only:prefix.append", "obs:prefix-2026-10-11:rust:members:prefix.append", "obs:prefix-2026-10-11:rust:addressed:prefix.append", "obs:prefix-2026-10-11:rust:sender_only:prefix.append"],
+      "gaps": ["gap:prefix-adversarial"]
     },
     {
       "id": "V07",
@@ -2616,26 +878,9 @@
       "obligation": "conditional",
       "applicability": "Hosts advertising events.prefix.validate and clients requesting prefix validation",
       "coverage": "partial_public",
-      "references": [
-        "case:prefix.baseline",
-        "case:prefix.append",
-        "case:prefix.hidden",
-        "case:prefix.withdrawal",
-        "test:prefix-room",
-        "schema:prefix-page",
-        "fixture:prefix-page"
-      ],
-      "observations": [
-        "obs:prefix-2026-10-11:python:members:prefix.append",
-        "obs:prefix-2026-10-11:python:addressed:prefix.append",
-        "obs:prefix-2026-10-11:python:sender_only:prefix.append",
-        "obs:prefix-2026-10-11:rust:members:prefix.append",
-        "obs:prefix-2026-10-11:rust:addressed:prefix.append",
-        "obs:prefix-2026-10-11:rust:sender_only:prefix.append"
-      ],
-      "gaps": [
-        "gap:prefix-adversarial"
-      ]
+      "references": ["case:prefix.baseline", "case:prefix.append", "case:prefix.hidden", "case:prefix.withdrawal", "test:prefix-room", "schema:prefix-page", "fixture:prefix-page"],
+      "observations": ["obs:prefix-2026-10-11:python:members:prefix.append", "obs:prefix-2026-10-11:python:addressed:prefix.append", "obs:prefix-2026-10-11:python:sender_only:prefix.append", "obs:prefix-2026-10-11:rust:members:prefix.append", "obs:prefix-2026-10-11:rust:addressed:prefix.append", "obs:prefix-2026-10-11:rust:sender_only:prefix.append"],
+      "gaps": ["gap:prefix-adversarial"]
     },
     {
       "id": "V08",
@@ -2644,19 +889,9 @@
       "obligation": "conditional",
       "applicability": "Hosts advertising events.prefix.validate and clients requesting prefix validation",
       "coverage": "partial_public",
-      "references": [
-        "case:prefix.baseline",
-        "case:prefix.append",
-        "case:prefix.hidden",
-        "case:prefix.withdrawal",
-        "test:prefix-room",
-        "schema:prefix-page",
-        "fixture:prefix-page"
-      ],
+      "references": ["case:prefix.baseline", "case:prefix.append", "case:prefix.hidden", "case:prefix.withdrawal", "test:prefix-room", "schema:prefix-page", "fixture:prefix-page"],
       "observations": [],
-      "gaps": [
-        "gap:prefix-adversarial"
-      ]
+      "gaps": ["gap:prefix-adversarial"]
     }
   ],
   "references": [
