@@ -68,6 +68,9 @@ jobs:
                       raise SystemExit('invalid notice slice bounds')
                   if hashlib.sha256(aggregate[offset:offset + length]).hexdigest() != notice['sha256']:
                       raise SystemExit('notice slice hash mismatch')
+                  original = notice.get('original_document_sha256')
+                  if original is not None and hashlib.sha256(Path(notice['filename']).read_bytes()).hexdigest() != original:
+                      raise SystemExit('original provider document hash mismatch')
                   count += 1
           if not count:
               raise SystemExit('notice inventory empty')
@@ -191,11 +194,11 @@ jobs:
           set -euo pipefail
           cat dist/SHA256SUMS-* > dist/SHA256SUMS
           rm dist/SHA256SUMS-*
-          cp install.sh install.ps1 LICENSE release/THIRD_PARTY_NOTICES.txt release/NOTICE_INVENTORY.json dist/
+          cp install.sh install.ps1 LICENSE release/THIRD_PARTY_NOTICES.txt release/NOTICE_INVENTORY.json release/native-license-sources/*.docx dist/
           printf '%s\n' "$RELEASE_VERSION" > dist/VERSION
           printf '%s\n' "$GITHUB_SHA" > dist/SOURCE_COMMIT
           cd dist
-          sha256sum install.sh install.ps1 LICENSE THIRD_PARTY_NOTICES.txt NOTICE_INVENTORY.json VERSION SOURCE_COMMIT >> SHA256SUMS
+          sha256sum install.sh install.ps1 LICENSE THIRD_PARTY_NOTICES.txt NOTICE_INVENTORY.json VERSION SOURCE_COMMIT *.docx >> SHA256SUMS
           sha256sum --check SHA256SUMS
       - name: Attest the uploaded candidate assets
         uses: actions/attest-build-provenance@977bb373ede98d70efdf65b84cb5f73e068dcc2a # v3

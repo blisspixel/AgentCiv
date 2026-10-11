@@ -1,0 +1,123 @@
+name: Published native verification
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Exact already published stable release (vX.Y.Z)'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  attestations: read
+
+env:
+  RELEASE_VERSION: ${{ inputs.version }}
+
+jobs:
+  verify:
+    name: Published installation (${{ matrix.target }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            target: x86_64-unknown-linux-gnu
+          - os: ubuntu-24.04-arm
+            target: aarch64-unknown-linux-gnu
+          - os: windows-2025
+            target: x86_64-pc-windows-msvc
+          - os: windows-11-arm
+            target: aarch64-pc-windows-msvc
+          - os: macos-15-intel
+            target: x86_64-apple-darwin
+          - os: macos-15
+            target: aarch64-apple-darwin
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        with:
+          python-version: "3.14"
+      - name: Require the exact published immutable release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          [[ "$RELEASE_VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          mkdir evidence downloads
+          gh api "repos/$GITHUB_REPOSITORY/releases/tags/$RELEASE_VERSION" > evidence/release.json
+          jq -e '.draft == false and .prerelease == false and .immutable == true' evidence/release.json
+          gh release verify "$RELEASE_VERSION" --repo "$GITHUB_REPOSITORY" --format json > evidence/release-attestation.json
+          gh release download "$RELEASE_VERSION" --repo "$GITHUB_REPOSITORY" --dir downloads --pattern SHA256SUMS --pattern SOURCE_COMMIT --pattern install.sh --pattern install.ps1
+          python - <<'PY'
+          import hashlib, re
+          from pathlib import Path
+          folder = Path('downloads')
+          rows = folder.joinpath('SHA256SUMS').read_text().splitlines()
+          parsed = {}
+          for row in rows:
+              match = re.fullmatch(r'([0-9a-f]{64})  ([A-Za-z0-9_.-]+)', row)
+              if match is None or match[2] in parsed:
+                  raise SystemExit('malformed or duplicate published checksum')
+              parsed[match[2]] = match[1]
+          for name in ('SOURCE_COMMIT', 'install.sh', 'install.ps1'):
+              if hashlib.sha256(folder.joinpath(name).read_bytes()).hexdigest() != parsed.get(name):
+                  raise SystemExit('published installer or source checksum mismatch')
+          if re.fullmatch(r'[0-9a-f]{40}\n', folder.joinpath('SOURCE_COMMIT').read_text()) is None:
+              raise SystemExit('invalid published source identity')
+          PY
+          release_source=$(tr -d '\r\n' < downloads/SOURCE_COMMIT)
+          for script in install.sh install.ps1; do
+            gh attestation verify "downloads/$script" --repo "$GITHUB_REPOSITORY" --signer-workflow "$GITHUB_REPOSITORY/.github/workflows/release.yml" --source-digest "$release_source" --source-ref refs/heads/main --deny-self-hosted-runners --format json > "evidence/$script-provenance.json"
+          done
+      - name: Install exact public assets and preserve an unowned file on removal
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          set -euo pipefail
+          release_prefix="$RUNNER_TEMP/agentciv published verification"
+          test ! -e "$release_prefix"
+          sh downloads/install.sh --version "$RELEASE_VERSION" --prefix "$release_prefix" --with-host-tools
+          for tool in archive reader host conformance; do
+            test "$("$release_prefix/bin/agentciv-$tool" --version)" = "agentciv-$tool ${RELEASE_VERSION#v}"
+            "$release_prefix/bin/agentciv-$tool" --help > "evidence/$tool-help.txt"
+          done
+          "$release_prefix/bin/agentciv-archive" demo > evidence/demo.json
+          grep -q source_authenticity evidence/demo.json
+          sh downloads/install.sh --version "$RELEASE_VERSION" --prefix "$release_prefix"
+          printf '%s\n' 'unowned evidence remains' > "$release_prefix/unowned.txt"
+          sh downloads/install.sh --prefix "$release_prefix" --uninstall
+          test "$(cat "$release_prefix/unowned.txt")" = 'unowned evidence remains'
+          test ! -e "$release_prefix/bin/agentciv-archive"
+          printf '%s\n' 'Actual HTTPS release install, reinstall, versions, help, demo and ownership-preserving removal passed.' > evidence/result.txt
+      - name: Install exact public Windows assets without changing PATH
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $releasePrefix = Join-Path $env:RUNNER_TEMP 'agentciv published verification'
+          if (Test-Path -LiteralPath $releasePrefix) { throw 'verification prefix already exists' }
+          & ./downloads/install.ps1 -Version $env:RELEASE_VERSION -Prefix $releasePrefix -WithHostTools -NoModifyPath
+          foreach ($tool in 'archive','reader','host','conformance') {
+            $actual = & (Join-Path $releasePrefix "bin/agentciv-$tool.cmd") --version
+            if ($LASTEXITCODE -ne 0 -or $actual -cne "agentciv-$tool $($env:RELEASE_VERSION.Substring(1))") { throw 'published native version mismatch' }
+            & (Join-Path $releasePrefix "bin/agentciv-$tool.cmd") --help | Set-Content -LiteralPath "evidence/$tool-help.txt"
+            if ($LASTEXITCODE -ne 0) { throw 'published native help failed' }
+          }
+          & (Join-Path $releasePrefix 'bin/agentciv-archive.cmd') demo | Set-Content -LiteralPath evidence/demo.json
+          if ($LASTEXITCODE -ne 0 -or (Get-Content -LiteralPath evidence/demo.json -Raw) -notmatch 'source_authenticity') { throw 'published demo failed' }
+          & ./downloads/install.ps1 -Version $env:RELEASE_VERSION -Prefix $releasePrefix -NoModifyPath
+          [IO.File]::WriteAllText((Join-Path $releasePrefix 'unowned.txt'), 'unowned evidence remains')
+          & ./downloads/install.ps1 -Prefix $releasePrefix -Uninstall -NoModifyPath
+          if ([IO.File]::ReadAllText((Join-Path $releasePrefix 'unowned.txt')) -cne 'unowned evidence remains') { throw 'unowned file changed' }
+          if (Test-Path -LiteralPath (Join-Path $releasePrefix 'bin/agentciv-archive.cmd')) { throw 'owned shim retained' }
+          'Actual HTTPS release install, reinstall, versions, help, demo and ownership-preserving removal passed.' | Set-Content -LiteralPath evidence/result.txt
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        if: always()
+        with:
+          name: published-${{ matrix.target }}
+          path: evidence/
+          if-no-files-found: error
+          retention-days: 7
