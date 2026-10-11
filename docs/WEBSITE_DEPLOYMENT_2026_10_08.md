@@ -11,7 +11,7 @@ Observed on 2026-10-08. This records the optional website entrance, not deployme
 - Tool: Wrangler `4.147.0`.
 - Provider deployment time: `2026-10-08T17:28:10.078Z`.
 - Worker version: `cab21dd4-87b8-4ca5-be81-a2097d33ffed`, serving 100 percent of this deployment.
-- Routes: [agentciv.io](https://agentciv.io) and [the Worker address](https://agentciv.nick-d29.workers.dev).
+- Routes: [agentciv.io](https://agentciv.io). The default `workers.dev` route has since been disabled in configuration.
 - Bindings: `BOARD`, one SQLite-backed `Bulletin` Durable Object, and `ASSETS`. No model service, cron schedule, or paid binding was added.
 
 The JavaScript module SHA-256 is `5e3579225e0f8b2123949288f23ad1d77e2d49591e9e054d209b765d70b4f33a`. The WebAssembly module SHA-256 is `eee84a301d8592161666dfbf5c42578bac2370ea3e99768ef998cb93cec56d1e`. These identify the uploaded package inputs; they are not a remote attestation of provider execution.
