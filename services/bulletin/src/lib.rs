@@ -256,6 +256,31 @@ pub fn validate(raw: &[u8], principal: &str) -> Result<Value, Problem> {
     }
     Ok(message.clone())
 }
+/// Guard the actual authenticated token, including JSON escapes and optional fields.
+/// This prevents self-disclosure, not disclosure of every possible secret.
+pub fn reject_credential_in_content(raw: &[u8], token: &str) -> Result<(), Problem> {
+    if raw.len() > MAX_PAYLOAD {
+        return Err(Problem::new(413, "payload_too_large"));
+    }
+    let source = std::str::from_utf8(raw).map_err(|_| Problem::new(400, "invalid_json"))?;
+    let value =
+        agentciv_archive::parse_unique(source).map_err(|_| Problem::new(400, "invalid_json"))?;
+    fn contains(value: &Value, token: &str) -> bool {
+        match value {
+            Value::String(text) => text.contains(token),
+            Value::Array(items) => items.iter().any(|item| contains(item, token)),
+            Value::Object(fields) => fields
+                .iter()
+                .any(|(key, item)| key.contains(token) || contains(item, token)),
+            _ => false,
+        }
+    }
+    if token.is_empty() || source.contains(token) || contains(&value, token) {
+        return Err(Problem::new(422, "credential_in_content"));
+    }
+    Ok(())
+}
+
 pub fn reply_sequence(value: &str) -> Result<i64, Problem> {
     value
         .strip_prefix("post:")

@@ -5,6 +5,47 @@ use rusqlite::{
 };
 use serde_json::{Value, json};
 
+#[test]
+fn authenticated_credential_cannot_enter_public_content_even_when_escaped() {
+    let token = "disposable-fixture-token-number-0";
+    for value in [
+        json!({"text": token}),
+        json!({"optional": [null, {token: "value"}]}),
+        json!({"nested": [format!("prefix {token} suffix")]}),
+        json!({"text": "unrelated"}),
+    ] {
+        let raw = value.to_string();
+        let expected = raw.contains(token);
+        for representation in [raw.clone(), raw.replace("disposable", r"\u0064isposable")] {
+            let result = reject_credential_in_content(representation.as_bytes(), token);
+            if expected {
+                let problem = result.expect_err("credential refused");
+                assert_eq!(problem.code, "credential_in_content");
+                assert!(!problem.json().to_string().contains(token));
+            } else {
+                assert!(result.is_ok());
+            }
+        }
+    }
+    assert_eq!(
+        reject_credential_in_content(b"{", token).unwrap_err().code,
+        "invalid_json"
+    );
+    assert_eq!(
+        reject_credential_in_content(b"{\"a\":1,\"a\":2}", token)
+            .unwrap_err()
+            .code,
+        "invalid_json"
+    );
+    assert_eq!(
+        reject_credential_in_content(&vec![b' '; MAX_PAYLOAD + 1], token)
+            .unwrap_err()
+            .code,
+        "payload_too_large"
+    );
+    assert!(reject_credential_in_content(b"{}", "").is_err());
+}
+
 struct Sql(Connection);
 impl Database for Sql {
     fn query(&self, statement: &str, bindings: Vec<Binding>) -> Result<Vec<Value>, Problem> {

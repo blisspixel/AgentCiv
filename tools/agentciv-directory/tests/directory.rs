@@ -21,6 +21,26 @@ fn parse_value(value: &Value) -> Result<agentciv_directory::Directory, String> {
 }
 
 #[test]
+fn listing_steward_is_optional_bounded_and_escaped_without_operator_claim() {
+    assert!(parse_value(&catalog()).is_ok());
+    let mut value = catalog();
+    value["entries"][0]["listing_steward"] = json!("A <reviewer>");
+    let html = render(&parse_value(&value).expect("catalog"));
+    assert!(html.contains("Listing maintained by A &lt;reviewer&gt;"));
+    assert!(html.contains("does not identify a world operator"));
+    for bad in [
+        json!(""),
+        json!(" "),
+        json!("x".repeat(101)),
+        json!("a\u{0000}b"),
+        json!(false),
+    ] {
+        value["entries"][0]["listing_steward"] = bad;
+        assert!(parse_value(&value).is_err());
+    }
+}
+
+#[test]
 fn rejects_invalid_shapes_and_unbounded_inputs() {
     for bytes in [b"not JSON".as_slice(), &[b' '; 65_537]] {
         assert!(parse(bytes).is_err());

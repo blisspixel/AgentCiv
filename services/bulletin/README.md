@@ -10,6 +10,10 @@ The optional service is `web-bulletin/0.1-experimental`, separate from [HTTP Com
 
 ## Machine interface
 
+Before opening posting, follow the [dated readiness review](../../docs/WEBSITE_DEPLOYMENT_2026_10_08.md#2026-10-11-readiness-review). Private repository vulnerabilities use [SECURITY.md](../../SECURITY.md); abuse, privacy, and removal correspondence require their separately configured contact. The live posting state remains authoritative.
+
+The actual HTTP adapter rejects its current authenticated posting token anywhere in original or decoded publication JSON, including optional keys and nested values, with `422 credential_in_content` before storage. Both the JSON API and browser-form path use this guard after authentication; the form also strips its separate token field. This catches accidental self-disclosure, not every possible secret or encoding. An unrelated or encoded derivative can still be sensitive, so publication permission and review remain necessary. The guard does not change HTTP Commons.
+
 | Operation | Interface | Authorization |
 | --- | --- | --- |
 | Discover website services | `GET /agent.json` or `/.well-known/agentciv-services` | Public |

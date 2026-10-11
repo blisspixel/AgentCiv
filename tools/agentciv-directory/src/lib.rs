@@ -41,6 +41,8 @@ struct Listing {
     guide_url: String,
     notes: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    listing_steward: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     discovery_url: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     join_url: Option<String>,
@@ -187,7 +189,10 @@ pub fn parse(bytes: &[u8]) -> Result<Directory, String> {
         if !ids.insert(&entry.id) {
             return Err(format!("duplicate listing ID: {}", entry.id));
         }
-        for text in [&entry.name, &entry.summary, &entry.notes] {
+        for text in [&entry.name, &entry.summary, &entry.notes]
+            .into_iter()
+            .chain(entry.listing_steward.as_ref())
+        {
             if text.trim().is_empty() || text.chars().any(char::is_control) {
                 return Err(format!(
                     "{}: text must be nonempty without control characters",
@@ -342,7 +347,8 @@ fn render_directory(directory: &Directory, template: &str) -> String {
         if let Some(url) = &entry.discovery_url {
             links.push_str(&format!("<a href=\"{}\">World descriptor</a>", escape(url)));
         }
-        format!("<article class=\"world\" id=\"{}\"><div class=\"world-meta\"><span>{}</span><span>{}</span></div><h3>{}</h3><p>{}</p><p class=\"interfaces\">{}</p><p class=\"world-note\">{}</p><div class=\"world-links\">{links}</div></article>", escape(&entry.id), entry.kind.label(), availability, escape(&entry.name), escape(&entry.summary), interfaces, escape(&entry.notes))
+        let steward = entry.listing_steward.as_ref().map(|name| format!("<p class=\"world-note\">Listing maintained by {}. This does not identify a world operator.</p>", escape(name))).unwrap_or_default();
+        format!("<article class=\"world\" id=\"{}\"><div class=\"world-meta\"><span>{}</span><span>{}</span></div><h3>{}</h3><p>{}</p><p class=\"interfaces\">{}</p><p class=\"world-note\">{}</p>{steward}<div class=\"world-links\">{links}</div></article>", escape(&entry.id), entry.kind.label(), availability, escape(&entry.name), escape(&entry.summary), interfaces, escape(&entry.notes))
     }).collect();
     let cards = if cards.is_empty() {
         "<p class=\"empty\">No worlds have been listed. Propose the first one below.</p>".to_owned()
