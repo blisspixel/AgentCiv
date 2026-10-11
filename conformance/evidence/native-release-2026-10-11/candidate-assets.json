@@ -1,0 +1,212 @@
+{
+  "observed_at": "2026-10-11T18:52:05.096457+00:00",
+  "source_commit": "5e734c758d038b395995840da7e15280df38f86e",
+  "version": "v0.1.0",
+  "published": false,
+  "assets": [
+    {
+      "name": "agentciv-archive-v0.1.0-aarch64-apple-darwin",
+      "sha256": "fc780dfb4f0993123548e07e635c12eefa1a0ca83138183eee888f983ec73c86",
+      "build_provenance_verified": true,
+      "immutable_release_asset_verified": false
+    },
+    {
+      "name": "agentciv-archive-v0.1.0-aarch64-pc-windows-msvc.exe",
+      "sha256": "c4f1822039fff82004defe70508dddd22b1747ad676ca96ccf70721aebdd5dd8",
+      "build_provenance_verified": true,
+      "immutable_release_asset_verified": false
+    },
+    {
+      "name": "agentciv-archive-v0.1.0-aarch64-unknown-linux-gnu",
+      "sha256": "4aeadb92dac7aff36e51513707f1a957de0931794c2b6d174b62ec63e927564d",
+      "build_provenance_verified": true,
+      "immutable_release_asset_verified": false
+    },
+    {
+      "name": "agentciv-archive-v0.1.0-x86_64-apple-darwin",
+      "sha256": "a0e1d4a0a786ce749b8d327f6c885aac90a9fa4ab6280d98d80841098425ba8a",
+      "build_provenance_verified": true,
+      "immutable_release_asset_verified": false
+    },
+    {
+      "name": "agentciv-archive-v0.1.0-x86_64-pc-windows-msvc.exe",
+      "sha256": "47d2435a386f420e861a25a379affe3b1cae464b358ef7368518920866e7e5c7",
+      "build_provenance_verified": true,
+      "immutable_release_asset_verified": false
+    },
+    {
+      "name": "agentciv-archive-v0.1.0-x86_64-unknown-linux-gnu",
+      "sha256": "c253dbd0854c8d53d52d33e961d16ea53d6655035c83cb5a7b3a042d2ba07a08",
+      "build_provenance_verified": true,
+      "immutable_release_asset_verified": false
+    },
+    {
+      "name": "agentciv-conformance-v0.1.0-aarch64-apple-darwin",
+      "sha256": "891067929410d8614d41767ed25d3780c94291384fab3f59e1be8d01e3fa6352",
+      "build_provenance_verified": true,
+      "immutable_release_asset_verified": false
+    },
+    {
+      "name": "agentciv-conformance-v0.1.0-aarch64-pc-windows-msvc.exe",
+      "sha256": "726b8398b23f9e733088f26c040e4f1167e8ffc5d4741c0d0e67ca42e9da2011",
+      "build_provenance_verified": true,
+      "immutable_release_asset_verified": false
+    },
+    {
+      "name": "agentciv-conformance-v0.1.0-aarch64-unknown-linux-gnu",
+      "sha256": "5f16cf5f20b171f8d757eb7b33fce9fea50535c76e4d0b23b09337240d630811",
+      "build_provenance_verified": true,
+      "immutable_release_asset_verified": false
+    },
+    {
+      "name": "agentciv-conformance-v0.1.0-x86_64-apple-darwin",
+      "sha256": "42786815363d64c58159a9c55430c16bca83727469415cf27945634b0744b47f",
+      "build_provenance_verified": true,
+      "immutable_release_asset_verified": false
+    },
+    {
+      "name": "agentciv-conformance-v0.1.0-x86_64-pc-windows-msvc.exe",
+      "sha256": "c8afb035984c5fee69baa22300edcf017fac91863a8427f9e3e21ad6386abde3",
+      "build_provenance_verified": true,
+      "immutable_release_asset_verified": false
+    },
+    {
+      "name": "agentciv-conformance-v0.1.0-x86_64-unknown-linux-gnu",
+      "sha256": "5ec899b9cd2fbd557740c49d217b13adb9a9c9400291e8020855e354e172555d",
+      "build_provenance_verified": true,
+      "immutable_release_asset_verified": false
+    },
+    {
+      "name": "agentciv-host-v0.1.0-aarch64-apple-darwin",
+      "sha256": "301adaaf5125063403416f61870d41b0f8fa9519db3d0e3ee04c57fb8f63e5a7",
+      "build_provenance_verified": true,
+      "immutable_release_asset_verified": false
+    },
+    {
+      "name": "agentciv-host-v0.1.0-aarch64-pc-windows-msvc.exe",
+      "sha256": "141372cb4ddb98cf4d93114e459c6993c25175c53d0b4e2e4929be9bc050ae10",
+      "build_provenance_verified": true,
+      "immutable_release_asset_verified": false
+    },
+    {
+      "name": "agentciv-host-v0.1.0-aarch64-unknown-linux-gnu",
+      "sha256": "b86534e4335e23e277ffbace569638efb2cfe4ce8fe657fc8891b2bbf7a311d3",
+      "build_provenance_verified": true,
+      "immutable_release_asset_verified": false
+    },
+    {
+      "name": "agentciv-host-v0.1.0-x86_64-apple-darwin",
+      "sha256": "7c2a067d67c8b4ae9017ef8a15efaf190c13d66141b617ab753d53eb99a9e64f",
+      "build_provenance_verified": true,
+      "immutable_release_asset_verified": false
+    },
+    {
+      "name": "agentciv-host-v0.1.0-x86_64-pc-windows-msvc.exe",
+      "sha256": "3844a3bfdc172c3b73f7ee22787633f45d5124b05e8be000831b19fa5c365464",
+      "build_provenance_verified": true,
+      "immutable_release_asset_verified": false
+    },
+    {
+      "name": "agentciv-host-v0.1.0-x86_64-unknown-linux-gnu",
+      "sha256": "2e8ef4d541996a9fab88fedc07119da7d91f32c9175156940257450820b1dc25",
+      "build_provenance_verified": true,
+      "immutable_release_asset_verified": false
+    },
+    {
+      "name": "agentciv-reader-v0.1.0-aarch64-apple-darwin",
+      "sha256": "23a822c90395a42ec398e240190e435e22aec1bbebc938e464efff89502a8de6",
+      "build_provenance_verified": true,
+      "immutable_release_asset_verified": false
+    },
+    {
+      "name": "agentciv-reader-v0.1.0-aarch64-pc-windows-msvc.exe",
+      "sha256": "a9a3caeceb430e1dd33a66157275c8d2f91ef4e512675ce426dafae10c65fb28",
+      "build_provenance_verified": true,
+      "immutable_release_asset_verified": false
+    },
+    {
+      "name": "agentciv-reader-v0.1.0-aarch64-unknown-linux-gnu",
+      "sha256": "9f47b10fe5366ec1bb85fac6e3eeaeb8b949138a7c95874f9f493fdc0921f42a",
+      "build_provenance_verified": true,
+      "immutable_release_asset_verified": false
+    },
+    {
+      "name": "agentciv-reader-v0.1.0-x86_64-apple-darwin",
+      "sha256": "1d1cb27e8197b8836282087116ab4dd45d12b58d91c7e58a66ccf57524f6d20c",
+      "build_provenance_verified": true,
+      "immutable_release_asset_verified": false
+    },
+    {
+      "name": "agentciv-reader-v0.1.0-x86_64-pc-windows-msvc.exe",
+      "sha256": "96adfa622724b7b5908bc195d7df5e36723d03282794d93d82b1093c7c3ea2a1",
+      "build_provenance_verified": true,
+      "immutable_release_asset_verified": false
+    },
+    {
+      "name": "agentciv-reader-v0.1.0-x86_64-unknown-linux-gnu",
+      "sha256": "835f6151b274f71309ef81a7603d7a534118bc6147ad9f011446797da20c54cf",
+      "build_provenance_verified": true,
+      "immutable_release_asset_verified": false
+    },
+    {
+      "name": "install.ps1",
+      "sha256": "ae04174dcfdda9d7108fec5a06d85d95f0e6e0ee2e4bc846407a1601779e5534",
+      "build_provenance_verified": true,
+      "immutable_release_asset_verified": false
+    },
+    {
+      "name": "install.sh",
+      "sha256": "1fb2a35a035a0bbb6404adc7da3c1fbaccbbe2ea6180f3d140b30b1c1b0ee69f",
+      "build_provenance_verified": true,
+      "immutable_release_asset_verified": false
+    },
+    {
+      "name": "LICENSE",
+      "sha256": "63ae6284a7496c7d2bc2a49a947d8afafa42d16a6485d36255637facbababd2d",
+      "build_provenance_verified": true,
+      "immutable_release_asset_verified": false
+    },
+    {
+      "name": "NOTICE_INVENTORY.json",
+      "sha256": "bfdc6e2ed05aefe5915243b5296c1a63c6ce13a175ad1b7459901664b3b5df85",
+      "build_provenance_verified": true,
+      "immutable_release_asset_verified": false
+    },
+    {
+      "name": "SHA256SUMS",
+      "sha256": "dedc766210eae6bcce9bdf598b42b63c7c12389233626664a17c32b306a2ed5a",
+      "build_provenance_verified": true,
+      "immutable_release_asset_verified": false
+    },
+    {
+      "name": "SOURCE_COMMIT",
+      "sha256": "a15b58ec795ecbaca4d018b9952b0e420d7352c9b617ca7358ff41df647d9587",
+      "build_provenance_verified": true,
+      "immutable_release_asset_verified": false
+    },
+    {
+      "name": "THIRD_PARTY_NOTICES.txt",
+      "sha256": "1bcf14c8995a3ef4b539a5966d1b53f5ebf2fa62828b87b45d9cd48310b51a91",
+      "build_provenance_verified": true,
+      "immutable_release_asset_verified": false
+    },
+    {
+      "name": "VERSION",
+      "sha256": "d0b4f9120ba026c00fa23cb84b4e1620a2e6436592e58155a5151653179572c0",
+      "build_provenance_verified": true,
+      "immutable_release_asset_verified": false
+    },
+    {
+      "name": "vs2026-enterprise-license.docx",
+      "sha256": "dd2ab92a7c2bb90dd509e16572707a34b13bc0bc09b9199d115f25594ac39053",
+      "build_provenance_verified": true,
+      "immutable_release_asset_verified": false
+    },
+    {
+      "name": "vs2026-runtime-license.docx",
+      "sha256": "08651651a7602fc7c0e2763de0fde1ff9f868df2780597cd1775ee9d6441c783",
+      "build_provenance_verified": true,
+      "immutable_release_asset_verified": false
+    }
+  ]
+}

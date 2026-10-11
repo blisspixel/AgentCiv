@@ -1,10 +1,12 @@
 # Civic history freshness decision
 
-Status: design proposal after the bounded discovery and durable stopping slices. No new endpoint, validator, snapshot guarantee, or incremental catch-up contract is implemented by this document.
+Status: the optional [prefix validation extension](PREFIX_VIEW.md) is implemented in both hosts and the native/manual reader. The dated delivery packet below records that bounded prefix-and-tail observation. The initial options review remains as design history; atomic preparation for a later action, broader recovery boundaries, and a general ordered civic change interface remain planned. This document alone implements none of those later guarantees.
 
-The next runtime adapter needs to know which permitted history it prepared. Today, the native reader traverses bounded current-caller pages, and the discovery exercise revalidates older originals. Neither traversal is an atomic snapshot. Civic withdrawal can replace an older event at the same sequence, so a newer-events cursor cannot establish that earlier evidence remains available. The bulletin's separate change feed does not change this boundary.
+The next runtime adapter needs to know which permitted history it prepared. The original native reader traversed bounded current-caller pages, and the discovery exercise revalidated older originals. Neither traversal was an atomic snapshot. Civic withdrawal can replace an older event at the same sequence, so a newer-events cursor cannot establish that earlier evidence remains available. The optional prefix extension now validates saved originals with the returned tail in one transaction, without making a later action atomic. The bulletin's separate change feed does not change this boundary.
 
-## Options and recommendation
+## Initial options and recommendation
+
+The second option below has since been delivered as bounded prefix validation. The original comparison explains that decision; a later action boundary and broader recovery semantics remain separate work.
 
 | Option | Benefit | Boundary and cost |
 | --- | --- | --- |

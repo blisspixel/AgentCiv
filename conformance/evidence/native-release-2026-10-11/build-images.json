@@ -1,0 +1,29 @@
+{
+  "observed_at": "2026-10-11T18:48:10.071114+00:00",
+  "source_commit": "5e734c758d038b395995840da7e15280df38f86e",
+  "scope": "Actual final Windows build-job image identifiers match the images with retained build-product/license-source observations. No changed-image review is inferred from a runner label alone.",
+  "targets": [
+    {
+      "target": "aarch64-pc-windows-msvc",
+      "release_run": 38164466990,
+      "release_job": 114544093089,
+      "reviewed_audit_run": 38157571603,
+      "reviewed_audit_job": 114523598867,
+      "image": "windows-11-vs2026-arm64",
+      "image_version": "20261004.176.1",
+      "reviewed_image_match": true,
+      "retrieved_release_log_sha256": "9c286e05f4ef2028194e086ed0119d58ef44f926fca93e1316210c04dbf5f180"
+    },
+    {
+      "target": "x86_64-pc-windows-msvc",
+      "release_run": 38164466990,
+      "release_job": 114544093128,
+      "reviewed_audit_run": 38157571603,
+      "reviewed_audit_job": 114523598895,
+      "image": "windows-2025-vs2026",
+      "image_version": "20260925.250.1",
+      "reviewed_image_match": true,
+      "retrieved_release_log_sha256": "c3d770d4acf7d0ad96be0baa55a61556ee7db477f456600d6ddd69ad26a1a095"
+    }
+  ]
+}

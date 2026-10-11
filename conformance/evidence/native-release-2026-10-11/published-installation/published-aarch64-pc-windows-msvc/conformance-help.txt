@@ -1,0 +1,2 @@
+usage: agentciv-conformance --discovery URL [--principal ID] [--reader ID] [--peer ID] [--retention-window-test] [--lifecycle prepare|verify|policy|rotate|revoke|restore|remove|race-prepare|race-verify|crash-prepare|crash-verify --checkpoint PATH]
+Options: --help, --version

@@ -1,0 +1,297 @@
+{
+  "observed_at": "2026-10-11T18:37:38.976203+00:00",
+  "source_commit": "5e734c758d038b395995840da7e15280df38f86e",
+  "worker_version": "906d8702-72d5-4a72-87ef-70c754578653",
+  "artifact_files": {
+    "index.js": "5e3579225e0f8b2123949288f23ad1d77e2d49591e9e054d209b765d70b4f33a",
+    "index_bg.wasm": "065a24abf553ff166972c74b7db8f5fb7407f96342a6ee375fe09c937a61a0ed"
+  },
+  "provider_analytics_scope": "Automatic injection was observed enabled outside the EU. These public probes do not establish account-wide disablement.",
+  "results": [
+    {
+      "path": "/",
+      "accept": "application/json",
+      "status": 200,
+      "selected_headers": {
+        "Content-Type": "application/json",
+        "CF-Cache-Status": "HIT",
+        "Cache-Control": "public, max-age=0, must-revalidate",
+        "ETag": "\"f9fdf29da7ebbea097231c4e379664b9\"",
+        "Strict-Transport-Security": "max-age=31536000",
+        "Server": "cloudflare"
+      },
+      "sha256": "b3c4dea3ac9683f82d1258c704826d638a983bcb623e55b0cc29e52da95c7cb3",
+      "artifact_sha256": null,
+      "provider_beacon_observed": false
+    },
+    {
+      "path": "/",
+      "accept": "text/html",
+      "status": 200,
+      "selected_headers": {
+        "Content-Type": "text/html",
+        "CF-Cache-Status": "HIT",
+        "Cache-Control": "public, max-age=0, must-revalidate, no-transform",
+        "ETag": "\"6862efd3514c2938d8b5a767734c4ae7\"",
+        "Strict-Transport-Security": "max-age=31536000",
+        "Server": "cloudflare"
+      },
+      "sha256": "ac4b52e57078fc4a38b5105438d5242a3a84ea02f9faa7a43071be23465b8a51",
+      "artifact_sha256": null,
+      "provider_beacon_observed": false
+    },
+    {
+      "path": "/agent.json",
+      "accept": "application/json",
+      "status": 200,
+      "selected_headers": {
+        "Content-Type": "application/json",
+        "CF-Cache-Status": "HIT",
+        "Cache-Control": "public, max-age=0, must-revalidate",
+        "ETag": "\"f9fdf29da7ebbea097231c4e379664b9\"",
+        "Strict-Transport-Security": "max-age=31536000",
+        "Server": "cloudflare"
+      },
+      "sha256": "b3c4dea3ac9683f82d1258c704826d638a983bcb623e55b0cc29e52da95c7cb3",
+      "artifact_sha256": "b3c4dea3ac9683f82d1258c704826d638a983bcb623e55b0cc29e52da95c7cb3",
+      "provider_beacon_observed": false
+    },
+    {
+      "path": "/.well-known/agentciv-services",
+      "accept": "application/json",
+      "status": 200,
+      "selected_headers": {
+        "Content-Type": "application/json; charset=utf-8",
+        "CF-Cache-Status": "HIT",
+        "Cache-Control": "public, max-age=0, must-revalidate",
+        "ETag": "\"866855b35f012cc875f6d6284648f686\"",
+        "Strict-Transport-Security": "max-age=31536000",
+        "Server": "cloudflare"
+      },
+      "sha256": "b3c4dea3ac9683f82d1258c704826d638a983bcb623e55b0cc29e52da95c7cb3",
+      "artifact_sha256": "b3c4dea3ac9683f82d1258c704826d638a983bcb623e55b0cc29e52da95c7cb3",
+      "provider_beacon_observed": false
+    },
+    {
+      "path": "/directory.json",
+      "accept": "application/json",
+      "status": 200,
+      "selected_headers": {
+        "Content-Type": "application/json",
+        "CF-Cache-Status": "HIT",
+        "Cache-Control": "public, max-age=300",
+        "ETag": "\"df7fde1106904f8d4bf15c22aa22605c\"",
+        "Strict-Transport-Security": "max-age=31536000",
+        "Server": "cloudflare"
+      },
+      "sha256": "f7e40aff59f403ea251e666a350497dac2f59740654f1c802a7916270e8edd3b",
+      "artifact_sha256": "f7e40aff59f403ea251e666a350497dac2f59740654f1c802a7916270e8edd3b",
+      "provider_beacon_observed": false
+    },
+    {
+      "path": "/api/board/info",
+      "accept": "application/json",
+      "status": 200,
+      "selected_headers": {
+        "Content-Type": "application/json",
+        "Cache-Control": "no-store",
+        "Strict-Transport-Security": "max-age=31536000",
+        "Server": "cloudflare"
+      },
+      "sha256": "00ffc8ae3b7210bf505280a9cae9d9ad44403f5fa832928cbaab38ffc782169c",
+      "artifact_sha256": null,
+      "provider_beacon_observed": false
+    },
+    {
+      "path": "/api/board/posts?after=0",
+      "accept": "application/json",
+      "status": 200,
+      "selected_headers": {
+        "Content-Type": "application/json",
+        "Cache-Control": "no-store",
+        "Strict-Transport-Security": "max-age=31536000",
+        "Server": "cloudflare"
+      },
+      "sha256": "28e6bfe14f80fc53b44203350f8ea3122e56ff895aeecf86ded4325d26fa3336",
+      "artifact_sha256": null,
+      "provider_beacon_observed": false
+    },
+    {
+      "path": "/api/board/changes?after=0",
+      "accept": "application/json",
+      "status": 200,
+      "selected_headers": {
+        "Content-Type": "application/json",
+        "Cache-Control": "no-store",
+        "Strict-Transport-Security": "max-age=31536000",
+        "Server": "cloudflare"
+      },
+      "sha256": "f6084d1e9a39e8c37470f4e9a3ce375f7fb0f77015953f2999abb1d5099910c6",
+      "artifact_sha256": null,
+      "provider_beacon_observed": false
+    },
+    {
+      "path": "/board",
+      "accept": "text/html",
+      "status": 200,
+      "selected_headers": {
+        "Content-Type": "text/html; charset=utf-8",
+        "Cache-Control": "no-store, no-transform",
+        "Strict-Transport-Security": "max-age=31536000",
+        "Server": "cloudflare"
+      },
+      "sha256": "a02ca854fabfb6466f04cc054fe31ea4f05aa1545ce46e6b80f78d60060ff95f",
+      "artifact_sha256": null,
+      "provider_beacon_observed": false
+    },
+    {
+      "path": "/report",
+      "accept": "text/html",
+      "status": 200,
+      "selected_headers": {
+        "Content-Type": "text/html; charset=utf-8",
+        "Cache-Control": "no-store, no-transform",
+        "Strict-Transport-Security": "max-age=31536000",
+        "Server": "cloudflare"
+      },
+      "sha256": "6cd8cba88d22e3b9fe01669f68949731dd8108c357b9d543ee12e1568a925d9b",
+      "artifact_sha256": null,
+      "provider_beacon_observed": false
+    },
+    {
+      "path": "/terms",
+      "accept": "text/html",
+      "status": 200,
+      "selected_headers": {
+        "Content-Type": "text/html",
+        "CF-Cache-Status": "HIT",
+        "Cache-Control": "public, max-age=0, must-revalidate, no-transform",
+        "ETag": "\"0fb2b3cf872dee68972eeeca9ec4584f\"",
+        "Strict-Transport-Security": "max-age=31536000",
+        "Server": "cloudflare"
+      },
+      "sha256": "3bdab80fa93fa6c85049e3c3b36fc7d8ea162f4ebcf4c2783773e9e423286362",
+      "artifact_sha256": "3bdab80fa93fa6c85049e3c3b36fc7d8ea162f4ebcf4c2783773e9e423286362",
+      "provider_beacon_observed": false
+    },
+    {
+      "path": "/privacy",
+      "accept": "text/html",
+      "status": 200,
+      "selected_headers": {
+        "Content-Type": "text/html",
+        "CF-Cache-Status": "HIT",
+        "Cache-Control": "public, max-age=0, must-revalidate, no-transform",
+        "ETag": "\"2b37b261f91dae72a1466ebef7977235\"",
+        "Strict-Transport-Security": "max-age=31536000",
+        "Server": "cloudflare"
+      },
+      "sha256": "f799a0d65d98a11a0b421d0bb965d4fa4af29eaa4faa6c258d816b56e8432d47",
+      "artifact_sha256": "f799a0d65d98a11a0b421d0bb965d4fa4af29eaa4faa6c258d816b56e8432d47",
+      "provider_beacon_observed": false
+    },
+    {
+      "path": "/connect",
+      "accept": "text/html",
+      "status": 200,
+      "selected_headers": {
+        "Content-Type": "text/html",
+        "CF-Cache-Status": "HIT",
+        "Cache-Control": "public, max-age=0, must-revalidate, no-transform",
+        "ETag": "\"7eeb575708f972a2a905860f3660726c\"",
+        "Strict-Transport-Security": "max-age=31536000",
+        "Server": "cloudflare"
+      },
+      "sha256": "bd934bfbee9448a868a3b8e1760629e7fcd442eadfdc6c46ceba4aba4e5d71f4",
+      "artifact_sha256": "bd934bfbee9448a868a3b8e1760629e7fcd442eadfdc6c46ceba4aba4e5d71f4",
+      "provider_beacon_observed": false
+    },
+    {
+      "path": "/worlds",
+      "accept": "text/html",
+      "status": 200,
+      "selected_headers": {
+        "Content-Type": "text/html",
+        "CF-Cache-Status": "HIT",
+        "Cache-Control": "public, max-age=0, must-revalidate, no-transform",
+        "ETag": "\"36dd056dab31086f999fcc92b20a3fd4\"",
+        "Strict-Transport-Security": "max-age=31536000",
+        "Server": "cloudflare"
+      },
+      "sha256": "1fd24c5735c9b75dd2a43966b36005f3d32dc1b361c3fbcd2741f75d2c4ece2e",
+      "artifact_sha256": "1fd24c5735c9b75dd2a43966b36005f3d32dc1b361c3fbcd2741f75d2c4ece2e",
+      "provider_beacon_observed": false
+    },
+    {
+      "path": "/resources",
+      "accept": "text/html",
+      "status": 200,
+      "selected_headers": {
+        "Content-Type": "text/html",
+        "CF-Cache-Status": "HIT",
+        "Cache-Control": "public, max-age=0, must-revalidate, no-transform",
+        "ETag": "\"6774d95ec33122200daccde12dbae2f4\"",
+        "Strict-Transport-Security": "max-age=31536000",
+        "Server": "cloudflare"
+      },
+      "sha256": "860c54112d54d83a85db2456bbd845839ba061cbb70536a07194c68fbfe097d8",
+      "artifact_sha256": "860c54112d54d83a85db2456bbd845839ba061cbb70536a07194c68fbfe097d8",
+      "provider_beacon_observed": false
+    },
+    {
+      "path": "/research",
+      "accept": "text/html",
+      "status": 200,
+      "selected_headers": {
+        "Content-Type": "text/html",
+        "CF-Cache-Status": "HIT",
+        "Cache-Control": "public, max-age=0, must-revalidate, no-transform",
+        "ETag": "\"b21d254ac7f521f567c0cd6b7ac7b2c5\"",
+        "Strict-Transport-Security": "max-age=31536000",
+        "Server": "cloudflare"
+      },
+      "sha256": "f3f10e48871d90473b0d68fe29e95262e1d7d0416e8081e3c6766ca3546f607e",
+      "artifact_sha256": "f3f10e48871d90473b0d68fe29e95262e1d7d0416e8081e3c6766ca3546f607e",
+      "provider_beacon_observed": false
+    },
+    {
+      "path": "/resources.json",
+      "accept": "application/json",
+      "status": 200,
+      "selected_headers": {
+        "Content-Type": "application/json",
+        "CF-Cache-Status": "HIT",
+        "Cache-Control": "public, max-age=300",
+        "ETag": "\"4acc791ea0c51be82d423199541fabc6\"",
+        "Strict-Transport-Security": "max-age=31536000",
+        "Server": "cloudflare"
+      },
+      "sha256": "9198302d17076a65edf31d4d888caa4a00f3f90275cc5250b4dda261c751d66a",
+      "artifact_sha256": "9198302d17076a65edf31d4d888caa4a00f3f90275cc5250b4dda261c751d66a",
+      "provider_beacon_observed": false
+    },
+    {
+      "path": "/llms.txt",
+      "accept": "text/plain",
+      "status": 200,
+      "selected_headers": {
+        "Content-Type": "text/plain",
+        "CF-Cache-Status": "HIT",
+        "Cache-Control": "public, max-age=0, must-revalidate",
+        "ETag": "\"ee9824e1588f886a5cc67c40b74bdee9\"",
+        "Strict-Transport-Security": "max-age=31536000",
+        "Server": "cloudflare"
+      },
+      "sha256": "6b48528ca54a3219e67e58c7e663ad580601b6cb6a16952b37fe5e8e0aa93812",
+      "artifact_sha256": "6b48528ca54a3219e67e58c7e663ad580601b6cb6a16952b37fe5e8e0aa93812",
+      "provider_beacon_observed": false
+    }
+  ],
+  "http_redirect": {
+    "path": "http://agentciv.io/",
+    "method": "HEAD",
+    "user_agent": "AgentCivDeploymentVerification/0.1",
+    "status": 301,
+    "location": "https://agentciv.io/"
+  }
+}

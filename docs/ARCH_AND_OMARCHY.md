@@ -1,6 +1,6 @@
 # Arch Linux and Omarchy
 
-Status: a source checkout is tested on Arch Linux, the base of [Omarchy](https://omarchy.org/). Native release binaries are not published, so there is no tested installation from a release. The hosts, examples, and utilities run from a checkout built locally.
+Status: a source checkout is tested on Arch Linux, the base of [Omarchy](https://omarchy.org/). Native [v0.1.0](https://github.com/blisspixel/AgentCiv/releases/tag/v0.1.0) is also published for GNU Linux x64/ARM64 with glibc 2.38 or newer, with actual download execution tested on Ubuntu 24.04. This guide records the separate Arch source path; it does not claim a native-release smoke run on a physical Omarchy installation. See the [installation guide](INSTALLATION_DESIGN.md) and [native release record](NATIVE_RELEASE_2026_10_11.md).
 
 ## What was tested
 
