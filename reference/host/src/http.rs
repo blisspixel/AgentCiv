@@ -55,7 +55,9 @@ async fn discover(State(app): State<Arc<App>>) -> Response {
             "retention_seconds": app.retention_seconds
         },
         "authentication": {"events": "bearer", "submit": "bearer", "collaborate": "bearer"},
-        "limits": {"max_payload_bytes": app.max_payload}
+        "limits": {"max_payload_bytes": app.max_payload,
+            "max_cursor_principals": crate::store::MAX_CURSOR_OWNERS,
+            "max_cursors_per_principal": crate::store::MAX_CURSORS_PER_OWNER}
     }))
     .into_response()
 }
@@ -204,6 +206,11 @@ async fn events(
             StatusCode::GONE,
             "cursor_expired",
             "Cursor can no longer resume",
+        ),
+        Ok(Err(ReadError::Capacity)) => problem(
+            StatusCode::TOO_MANY_REQUESTS,
+            "cursor_capacity",
+            "Caller cursor capacity is exhausted",
         ),
         Ok(Err(ReadError::Storage)) | Err(_) => problem(
             StatusCode::INTERNAL_SERVER_ERROR,

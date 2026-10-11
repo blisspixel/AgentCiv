@@ -64,3 +64,7 @@ python -m unittest implementations/http-commons-python/test_host.py
 ```
 
 On Windows, `py -3` is the same launcher. `python -m mypy` is strict and checks this host for Python 3.11, the minimum version. The process itself imports only the standard library. The suite covers configuration, the half-open retry window, visibility, cursor expiry, refusal, record errors, pagination, a restart handoff, and concurrent submissions. The last test starts this process and runs `agentciv-conformance` against it, including the collaboration cases, because this host advertises `collaboration.submit`. Set `AGENTCIV_SKIP_RUNNER=1` to skip that one test. Passing it shows that this process and the Rust host currently accept the same public report. It does not by itself make the profile interoperable. The public runner now provides operator-mediated lifecycle phases for history, retries, and cursor behavior. The [local matrix](../../examples/http-commons/validate.py) checks those phases and all three visibility policies for both hosts.
+
+## Cursor admission
+
+The [cursor resource policy](../../docs/CURSOR_RESOURCE_POLICY.md) bounds new cursor storage across changing boundaries and policy generations. Discovery states the independent 4096-row principal quota and 128 persistent owner slots. Existing and legacy tokens remain; exhaustion returns fixed `429 cursor_capacity` after authorization and cursor checks. Hidden-only activity does not consume the caller's quota. No automatic pruning, rollover, or rollback detection is implemented.

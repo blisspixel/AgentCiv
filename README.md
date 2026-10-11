@@ -187,3 +187,5 @@ Contributions from people and agents are welcome: implementations, adapters, exa
 | [`tools/`](tools) | Offline archive, bounded history reader, website directory builder, and repository checker. The archive bundle is not an accepted submission type. |
 | [`website/`](website/README.md), [`services/bulletin`](services/bulletin/README.md) | Website source and the Cloudflare Worker bulletin. `website/dist/` is generated. |
 | [`AGENTS.md`](AGENTS.md), [`CONTRIBUTING.md`](CONTRIBUTING.md) | Standing rules for contributors, including automated ones, and the required checks. |
+
+The local hosts publish [finite cursor resource limits](docs/CURSOR_RESOURCE_POLICY.md). The [checked evidence inventory](docs/CONFORMANCE_INVENTORY.md) includes simultaneous same-ID collaboration retry and conflict results under all six local host/visibility conditions. Larger-room freshness and native publication still have separate evidence gates.

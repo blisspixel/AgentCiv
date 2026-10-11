@@ -1,30 +1,34 @@
 {
   "inventory_version": "1",
   "status": "blocked_release_review",
-  "source_lock_sha256": "fbd440a02a9a365ab6612a034e18870c6685e004262ed2455e91b40bd5d7be97",
+  "source_lock_sha256": "a0e25330918cad0137967dc9db5829a0eaa49c26ae4752d0d744e7bf756e266f",
   "toolchain_file_sha256": "dae18a8743f89707783c1d873595570f29618d0c20f022f8dced263982bba74e",
-  "notices_sha256": "426bea556959c99a0478fe476fe19dcaeb04a189aaa94e5233f03ba607ade13c",
+  "notices_sha256": "f421a389c63ae43c7baadd6bf40cf58b4b52d0aecead310ccc48252bcfc5576a",
   "scope": "All Cargo.lock registry packages, including build-only and target-specific crates; cached host Rust compiler, standard library, Cargo, Clippy, and rustfmt notices. No per-binary linkage or completed license review claim.",
   "source_method": {
     "full_metadata_command": "cargo metadata --offline --locked --format-version 1",
-    "full_metadata_status": "not_rerun_after_supplemental_archive_review; original attempt lacked cached crate sources",
+    "full_metadata_status": "succeeded_offline_locked_2026_10_11_all_platform_dependencies",
     "available_metadata_command": "cargo metadata --offline --locked --format-version 1 --filter-platform x86_64-pc-windows-msvc",
     "available_metadata_status": "succeeded",
     "notice_collection": "License, licence, copying, notice, copyright, unlicense and authors files, plus files under licenses/licences directories. Original bytes are preserved. README license claims are not substituted for license text.",
-    "cached_archive_verification": "Every available cached registry archive matched its Cargo.lock SHA-256; copied crate notice bytes were compared with the corresponding locked archive member.",
+    "cached_archive_verification": "Every current locked registry archive matched Cargo.lock SHA-256. Retained archive-sourced notice slices were checked against their member bytes; new package notices were read from locked archives without extraction. Repository supplements remain separately identified.",
     "supplemental_review": "Two locked registry archives were SHA-256 verified and read without extraction. Missing published license texts were supplemented from exact crate VCS commits; their repository provenance is separate from archive membership. Complete MIT text already in r-efi AUTHORS was reclassified. JSONschema root workspace inheritance and identical same-commit cached sibling text were verified."
   },
   "counts": {
-    "locked_registry_packages": 240,
-    "available_crate_sources": 240,
-    "crate_source_notice_files": 430,
+    "locked_registry_packages": 251,
+    "available_crate_sources": 251,
+    "crate_source_notice_files": 457,
     "compiler_notice_files": 21,
     "supplemental_repository_notice_files": 10,
-    "total_embedded_source_sections": 461
+    "total_embedded_source_sections": 478
   },
   "workspace_packages_excluded_from_third_party_inventory": [
     {
       "name": "agentciv-archive",
+      "version": "0.1.0"
+    },
+    {
+      "name": "agentciv-bulletin",
       "version": "0.1.0"
     },
     {
@@ -33,6 +37,10 @@
     },
     {
       "name": "agentciv-conformance",
+      "version": "0.1.0"
+    },
+    {
+      "name": "agentciv-directory",
       "version": "0.1.0"
     },
     {
@@ -147,6 +155,35 @@
       "notice_status": "source_notice_files_found_review_required",
       "included_in_native_windows_metadata": true,
       "cached_archive_verified": true
+    },
+    {
+      "name": "async-trait",
+      "version": "0.1.92",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_archive_sha256": "82f6aeea286b8eb4dd3431a1be1b59d290ace00f5bfd8e2a159bc2a05e2c1667",
+      "source_available": true,
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "source_manifest": {
+        "filename": "Cargo.toml",
+        "sha256": "8a32a3c4df044e9371308c8040d6db97279683fb86284ff01b909ea1985bccfb"
+      },
+      "source_notices": [
+        {
+          "filename": "LICENSE-APACHE",
+          "sha256": "62c7a1e35f56406896d7aa7ca52d0cc0d272ac022b5d2796e7d6905db8a3636a",
+          "byte_offset": 19269791,
+          "byte_length": 9723,
+          "kind": "source_notice_pending_applicability_review"
+        },
+        {
+          "filename": "LICENSE-MIT",
+          "sha256": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3",
+          "byte_offset": 19279561,
+          "byte_length": 1023,
+          "kind": "source_notice_pending_applicability_review"
+        }
+      ]
     },
     {
       "name": "atomic-waker",
@@ -734,6 +771,28 @@
       "notice_status": "source_notice_files_found_review_required",
       "included_in_native_windows_metadata": true,
       "cached_archive_verified": true
+    },
+    {
+      "name": "chrono",
+      "version": "0.4.45",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_archive_sha256": "1aa79e62e7697b8e29b513a68abacf485adcd1fe8284a4316c5ae868e6633327",
+      "source_available": true,
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "source_manifest": {
+        "filename": "Cargo.toml",
+        "sha256": "89b7bdca1f8745c0894ff039971c04fc51e444becbc9eb87598509a32955b1b5"
+      },
+      "source_notices": [
+        {
+          "filename": "LICENSE.txt",
+          "sha256": "946c9835d8034d24404f8cfec5f4654cee5dad17e944afc3d06d742cf2882831",
+          "byte_offset": 19280626,
+          "byte_length": 12307,
+          "kind": "source_notice_pending_applicability_review"
+        }
+      ]
     },
     {
       "name": "cmake",
@@ -1549,6 +1608,35 @@
       "notice_status": "source_notice_files_found_review_required",
       "included_in_native_windows_metadata": true,
       "cached_archive_verified": true
+    },
+    {
+      "name": "futures-macro",
+      "version": "0.3.34",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_archive_sha256": "9fb9654ba8355388abeb8dcb4fc62f511300867002afc858860463bdd9fe0c44",
+      "source_available": true,
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "source_manifest": {
+        "filename": "Cargo.toml",
+        "sha256": "fdb87996803b9b64594a0849d2b396f2581d79451adb8f1b91ed56da8c9421c3"
+      },
+      "source_notices": [
+        {
+          "filename": "LICENSE-APACHE",
+          "sha256": "275c491d6d1160553c32fd6127061d7f9606c3ea25abfad6ca3f6ed088785427",
+          "byte_offset": 19292985,
+          "byte_length": 10874,
+          "kind": "source_notice_pending_applicability_review"
+        },
+        {
+          "filename": "LICENSE-MIT",
+          "sha256": "6652c868f35dfe5e8ef636810a4e576b9d663f3a17fb0f5613ad73583e1b88fd",
+          "byte_offset": 19303908,
+          "byte_length": 1094,
+          "kind": "source_notice_pending_applicability_review"
+        }
+      ]
     },
     {
       "name": "futures-sink",
@@ -2625,35 +2713,32 @@
     },
     {
       "name": "js-sys",
-      "version": "0.3.105",
+      "version": "0.3.106",
       "source": "registry+https://github.com/rust-lang/crates.io-index",
-      "registry_archive_sha256": "ce57d20d1ea864ce2ac172ab472d409214f4fd359f0b2a2775abdf522e2af99e",
+      "registry_archive_sha256": "7883d941dae510fb2d978fc3fe018c71c9e2892fd38854de3e8b92c2e5ad9cc5",
       "source_available": true,
       "license": "MIT OR Apache-2.0",
       "license_file": null,
       "source_manifest": {
         "filename": "Cargo.toml",
-        "sha256": "776f33f8296fb276bf098c280fde5063fa413c3d093b74c7f05f47d96b8f2e0a"
+        "sha256": "cdd44598eabfed5a9ada1ab03c32445c2f895389997454e3f9901d4bb05db9c2"
       },
       "source_notices": [
         {
           "filename": "LICENSE-APACHE",
           "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
-          "byte_offset": 743628,
+          "byte_offset": 19305048,
           "byte_length": 10847,
-          "kind": "license_text"
+          "kind": "source_notice_pending_applicability_review"
         },
         {
           "filename": "LICENSE-MIT",
           "sha256": "378f5840b258e2779c39418f3f2d7b2ba96f1c7917dd6be0713f88305dbda397",
-          "byte_offset": 754549,
+          "byte_offset": 19315938,
           "byte_length": 1057,
-          "kind": "license_text"
+          "kind": "source_notice_pending_applicability_review"
         }
-      ],
-      "notice_status": "source_notice_files_found_review_required",
-      "included_in_native_windows_metadata": false,
-      "cached_archive_verified": true
+      ]
     },
     {
       "name": "jsonschema",
@@ -3019,6 +3104,35 @@
       "notice_status": "source_notice_files_found_review_required",
       "included_in_native_windows_metadata": true,
       "cached_archive_verified": true
+    },
+    {
+      "name": "matchit",
+      "version": "0.7.3",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_archive_sha256": "0e7465ac9959cc2b1404e8e2367b43684a6d13790fe23056cc8c6c5a6b7bcb94",
+      "source_available": true,
+      "license": "MIT AND BSD-3-Clause",
+      "license_file": null,
+      "source_manifest": {
+        "filename": "Cargo.toml",
+        "sha256": "fb280024141e903fabc581ff725f3ce87ff49d186db20a30cb30293f5b0f3d39"
+      },
+      "source_notices": [
+        {
+          "filename": "LICENSE",
+          "sha256": "de701d0618d694feb1af90f02181a1763d9b0bdeb70a3a592781e529077dba65",
+          "byte_offset": 19317033,
+          "byte_length": 1071,
+          "kind": "source_notice_pending_applicability_review"
+        },
+        {
+          "filename": "LICENSE.httprouter",
+          "sha256": "162ce11ad71338d0a0c6ebaf5c48af72c6ae237b468859d3656fe2d9ed3f3a85",
+          "byte_offset": 19318153,
+          "byte_length": 1522,
+          "kind": "source_notice_pending_applicability_review"
+        }
+      ]
     },
     {
       "name": "matchit",
@@ -3620,6 +3734,64 @@
       "notice_status": "source_notice_files_found_review_required",
       "included_in_native_windows_metadata": true,
       "cached_archive_verified": true
+    },
+    {
+      "name": "pin-project",
+      "version": "1.1.13",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_archive_sha256": "2466b2336ed02bcdca6b294417127b90ec92038d1d5c4fbeac971a922e0e0924",
+      "source_available": true,
+      "license": "Apache-2.0 OR MIT",
+      "license_file": null,
+      "source_manifest": {
+        "filename": "Cargo.toml",
+        "sha256": "e980de84ace5fb6bccf2e93bb65567966dd8c1b2420c6b32cfb80ffdd968660b"
+      },
+      "source_notices": [
+        {
+          "filename": "LICENSE-APACHE",
+          "sha256": "0d542e0c8804e39aa7f37eb00da5a762149dc682d7829451287e11b938e94594",
+          "byte_offset": 19319725,
+          "byte_length": 10174,
+          "kind": "source_notice_pending_applicability_review"
+        },
+        {
+          "filename": "LICENSE-MIT",
+          "sha256": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3",
+          "byte_offset": 19329946,
+          "byte_length": 1023,
+          "kind": "source_notice_pending_applicability_review"
+        }
+      ]
+    },
+    {
+      "name": "pin-project-internal",
+      "version": "1.1.13",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_archive_sha256": "c96395f0a926bc13b1c17622aaddda1ecb55d49c8f1bf9777e4d877800a43f8b",
+      "source_available": true,
+      "license": "Apache-2.0 OR MIT",
+      "license_file": null,
+      "source_manifest": {
+        "filename": "Cargo.toml",
+        "sha256": "97da4056c49820d7ce1ffcf63bf61c0b9511efcad06bf0d06101e481fe228ca7"
+      },
+      "source_notices": [
+        {
+          "filename": "LICENSE-APACHE",
+          "sha256": "0d542e0c8804e39aa7f37eb00da5a762149dc682d7829451287e11b938e94594",
+          "byte_offset": 19331028,
+          "byte_length": 10174,
+          "kind": "source_notice_pending_applicability_review"
+        },
+        {
+          "filename": "LICENSE-MIT",
+          "sha256": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3",
+          "byte_offset": 19341258,
+          "byte_length": 1023,
+          "kind": "source_notice_pending_applicability_review"
+        }
+      ]
     },
     {
       "name": "pin-project-lite",
@@ -5068,6 +5240,28 @@
       "notice_status": "source_notice_files_found_review_required",
       "included_in_native_windows_metadata": true,
       "cached_archive_verified": true
+    },
+    {
+      "name": "serde-wasm-bindgen",
+      "version": "0.6.5",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_archive_sha256": "8302e169f0eddcc139c70f139d19d6467353af16f9fce27e8c30158036a1e16b",
+      "source_available": true,
+      "license": "MIT",
+      "license_file": null,
+      "source_manifest": {
+        "filename": "Cargo.toml",
+        "sha256": "74722291b9bdd17e8a0efa4544bdae216a47ca8d57906611626a058bbbcd66d3"
+      },
+      "source_notices": [
+        {
+          "filename": "LICENSE",
+          "sha256": "62a81c033fcf173693b50f068939cd903d8a414d915776ff1fef5d5869aabcb7",
+          "byte_offset": 19342330,
+          "byte_length": 1094,
+          "kind": "source_notice_pending_applicability_review"
+        }
+      ]
     },
     {
       "name": "serde_core",
@@ -6607,195 +6801,206 @@
     },
     {
       "name": "wasm-bindgen",
-      "version": "0.2.128",
+      "version": "0.2.129",
       "source": "registry+https://github.com/rust-lang/crates.io-index",
-      "registry_archive_sha256": "aecb87a33d3b0c5e3b7aa46336eaf486cffafbd281b195e4c8b80d50df2351bf",
+      "registry_archive_sha256": "9bb54f33acc68fd454578d9820b0bde1a1a3d17aa17bb7b6595806d02886d409",
       "source_available": true,
       "license": "MIT OR Apache-2.0",
       "license_file": null,
       "source_manifest": {
         "filename": "Cargo.toml",
-        "sha256": "85ad9af879473cc05ebba118a178c45a075e7c1003dd2d0e3f3f13c4d0122c5c"
+        "sha256": "96843908592c36f81e731f634488401256cc45e23edbf6543895b2bd79813b32"
       },
       "source_notices": [
         {
           "filename": "LICENSE-APACHE",
           "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
-          "byte_offset": 1823406,
+          "byte_offset": 19343476,
           "byte_length": 10847,
-          "kind": "license_text"
+          "kind": "source_notice_pending_applicability_review"
         },
         {
           "filename": "LICENSE-MIT",
           "sha256": "378f5840b258e2779c39418f3f2d7b2ba96f1c7917dd6be0713f88305dbda397",
-          "byte_offset": 1834333,
+          "byte_offset": 19354372,
           "byte_length": 1057,
-          "kind": "license_text"
+          "kind": "source_notice_pending_applicability_review"
         }
-      ],
-      "notice_status": "source_notice_files_found_review_required",
-      "included_in_native_windows_metadata": false,
-      "cached_archive_verified": true
+      ]
     },
     {
       "name": "wasm-bindgen-futures",
-      "version": "0.4.78",
+      "version": "0.4.79",
       "source": "registry+https://github.com/rust-lang/crates.io-index",
-      "registry_archive_sha256": "6ef4c5d3d2cdf5c54f4231181768f5510842e350db025faf1f7163b1030ed928",
+      "registry_archive_sha256": "3cbab34de2d982e9b48e18d216d04c4a6f641066ff19ffb699980f591ee3610e",
       "source_available": true,
       "license": "MIT OR Apache-2.0",
       "license_file": null,
       "source_manifest": {
         "filename": "Cargo.toml",
-        "sha256": "e2a56811aa8b288c763d42bd872e3660b9519662614905fe835c66e525a86c49"
+        "sha256": "b3ad8cff9fe068a9a483c74c1c085c9733c8d70f35b4a2bedd5c4fa70373d69d"
       },
       "source_notices": [
         {
           "filename": "LICENSE-APACHE",
           "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
-          "byte_offset": 1835480,
+          "byte_offset": 19355488,
           "byte_length": 10847,
-          "kind": "license_text"
+          "kind": "source_notice_pending_applicability_review"
         },
         {
           "filename": "LICENSE-MIT",
           "sha256": "378f5840b258e2779c39418f3f2d7b2ba96f1c7917dd6be0713f88305dbda397",
-          "byte_offset": 1846414,
+          "byte_offset": 19366391,
           "byte_length": 1057,
-          "kind": "license_text"
+          "kind": "source_notice_pending_applicability_review"
         }
-      ],
-      "notice_status": "source_notice_files_found_review_required",
-      "included_in_native_windows_metadata": false,
-      "cached_archive_verified": true
+      ]
     },
     {
       "name": "wasm-bindgen-macro",
-      "version": "0.2.128",
+      "version": "0.2.129",
       "source": "registry+https://github.com/rust-lang/crates.io-index",
-      "registry_archive_sha256": "a690d511e3c1a8b3a55e33511e3c2c00c78415cd23650f32b808627f5696b9ed",
+      "registry_archive_sha256": "2e29d0c35b16e224a7eeb5cd2d25e3e1968fbd65604117b44d3b789d00ee8535",
       "source_available": true,
       "license": "MIT OR Apache-2.0",
       "license_file": null,
       "source_manifest": {
         "filename": "Cargo.toml",
-        "sha256": "fd43a21203874b3b68ec7306a935fdee2835ff5c01645b20f3e8bcba8c100019"
+        "sha256": "a5d61198c3fc14bdf36f57f0e6bffedc824570358329cd4059693471cff958f8"
       },
       "source_notices": [
         {
           "filename": "LICENSE-APACHE",
           "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
-          "byte_offset": 1847560,
+          "byte_offset": 19367506,
           "byte_length": 10847,
-          "kind": "license_text"
+          "kind": "source_notice_pending_applicability_review"
         },
         {
           "filename": "LICENSE-MIT",
           "sha256": "378f5840b258e2779c39418f3f2d7b2ba96f1c7917dd6be0713f88305dbda397",
-          "byte_offset": 1858493,
+          "byte_offset": 19378408,
           "byte_length": 1057,
-          "kind": "license_text"
+          "kind": "source_notice_pending_applicability_review"
         }
-      ],
-      "notice_status": "source_notice_files_found_review_required",
-      "included_in_native_windows_metadata": false,
-      "cached_archive_verified": true
+      ]
     },
     {
       "name": "wasm-bindgen-macro-support",
-      "version": "0.2.128",
+      "version": "0.2.129",
       "source": "registry+https://github.com/rust-lang/crates.io-index",
-      "registry_archive_sha256": "411e4887f0071ef2d2164a9d5fdf2d20efbef78fccd3a78b0c10a1dc5295e48a",
+      "registry_archive_sha256": "6f501a8bc3719dba86ef8ae4728879c08001bea749eb1333ac5b91e040e2a6b7",
       "source_available": true,
       "license": "MIT OR Apache-2.0",
       "license_file": null,
       "source_manifest": {
         "filename": "Cargo.toml",
-        "sha256": "a0761ae800d6bfb185ff555a55555d4be59813a7a17aeb879b5191cbe1968402"
+        "sha256": "c17f86106f0dd0d2afb678740fccee4b867f62dd1a4fdd3bf22d1f25eadfe11c"
       },
       "source_notices": [
         {
           "filename": "LICENSE-APACHE",
           "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
-          "byte_offset": 1859647,
+          "byte_offset": 19379531,
           "byte_length": 10847,
-          "kind": "license_text"
+          "kind": "source_notice_pending_applicability_review"
         },
         {
           "filename": "LICENSE-MIT",
           "sha256": "378f5840b258e2779c39418f3f2d7b2ba96f1c7917dd6be0713f88305dbda397",
-          "byte_offset": 1870588,
+          "byte_offset": 19390441,
           "byte_length": 1057,
-          "kind": "license_text"
+          "kind": "source_notice_pending_applicability_review"
         }
-      ],
-      "notice_status": "source_notice_files_found_review_required",
-      "included_in_native_windows_metadata": false,
-      "cached_archive_verified": true
+      ]
     },
     {
       "name": "wasm-bindgen-shared",
-      "version": "0.2.128",
+      "version": "0.2.129",
       "source": "registry+https://github.com/rust-lang/crates.io-index",
-      "registry_archive_sha256": "81941cd78d0c92026c33e5e01312845a4cb1e9af3407f9134b100dd03144103e",
+      "registry_archive_sha256": "23f0c9c52aa7cd7d77769a4cfe2a9adb1b331f489a41d912ce14513d5ab995c6",
       "source_available": true,
       "license": "MIT OR Apache-2.0",
       "license_file": null,
       "source_manifest": {
         "filename": "Cargo.toml",
-        "sha256": "318f4a825170630e74a456d42ca1e8a7689c4b80d2d75104bd07a70cb290f833"
+        "sha256": "0c881c48b419371c15f715f2909ed2e5291601e33e9fd87a356a3d9eb998e611"
       },
       "source_notices": [
         {
           "filename": "LICENSE-APACHE",
           "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
-          "byte_offset": 1871735,
+          "byte_offset": 19391557,
           "byte_length": 10847,
-          "kind": "license_text"
+          "kind": "source_notice_pending_applicability_review"
         },
         {
           "filename": "LICENSE-MIT",
           "sha256": "378f5840b258e2779c39418f3f2d7b2ba96f1c7917dd6be0713f88305dbda397",
-          "byte_offset": 1882669,
+          "byte_offset": 19402460,
           "byte_length": 1057,
-          "kind": "license_text"
+          "kind": "source_notice_pending_applicability_review"
         }
-      ],
-      "notice_status": "source_notice_files_found_review_required",
-      "included_in_native_windows_metadata": false,
-      "cached_archive_verified": true
+      ]
+    },
+    {
+      "name": "wasm-streams",
+      "version": "0.7.0",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_archive_sha256": "94ce9bdac782bbca70d6ac48a3ba18b873c848a706d6dc3bd9a03c1b96f04693",
+      "source_available": true,
+      "license": "MIT OR Apache-2.0",
+      "license_file": null,
+      "source_manifest": {
+        "filename": "Cargo.toml",
+        "sha256": "815a501f8d72ff79815311cf023e046f6a1bc2b4b40d853997d2865ef328cda0"
+      },
+      "source_notices": [
+        {
+          "filename": "LICENSE-APACHE",
+          "sha256": "62c7a1e35f56406896d7aa7ca52d0cc0d272ac022b5d2796e7d6905db8a3636a",
+          "byte_offset": 19403567,
+          "byte_length": 9723,
+          "kind": "source_notice_pending_applicability_review"
+        },
+        {
+          "filename": "LICENSE-MIT",
+          "sha256": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3",
+          "byte_offset": 19413337,
+          "byte_length": 1023,
+          "kind": "source_notice_pending_applicability_review"
+        }
+      ]
     },
     {
       "name": "web-sys",
-      "version": "0.3.105",
+      "version": "0.3.106",
       "source": "registry+https://github.com/rust-lang/crates.io-index",
-      "registry_archive_sha256": "9fbddc4a036f00ec4f18c83445bd3115cb306a91da554919a099d9222fe4a7f8",
+      "registry_archive_sha256": "88261b9deccee56594c11a3460c462c41f58d148598fe70ad77070126a68aba4",
       "source_available": true,
       "license": "MIT OR Apache-2.0",
       "license_file": null,
       "source_manifest": {
         "filename": "Cargo.toml",
-        "sha256": "6354a2457483b59f61584775102f67ee2ec0a6ec29a651066a2dcb6abfcd6e73"
+        "sha256": "96caa0cf134f76c41d8f473b2a85276b896616baf14c298dcc588fbc83f31b8a"
       },
       "source_notices": [
         {
           "filename": "LICENSE-APACHE",
           "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
-          "byte_offset": 1883804,
+          "byte_offset": 19414407,
           "byte_length": 10847,
-          "kind": "license_text"
+          "kind": "source_notice_pending_applicability_review"
         },
         {
           "filename": "LICENSE-MIT",
           "sha256": "378f5840b258e2779c39418f3f2d7b2ba96f1c7917dd6be0713f88305dbda397",
-          "byte_offset": 1894726,
+          "byte_offset": 19425298,
           "byte_length": 1057,
-          "kind": "license_text"
+          "kind": "source_notice_pending_applicability_review"
         }
-      ],
-      "notice_status": "source_notice_files_found_review_required",
-      "included_in_native_windows_metadata": false,
-      "cached_archive_verified": true
+      ]
     },
     {
       "name": "web-time",
@@ -7317,6 +7522,72 @@
       "cached_archive_verified": true
     },
     {
+      "name": "worker",
+      "version": "0.8.7",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_archive_sha256": "4057bce8ec66c80b7e270d884c312e2a4ff60eb997fd02936656106c06a964e5",
+      "source_available": true,
+      "license": "Apache-2.0",
+      "license_file": null,
+      "source_manifest": {
+        "filename": "Cargo.toml",
+        "sha256": "64d81f4dcb2aa155207612c058e628a56d981d05813c32b69eeec6c8d8ca67c2"
+      },
+      "source_notices": [
+        {
+          "filename": "LICENSE",
+          "sha256": "62c7a1e35f56406896d7aa7ca52d0cc0d272ac022b5d2796e7d6905db8a3636a",
+          "byte_offset": 19426392,
+          "byte_length": 9723,
+          "kind": "source_notice_pending_applicability_review"
+        }
+      ]
+    },
+    {
+      "name": "worker-macros",
+      "version": "0.8.7",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_archive_sha256": "f3d7389670b55aab89760be149007aeff773cdad7b650d807f7fb556d04bb304",
+      "source_available": true,
+      "license": "Apache-2.0",
+      "license_file": null,
+      "source_manifest": {
+        "filename": "Cargo.toml",
+        "sha256": "b11eec1f2b6a812066bcb364037cb5d26f56cf34e6b1c62dca638ba0eb81d914"
+      },
+      "source_notices": [
+        {
+          "filename": "LICENSE",
+          "sha256": "62c7a1e35f56406896d7aa7ca52d0cc0d272ac022b5d2796e7d6905db8a3636a",
+          "byte_offset": 19436159,
+          "byte_length": 9723,
+          "kind": "source_notice_pending_applicability_review"
+        }
+      ]
+    },
+    {
+      "name": "worker-sys",
+      "version": "0.8.7",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "registry_archive_sha256": "6a440092e7ae7c5feb5507fbdc6aee0cc241d132757c83e1729766a24cddff82",
+      "source_available": true,
+      "license": "Apache-2.0",
+      "license_file": null,
+      "source_manifest": {
+        "filename": "Cargo.toml",
+        "sha256": "671dada15dfca678c5fac6b4c43984f3c1eca43ffefb9dfccb7dc5b68e2fd7be"
+      },
+      "source_notices": [
+        {
+          "filename": "LICENSE",
+          "sha256": "62c7a1e35f56406896d7aa7ca52d0cc0d272ac022b5d2796e7d6905db8a3636a",
+          "byte_offset": 19445923,
+          "byte_length": 9723,
+          "kind": "source_notice_pending_applicability_review"
+        }
+      ]
+    },
+    {
       "name": "writeable",
       "version": "0.6.4",
       "source": "registry+https://github.com/rust-lang/crates.io-index",
@@ -7832,10 +8103,43 @@
       "detail": "Filename-based source notice collection preserves available texts but does not establish that every bundled or embedded third-party component and source header is covered. Review crate notices and declared compound licenses before release."
     }
   ],
-  "source_review_date": "2026-10-01",
+  "source_review_date": "2026-10-11",
   "previous_notice_prefix": {
-    "byte_length": 19233715,
-    "sha256": "fd318b82f6ac8ad230e74abda9f73013149941ac696893cf3e2d537698ba5526",
-    "preservation": "All original notice bytes and offsets retained; supplemental source sections appended."
+    "byte_length": 19269741,
+    "sha256": "426bea556959c99a0478fe476fe19dcaeb04a189aaa94e5233f03ba607ade13c",
+    "preservation": "All previous notice bytes and offsets retained; exact-lock package updates appended. Removed versions remain in the historical prefix, without current applicability claims."
+  },
+  "refresh_2026_10_11": {
+    "new_or_updated_packages": [
+      "async-trait:0.1.92",
+      "chrono:0.4.45",
+      "futures-macro:0.3.34",
+      "js-sys:0.3.106",
+      "matchit:0.7.3",
+      "pin-project:1.1.13",
+      "pin-project-internal:1.1.13",
+      "serde-wasm-bindgen:0.6.5",
+      "wasm-bindgen:0.2.129",
+      "wasm-bindgen-futures:0.4.79",
+      "wasm-bindgen-macro:0.2.129",
+      "wasm-bindgen-macro-support:0.2.129",
+      "wasm-bindgen-shared:0.2.129",
+      "wasm-streams:0.7.0",
+      "web-sys:0.3.106",
+      "worker:0.8.7",
+      "worker-macros:0.8.7",
+      "worker-sys:0.8.7"
+    ],
+    "packages_without_selected_notice_files": [],
+    "removed_or_superseded_packages": [
+      "js-sys:0.3.105",
+      "wasm-bindgen:0.2.128",
+      "wasm-bindgen-futures:0.4.78",
+      "wasm-bindgen-macro:0.2.128",
+      "wasm-bindgen-macro-support:0.2.128",
+      "wasm-bindgen-shared:0.2.128",
+      "web-sys:0.3.105"
+    ],
+    "scope": "Mechanical exact-lock and source-byte refresh. Native toolchain and source notice applicability reviews remain blocking."
   }
 }

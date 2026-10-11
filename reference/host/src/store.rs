@@ -10,11 +10,18 @@ use serde_json::{Value, json};
 use crate::Visibility;
 
 const PAGE_LIMIT: i64 = 100;
+pub const MAX_CURSOR_OWNERS: i64 = 128;
+pub const MAX_CURSORS_PER_OWNER: i64 = 4096;
+const MAX_CURSOR_OWNER_BYTES: usize = 1024;
+
+#[cfg(test)]
+mod cursor_capacity_tests;
 
 #[derive(Debug)]
 pub enum StoreError {
     Storage,
     WorldMismatch,
+    CursorOwnersFull,
 }
 
 #[derive(Debug)]
@@ -37,6 +44,7 @@ pub enum ReadError {
     Forbidden,
     ForeignCursor,
     Expired,
+    Capacity,
     Storage,
 }
 
@@ -98,6 +106,7 @@ impl Store {
              );
              CREATE INDEX IF NOT EXISTS cursor_boundaries
                ON cursors(principal, revision, last_sequence);
+             CREATE TABLE IF NOT EXISTS cursor_owners (principal TEXT PRIMARY KEY);
              CREATE INDEX IF NOT EXISTS artifact_chains
                ON events(actor, json_extract(message_json, '$.artifact_id'), json_extract(message_json, '$.revision'))
                WHERE json_extract(message_json, '$.type') = 'artifact_revision';",
@@ -230,20 +239,51 @@ impl Store {
     ) -> Result<(), StoreError> {
         let fingerprint = fingerprint(visibility, retention_seconds, grants);
         self.with_write(|conn| {
-            let stored = meta(conn, "policy_fingerprint")?;
-            let revision = meta(conn, "policy_revision")?
-                .and_then(|value| value.parse::<i64>().ok())
-                .unwrap_or(0);
-            let revision = if stored.as_deref() == Some(fingerprint.as_str()) {
-                revision.max(1)
-            } else {
-                revision + 1
-            };
-            put_meta(conn, "policy_fingerprint", &fingerprint)?;
-            put_meta(conn, "policy_revision", &revision.to_string())?;
-            put_meta(conn, "visibility", visibility.as_str())?;
-            put_meta(conn, "retention_seconds", &retention_seconds.to_string())?;
-            Ok(())
+            conn.execute_batch("BEGIN IMMEDIATE")
+                .map_err(|_| StoreError::Storage)?;
+            let outcome = (|| {
+                // Preserve legacy tokens and reserve each known owner's independent quota.
+                conn.execute(
+                    "INSERT OR IGNORE INTO cursor_owners SELECT DISTINCT principal FROM cursors",
+                    [],
+                )
+                .map_err(|_| StoreError::Storage)?;
+                let owners: i64 = conn
+                    .query_row("SELECT COUNT(*) FROM cursor_owners", [], |row| row.get(0))
+                    .map_err(|_| StoreError::Storage)?;
+                if owners > MAX_CURSOR_OWNERS {
+                    return Err(StoreError::CursorOwnersFull);
+                }
+                for (principal, _, _) in grants {
+                    admit_cursor_owner(conn, principal).map_err(|error| match error {
+                        ReadError::Capacity => StoreError::CursorOwnersFull,
+                        _ => StoreError::Storage,
+                    })?;
+                }
+                let stored = meta(conn, "policy_fingerprint")?;
+                let revision = meta(conn, "policy_revision")?
+                    .and_then(|value| value.parse::<i64>().ok())
+                    .unwrap_or(0);
+                let revision = if stored.as_deref() == Some(fingerprint.as_str()) {
+                    revision.max(1)
+                } else {
+                    revision + 1
+                };
+                put_meta(conn, "policy_fingerprint", &fingerprint)?;
+                put_meta(conn, "policy_revision", &revision.to_string())?;
+                put_meta(conn, "visibility", visibility.as_str())?;
+                put_meta(conn, "retention_seconds", &retention_seconds.to_string())?;
+                Ok(())
+            })();
+            match outcome {
+                Ok(()) => conn
+                    .execute_batch("COMMIT")
+                    .map_err(|_| StoreError::Storage),
+                Err(error) => {
+                    let _ = conn.execute_batch("ROLLBACK");
+                    Err(error)
+                }
+            }
         })
     }
 
@@ -268,7 +308,9 @@ impl Store {
 impl From<StoreError> for SubmitError {
     fn from(error: StoreError) -> Self {
         match error {
-            StoreError::Storage | StoreError::WorldMismatch => Self::Storage,
+            StoreError::Storage | StoreError::WorldMismatch | StoreError::CursorOwnersFull => {
+                Self::Storage
+            }
         }
     }
 }
@@ -276,7 +318,9 @@ impl From<StoreError> for SubmitError {
 impl From<StoreError> for CollaborateError {
     fn from(error: StoreError) -> Self {
         match error {
-            StoreError::Storage | StoreError::WorldMismatch => Self::Storage,
+            StoreError::Storage | StoreError::WorldMismatch | StoreError::CursorOwnersFull => {
+                Self::Storage
+            }
         }
     }
 }
@@ -284,7 +328,9 @@ impl From<StoreError> for CollaborateError {
 impl From<StoreError> for ReadError {
     fn from(error: StoreError) -> Self {
         match error {
-            StoreError::Storage | StoreError::WorldMismatch => Self::Storage,
+            StoreError::Storage | StoreError::WorldMismatch | StoreError::CursorOwnersFull => {
+                Self::Storage
+            }
         }
     }
 }
@@ -833,11 +879,9 @@ fn read_page_tx(
             })
             .map_err(|_| ReadError::Storage)?;
         let mut visible = Vec::new();
-        let mut scanned_through = start;
         for row in scanned {
-            let (sequence, actor, event_json, message_json) =
+            let (_sequence, actor, event_json, message_json) =
                 row.map_err(|_| ReadError::Storage)?;
-            scanned_through = sequence;
             if visible_to(current.visibility, principal, &actor, &message_json) {
                 visible.push(event_json);
             }
@@ -850,28 +894,15 @@ fn read_page_tx(
         if has_more {
             visible.pop();
         }
-        let last_sequence = if has_more {
-            serde_json::from_str::<Value>(visible.last().ok_or(ReadError::Storage)?)
-                .map_err(|_| ReadError::Storage)?["sequence"]
+        // Hidden rows must not change a caller's token or consume its quota.
+        let last_sequence = if let Some(last) = visible.last() {
+            serde_json::from_str::<Value>(last).map_err(|_| ReadError::Storage)?["sequence"]
                 .as_i64()
                 .ok_or(ReadError::Storage)?
         } else {
-            scanned_through
+            start
         };
-        let saved: Option<String> = conn.query_row(
-            "SELECT token FROM cursors WHERE principal = ?1 AND revision = ?2 AND last_sequence = ?3 LIMIT 1",
-            params![principal, current.revision, last_sequence], |row| row.get(0),
-        ).optional().map_err(|_| ReadError::Storage)?;
-        let token = if let Some(saved) = saved {
-            saved
-        } else {
-            let token = new_token(conn)?;
-            conn.execute(
-                "INSERT INTO cursors (token, principal, last_sequence, revision) VALUES (?1, ?2, ?3, ?4)",
-                params![token, principal, last_sequence, current.revision],
-            ).map_err(|_| ReadError::Storage)?;
-            token
-        };
+        let token = cursor_at(conn, principal, current.revision, last_sequence)?;
         let events = visible
             .iter()
             .map(|event| serde_json::from_str(event))
@@ -897,6 +928,64 @@ fn read_page_tx(
             Err(error)
         }
     }
+}
+
+fn admit_cursor_owner(conn: &Connection, principal: &str) -> Result<(), ReadError> {
+    let known: bool = conn
+        .query_row(
+            "SELECT EXISTS(SELECT 1 FROM cursor_owners WHERE principal = ?1)",
+            params![principal],
+            |row| row.get(0),
+        )
+        .map_err(|_| ReadError::Storage)?;
+    if known {
+        return Ok(());
+    }
+    let owners: i64 = conn
+        .query_row("SELECT COUNT(*) FROM cursor_owners", [], |row| row.get(0))
+        .map_err(|_| ReadError::Storage)?;
+    if owners >= MAX_CURSOR_OWNERS || principal.len() > MAX_CURSOR_OWNER_BYTES {
+        return Err(ReadError::Capacity);
+    }
+    conn.execute(
+        "INSERT INTO cursor_owners(principal) VALUES (?1)",
+        params![principal],
+    )
+    .map_err(|_| ReadError::Storage)?;
+    Ok(())
+}
+
+fn cursor_at(
+    conn: &Connection,
+    principal: &str,
+    revision: i64,
+    last_sequence: i64,
+) -> Result<String, ReadError> {
+    let saved: Option<String> = conn.query_row(
+            "SELECT token FROM cursors WHERE principal = ?1 AND revision = ?2 AND last_sequence = ?3 LIMIT 1",
+            params![principal, revision, last_sequence], |row| row.get(0),
+        ).optional().map_err(|_| ReadError::Storage)?;
+    if let Some(saved) = saved {
+        return Ok(saved);
+    }
+    admit_cursor_owner(conn, principal)?;
+    let count: i64 = conn
+        .query_row(
+            "SELECT COUNT(*) FROM (SELECT 1 FROM cursors WHERE principal = ?1 LIMIT ?2)",
+            params![principal, MAX_CURSORS_PER_OWNER],
+            |row| row.get(0),
+        )
+        .map_err(|_| ReadError::Storage)?;
+    if count >= MAX_CURSORS_PER_OWNER {
+        return Err(ReadError::Capacity);
+    }
+    let token = new_token(conn)?;
+    conn.execute(
+        "INSERT INTO cursors (token, principal, last_sequence, revision) VALUES (?1, ?2, ?3, ?4)",
+        params![token, principal, last_sequence, revision],
+    )
+    .map_err(|_| ReadError::Storage)?;
+    Ok(token)
 }
 
 fn visible_to(visibility: Visibility, principal: &str, actor: &str, message_json: &str) -> bool {
