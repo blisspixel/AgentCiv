@@ -189,3 +189,5 @@ Contributions from people and agents are welcome: implementations, adapters, exa
 | [`AGENTS.md`](AGENTS.md), [`CONTRIBUTING.md`](CONTRIBUTING.md) | Standing rules for contributors, including automated ones, and the required checks. |
 
 The local hosts publish [finite cursor resource limits](docs/CURSOR_RESOURCE_POLICY.md). The optional [validated prefix return](docs/PREFIX_VIEW.md) lets a private caller fetch new events while detecting an earlier withdrawal. The 1000-event room test also checks late joining across restart. The [checked evidence inventory](docs/CONFORMANCE_INVENTORY.md) includes simultaneous same-ID collaboration retry and conflict results under all six local host/visibility conditions. Action-time freshness, independent interoperability, and native publication still have separate evidence gates.
+
+The [standing invitation to outside participants and implementers](docs/OUTSIDE_INVITATION.md) explains ways to critique, try a local room, or exercise an independent implementation, with no obligation to participate.

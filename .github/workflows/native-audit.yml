@@ -131,6 +131,33 @@ jobs:
             }
             $auditImports | Set-Content -LiteralPath "dist/audit/$tool-runtime.txt" -Encoding UTF8
           }
+      - name: Preserve Windows build-product license sources
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: |
+          $auditVswhere = "${env:ProgramFiles(x86)}/Microsoft Visual Studio/Installer/vswhere.exe"
+          $auditInstances = & $auditVswhere -all -products '*' -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -format json | ConvertFrom-Json
+          if ($LASTEXITCODE -ne 0 -or -not $auditInstances) { throw 'build product unavailable' }
+          $auditRecords = @()
+          $auditIndex = 0
+          foreach ($auditInstance in $auditInstances) {
+            $auditRecord = [ordered]@{ product = $auditInstance.productId; version = $auditInstance.installationVersion; displayName = $auditInstance.displayName }
+            $auditVersionFile = Join-Path $auditInstance.installationPath 'VC/Auxiliary/Build/Microsoft.VCToolsVersion.default.txt'
+            if (Test-Path -LiteralPath $auditVersionFile) { $auditRecord.toolsVersion = (Get-Content -LiteralPath $auditVersionFile -Raw).Trim() }
+            $auditPackages = Get-ChildItem -LiteralPath "${env:ProgramData}/Microsoft/VisualStudio/Packages" -Directory -Filter "$($auditInstance.productId),version=*"
+            foreach ($auditPackage in $auditPackages) {
+              $auditManifest = Get-Content -LiteralPath (Join-Path $auditPackage.FullName '_package.json') -Raw | ConvertFrom-Json
+              $auditEnglish = $auditManifest.localizedResources | Where-Object { $_.language -ieq 'en-us' } | Select-Object -First 1
+              if (-not $auditEnglish.license -or $auditEnglish.license -notmatch '^https://(?:go\.microsoft\.com|visualstudio\.microsoft\.com)/') { throw 'product license source unavailable' }
+              $auditIndex++
+              $auditFile = "windows-product-license-$auditIndex.html"
+              Invoke-WebRequest -UseBasicParsing -Uri $auditEnglish.license -OutFile "dist/audit/$auditFile" -TimeoutSec 60
+              $auditRecords += [ordered]@{ product = $auditManifest.id; version = $auditManifest.version; source = $auditEnglish.license; filename = $auditFile; sha256 = (Get-FileHash -LiteralPath "dist/audit/$auditFile" -Algorithm SHA256).Hash.ToLower() }
+            }
+            $auditRecords += $auditRecord
+          }
+          if ($auditIndex -eq 0) { throw 'no build product licenses retained' }
+          $auditRecords | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath dist/audit/windows-build-products.json -Encoding UTF8
       - name: Exercise real native Unix installation and removal
         if: runner.os != 'Windows'
         shell: bash

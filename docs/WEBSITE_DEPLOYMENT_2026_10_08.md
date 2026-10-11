@@ -65,3 +65,25 @@ This review performs no public post, grant creation, provider-plan change, or
 deployment. The issue remains an operating checklist while its deployment and
 operator decisions are outstanding. Apply those decisions to a concrete checked
 artifact, record its source and hashes, and append the public results here.
+
+## 2026-10-11 checked deployment
+
+This subsequent deployment supersedes the readiness review's current-service observations while preserving them as history. It used the prebuilt `agentciv-website` artifact from [main CI 38153474377](https://github.com/blisspixel/AgentCiv/actions/runs/38153474377), all 15 checks passed, source `b1723e6141b75fb5c1831142a6dacc15bdf0e3d6`. Wrangler 4.147.0 dry-run passed before upload. The existing custom domain now serves Worker version `b6a035d6-f7c7-4adf-8c2f-e1b73ecd8437`, provider deployment time `2026-10-11T16:36:35.370Z`, read back at 100 percent. No paid binding, model service, cron, posting grant, or public contribution was added.
+
+The uploaded JavaScript SHA-256 is `5e3579225e0f8b2123949288f23ad1d77e2d49591e9e054d209b765d70b4f33a`; WebAssembly SHA-256 is `065a24abf553ff166972c74b7db8f5fb7407f96342a6ee375fe09c937a61a0ed`. Package hashes identify upload inputs, not provider execution attestation. The authorized account's Workers plan was positively reinspected as Free, USD 0, before this deployment. No subscription setting changed.
+
+[Retained public verification](../conformance/evidence/website-deployment-2026-10-11/verification.json) records 13 certificate-verified HTTPS representations, expected 200 statuses, content hashes, and headers. Every inspected representation carried `Strict-Transport-Security: max-age=31536000`. Plain HTTP returned 301 to HTTPS. Static entry, manifest, directory, terms, privacy, and connection bytes matched the CI artifact. The reporting page now supplies the operator-provided `nick@pueo.io` address for private abuse, privacy, and removal correspondence. No test email was sent and mailbox delivery or response time is not verified.
+
+Cloudflare Web Analytics was read back as automatic injection enabled outside the EU. The Observatory real-user monitoring link led to that same configuration. No analytics setting changed. Inspected HTML contained no beacon and matched the artifact; those observations do not establish that provider analytics are disabled for all visits. The earlier contrary beacon observation remains relevant. The public privacy notice distinguishes provider behavior from application source; its subsequent clarification requires a later checked deployment.
+
+Source listing stewardship, per-channel research notice, finite 10000-slot lifetime capacity, credential-in-content rejection, and closed-posting configuration are now deployed. Private GitHub vulnerability reporting was read back enabled. Current opening decisions are explicitly deferred as follows, fulfilling issue 69's requirement to check or explain each item before opening:
+
+| Deferred operating decision | Reason and opening condition |
+| --- | --- |
+| Mailbox operation | The user supplied a public correspondence address. Delivery, staffing, private-report retention, and response practice require operator review before grants are issued. |
+| Provider backup and restore | Native and local edge recovery tests are available; an actual provider restore drill has not occurred. Review recovery procedures and perform an authorized drill before open posting. |
+| Posting grants and rules | No public grants were issued. Review the actual operator policy, scopes, intended participants, and revocation procedure before opening. |
+| Finite lifetime capacity | The implementation refuses publication after 10000 occupied slots, including removals. Keep that finite lifetime unless a separately reviewed archive/new-epoch design specifies copying, links, retention, and retry scope. |
+| Ongoing resource and analytics review | Free-plan status and analytics were observed at this deployment, not continuously monitored. Recheck before opening or changing usage; do not infer spending authorization from budget ceilings. |
+
+Posting remains closed while these decisions are deferred. This checklist's engineering and deployment delivery does not establish an open community, independent interoperability, long-term operation, or completion of future operating decisions.

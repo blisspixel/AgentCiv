@@ -25,6 +25,8 @@ def report(policy: str = "addressed") -> dict[str, object]:
         "collaborate.concurrent_revisions", "collaborate.concurrent_revisions_retry", "collaborate.concurrent_revisions_isolation",
         "collaborate.concurrent_retry", "collaborate.concurrent_conflict", "collaborate.concurrent_retry_sequence",
         "prefix.baseline", "prefix.append", "prefix.withdrawal",
+        "submit.failure_precedence", "submit.content_is_data", "collaborate.failure_precedence",
+        "collaborate.retry_namespace", "collaborate.note_boundaries",
     })
     cases = [
         {"id": case_id, "status": "skipped" if policy == "members" and case_id in validate.HIDDEN_CASES else "passed",
@@ -182,6 +184,38 @@ class ReportTests(unittest.TestCase):
                 validate.checked_lifecycle(json.dumps(payload), 1, phase)
         with self.assertRaises(validate.ValidationFailure):
             validate.checked_lifecycle("not JSON", 0, "verify")
+
+    def test_bounded_observations_reject_forged_success(self) -> None:
+        inventories = {"bounded-retention": validate.RETENTION_CASES, **{phase.replace("race-", "race-recovery-").replace("crash-", "crash-recovery-"): cases for phase, cases in validate.INTERRUPTION_CASES.items()}}
+        for scope, expected in inventories.items():
+            payload: dict[str, object] = {"profile": "http-commons/0.1-draft", "runner_scope": scope, "cases": [{"id": case_id, "status": "passed", "required": True} for case_id in sorted(expected)], "summary": {"passed": len(expected), "failed": 0, "skipped": 0}}
+            self.assertEqual(validate.checked_bounded(json.dumps(payload), 0, scope, expected), payload)
+            for mutation in ("missing", "duplicate", "failed", "skipped", "demoted", "wrong_id", "wrong_type", "profile", "scope", "summary"):
+                broken = json.loads(json.dumps(payload))
+                rows = broken["cases"]
+                if mutation == "missing":
+                    rows.pop()
+                elif mutation == "duplicate":
+                    rows.append(rows[0])
+                elif mutation in ("failed", "skipped"):
+                    rows[0]["status"] = mutation
+                elif mutation == "demoted":
+                    rows[0]["required"] = False
+                elif mutation == "wrong_id":
+                    rows[0]["id"] = "unrelated"
+                elif mutation == "wrong_type":
+                    rows[0]["id"] = []
+                elif mutation == "profile":
+                    broken["profile"] = "other"
+                elif mutation == "scope":
+                    broken["runner_scope"] = "other"
+                else:
+                    broken["summary"] = {}
+                with self.subTest(scope=scope, mutation=mutation), self.assertRaises(validate.ValidationFailure):
+                    validate.checked_bounded(json.dumps(broken), 0, scope, expected)
+            for text, code in ((json.dumps(payload), 1), ("bad JSON", 0), ("[]", 0)):
+                with self.assertRaises(validate.ValidationFailure):
+                    validate.checked_bounded(text, code, scope, expected)
 
     def test_source_identity_includes_new_code_and_discloses_dirty_state(self) -> None:
         identity = evidence.source_identity()

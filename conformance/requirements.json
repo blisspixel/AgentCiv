@@ -390,7 +390,7 @@
     {
       "id": "C04",
       "source": "docs/COLLABORATION_PROFILE.md",
-      "quote": "Four submissions share the envelope version `0.1-draft`. The client chooses each submission `id`. Within one world and authenticated principal, that id identifies one submitted byte sequence during the same half-open retry window HTTP Commons uses for messages. The host assigns the event id, sequence, and timestamp. Unknown optional fields MUST be preserved and MUST NOT be reinterpreted as authority, office, or a command.",
+      "quote": "Four submissions share the envelope version `0.1-draft`. The client chooses each submission `id`. Within one world and authenticated principal, that id identifies one submitted byte sequence during the same half-open retry window HTTP Commons uses for messages. When this extension is advertised, message and collaboration submissions share that world-and-principal retry ID namespace across `endpoints.submit` and `endpoints.collaborate`. Reusing an accepted message ID for a collaboration submission, or the reverse, with different bytes inside the window is `409 id_conflict` after the earlier validation checks. The host assigns the event id, sequence, and timestamp. Unknown optional fields MUST be preserved and MUST NOT be reinterpreted as authority, office, or a command.",
       "obligation": "conditional",
       "applicability": "When collaboration.submit is advertised; continuity_note remains optional",
       "coverage": "partial_public",

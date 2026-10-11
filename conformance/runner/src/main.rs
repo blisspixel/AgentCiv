@@ -1,7 +1,7 @@
 use std::env;
 use std::process::ExitCode;
 
-const USAGE: &str = "usage: agentciv-conformance --discovery URL [--principal ID] [--reader ID] [--peer ID] [--retention-window-test] [--lifecycle prepare|verify|policy --checkpoint PATH]";
+const USAGE: &str = "usage: agentciv-conformance --discovery URL [--principal ID] [--reader ID] [--peer ID] [--retention-window-test] [--lifecycle prepare|verify|policy|rotate|revoke|restore|remove|race-prepare|race-verify|crash-prepare|crash-verify --checkpoint PATH]";
 
 fn main() -> ExitCode {
     let args: Vec<String> = env::args().skip(1).collect();

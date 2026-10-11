@@ -25,6 +25,12 @@ pub fn run_lifecycle(
     phase: &str,
     checkpoint: &Path,
 ) -> Report {
+    if matches!(phase, "crash-prepare" | "crash-verify") {
+        return crash_recovery::run(discovery_url, writer, reader, phase, checkpoint);
+    }
+    if matches!(phase, "race-prepare" | "race-verify") {
+        return race_recovery::run(discovery_url, writer, reader, peer, phase, checkpoint);
+    }
     let (scope, ids): (&'static str, &[&'static str]) = match phase {
         "prepare" => (
             "lifecycle-prepare",

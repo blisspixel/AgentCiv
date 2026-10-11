@@ -691,8 +691,21 @@ fn secret_tokens<'a>(
 
 fn redact(report: &mut Report, secrets: &[&str]) {
     for case in &mut report.cases {
-        for secret in secrets {
+        let serialized = case.evidence.as_ref().map(Value::to_string);
+        for secret in secrets.iter().filter(|secret| !secret.is_empty()) {
             case.detail = case.detail.replace(secret, "[redacted]");
+            let encoded = serde_json::to_string(secret).expect("credential string serialization");
+            let escaped = &encoded[1..encoded.len() - 1];
+            case.detail = case.detail.replace(escaped, "[redacted]");
+            if serialized
+                .as_ref()
+                .is_some_and(|text| text.contains(secret) || text.contains(escaped))
+            {
+                case.evidence = None;
+                case.status = CaseStatus::Failed;
+                case.required = true;
+                case.detail = "Evidence withheld because a host reflected a credential".to_owned();
+            }
         }
     }
 }
@@ -2294,8 +2307,10 @@ mod adversarial;
 mod boundaries;
 mod collaboration_retries;
 mod concurrent_revisions;
+mod crash_recovery;
 mod lifecycle;
 mod prefix;
+mod race_recovery;
 mod retention;
 pub use retention::run_retention;
 mod revisions;

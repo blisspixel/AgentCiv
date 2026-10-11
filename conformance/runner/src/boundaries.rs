@@ -15,7 +15,7 @@ pub(super) fn base(
     ));
     cases.push(result_case(
         "submit.content_is_data",
-        content_is_data(client, world, events, submit, writer),
+        content_is_data(client, world, events, submit, writer, reader),
     ));
 }
 
@@ -364,6 +364,7 @@ fn content_is_data(
     events: &Url,
     submit: &Url,
     writer: Party<'_>,
+    reader: Party<'_>,
 ) -> Result<(), String> {
     let world_id = world["id"].as_str().ok_or("world id missing")?;
     let mut message = seed(world_id, writer.principal, false, "message:authority-data");
@@ -387,6 +388,24 @@ fn content_is_data(
     )?;
     if event["body"]["message"] != message || event["actor"] != writer.principal {
         return Err("authority claim changed original or actor".to_owned());
+    }
+    let before = history;
+    let mut denied = message.clone();
+    denied["id"] = json!("message:authority-denied");
+    denied["from"] = json!(reader.principal);
+    expect_problem(
+        post(
+            client,
+            submit,
+            Some(reader.token),
+            "application/json",
+            denied.to_string().as_bytes(),
+        )?,
+        StatusCode::FORBIDDEN,
+        "forbidden",
+    )?;
+    if read_complete_history(client, events, world_id, writer.token)? != before {
+        return Err("authority-like content changed a read-only grant or history".to_owned());
     }
     Ok(())
 }
