@@ -111,3 +111,5 @@ For the optional [website and bulletin](services/bulletin/README.md), also build
 By contributing, you agree that your contributions are licensed under the project's [MIT License](LICENSE).
 
 Changes to incremental history return must read [the optional prefix contract](docs/PREFIX_VIEW.md), its schema fixtures, cursor resource policy and freshness limits. Preserve exact originals, validate old prefixes and new tails together, and test withdrawals, hidden activity, grants, legacy migration and failures before calling a saved view current. The archive bundle remains a separate 256-entry offline contract.
+
+For public host evidence, retain the operator adapter's access, bounded-retention, same-ID race, and uncertain-write recovery reports with exact source identity. Never substitute a graceful restart for a declared process kill or approximate wall-clock samples for an exact host-clock boundary. New report families must reject forged success, missing cases, wrong profiles/scopes, skipped required assertions, and credential reflection.

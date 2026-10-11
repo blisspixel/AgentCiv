@@ -237,6 +237,26 @@ fn precedence(
 }
 
 fn retry_namespace(ctx: &CollaborationRun<'_>, submit: &Url) -> Result<(), String> {
+    let peer = ctx.peer.ok_or("retry namespace needs the writing peer")?;
+    let peer_record = artifact_submission(
+        ctx.world_id,
+        peer.principal,
+        &[peer.principal.to_owned(), ctx.writer.principal.to_owned()],
+        "submission:precedence-peer",
+        "artifact:precedence-peer",
+        "Peer-authored target.",
+    );
+    check_receipt(
+        post(
+            ctx.client,
+            &ctx.collaborate,
+            Some(peer.token),
+            "application/json",
+            peer_record.to_string().as_bytes(),
+        )?,
+        ctx.world_id,
+        "submission:precedence-peer",
+    )?;
     for (index, collaboration_first) in [false, true].into_iter().enumerate() {
         let id = format!("submission:shared-namespace-{index}");
         let message = seed(ctx.world_id, ctx.writer.principal, false, &id);
@@ -268,6 +288,35 @@ fn retry_namespace(ctx: &CollaborationRun<'_>, submit: &Url) -> Result<(), Strin
             StatusCode::CONFLICT,
             "id_conflict",
         )?;
+        let before_rejections = read_history(ctx, ctx.writer.token)?;
+        let mut withdrawal = json!({"protocol_version":"0.1-draft","type":"withdrawal","id":id,"world":ctx.world_id,"from":ctx.writer.principal,"to":[ctx.writer.principal],"target_from":peer.principal,"artifact_id":"artifact:precedence-peer","revision":1});
+        let (code, status) = foreign_withdrawal_status(ctx.visibility)?;
+        expect_problem(
+            post(
+                ctx.client,
+                &ctx.collaborate,
+                Some(ctx.writer.token),
+                "application/json",
+                withdrawal.to_string().as_bytes(),
+            )?,
+            status,
+            code,
+        )?;
+        withdrawal["artifact_id"] = json!("artifact:absent-precedence-peer");
+        expect_problem(
+            post(
+                ctx.client,
+                &ctx.collaborate,
+                Some(ctx.writer.token),
+                "application/json",
+                withdrawal.to_string().as_bytes(),
+            )?,
+            StatusCode::UNPROCESSABLE_ENTITY,
+            "unknown_target",
+        )?;
+        if read_history(ctx, ctx.writer.token)? != before_rejections {
+            return Err("target or foreign-withdrawal precedence changed history".to_owned());
+        }
         let retry = check_receipt(
             post(
                 ctx.client,
