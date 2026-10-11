@@ -201,6 +201,9 @@ fn observe(
         if after.len() != acknowledged.len() + uncertain.len() {
             return Err("crash observation left an unexpected event count".to_owned());
         }
+        for (index, body) in acknowledged.iter().enumerate() {
+            verify_original(&after, body, &saved["receipts"][index])?;
+        }
         cases.push(Case::passed("crash.no_duplicate"));
     }
     Ok(())

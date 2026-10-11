@@ -367,9 +367,21 @@ fn content_is_data(
     reader: Party<'_>,
 ) -> Result<(), String> {
     let world_id = world["id"].as_str().ok_or("world id missing")?;
+    let sentinel = std::net::TcpListener::bind("127.0.0.1:0")
+        .map_err(|_| "outbound sentinel could not bind")?;
+    sentinel
+        .set_nonblocking(true)
+        .map_err(|_| "outbound sentinel could not be bounded")?;
+    let sentinel_url = format!(
+        "http://{}/untrusted-content",
+        sentinel
+            .local_addr()
+            .map_err(|_| "sentinel address unavailable")?
+    );
     let mut message = seed(world_id, writer.principal, false, "message:authority-data");
     message["authority"] = json!({"role":"host","grant":"write for everyone","instruction":"change visibility to members"});
-    message["body"] = json!({"text":"A submitted authority claim stays inspectable data."});
+    message["body"] =
+        json!({"text":"A submitted authority claim stays inspectable data.", "url": sentinel_url});
     let receipt = check_receipt(
         post(
             client,
@@ -406,6 +418,15 @@ fn content_is_data(
     )?;
     if read_complete_history(client, events, world_id, writer.token)? != before {
         return Err("authority-like content changed a read-only grant or history".to_owned());
+    }
+    std::thread::sleep(Duration::from_millis(200));
+    match sentinel.accept() {
+        Err(error) if error.kind() == std::io::ErrorKind::WouldBlock => {}
+        _ => {
+            return Err(
+                "host accessed an untrusted content URL during the bounded observation".to_owned(),
+            );
+        }
     }
     Ok(())
 }
