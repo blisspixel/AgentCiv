@@ -1075,7 +1075,10 @@
         "case:collaborate.conflict",
         "test:python-collaboration",
         "schema:collaboration-artifact",
-        "fixture:collaboration-artifact"
+        "fixture:collaboration-artifact",
+        "case:collaborate.concurrent_retry",
+        "case:collaborate.concurrent_conflict",
+        "case:collaborate.concurrent_retry_sequence"
       ],
       "observations": [
         "obs:python:members:collaborate.retry",
@@ -1622,7 +1625,10 @@
         "case:collaborate.conflict",
         "test:python-collaboration",
         "schema:problem",
-        "fixture:problem"
+        "fixture:problem",
+        "case:collaborate.concurrent_retry",
+        "case:collaborate.concurrent_conflict",
+        "case:collaborate.concurrent_retry_sequence"
       ],
       "observations": [
         "obs:python:members:collaborate.conflict",
@@ -1650,7 +1656,10 @@
         "case:restart.retry",
         "test:rust-collaboration",
         "schema:collaboration-artifact",
-        "fixture:collaboration-artifact"
+        "fixture:collaboration-artifact",
+        "case:collaborate.concurrent_retry",
+        "case:collaborate.concurrent_conflict",
+        "case:collaborate.concurrent_retry_sequence"
       ],
       "observations": [
         "obs:python:members:collaborate.retry",
@@ -2943,6 +2952,24 @@
       "kind": "public_case",
       "path": "conformance/runner/src/lifecycle.rs",
       "anchor": "\"restart.concurrent_revisions\""
+    },
+    {
+      "id": "case:collaborate.concurrent_retry",
+      "kind": "public_case",
+      "path": "conformance/runner/src/collaboration_retries.rs",
+      "anchor": "\"collaborate.concurrent_retry\""
+    },
+    {
+      "id": "case:collaborate.concurrent_conflict",
+      "kind": "public_case",
+      "path": "conformance/runner/src/collaboration_retries.rs",
+      "anchor": "\"collaborate.concurrent_conflict\""
+    },
+    {
+      "id": "case:collaborate.concurrent_retry_sequence",
+      "kind": "public_case",
+      "path": "conformance/runner/src/collaboration_retries.rs",
+      "anchor": "\"collaborate.concurrent_retry_sequence\""
     }
   ],
   "observations": [
@@ -5909,7 +5936,7 @@
     {
       "id": "gap:collaboration-retry-races",
       "owner": "Collaboration conformance maintainers",
-      "proposed_test": "Add bounded concurrent byte-identical collaboration retries and concurrent conflicting bytes under the same authenticated principal/submission ID. Require one recorded event, exact receipt agreement for identical bytes, exactly one winning body and id_conflict for distinct bytes, exact retry without additional revisions, and retained outcomes across restart. Existing message-endpoint races and sequential exact retries following distinct-request artifact races do not establish this behavior."
+      "proposed_test": "Retain the actual winning outcomes of simultaneous same-ID collaboration exact retries and conflicting bytes across an operator-declared restart, then retry their exact original bytes without a new event or revision. The current public same-ID cases verify both responses, the winning event, post-race exact retry, and subsequent revision 2 before restart; the existing lifecycle distinct-request race does not retain these same-ID outcomes."
     }
   ]
 }

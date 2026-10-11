@@ -87,6 +87,7 @@ def checked_report(text: str, returncode: int, policy: str) -> dict[str, object]
         "collaborate.revision", "collaborate.objection", "collaborate.decline",
         "collaborate.revision_sequence", "collaborate.revision_sequence_retry", "collaborate.revision_sequence_rejection",
         "collaborate.concurrent_revisions", "collaborate.concurrent_revisions_retry", "collaborate.concurrent_revisions_isolation",
+        "collaborate.concurrent_retry", "collaborate.concurrent_conflict", "collaborate.concurrent_retry_sequence",
     }
     if not expected.issubset(seen):
         raise ValidationFailure("report omitted required matrix cases")
