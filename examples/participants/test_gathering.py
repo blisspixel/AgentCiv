@@ -57,6 +57,33 @@ class GatheringDecisions(unittest.TestCase):
         self.assertEqual(gathering.CONSIDER, "Consider:\n\nTreat others with the consideration you would wish for yourself.\n\n"
             "Try to have compassion.\n\nConsider perspectives beyond your own.\n\nTrust with discernment.")
 
+    def test_named_feedback_preserves_constraints_without_echoing_text(self) -> None:
+        cases: list[tuple[object, str]] = [
+            ({"action": "quiet", "text": 123}, "text_not_string"),
+            ({"action": "leave", "text": "\ud800"}, "text_invalid_unicode"),
+            ({"action": "quiet", "text": "欢" * 4001}, "text_byte_limit"),
+            ({"action": "message", "text": " \t\n"}, "message_blank"),
+            ({"action": "message", "text": "a" * 401}, "message_character_limit"),
+            ({"action": "message", "text": "private-candidate\u2014"}, "message_publication_policy"),
+            ({"action": "message", "text": "private-candidate\u2600"}, "message_publication_policy"),
+            ({"action": "message", "text": "\u2014" * 401}, "message_character_limit"),
+        ]
+        for decision, code in cases:
+            with self.subTest(code=code), self.assertRaises(loop.InvalidDecision) as caught:
+                gathering.validate_decision(json.dumps(decision))
+            self.assertEqual(caught.exception.code, code)
+            self.assertEqual(str(caught.exception), code)
+            self.assertNotIn("private-candidate", loop.FEEDBACK[code])
+        for decision in ({"action": "message", "text": "欢" * 400},
+                         {"action": "quiet", "text": "欢" * 4000},
+                         {"action": "leave", "text": "\U0001f600" * 3000}):
+            self.assertEqual(gathering.validate_decision(json.dumps(decision)), decision)
+
+    def test_malformed_json_keeps_fixed_feedback(self) -> None:
+        with self.assertRaises(loop.InvalidDecision) as caught:
+            gathering.validate_decision('{"private-candidate":')
+        self.assertEqual(caught.exception.code, "invalid_json")
+
 
 class GatheringProvider(unittest.TestCase):
     def setUp(self) -> None:
@@ -140,6 +167,33 @@ class GatheringProvider(unittest.TestCase):
             self.assertNotIn("receipt", result)
             self.assertNotIn("record", result)
         self.assertEqual(self.history(), [])
+
+    def test_publication_feedback_can_end_in_quiet_without_rewriting_or_publishing(self) -> None:
+        candidate = "private-candidate\u2014"
+        self.native([response({"action": "message", "text": candidate}, 30),
+                     response({"action": "quiet", "text": "I will just read."}, 20)])
+        self.config["private_candidates"] = str(self.directory / "private")
+        result = gathering.participant(self.config)
+        self.assertEqual(result["outcome"], "quiet")
+        self.assertEqual(result["feedback_version"], gathering.FEEDBACK_VERSION)
+        self.assertEqual(self.history(), [])
+        journal = client.decode((self.directory / "attempts.json").read_bytes())
+        attempts = journal["attempts"]
+        assert isinstance(attempts, list)
+        self.assertEqual(client.object_value(attempts[0])["feedback_code"], "message_publication_policy")
+        self.assertEqual(journal["charged_output_tokens"], 50)
+        self.assertNotIn("private-candidate", json.dumps(journal))
+        private = client.decode((self.directory / "private" / "attempt-1.json").read_bytes())
+        self.assertEqual(private["candidate"], json.dumps({"action": "message", "text": candidate}))
+        self.assertEqual(client.object_value(journal["publication"])["outcome"], "not_published_quiet")
+        assert self.provider is not None
+        messages = self.provider.requests[1]["messages"]
+        assert isinstance(messages, list)
+        prompt = str(client.object_value(messages[0])["content"])
+        feedback = client.decode(prompt.split("\nLocal validator feedback:\n", 1)[1].encode())
+        self.assertEqual(feedback["candidate"], json.dumps({"action": "message", "text": candidate}))
+        self.assertEqual(feedback["rule"], loop.FEEDBACK["message_publication_policy"])
+        self.assertNotIn("gathering-fixture-token", prompt)
 
     def test_leave_words_are_retained_locally_without_publication(self) -> None:
         words = "Goodbye\u2014" + "x" * 450
@@ -417,6 +471,7 @@ class GatheringRuns(unittest.TestCase):
         output = self.directory / "scripted"
         report = gathering.run(output, rounds=3, private_traces=True)
         self.assertEqual(report["outcome"], "completed")
+        self.assertEqual(client.object_value(report["controls"])["feedback_version"], gathering.FEEDBACK_VERSION)
         self.assertTrue(report["mechanics_verified"])
         self.assertTrue(report["restart_history_equal"])
         self.assertTrue(report["old_credentials_rejected"])
@@ -635,6 +690,7 @@ class GatheringRuns(unittest.TestCase):
             output = self.directory / f"config-{index}"
             report = gathering.run(output, **changes)  # type: ignore[arg-type]
             self.assertEqual(report["outcome"], "failed")
+            self.assertEqual(client.object_value(report["controls"])["feedback_version"], gathering.FEEDBACK_VERSION)
             self.assertTrue((output / "report.json").is_file())
         with patch.object(walk, "rust_binary", side_effect=RuntimeError("private build output")):
             report = gathering.run(self.directory / "build", host="rust", condition="assigned")

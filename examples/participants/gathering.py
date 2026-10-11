@@ -38,6 +38,7 @@ CONSIDER = (
 OPEN = "There is no assigned deliverable, occupation, friendship, or culture requirement."
 ASSIGNED = "The operator assigns a task: offer entries for a small shared collection of imagined places. Completion is optional."
 PROMPT_VERSION = "gathering-welcome/0.2"
+FEEDBACK_VERSION = "gathering-feedback/0.1"
 COMMON = (
     "Welcome. You are invited to a small local gathering. No response is required for belonging. "
     "Choose message, quiet, or leave. Message records your own words in this world's history. "
@@ -84,16 +85,22 @@ def validate_decision(content: str) -> JsonObject:
         raise loop.InvalidDecision("invalid_action")
     text = decision["text"]
     if not isinstance(text, str):
-        raise loop.InvalidDecision("invalid_text")
+        raise loop.InvalidDecision("text_not_string")
     try:
-        if len(text.encode("utf-8")) > 12000:
-            raise client.DecisionError("local words exceed byte bound")
-        if decision["action"] == "message":
-            if not text.strip() or len(text) > 400:
-                raise client.DecisionError("empty publication")
+        encoded = text.encode("utf-8")
+    except UnicodeError as error:
+        raise loop.InvalidDecision("text_invalid_unicode") from error
+    if len(encoded) > 12000:
+        raise loop.InvalidDecision("text_byte_limit")
+    if decision["action"] == "message":
+        if not text.strip():
+            raise loop.InvalidDecision("message_blank")
+        if len(text) > 400:
+            raise loop.InvalidDecision("message_character_limit")
+        try:
             client.validate_publication_text({"action": "revise", "text": text})
-    except (UnicodeError, client.DecisionError) as error:
-        raise loop.InvalidDecision("invalid_text") from error
+        except client.DecisionError as error:
+            raise loop.InvalidDecision("message_publication_policy") from error
     return decision
 
 
@@ -132,7 +139,7 @@ def publish(origin: str, token: str, record: JsonObject, engine: loop.DecisionLo
 
 def participant(config: JsonObject) -> JsonObject:
     result: JsonObject = {"outcome": "failed", "decision_source": config.get("mode"),
-                          "prompt_version": PROMPT_VERSION}
+                          "prompt_version": PROMPT_VERSION, "feedback_version": FEEDBACK_VERSION}
     engine: loop.DecisionLoop | None = None
     model: client.OllamaDecision | None = None
     stage = "configuration"
@@ -264,6 +271,7 @@ def run(output: Path, *, condition: str = "open", host: str = "python", mode: st
         schedule = "A proposes a walk and B proposes a song; restart; A leaves the local schedule; B records a decline; A returns"
         scripted_choices = "A proposes a walk; B proposes a song; A leaves locally; B declines the walk in a recorded message; A returns and both proposals remain open"
     controls: JsonObject = {"condition": condition, "instructions": COMMON, "prompt_version": PROMPT_VERSION,
+        "feedback_version": FEEDBACK_VERSION,
         "ollama_origin": None, "think": False,
         "opening": OPEN if condition == "open" else ASSIGNED, "optional_invitation": CONSIDER if consider else None,
         "mode": mode, "model": model, "seed": seed, "seed_rule": "seed plus scheduled invitation index",
