@@ -12,7 +12,7 @@ use crate::{Directory, build};
 const APPROVED_CONFIG: &str = r#"name = "agentciv"
 main = "build/index.js"
 compatibility_date = "2026-10-03"
-workers_dev = true
+workers_dev = false
 
 [build]
 command = "worker-build --release --locked"
