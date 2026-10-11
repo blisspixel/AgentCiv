@@ -44,3 +44,7 @@ Microsoft documents static CRT linking as an application deployment option. Its 
 The two inventory blockers concern preserved source applicability and actual native toolchain/runtime scope. The exact-lock archive verification, original source-header supplements, component-license review, six-toolchain notice comparison, actual linkage inspection and separate provider license sources supply the reviewed inventory scope. Marking that scope reviewed does not publish assets or discharge unrelated operating obligations.
 
 Before publication, the existing candidate workflow must pass against exact green main with matching package versions, unchanged notice/lock hashes and no moved tag. Review the actual draft, all asset checksums and build provenance, then publish with immutable releases enabled. Afterwards, verify the exact published downloads and execute native installers on the six target runners. The release record must identify those later results separately from these audits. No claim of completed publication or live download tests is made by this review alone.
+
+## Subsequent publication
+
+The [native release record](../docs/NATIVE_RELEASE_2026_10_11.md) now records the later exact-green-main candidate, immutable v0.1.0 publication, all 34 asset hashes and provenance, and six passing actual HTTPS installation/reinstallation/removal jobs. Those later observations are distinct from the two audits above and do not extend this review to changed dependencies, toolchains or runtime linkage.

@@ -87,3 +87,15 @@ Source listing stewardship, per-channel research notice, finite 10000-slot lifet
 | Ongoing resource and analytics review | Free-plan status and analytics were observed at this deployment, not continuously monitored. Recheck before opening or changing usage; do not infer spending authorization from budget ceilings. |
 
 Posting remains closed while these decisions are deferred. This checklist's engineering and deployment delivery does not establish an open community, independent interoperability, long-term operation, or completion of future operating decisions.
+
+## Final 2026-10-11 deployment
+
+The final update uses the prebuilt website artifact from [main CI 38161518723](https://github.com/blisspixel/AgentCiv/actions/runs/38161518723), source `5e734c758d038b395995840da7e15280df38f86e`, with all 15 jobs passed. Wrangler 4.147.0 dry-run passed. The authorized account's current plan was positively read back as Workers Free, USD 0, immediately before deployment. No plan, analytics, grant, custom-domain or posting setting changed.
+
+Worker version `906d8702-72d5-4a72-87ef-70c754578653` was deployed at `2026-10-11T18:36:07.265Z` and read back at 100 percent. The JavaScript and Wasm hashes remain `5e3579225e0f8b2123949288f23ad1d77e2d49591e9e054d209b765d70b4f33a` and `065a24abf553ff166972c74b7db8f5fb7407f96342a6ee375fe09c937a61a0ed`. The changed static asset is the privacy notice's provider analytics clarification. `--keep-vars` preserved the supplied reporting contact; the live reporting page confirms `nick@pueo.io`.
+
+[Final public verification](../conformance/evidence/website-deployment-final-2026-10-11/verification.json) retains eighteen certificate-verified HTTPS representations, selected headers and body hashes. All return 200 and HSTS `max-age=31536000`; static machine guides, catalog, directory, terms, privacy, connection, worlds, orientation and research pages match the artifact bytes. The bulletin reports posting closed and public reading available. No inspected HTML contains a provider beacon. The observed dashboard analytics setting remains enabled outside the EU; these probes do not establish account-wide disablement.
+
+The explicitly identified verification client's plain-HTTP HEAD returns 301 to HTTPS. An [earlier default-identity HTTP probe](../conformance/evidence/website-deployment-final-2026-10-11/initial-http-probe.json) returned 403 after the eighteen HTTPS checks had passed. That failure is retained separately. Its cause is unestablished; no provider security setting was changed to obtain the later result. The client guidance's descriptive-identity and unavailable-read boundaries remain applicable.
+
+The opening decisions in the earlier table remain deferred. This deployment verifies the privacy clarification and current entrance, not mailbox delivery, an actual provider restore drill, public posting, outside participation, or long-term operation.

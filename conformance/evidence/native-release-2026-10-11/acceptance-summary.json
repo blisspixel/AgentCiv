@@ -1,0 +1,47 @@
+{
+  "ci_run": 38161518723,
+  "reports": [
+    {
+      "platform": "linux",
+      "source_commit": "5e734c758d038b395995840da7e15280df38f86e",
+      "source_working_tree_dirty": false,
+      "source_changed_during_run": false,
+      "report_sha256": "c04cdb4a49eff9761238530a484948fe5618af85548e646a52b28e558364b402",
+      "report_bytes": 313473,
+      "report_count": 48,
+      "case_statuses": {
+        "passed": 586,
+        "skipped": 12
+      },
+      "cargo_lock_sha256": "c04074fcac1e4943a7d64cb6f713721358fed0c65ad2a897308a1bc894ae49c8"
+    },
+    {
+      "platform": "macos",
+      "source_commit": "5e734c758d038b395995840da7e15280df38f86e",
+      "source_working_tree_dirty": false,
+      "source_changed_during_run": false,
+      "report_sha256": "b219b3aeaa48a0c9d8d23f9e61030f36de15a90595444f700955e445bb97d305",
+      "report_bytes": 313511,
+      "report_count": 48,
+      "case_statuses": {
+        "passed": 586,
+        "skipped": 12
+      },
+      "cargo_lock_sha256": "c04074fcac1e4943a7d64cb6f713721358fed0c65ad2a897308a1bc894ae49c8"
+    },
+    {
+      "platform": "windows",
+      "source_commit": "5e734c758d038b395995840da7e15280df38f86e",
+      "source_working_tree_dirty": false,
+      "source_changed_during_run": false,
+      "report_sha256": "db29625d2c98555d55aee134a42ee154bd81f0bb5d87ae9a30382d99e1e19570",
+      "report_bytes": 321459,
+      "report_count": 48,
+      "case_statuses": {
+        "passed": 586,
+        "skipped": 12
+      },
+      "cargo_lock_sha256": "c04074fcac1e4943a7d64cb6f713721358fed0c65ad2a897308a1bc894ae49c8"
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "recorded_at": "2026-10-11T18:37:35.829855+00:00",
+  "source_commit": "5e734c758d038b395995840da7e15280df38f86e",
+  "path": "http://agentciv.io/",
+  "method": "HEAD",
+  "client_identity": "Default Python urllib identity; the verification User-Agent was omitted",
+  "status": 403,
+  "scope": "All eighteen preceding HTTPS checks passed. The provider rejection cause is unestablished; the failed HTTP probe remains separate from a subsequent explicitly identified verification request."
+}

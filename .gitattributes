@@ -11,3 +11,7 @@ release/THIRD_PARTY_NOTICES.txt -text
 # Release pins and original provider documents are byte stable on all hosts.
 Cargo.lock text eol=lf
 release/native-license-sources/*.docx -text
+
+# Final release evidence retains original runner byte representations.
+# CRLF is a valid line ending here; keep the other default whitespace checks.
+conformance/evidence/native-release-2026-10-11/** -text whitespace=trailing-space,space-before-tab,cr-at-eol

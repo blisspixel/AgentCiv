@@ -1,0 +1,20 @@
+{
+  "version": "v0.1.0",
+  "assets": [
+    {
+      "name": "VERSION",
+      "final_url": "https://release-assets.githubusercontent.com/github-production-release-asset/1393235158/519a65ad-b9a1-4c41-bf1a-38adc7686230?sp=r&sv=2018-11-09&sr=b&spr=https&se=2026-10-11T19%3A30%3A42Z&rscd=attachment%3B+filename%3DVERSION&rsct=application%2Foctet-stream&skoid=96c2d410-5711-43a1-aedd-ab1947aa7ab0&sktid=398a6654-997b-47e9-b12b-9515b896b4de&skt=2026-10-11T18%3A29%3A55Z&ske=2026-10-11T19%3A30%3A42Z&sks=b&skv=2018-11-09&sig=1qwFHVk7hDsaVvjDzYsJBoZQXn%2Bv6LRlwycuD5E%2Fzlc%3D&jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmVsZWFzZS1hc3NldHMuZ2l0aHVidXNlcmNvbnRlbnQuY29tIiwia2V5Ijoia2V5MSIsImV4cCI6MTc5MTc0NTIxMCwibmJmIjoxNzkxNzQ0OTEwLCJwYXRoIjoicmVsZWFzZWFzc2V0cHJvZHVjdGlvbi5ibG9iLmNvcmUud2luZG93cy5uZXQifQ.ccTWx99Iqm9aueD5_yZt3TzHvLdI5pS3MiA0YnXfbF8&response-content-disposition=attachment%3B%20filename%3DVERSION&response-content-type=application%2Foctet-stream",
+      "sha256": "d0b4f9120ba026c00fa23cb84b4e1620a2e6436592e58155a5151653179572c0"
+    },
+    {
+      "name": "install.sh",
+      "final_url": "https://release-assets.githubusercontent.com/github-production-release-asset/1393235158/fbb7f485-6451-447e-a150-ec26e48c1bab?sp=r&sv=2018-11-09&sr=b&spr=https&se=2026-10-11T19%3A43%3A15Z&rscd=attachment%3B+filename%3Dinstall.sh&rsct=application%2Foctet-stream&skoid=96c2d410-5711-43a1-aedd-ab1947aa7ab0&sktid=398a6654-997b-47e9-b12b-9515b896b4de&skt=2026-10-11T18%3A42%3A48Z&ske=2026-10-11T19%3A43%3A15Z&sks=b&skv=2018-11-09&sig=qY3MAG894MU6JoDE94uyL8IpAX2gU3QJsq%2Fo4ImHh%2FE%3D&jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmVsZWFzZS1hc3NldHMuZ2l0aHVidXNlcmNvbnRlbnQuY29tIiwia2V5Ijoia2V5MSIsImV4cCI6MTc5MTc0NTIxMSwibmJmIjoxNzkxNzQ0OTExLCJwYXRoIjoicmVsZWFzZWFzc2V0cHJvZHVjdGlvbi5ibG9iLmNvcmUud2luZG93cy5uZXQifQ.asgGrGZBQ6UJZsuYmsBiyhMkstileQOulJpwuwD2t1c&response-content-disposition=attachment%3B%20filename%3Dinstall.sh&response-content-type=application%2Foctet-stream",
+      "sha256": "1fb2a35a035a0bbb6404adc7da3c1fbaccbbe2ea6180f3d140b30b1c1b0ee69f"
+    },
+    {
+      "name": "install.ps1",
+      "final_url": "https://release-assets.githubusercontent.com/github-production-release-asset/1393235158/8c76ac78-57c8-4129-97b6-3b4872860a99?sp=r&sv=2018-11-09&sr=b&spr=https&se=2026-10-11T19%3A49%3A21Z&rscd=attachment%3B+filename%3Dinstall.ps1&rsct=application%2Foctet-stream&skoid=96c2d410-5711-43a1-aedd-ab1947aa7ab0&sktid=398a6654-997b-47e9-b12b-9515b896b4de&skt=2026-10-11T18%3A49%3A02Z&ske=2026-10-11T19%3A49%3A21Z&sks=b&skv=2018-11-09&sig=VuPbgqcOhQFWBebURfM5hdEXAGq%2BXWIuSiIMNEc8fRE%3D&jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmVsZWFzZS1hc3NldHMuZ2l0aHVidXNlcmNvbnRlbnQuY29tIiwia2V5Ijoia2V5MSIsImV4cCI6MTc5MTc0NTIxMiwibmJmIjoxNzkxNzQ0OTEyLCJwYXRoIjoicmVsZWFzZWFzc2V0cHJvZHVjdGlvbi5ibG9iLmNvcmUud2luZG93cy5uZXQifQ.OHx-rGDxxa6JcrGb7vM-5T-lHngCimnqIK0VpEfZrwQ&response-content-disposition=attachment%3B%20filename%3Dinstall.ps1&response-content-type=application%2Foctet-stream",
+      "sha256": "ae04174dcfdda9d7108fec5a06d85d95f0e6e0ee2e4bc846407a1601779e5534"
+    }
+  ]
+}
