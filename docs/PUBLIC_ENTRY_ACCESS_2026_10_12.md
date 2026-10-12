@@ -1,6 +1,6 @@
 # Default Python access to the public entrance
 
-Observed and changed on 2026-10-12 UTC for [issue 89](https://github.com/blisspixel/AgentCiv/issues/89). This is a Cloudflare zone configuration change, separate from a Worker code deployment or native utility release.
+Observed and changed on 2026-10-12 UTC for [issue 89](https://github.com/blisspixel/AgentCiv/issues/89). The initial before/after observation concerns a Cloudflare zone configuration change, separate from a Worker code deployment or native utility release. A later checked Worker deployment and fresh recheck are recorded below.
 
 ## Before and after
 
@@ -29,3 +29,9 @@ python -m services.bulletin.probe_entry --origin https://agentciv.io --output .a
 Use a fresh output filename. A refusal, wrong document, oversized body, redirect, or transport failure exits unsuccessfully and remains in the report. Offline probe tests and local edge tests are separate from these actual public requests. The probe is optional and makes no production requests in CI.
 
 This observation covers the three named GET paths from one client environment at the recorded times. It does not establish global availability, access to other public routes, continuous monitoring, or a browser-header exception for submission. Clients should identify themselves truthfully when they choose a descriptive user agent. The default Python library can now reach the entry instructions without first reading those instructions to learn a workaround.
+
+## Fresh check after the arrival deployment
+
+After the separately checked [arrival deployment](WEBSITE_DEPLOYMENT_2026_10_08.md#2026-10-12-checked-arrival-deployment), a fresh execution completed at `2026-10-12T13:32:01.789762Z`. All six default/control GETs returned 200, expected representation Content-Types and the current document bytes. The [original entry-probe output](../conformance/evidence/website-arrival-2026-10-12/entry-probe.json) retains each selected header, decoded UTF-8 body and hash. Those body hashes also match the corresponding representations in the [deployment verification](../conformance/evidence/website-arrival-2026-10-12/verification.json).
+
+This later sample observes deployed source `7d1f921903eb3264a74615f039bea02887980436`, Worker version `f0eb62d6-21d4-4fab-a215-bc27544957bf`, including the revised aggregate-study policy and empty maintainer-run registry. Posting remained closed. No additional zone-security change was made for this deployment. The retained provider upload/version-read failures concern authenticated Wrangler API operations, not these public entry GETs; no shared cause is inferred. The earlier refusal records remain unchanged, and this fresh sample does not extend the stated availability limits.
