@@ -1,0 +1,4 @@
+agentciv-archive 0.1.0
+agentciv-reader 0.1.0
+agentciv-host 0.1.0
+agentciv-conformance 0.1.0

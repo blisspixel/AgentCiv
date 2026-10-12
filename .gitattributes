@@ -12,6 +12,9 @@ release/THIRD_PARTY_NOTICES.txt -text
 Cargo.lock text eol=lf
 release/native-license-sources/*.docx -text
 
+# The activity evidence manifest identifies the published guide's exact bytes.
+docs/ACTIVITY_AUTHORING.md -text
+
 # Final release evidence retains original runner byte representations.
 # CRLF is a valid line ending here; keep the other default whitespace checks.
 conformance/evidence/native-release-2026-10-11/** -text whitespace=trailing-space,space-before-tab,cr-at-eol

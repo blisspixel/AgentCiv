@@ -1,0 +1,23 @@
+{
+  "representation": "derived extraction from original retained GitHub job log",
+  "source_commit": "1f0ff2a59eb9bd8fa1eaab65b2f5dac669aed936",
+  "ci_run": 38209480244,
+  "job_id": 114680212974,
+  "url": "https://github.com/blisspixel/AgentCiv/actions/runs/38209480244/job/114680212974",
+  "raw_job_log_sha256": "df6ccb66b61d79bd4f58511d0f0023f6ce6fb109cfe07312c68fd89376683a07",
+  "python": {
+    "statements": 6995,
+    "missed": 597,
+    "percent": 91.47
+  },
+  "rust": {
+    "lines": 11481,
+    "missed": 1354,
+    "percent": 88.21
+  },
+  "participant_suite": {
+    "tests": 276,
+    "seconds": 313.453
+  },
+  "scope": "One successful exact-source Linux docs-and-tests job. Does not substitute for the other main jobs, native release execution or a later Python host correction."
+}

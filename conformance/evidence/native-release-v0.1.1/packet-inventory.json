@@ -1,0 +1,1678 @@
+{
+  "assembled_at": "2026-10-12T10:15:21.829462+00:00",
+  "source_commit": "1f0ff2a59eb9bd8fa1eaab65b2f5dac669aed936",
+  "version": "v0.1.1",
+  "previous_version": "v0.1.0",
+  "candidate_run": 38213447305,
+  "published_run": 38233053571,
+  "files": [
+    {
+      "path": ".gitattributes",
+      "bytes": 61,
+      "sha256": "22106984a6c1274ead5c283789ca11d75b303658949aaa627698747e7b2d6160",
+      "representation": "packet byte preservation configuration"
+    },
+    {
+      "path": "README.md",
+      "bytes": 2056,
+      "sha256": "5aa939f4f4db7696a123136daff9da23e40a48de082150887cc204de6d77f257",
+      "representation": "assembler-authored method and limits"
+    },
+    {
+      "path": "SHA256SUMS",
+      "bytes": 3500,
+      "sha256": "801f740b2a486eb755d0f76ab9ffca035cbbdc61aff83922cff388a8e5236a1c",
+      "representation": "original downloaded release asset"
+    },
+    {
+      "path": "SOURCE_COMMIT",
+      "bytes": 41,
+      "sha256": "6d7f82c0da144f5daa2b11c37d099cf4ce56ccacc8518766409c5e5e11845050",
+      "representation": "original downloaded release asset"
+    },
+    {
+      "path": "VERSION",
+      "bytes": 7,
+      "sha256": "588f5d8e92b8639ca0f92b568a7f881a32531a06112de4bb7705f4fbeede5ae5",
+      "representation": "original downloaded release asset"
+    },
+    {
+      "path": "build-images.json",
+      "bytes": 1249,
+      "sha256": "3ff693b8983406bb8a5e18fe4838015150ef29465cb4933e16ab9478a66e52c8",
+      "representation": "derived verification summary"
+    },
+    {
+      "path": "candidate-assets.json",
+      "bytes": 12631,
+      "sha256": "490d6f43be407c036e2fe2738354bef384d2a5201883b69f4a6954b97fc5e73f",
+      "representation": "derived verification summary"
+    },
+    {
+      "path": "candidate-downloads.json",
+      "bytes": 8007,
+      "sha256": "1a604a40eb243b9ebac7ea44f958daf34fec8cb0aaa1ca8d2c06a3433c76d383",
+      "representation": "derived verification summary"
+    },
+    {
+      "path": "candidate-release.json",
+      "bytes": 71295,
+      "sha256": "d12cc8a8f8e26afe6e26eb8ce0aeb308b389c97f641101cabc01173a5a266244",
+      "representation": "GitHub API JSON parsed and reserialized by fetch verifier"
+    },
+    {
+      "path": "candidate-run-metadata.json",
+      "bytes": 13918,
+      "sha256": "6eed4ef9e4f7882d8437fbaca7422cb2c789cadcc524e63e3698690a3801d352",
+      "representation": "GitHub API JSON parsed and reserialized by fetch verifier"
+    },
+    {
+      "path": "candidate-run.json",
+      "bytes": 23324,
+      "sha256": "ae404dc5a3f863fcc17887222d80b2c43c20ae105d505cfcb026011ccee398fc",
+      "representation": "GitHub CLI JSON parsed and reserialized by fetch verifier"
+    },
+    {
+      "path": "coverage-summary.json",
+      "bytes": 787,
+      "sha256": "34dde2d9c4e854f97c12eb27e30ac0941d65103f841cc54cfd62a28aa7980c30",
+      "representation": "operator-provided derived coverage summary"
+    },
+    {
+      "path": "latest-downloads.json",
+      "bytes": 635,
+      "sha256": "9d91df71f469d2cc166c430a71bb14947a21b0ad62294a5d30bf1418c5f097e2",
+      "representation": "derived verification summary"
+    },
+    {
+      "path": "latest-release.json",
+      "bytes": 72431,
+      "sha256": "d97075836f7a08075cf4855a056de6439f7705daf41a7248b14974c5de36bb22",
+      "representation": "GitHub API JSON parsed and reserialized by latest verifier"
+    },
+    {
+      "path": "linkage/agentciv-archive-v0.1.1-aarch64-apple-darwin.txt.gz",
+      "bytes": 258,
+      "sha256": "0ce681be4cfc5219db76c856086cc71c2fad068aba171d32696bdaaf31db92a5",
+      "representation": "losslessly compressed original llvm-readobj stdout"
+    },
+    {
+      "path": "linkage/agentciv-archive-v0.1.1-aarch64-pc-windows-msvc.exe.txt.gz",
+      "bytes": 1346,
+      "sha256": "d9d1fe8ded5ee2d722f6bee7fbeccb60867d6126c2c1349218fd2e51b1bfb89a",
+      "representation": "losslessly compressed original llvm-readobj stdout"
+    },
+    {
+      "path": "linkage/agentciv-archive-v0.1.1-aarch64-unknown-linux-gnu.txt.gz",
+      "bytes": 1188,
+      "sha256": "20b2081133d40328ca2adf5cd05c3689befc4c461e82fd138f9fc67f9a3fd0b4",
+      "representation": "losslessly compressed original llvm-readobj stdout"
+    },
+    {
+      "path": "linkage/agentciv-archive-v0.1.1-x86_64-apple-darwin.txt.gz",
+      "bytes": 252,
+      "sha256": "4f7a4c6db0b6473e7b237318be23cd0871befda405eb9879ff12a2da7b9063c1",
+      "representation": "losslessly compressed original llvm-readobj stdout"
+    },
+    {
+      "path": "linkage/agentciv-archive-v0.1.1-x86_64-pc-windows-msvc.exe.txt.gz",
+      "bytes": 1352,
+      "sha256": "06bf5aedb6b5258009caa553d818aa493d8318cd5ede606a1f88185f62eac605",
+      "representation": "losslessly compressed original llvm-readobj stdout"
+    },
+    {
+      "path": "linkage/agentciv-archive-v0.1.1-x86_64-unknown-linux-gnu.txt.gz",
+      "bytes": 1305,
+      "sha256": "abe4f807020fc03bd39150d756f033317d602fafa178bef24aeccffda19b4fab",
+      "representation": "losslessly compressed original llvm-readobj stdout"
+    },
+    {
+      "path": "linkage/agentciv-conformance-v0.1.1-aarch64-apple-darwin.txt.gz",
+      "bytes": 308,
+      "sha256": "55d7ea93dfa7e20fffd8acdc0b8b91166938fc018437f5aa7b0fca043919d57a",
+      "representation": "losslessly compressed original llvm-readobj stdout"
+    },
+    {
+      "path": "linkage/agentciv-conformance-v0.1.1-aarch64-pc-windows-msvc.exe.txt.gz",
+      "bytes": 1910,
+      "sha256": "70a2ab7b368211e80d43c8d731bbdad93282af658c0cce73b6104170f0e14b63",
+      "representation": "losslessly compressed original llvm-readobj stdout"
+    },
+    {
+      "path": "linkage/agentciv-conformance-v0.1.1-aarch64-unknown-linux-gnu.txt.gz",
+      "bytes": 1698,
+      "sha256": "5ff3284849baac10340424559641b112ba1d150ef6e9a9208b3fc8922483d364",
+      "representation": "losslessly compressed original llvm-readobj stdout"
+    },
+    {
+      "path": "linkage/agentciv-conformance-v0.1.1-x86_64-apple-darwin.txt.gz",
+      "bytes": 304,
+      "sha256": "0b243bce0804e5d1f3d94da0b419278dec31f2c20e2de85c7038a423dd08bd2a",
+      "representation": "losslessly compressed original llvm-readobj stdout"
+    },
+    {
+      "path": "linkage/agentciv-conformance-v0.1.1-x86_64-pc-windows-msvc.exe.txt.gz",
+      "bytes": 1898,
+      "sha256": "019e7e91d99f6e55c029147f54d9a4046c0e6b83400e6a357b796a1ce054ea48",
+      "representation": "losslessly compressed original llvm-readobj stdout"
+    },
+    {
+      "path": "linkage/agentciv-conformance-v0.1.1-x86_64-unknown-linux-gnu.txt.gz",
+      "bytes": 1842,
+      "sha256": "3037123b098646f8ad8dd8332174382a4cd6d68d058c98ffcab1863e7b10916a",
+      "representation": "losslessly compressed original llvm-readobj stdout"
+    },
+    {
+      "path": "linkage/agentciv-host-v0.1.1-aarch64-apple-darwin.txt.gz",
+      "bytes": 257,
+      "sha256": "3df28278710974d8e3b639aa1170f3b3d69a9efb90d90e5916efc8c13141e23b",
+      "representation": "losslessly compressed original llvm-readobj stdout"
+    },
+    {
+      "path": "linkage/agentciv-host-v0.1.1-aarch64-pc-windows-msvc.exe.txt.gz",
+      "bytes": 1889,
+      "sha256": "cf3bed4fb90c20b9dcb37b16d3d07bd41e8e67b60bbe562fa05a88b785547563",
+      "representation": "losslessly compressed original llvm-readobj stdout"
+    },
+    {
+      "path": "linkage/agentciv-host-v0.1.1-aarch64-unknown-linux-gnu.txt.gz",
+      "bytes": 1629,
+      "sha256": "de6dad43afda8e15ee300bd7da5780e741c488b33c3f06d8827fa15dfeec56be",
+      "representation": "losslessly compressed original llvm-readobj stdout"
+    },
+    {
+      "path": "linkage/agentciv-host-v0.1.1-x86_64-apple-darwin.txt.gz",
+      "bytes": 251,
+      "sha256": "d0aa5fea1c665c6aa02477daba152ef99684bb6034789f49a656fee1facd2802",
+      "representation": "losslessly compressed original llvm-readobj stdout"
+    },
+    {
+      "path": "linkage/agentciv-host-v0.1.1-x86_64-pc-windows-msvc.exe.txt.gz",
+      "bytes": 1890,
+      "sha256": "5852e658f74c363a834b54cd07aef22e5d2e64ef6e306d0e35c6dc4dfc4c9bf6",
+      "representation": "losslessly compressed original llvm-readobj stdout"
+    },
+    {
+      "path": "linkage/agentciv-host-v0.1.1-x86_64-unknown-linux-gnu.txt.gz",
+      "bytes": 1773,
+      "sha256": "182023449476fe2ce3cf6d2bfbf3026fe5939fc85a97aff50f0192d622620984",
+      "representation": "losslessly compressed original llvm-readobj stdout"
+    },
+    {
+      "path": "linkage/agentciv-reader-v0.1.1-aarch64-apple-darwin.txt.gz",
+      "bytes": 305,
+      "sha256": "13a7993b50df6348b209f96a31539b763bafcdfa321c4e51af79b0b3be22753a",
+      "representation": "losslessly compressed original llvm-readobj stdout"
+    },
+    {
+      "path": "linkage/agentciv-reader-v0.1.1-aarch64-pc-windows-msvc.exe.txt.gz",
+      "bytes": 1872,
+      "sha256": "60c614bd49df84d871664e1a0cb13d92fd992303a8a1601440644f7d896d03be",
+      "representation": "losslessly compressed original llvm-readobj stdout"
+    },
+    {
+      "path": "linkage/agentciv-reader-v0.1.1-aarch64-unknown-linux-gnu.txt.gz",
+      "bytes": 1669,
+      "sha256": "3bd09823eeb960cb5c840e50c699597928b626b7c4dc1b529f955f970a037899",
+      "representation": "losslessly compressed original llvm-readobj stdout"
+    },
+    {
+      "path": "linkage/agentciv-reader-v0.1.1-x86_64-apple-darwin.txt.gz",
+      "bytes": 301,
+      "sha256": "06ff3013e9c47d8b544cc71438e14ec3b69cea2d6f5c1f5caa1a67c16036114e",
+      "representation": "losslessly compressed original llvm-readobj stdout"
+    },
+    {
+      "path": "linkage/agentciv-reader-v0.1.1-x86_64-pc-windows-msvc.exe.txt.gz",
+      "bytes": 1857,
+      "sha256": "0c6c352e93d48a329f8b55dbb5ce063f064722b03ebfbb5033ee7352b31382f9",
+      "representation": "losslessly compressed original llvm-readobj stdout"
+    },
+    {
+      "path": "linkage/agentciv-reader-v0.1.1-x86_64-unknown-linux-gnu.txt.gz",
+      "bytes": 1783,
+      "sha256": "676e7d4be4c3e6fe5a4a29146824a5f15c7a5a5bb58b966f33d9ac9990aef778",
+      "representation": "losslessly compressed original llvm-readobj stdout"
+    },
+    {
+      "path": "linkage/verification.json",
+      "bytes": 16845,
+      "sha256": "09d94bcafaced859a2f3ceeebc6deaa5c70b5bcd18618f40657f3339d818515e",
+      "representation": "derived verification summary"
+    },
+    {
+      "path": "main-ci-proof.json",
+      "bytes": 41906,
+      "sha256": "656f696e28606877609a9a7fa1e0b6f3d3217dd1ea23c0777500311656961d38",
+      "representation": "operator-provided actual exact-main proof"
+    },
+    {
+      "path": "provenance/LICENSE.json",
+      "bytes": 24454,
+      "sha256": "679fc7d9a2c23cefaad18918ef3f6381a46bfe16e0b225ff2e3bfc615c20b18e",
+      "representation": "original successful gh attestation verify stdout"
+    },
+    {
+      "path": "provenance/NOTICE_INVENTORY.json.json",
+      "bytes": 24454,
+      "sha256": "679fc7d9a2c23cefaad18918ef3f6381a46bfe16e0b225ff2e3bfc615c20b18e",
+      "representation": "original successful gh attestation verify stdout"
+    },
+    {
+      "path": "provenance/SHA256SUMS.json",
+      "bytes": 24454,
+      "sha256": "679fc7d9a2c23cefaad18918ef3f6381a46bfe16e0b225ff2e3bfc615c20b18e",
+      "representation": "original successful gh attestation verify stdout"
+    },
+    {
+      "path": "provenance/SOURCE_COMMIT.json",
+      "bytes": 24454,
+      "sha256": "679fc7d9a2c23cefaad18918ef3f6381a46bfe16e0b225ff2e3bfc615c20b18e",
+      "representation": "original successful gh attestation verify stdout"
+    },
+    {
+      "path": "provenance/THIRD_PARTY_NOTICES.txt.json",
+      "bytes": 24454,
+      "sha256": "679fc7d9a2c23cefaad18918ef3f6381a46bfe16e0b225ff2e3bfc615c20b18e",
+      "representation": "original successful gh attestation verify stdout"
+    },
+    {
+      "path": "provenance/VERSION.json",
+      "bytes": 24454,
+      "sha256": "679fc7d9a2c23cefaad18918ef3f6381a46bfe16e0b225ff2e3bfc615c20b18e",
+      "representation": "original successful gh attestation verify stdout"
+    },
+    {
+      "path": "provenance/agentciv-archive-v0.1.1-aarch64-apple-darwin.json",
+      "bytes": 24454,
+      "sha256": "679fc7d9a2c23cefaad18918ef3f6381a46bfe16e0b225ff2e3bfc615c20b18e",
+      "representation": "original successful gh attestation verify stdout"
+    },
+    {
+      "path": "provenance/agentciv-archive-v0.1.1-aarch64-pc-windows-msvc.exe.json",
+      "bytes": 24454,
+      "sha256": "679fc7d9a2c23cefaad18918ef3f6381a46bfe16e0b225ff2e3bfc615c20b18e",
+      "representation": "original successful gh attestation verify stdout"
+    },
+    {
+      "path": "provenance/agentciv-archive-v0.1.1-aarch64-unknown-linux-gnu.json",
+      "bytes": 24454,
+      "sha256": "679fc7d9a2c23cefaad18918ef3f6381a46bfe16e0b225ff2e3bfc615c20b18e",
+      "representation": "original successful gh attestation verify stdout"
+    },
+    {
+      "path": "provenance/agentciv-archive-v0.1.1-x86_64-apple-darwin.json",
+      "bytes": 24454,
+      "sha256": "679fc7d9a2c23cefaad18918ef3f6381a46bfe16e0b225ff2e3bfc615c20b18e",
+      "representation": "original successful gh attestation verify stdout"
+    },
+    {
+      "path": "provenance/agentciv-archive-v0.1.1-x86_64-pc-windows-msvc.exe.json",
+      "bytes": 24454,
+      "sha256": "679fc7d9a2c23cefaad18918ef3f6381a46bfe16e0b225ff2e3bfc615c20b18e",
+      "representation": "original successful gh attestation verify stdout"
+    },
+    {
+      "path": "provenance/agentciv-archive-v0.1.1-x86_64-unknown-linux-gnu.json",
+      "bytes": 24454,
+      "sha256": "679fc7d9a2c23cefaad18918ef3f6381a46bfe16e0b225ff2e3bfc615c20b18e",
+      "representation": "original successful gh attestation verify stdout"
+    },
+    {
+      "path": "provenance/agentciv-conformance-v0.1.1-aarch64-apple-darwin.json",
+      "bytes": 24454,
+      "sha256": "679fc7d9a2c23cefaad18918ef3f6381a46bfe16e0b225ff2e3bfc615c20b18e",
+      "representation": "original successful gh attestation verify stdout"
+    },
+    {
+      "path": "provenance/agentciv-conformance-v0.1.1-aarch64-pc-windows-msvc.exe.json",
+      "bytes": 24454,
+      "sha256": "679fc7d9a2c23cefaad18918ef3f6381a46bfe16e0b225ff2e3bfc615c20b18e",
+      "representation": "original successful gh attestation verify stdout"
+    },
+    {
+      "path": "provenance/agentciv-conformance-v0.1.1-aarch64-unknown-linux-gnu.json",
+      "bytes": 24454,
+      "sha256": "679fc7d9a2c23cefaad18918ef3f6381a46bfe16e0b225ff2e3bfc615c20b18e",
+      "representation": "original successful gh attestation verify stdout"
+    },
+    {
+      "path": "provenance/agentciv-conformance-v0.1.1-x86_64-apple-darwin.json",
+      "bytes": 24454,
+      "sha256": "679fc7d9a2c23cefaad18918ef3f6381a46bfe16e0b225ff2e3bfc615c20b18e",
+      "representation": "original successful gh attestation verify stdout"
+    },
+    {
+      "path": "provenance/agentciv-conformance-v0.1.1-x86_64-pc-windows-msvc.exe.json",
+      "bytes": 24454,
+      "sha256": "679fc7d9a2c23cefaad18918ef3f6381a46bfe16e0b225ff2e3bfc615c20b18e",
+      "representation": "original successful gh attestation verify stdout"
+    },
+    {
+      "path": "provenance/agentciv-conformance-v0.1.1-x86_64-unknown-linux-gnu.json",
+      "bytes": 24454,
+      "sha256": "679fc7d9a2c23cefaad18918ef3f6381a46bfe16e0b225ff2e3bfc615c20b18e",
+      "representation": "original successful gh attestation verify stdout"
+    },
+    {
+      "path": "provenance/agentciv-host-v0.1.1-aarch64-apple-darwin.json",
+      "bytes": 24454,
+      "sha256": "679fc7d9a2c23cefaad18918ef3f6381a46bfe16e0b225ff2e3bfc615c20b18e",
+      "representation": "original successful gh attestation verify stdout"
+    },
+    {
+      "path": "provenance/agentciv-host-v0.1.1-aarch64-pc-windows-msvc.exe.json",
+      "bytes": 24454,
+      "sha256": "679fc7d9a2c23cefaad18918ef3f6381a46bfe16e0b225ff2e3bfc615c20b18e",
+      "representation": "original successful gh attestation verify stdout"
+    },
+    {
+      "path": "provenance/agentciv-host-v0.1.1-aarch64-unknown-linux-gnu.json",
+      "bytes": 24454,
+      "sha256": "679fc7d9a2c23cefaad18918ef3f6381a46bfe16e0b225ff2e3bfc615c20b18e",
+      "representation": "original successful gh attestation verify stdout"
+    },
+    {
+      "path": "provenance/agentciv-host-v0.1.1-x86_64-apple-darwin.json",
+      "bytes": 24454,
+      "sha256": "679fc7d9a2c23cefaad18918ef3f6381a46bfe16e0b225ff2e3bfc615c20b18e",
+      "representation": "original successful gh attestation verify stdout"
+    },
+    {
+      "path": "provenance/agentciv-host-v0.1.1-x86_64-pc-windows-msvc.exe.json",
+      "bytes": 24454,
+      "sha256": "679fc7d9a2c23cefaad18918ef3f6381a46bfe16e0b225ff2e3bfc615c20b18e",
+      "representation": "original successful gh attestation verify stdout"
+    },
+    {
+      "path": "provenance/agentciv-host-v0.1.1-x86_64-unknown-linux-gnu.json",
+      "bytes": 24454,
+      "sha256": "679fc7d9a2c23cefaad18918ef3f6381a46bfe16e0b225ff2e3bfc615c20b18e",
+      "representation": "original successful gh attestation verify stdout"
+    },
+    {
+      "path": "provenance/agentciv-reader-v0.1.1-aarch64-apple-darwin.json",
+      "bytes": 24454,
+      "sha256": "679fc7d9a2c23cefaad18918ef3f6381a46bfe16e0b225ff2e3bfc615c20b18e",
+      "representation": "original successful gh attestation verify stdout"
+    },
+    {
+      "path": "provenance/agentciv-reader-v0.1.1-aarch64-pc-windows-msvc.exe.json",
+      "bytes": 24454,
+      "sha256": "679fc7d9a2c23cefaad18918ef3f6381a46bfe16e0b225ff2e3bfc615c20b18e",
+      "representation": "original successful gh attestation verify stdout"
+    },
+    {
+      "path": "provenance/agentciv-reader-v0.1.1-aarch64-unknown-linux-gnu.json",
+      "bytes": 24454,
+      "sha256": "679fc7d9a2c23cefaad18918ef3f6381a46bfe16e0b225ff2e3bfc615c20b18e",
+      "representation": "original successful gh attestation verify stdout"
+    },
+    {
+      "path": "provenance/agentciv-reader-v0.1.1-x86_64-apple-darwin.json",
+      "bytes": 24454,
+      "sha256": "679fc7d9a2c23cefaad18918ef3f6381a46bfe16e0b225ff2e3bfc615c20b18e",
+      "representation": "original successful gh attestation verify stdout"
+    },
+    {
+      "path": "provenance/agentciv-reader-v0.1.1-x86_64-pc-windows-msvc.exe.json",
+      "bytes": 24454,
+      "sha256": "679fc7d9a2c23cefaad18918ef3f6381a46bfe16e0b225ff2e3bfc615c20b18e",
+      "representation": "original successful gh attestation verify stdout"
+    },
+    {
+      "path": "provenance/agentciv-reader-v0.1.1-x86_64-unknown-linux-gnu.json",
+      "bytes": 24454,
+      "sha256": "679fc7d9a2c23cefaad18918ef3f6381a46bfe16e0b225ff2e3bfc615c20b18e",
+      "representation": "original successful gh attestation verify stdout"
+    },
+    {
+      "path": "provenance/install.ps1.json",
+      "bytes": 24454,
+      "sha256": "679fc7d9a2c23cefaad18918ef3f6381a46bfe16e0b225ff2e3bfc615c20b18e",
+      "representation": "original successful gh attestation verify stdout"
+    },
+    {
+      "path": "provenance/install.sh.json",
+      "bytes": 24454,
+      "sha256": "679fc7d9a2c23cefaad18918ef3f6381a46bfe16e0b225ff2e3bfc615c20b18e",
+      "representation": "original successful gh attestation verify stdout"
+    },
+    {
+      "path": "provenance/vs2026-enterprise-license.docx.json",
+      "bytes": 24454,
+      "sha256": "679fc7d9a2c23cefaad18918ef3f6381a46bfe16e0b225ff2e3bfc615c20b18e",
+      "representation": "original successful gh attestation verify stdout"
+    },
+    {
+      "path": "provenance/vs2026-runtime-license.docx.json",
+      "bytes": 24454,
+      "sha256": "679fc7d9a2c23cefaad18918ef3f6381a46bfe16e0b225ff2e3bfc615c20b18e",
+      "representation": "original successful gh attestation verify stdout"
+    },
+    {
+      "path": "published-artifacts.json",
+      "bytes": 4220,
+      "sha256": "c8d4af6afd6f647e022ad70d939b3582d16c6b6557599988c3389f40ebb6e31d",
+      "representation": "original gh run view/API stdout captured by stage verifier"
+    },
+    {
+      "path": "published-assets.json",
+      "bytes": 12596,
+      "sha256": "bf80588849591a34a665ed42bca96e67c5b264dcfd58652fb2837c5c973ab22a",
+      "representation": "derived verification summary"
+    },
+    {
+      "path": "published-downloads.json",
+      "bytes": 8006,
+      "sha256": "bdcd4a6eabb535730a71e624c020d558628f586bc195a4bdd50b31b9102d124a",
+      "representation": "derived verification summary"
+    },
+    {
+      "path": "published-installation-run-metadata.json",
+      "bytes": 12608,
+      "sha256": "18126bcb05c7a7052836bb7e9241819de73b3e39bc055762bd162c1d477af84b",
+      "representation": "original gh run view/API stdout captured by stage verifier"
+    },
+    {
+      "path": "published-installation-run.json",
+      "bytes": 11074,
+      "sha256": "961196a5211159dd97cc1e75a4e14987a8959ea5974f3f4dadb7d3d8fbdd5f84",
+      "representation": "original gh run view/API stdout captured by stage verifier"
+    },
+    {
+      "path": "published-installation/published-aarch64-apple-darwin/archive-help.txt",
+      "bytes": 116,
+      "sha256": "97533a1dab29ad7f0615e37d271a5159befa815699c0458cbd262f2e8c1fc492",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-aarch64-apple-darwin/conformance-help.txt",
+      "bytes": 275,
+      "sha256": "1cb7fd686c7529e5d074873442d0d112447f5467dd6af0c526c8641ee29ba5d2",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-aarch64-apple-darwin/cross-version.txt",
+      "bytes": 37,
+      "sha256": "b58e3b59cc85bb2eb8bec259bb39ebb0b05334dc9a4781755d296bbbb6e08871",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-aarch64-apple-darwin/demo.json",
+      "bytes": 666,
+      "sha256": "c0e4454eaf964116ba292190520297c9f8581e83dab8bb54069c34ac4fee3203",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-aarch64-apple-darwin/host-help.txt",
+      "bytes": 64,
+      "sha256": "bdf9235350bac4f7c00219c45ee6bf56681a4472eac00e302f53fa782214fc64",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-aarch64-apple-darwin/install.ps1-provenance.json",
+      "bytes": 24449,
+      "sha256": "bbba13972654abeb40190c03de368ccc7976fdee9dcc4e520eaa746a39e52ffc",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-aarch64-apple-darwin/install.sh-provenance.json",
+      "bytes": 24449,
+      "sha256": "bbba13972654abeb40190c03de368ccc7976fdee9dcc4e520eaa746a39e52ffc",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-aarch64-apple-darwin/installed-generation.json",
+      "bytes": 1389,
+      "sha256": "71960edafe7baace10259dd81cb13591305669ad31e1ee5fc1af1121fc166930",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-aarch64-apple-darwin/installed-versions.txt",
+      "bytes": 92,
+      "sha256": "e4921273437be872652efd5f8ea268b4f33b0a06fd9a7c5420ff405399cbcadc",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-aarch64-apple-darwin/previous-generation.json",
+      "bytes": 1389,
+      "sha256": "26fc74df1185f6a005a70b13f98c47da936a1950bf3496376e0c27eae2978476",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-aarch64-apple-darwin/previous-versions.txt",
+      "bytes": 92,
+      "sha256": "96d75e406de365dba251717402a9b060f60b4e2e488eee59c61fc3873715f6c1",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-aarch64-apple-darwin/previous/install.ps1-provenance.json",
+      "bytes": 24116,
+      "sha256": "3c039509440d501a07c144cf0e7b7d85c67994ade73c956dc8bffe50f7b53b9a",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-aarch64-apple-darwin/previous/install.sh-provenance.json",
+      "bytes": 24116,
+      "sha256": "3c039509440d501a07c144cf0e7b7d85c67994ade73c956dc8bffe50f7b53b9a",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-aarch64-apple-darwin/previous/release-attestation.json",
+      "bytes": 14627,
+      "sha256": "fe7a7f5ace36dd104dadf9ea8c7308d42572a57356b07de1deb9ca2d3f025a52",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-aarch64-apple-darwin/previous/release.json",
+      "bytes": 64385,
+      "sha256": "6c8ee502c4b53e14f88a8fda732bf1cdf9925d30f28c0d6afe361446235c670a",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-aarch64-apple-darwin/reader-help.txt",
+      "bytes": 550,
+      "sha256": "18c88c8d40aa0e35108b743ebce4cc9aa4f061bc4939df21e324b631dc4c1a6f",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-aarch64-apple-darwin/reinstalled-generation.json",
+      "bytes": 1389,
+      "sha256": "71960edafe7baace10259dd81cb13591305669ad31e1ee5fc1af1121fc166930",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-aarch64-apple-darwin/reinstalled-versions.txt",
+      "bytes": 92,
+      "sha256": "e4921273437be872652efd5f8ea268b4f33b0a06fd9a7c5420ff405399cbcadc",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-aarch64-apple-darwin/release-attestation.json",
+      "bytes": 14623,
+      "sha256": "b972071901218b1a86fcb967d2b64bac18edc501a1ef1dcb889491acaaefb2a9",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-aarch64-apple-darwin/release.json",
+      "bytes": 61382,
+      "sha256": "eaeddecf10f34190fbd0de13297f3abddf5c34c36bcf460543a1fe3459876938",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-aarch64-apple-darwin/result.txt",
+      "bytes": 103,
+      "sha256": "78442bdafb889ba9e97b29c0288fe14a5d7e8fb2cd9c93d015462301fffa76c4",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-aarch64-apple-darwin/rolled-back-generation.json",
+      "bytes": 1389,
+      "sha256": "26fc74df1185f6a005a70b13f98c47da936a1950bf3496376e0c27eae2978476",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-aarch64-apple-darwin/rolled-back-versions.txt",
+      "bytes": 92,
+      "sha256": "96d75e406de365dba251717402a9b060f60b4e2e488eee59c61fc3873715f6c1",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-aarch64-apple-darwin/upgraded-again-generation.json",
+      "bytes": 1389,
+      "sha256": "71960edafe7baace10259dd81cb13591305669ad31e1ee5fc1af1121fc166930",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-aarch64-apple-darwin/upgraded-again-versions.txt",
+      "bytes": 92,
+      "sha256": "e4921273437be872652efd5f8ea268b4f33b0a06fd9a7c5420ff405399cbcadc",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-aarch64-apple-darwin/upgraded-generation.json",
+      "bytes": 1389,
+      "sha256": "71960edafe7baace10259dd81cb13591305669ad31e1ee5fc1af1121fc166930",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-aarch64-apple-darwin/upgraded-versions.txt",
+      "bytes": 92,
+      "sha256": "e4921273437be872652efd5f8ea268b4f33b0a06fd9a7c5420ff405399cbcadc",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-aarch64-pc-windows-msvc/archive-help.txt",
+      "bytes": 118,
+      "sha256": "89050244389bc7b545274a72f7334ab6169d4174bb92527947ae5d7803029b63",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-aarch64-pc-windows-msvc/conformance-help.txt",
+      "bytes": 277,
+      "sha256": "20ded3e074b8a143cf8cb4577986ca6060b21d3f93dda76c8d466230aaf9b1b9",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-aarch64-pc-windows-msvc/cross-version.txt",
+      "bytes": 38,
+      "sha256": "9f5572dc33051aa96b1fe3ff090a1747a48232f954bb7af156ee873fae60b513",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-aarch64-pc-windows-msvc/demo.json",
+      "bytes": 694,
+      "sha256": "525bb72d6441141ab1ec5afa3ae98f28e5d909d5f4eae07075645b3da2054e7a",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-aarch64-pc-windows-msvc/host-help.txt",
+      "bytes": 66,
+      "sha256": "539df8266738637894fda61166c239219edea77657a760efa2c801bd41894d55",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-aarch64-pc-windows-msvc/install.ps1-provenance.json",
+      "bytes": 24481,
+      "sha256": "20b4c2b4fab86e56da0bbdef187bffbce76dd69e7c12539d10f2b6009a767f66",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-aarch64-pc-windows-msvc/install.sh-provenance.json",
+      "bytes": 24481,
+      "sha256": "20b4c2b4fab86e56da0bbdef187bffbce76dd69e7c12539d10f2b6009a767f66",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-aarch64-pc-windows-msvc/installed-generation.json",
+      "bytes": 1477,
+      "sha256": "de504ca00f27062cddba3d79540df973a4b231cdf19b80cb61792dc294046f5b",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-aarch64-pc-windows-msvc/installed-versions.txt",
+      "bytes": 96,
+      "sha256": "5315d43b13f95f981f5b771f8ecd25e69beac385aedcba23cd1ac9bba59530eb",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-aarch64-pc-windows-msvc/previous-generation.json",
+      "bytes": 1477,
+      "sha256": "8d96f94409c72d25d075b4ee3390f387dc92e8ffed3e538d2f9b420e4cc8d0b4",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-aarch64-pc-windows-msvc/previous-versions.txt",
+      "bytes": 96,
+      "sha256": "842388cca7f6805812d268e18ab6a90f178c4f89285cc0b0c9e34d7568640cfd",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-aarch64-pc-windows-msvc/previous/install.ps1-provenance.json",
+      "bytes": 24148,
+      "sha256": "cf58a06bb06d91414be7964e10b0e0e8283e773d9de876ece794787e7b09f388",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-aarch64-pc-windows-msvc/previous/install.sh-provenance.json",
+      "bytes": 24148,
+      "sha256": "cf58a06bb06d91414be7964e10b0e0e8283e773d9de876ece794787e7b09f388",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-aarch64-pc-windows-msvc/previous/release-attestation.json",
+      "bytes": 14627,
+      "sha256": "fe7a7f5ace36dd104dadf9ea8c7308d42572a57356b07de1deb9ca2d3f025a52",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-aarch64-pc-windows-msvc/previous/release.json",
+      "bytes": 64385,
+      "sha256": "6c8ee502c4b53e14f88a8fda732bf1cdf9925d30f28c0d6afe361446235c670a",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-aarch64-pc-windows-msvc/reader-help.txt",
+      "bytes": 555,
+      "sha256": "a8356de5f32139f4e769b98816b0835bd795c6cc96493a88523c88dc0e9963ea",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-aarch64-pc-windows-msvc/reinstalled-generation.json",
+      "bytes": 1477,
+      "sha256": "de504ca00f27062cddba3d79540df973a4b231cdf19b80cb61792dc294046f5b",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-aarch64-pc-windows-msvc/reinstalled-versions.txt",
+      "bytes": 96,
+      "sha256": "5315d43b13f95f981f5b771f8ecd25e69beac385aedcba23cd1ac9bba59530eb",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-aarch64-pc-windows-msvc/release-attestation.json",
+      "bytes": 14623,
+      "sha256": "b972071901218b1a86fcb967d2b64bac18edc501a1ef1dcb889491acaaefb2a9",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-aarch64-pc-windows-msvc/release.json",
+      "bytes": 61382,
+      "sha256": "eaeddecf10f34190fbd0de13297f3abddf5c34c36bcf460543a1fe3459876938",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-aarch64-pc-windows-msvc/result.txt",
+      "bytes": 104,
+      "sha256": "9ff86cce7dc4992cb74fba8d3028efea582bcdbdc7d1bf2cec8bcb45ab0ddaee",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-aarch64-pc-windows-msvc/rolled-back-generation.json",
+      "bytes": 1477,
+      "sha256": "8d96f94409c72d25d075b4ee3390f387dc92e8ffed3e538d2f9b420e4cc8d0b4",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-aarch64-pc-windows-msvc/rolled-back-versions.txt",
+      "bytes": 96,
+      "sha256": "842388cca7f6805812d268e18ab6a90f178c4f89285cc0b0c9e34d7568640cfd",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-aarch64-pc-windows-msvc/upgraded-again-generation.json",
+      "bytes": 1477,
+      "sha256": "de504ca00f27062cddba3d79540df973a4b231cdf19b80cb61792dc294046f5b",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-aarch64-pc-windows-msvc/upgraded-again-versions.txt",
+      "bytes": 96,
+      "sha256": "5315d43b13f95f981f5b771f8ecd25e69beac385aedcba23cd1ac9bba59530eb",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-aarch64-pc-windows-msvc/upgraded-generation.json",
+      "bytes": 1477,
+      "sha256": "de504ca00f27062cddba3d79540df973a4b231cdf19b80cb61792dc294046f5b",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-aarch64-pc-windows-msvc/upgraded-versions.txt",
+      "bytes": 96,
+      "sha256": "5315d43b13f95f981f5b771f8ecd25e69beac385aedcba23cd1ac9bba59530eb",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-aarch64-unknown-linux-gnu/archive-help.txt",
+      "bytes": 116,
+      "sha256": "97533a1dab29ad7f0615e37d271a5159befa815699c0458cbd262f2e8c1fc492",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-aarch64-unknown-linux-gnu/conformance-help.txt",
+      "bytes": 275,
+      "sha256": "1cb7fd686c7529e5d074873442d0d112447f5467dd6af0c526c8641ee29ba5d2",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-aarch64-unknown-linux-gnu/cross-version.txt",
+      "bytes": 37,
+      "sha256": "b58e3b59cc85bb2eb8bec259bb39ebb0b05334dc9a4781755d296bbbb6e08871",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-aarch64-unknown-linux-gnu/demo.json",
+      "bytes": 666,
+      "sha256": "c0e4454eaf964116ba292190520297c9f8581e83dab8bb54069c34ac4fee3203",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-aarch64-unknown-linux-gnu/host-help.txt",
+      "bytes": 64,
+      "sha256": "bdf9235350bac4f7c00219c45ee6bf56681a4472eac00e302f53fa782214fc64",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-aarch64-unknown-linux-gnu/install.ps1-provenance.json",
+      "bytes": 24476,
+      "sha256": "7fb345f087447f12b728a96bdfad61c199d92c14199b2d968fb61e1dc27b45a0",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-aarch64-unknown-linux-gnu/install.sh-provenance.json",
+      "bytes": 24476,
+      "sha256": "7fb345f087447f12b728a96bdfad61c199d92c14199b2d968fb61e1dc27b45a0",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-aarch64-unknown-linux-gnu/installed-generation.json",
+      "bytes": 1414,
+      "sha256": "4d4a901891f0f43a5fa814e91502f5cfe2d833268bd9f35ae298d9814d70f96f",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-aarch64-unknown-linux-gnu/installed-versions.txt",
+      "bytes": 92,
+      "sha256": "e4921273437be872652efd5f8ea268b4f33b0a06fd9a7c5420ff405399cbcadc",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-aarch64-unknown-linux-gnu/previous-generation.json",
+      "bytes": 1414,
+      "sha256": "c1b75ba3964eb3f0fd6cdde95c2658327ae042825950325021f8f6490f4c2620",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-aarch64-unknown-linux-gnu/previous-versions.txt",
+      "bytes": 92,
+      "sha256": "96d75e406de365dba251717402a9b060f60b4e2e488eee59c61fc3873715f6c1",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-aarch64-unknown-linux-gnu/previous/install.ps1-provenance.json",
+      "bytes": 24143,
+      "sha256": "b868f1efe83698e3acb3dd939cb3121e03c36c722e4b257b96518a85a5b27c06",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-aarch64-unknown-linux-gnu/previous/install.sh-provenance.json",
+      "bytes": 24143,
+      "sha256": "b868f1efe83698e3acb3dd939cb3121e03c36c722e4b257b96518a85a5b27c06",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-aarch64-unknown-linux-gnu/previous/release-attestation.json",
+      "bytes": 14627,
+      "sha256": "fe7a7f5ace36dd104dadf9ea8c7308d42572a57356b07de1deb9ca2d3f025a52",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-aarch64-unknown-linux-gnu/previous/release.json",
+      "bytes": 64385,
+      "sha256": "6c8ee502c4b53e14f88a8fda732bf1cdf9925d30f28c0d6afe361446235c670a",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-aarch64-unknown-linux-gnu/reader-help.txt",
+      "bytes": 550,
+      "sha256": "18c88c8d40aa0e35108b743ebce4cc9aa4f061bc4939df21e324b631dc4c1a6f",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-aarch64-unknown-linux-gnu/reinstalled-generation.json",
+      "bytes": 1414,
+      "sha256": "4d4a901891f0f43a5fa814e91502f5cfe2d833268bd9f35ae298d9814d70f96f",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-aarch64-unknown-linux-gnu/reinstalled-versions.txt",
+      "bytes": 92,
+      "sha256": "e4921273437be872652efd5f8ea268b4f33b0a06fd9a7c5420ff405399cbcadc",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-aarch64-unknown-linux-gnu/release-attestation.json",
+      "bytes": 14623,
+      "sha256": "b972071901218b1a86fcb967d2b64bac18edc501a1ef1dcb889491acaaefb2a9",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-aarch64-unknown-linux-gnu/release.json",
+      "bytes": 61382,
+      "sha256": "eaeddecf10f34190fbd0de13297f3abddf5c34c36bcf460543a1fe3459876938",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-aarch64-unknown-linux-gnu/result.txt",
+      "bytes": 103,
+      "sha256": "78442bdafb889ba9e97b29c0288fe14a5d7e8fb2cd9c93d015462301fffa76c4",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-aarch64-unknown-linux-gnu/rolled-back-generation.json",
+      "bytes": 1414,
+      "sha256": "c1b75ba3964eb3f0fd6cdde95c2658327ae042825950325021f8f6490f4c2620",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-aarch64-unknown-linux-gnu/rolled-back-versions.txt",
+      "bytes": 92,
+      "sha256": "96d75e406de365dba251717402a9b060f60b4e2e488eee59c61fc3873715f6c1",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-aarch64-unknown-linux-gnu/upgraded-again-generation.json",
+      "bytes": 1414,
+      "sha256": "4d4a901891f0f43a5fa814e91502f5cfe2d833268bd9f35ae298d9814d70f96f",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-aarch64-unknown-linux-gnu/upgraded-again-versions.txt",
+      "bytes": 92,
+      "sha256": "e4921273437be872652efd5f8ea268b4f33b0a06fd9a7c5420ff405399cbcadc",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-aarch64-unknown-linux-gnu/upgraded-generation.json",
+      "bytes": 1414,
+      "sha256": "4d4a901891f0f43a5fa814e91502f5cfe2d833268bd9f35ae298d9814d70f96f",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-aarch64-unknown-linux-gnu/upgraded-versions.txt",
+      "bytes": 92,
+      "sha256": "e4921273437be872652efd5f8ea268b4f33b0a06fd9a7c5420ff405399cbcadc",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-x86_64-apple-darwin/archive-help.txt",
+      "bytes": 116,
+      "sha256": "97533a1dab29ad7f0615e37d271a5159befa815699c0458cbd262f2e8c1fc492",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-x86_64-apple-darwin/conformance-help.txt",
+      "bytes": 275,
+      "sha256": "1cb7fd686c7529e5d074873442d0d112447f5467dd6af0c526c8641ee29ba5d2",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-x86_64-apple-darwin/cross-version.txt",
+      "bytes": 37,
+      "sha256": "b58e3b59cc85bb2eb8bec259bb39ebb0b05334dc9a4781755d296bbbb6e08871",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-x86_64-apple-darwin/demo.json",
+      "bytes": 666,
+      "sha256": "c0e4454eaf964116ba292190520297c9f8581e83dab8bb54069c34ac4fee3203",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-x86_64-apple-darwin/host-help.txt",
+      "bytes": 64,
+      "sha256": "bdf9235350bac4f7c00219c45ee6bf56681a4472eac00e302f53fa782214fc64",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-x86_64-apple-darwin/install.ps1-provenance.json",
+      "bytes": 24449,
+      "sha256": "bbba13972654abeb40190c03de368ccc7976fdee9dcc4e520eaa746a39e52ffc",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-x86_64-apple-darwin/install.sh-provenance.json",
+      "bytes": 24449,
+      "sha256": "bbba13972654abeb40190c03de368ccc7976fdee9dcc4e520eaa746a39e52ffc",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-x86_64-apple-darwin/installed-generation.json",
+      "bytes": 1384,
+      "sha256": "1073609cb4e541e7e91a9a6cb0895a11deaeaaae45c17f36eeed24bf2bb7c481",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-x86_64-apple-darwin/installed-versions.txt",
+      "bytes": 92,
+      "sha256": "e4921273437be872652efd5f8ea268b4f33b0a06fd9a7c5420ff405399cbcadc",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-x86_64-apple-darwin/previous-generation.json",
+      "bytes": 1384,
+      "sha256": "025ab2a19a1cd7955a9f01cc7454b818531eb2b7a00754c1f871d8d15f60c8bf",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-x86_64-apple-darwin/previous-versions.txt",
+      "bytes": 92,
+      "sha256": "96d75e406de365dba251717402a9b060f60b4e2e488eee59c61fc3873715f6c1",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-x86_64-apple-darwin/previous/install.ps1-provenance.json",
+      "bytes": 24116,
+      "sha256": "3c039509440d501a07c144cf0e7b7d85c67994ade73c956dc8bffe50f7b53b9a",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-x86_64-apple-darwin/previous/install.sh-provenance.json",
+      "bytes": 24116,
+      "sha256": "3c039509440d501a07c144cf0e7b7d85c67994ade73c956dc8bffe50f7b53b9a",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-x86_64-apple-darwin/previous/release-attestation.json",
+      "bytes": 14627,
+      "sha256": "fe7a7f5ace36dd104dadf9ea8c7308d42572a57356b07de1deb9ca2d3f025a52",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-x86_64-apple-darwin/previous/release.json",
+      "bytes": 64385,
+      "sha256": "6c8ee502c4b53e14f88a8fda732bf1cdf9925d30f28c0d6afe361446235c670a",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-x86_64-apple-darwin/reader-help.txt",
+      "bytes": 550,
+      "sha256": "18c88c8d40aa0e35108b743ebce4cc9aa4f061bc4939df21e324b631dc4c1a6f",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-x86_64-apple-darwin/reinstalled-generation.json",
+      "bytes": 1384,
+      "sha256": "1073609cb4e541e7e91a9a6cb0895a11deaeaaae45c17f36eeed24bf2bb7c481",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-x86_64-apple-darwin/reinstalled-versions.txt",
+      "bytes": 92,
+      "sha256": "e4921273437be872652efd5f8ea268b4f33b0a06fd9a7c5420ff405399cbcadc",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-x86_64-apple-darwin/release-attestation.json",
+      "bytes": 14623,
+      "sha256": "b972071901218b1a86fcb967d2b64bac18edc501a1ef1dcb889491acaaefb2a9",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-x86_64-apple-darwin/release.json",
+      "bytes": 61382,
+      "sha256": "eaeddecf10f34190fbd0de13297f3abddf5c34c36bcf460543a1fe3459876938",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-x86_64-apple-darwin/result.txt",
+      "bytes": 103,
+      "sha256": "78442bdafb889ba9e97b29c0288fe14a5d7e8fb2cd9c93d015462301fffa76c4",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-x86_64-apple-darwin/rolled-back-generation.json",
+      "bytes": 1384,
+      "sha256": "025ab2a19a1cd7955a9f01cc7454b818531eb2b7a00754c1f871d8d15f60c8bf",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-x86_64-apple-darwin/rolled-back-versions.txt",
+      "bytes": 92,
+      "sha256": "96d75e406de365dba251717402a9b060f60b4e2e488eee59c61fc3873715f6c1",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-x86_64-apple-darwin/upgraded-again-generation.json",
+      "bytes": 1384,
+      "sha256": "1073609cb4e541e7e91a9a6cb0895a11deaeaaae45c17f36eeed24bf2bb7c481",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-x86_64-apple-darwin/upgraded-again-versions.txt",
+      "bytes": 92,
+      "sha256": "e4921273437be872652efd5f8ea268b4f33b0a06fd9a7c5420ff405399cbcadc",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-x86_64-apple-darwin/upgraded-generation.json",
+      "bytes": 1384,
+      "sha256": "1073609cb4e541e7e91a9a6cb0895a11deaeaaae45c17f36eeed24bf2bb7c481",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-x86_64-apple-darwin/upgraded-versions.txt",
+      "bytes": 92,
+      "sha256": "e4921273437be872652efd5f8ea268b4f33b0a06fd9a7c5420ff405399cbcadc",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-x86_64-pc-windows-msvc/archive-help.txt",
+      "bytes": 118,
+      "sha256": "89050244389bc7b545274a72f7334ab6169d4174bb92527947ae5d7803029b63",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-x86_64-pc-windows-msvc/conformance-help.txt",
+      "bytes": 277,
+      "sha256": "20ded3e074b8a143cf8cb4577986ca6060b21d3f93dda76c8d466230aaf9b1b9",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-x86_64-pc-windows-msvc/cross-version.txt",
+      "bytes": 38,
+      "sha256": "9f5572dc33051aa96b1fe3ff090a1747a48232f954bb7af156ee873fae60b513",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-x86_64-pc-windows-msvc/demo.json",
+      "bytes": 694,
+      "sha256": "525bb72d6441141ab1ec5afa3ae98f28e5d909d5f4eae07075645b3da2054e7a",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-x86_64-pc-windows-msvc/host-help.txt",
+      "bytes": 66,
+      "sha256": "539df8266738637894fda61166c239219edea77657a760efa2c801bd41894d55",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-x86_64-pc-windows-msvc/install.ps1-provenance.json",
+      "bytes": 24449,
+      "sha256": "bbba13972654abeb40190c03de368ccc7976fdee9dcc4e520eaa746a39e52ffc",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-x86_64-pc-windows-msvc/install.sh-provenance.json",
+      "bytes": 24449,
+      "sha256": "bbba13972654abeb40190c03de368ccc7976fdee9dcc4e520eaa746a39e52ffc",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-x86_64-pc-windows-msvc/installed-generation.json",
+      "bytes": 1472,
+      "sha256": "4a04aa13146a5cf2f40d7cea5e42f1991ee469980095ec7c7821166d692ec849",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-x86_64-pc-windows-msvc/installed-versions.txt",
+      "bytes": 96,
+      "sha256": "5315d43b13f95f981f5b771f8ecd25e69beac385aedcba23cd1ac9bba59530eb",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-x86_64-pc-windows-msvc/previous-generation.json",
+      "bytes": 1472,
+      "sha256": "13f400ed0f730536414fa95d2ce1a6ca812c0913bd6cc5637990e2841b975d5c",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-x86_64-pc-windows-msvc/previous-versions.txt",
+      "bytes": 96,
+      "sha256": "842388cca7f6805812d268e18ab6a90f178c4f89285cc0b0c9e34d7568640cfd",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-x86_64-pc-windows-msvc/previous/install.ps1-provenance.json",
+      "bytes": 24116,
+      "sha256": "3c039509440d501a07c144cf0e7b7d85c67994ade73c956dc8bffe50f7b53b9a",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-x86_64-pc-windows-msvc/previous/install.sh-provenance.json",
+      "bytes": 24116,
+      "sha256": "3c039509440d501a07c144cf0e7b7d85c67994ade73c956dc8bffe50f7b53b9a",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-x86_64-pc-windows-msvc/previous/release-attestation.json",
+      "bytes": 14627,
+      "sha256": "fe7a7f5ace36dd104dadf9ea8c7308d42572a57356b07de1deb9ca2d3f025a52",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-x86_64-pc-windows-msvc/previous/release.json",
+      "bytes": 64385,
+      "sha256": "6c8ee502c4b53e14f88a8fda732bf1cdf9925d30f28c0d6afe361446235c670a",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-x86_64-pc-windows-msvc/reader-help.txt",
+      "bytes": 555,
+      "sha256": "a8356de5f32139f4e769b98816b0835bd795c6cc96493a88523c88dc0e9963ea",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-x86_64-pc-windows-msvc/reinstalled-generation.json",
+      "bytes": 1472,
+      "sha256": "4a04aa13146a5cf2f40d7cea5e42f1991ee469980095ec7c7821166d692ec849",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-x86_64-pc-windows-msvc/reinstalled-versions.txt",
+      "bytes": 96,
+      "sha256": "5315d43b13f95f981f5b771f8ecd25e69beac385aedcba23cd1ac9bba59530eb",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-x86_64-pc-windows-msvc/release-attestation.json",
+      "bytes": 14623,
+      "sha256": "b972071901218b1a86fcb967d2b64bac18edc501a1ef1dcb889491acaaefb2a9",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-x86_64-pc-windows-msvc/release.json",
+      "bytes": 61382,
+      "sha256": "eaeddecf10f34190fbd0de13297f3abddf5c34c36bcf460543a1fe3459876938",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-x86_64-pc-windows-msvc/result.txt",
+      "bytes": 104,
+      "sha256": "9ff86cce7dc4992cb74fba8d3028efea582bcdbdc7d1bf2cec8bcb45ab0ddaee",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-x86_64-pc-windows-msvc/rolled-back-generation.json",
+      "bytes": 1472,
+      "sha256": "13f400ed0f730536414fa95d2ce1a6ca812c0913bd6cc5637990e2841b975d5c",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-x86_64-pc-windows-msvc/rolled-back-versions.txt",
+      "bytes": 96,
+      "sha256": "842388cca7f6805812d268e18ab6a90f178c4f89285cc0b0c9e34d7568640cfd",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-x86_64-pc-windows-msvc/upgraded-again-generation.json",
+      "bytes": 1472,
+      "sha256": "4a04aa13146a5cf2f40d7cea5e42f1991ee469980095ec7c7821166d692ec849",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-x86_64-pc-windows-msvc/upgraded-again-versions.txt",
+      "bytes": 96,
+      "sha256": "5315d43b13f95f981f5b771f8ecd25e69beac385aedcba23cd1ac9bba59530eb",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-x86_64-pc-windows-msvc/upgraded-generation.json",
+      "bytes": 1472,
+      "sha256": "4a04aa13146a5cf2f40d7cea5e42f1991ee469980095ec7c7821166d692ec849",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-x86_64-pc-windows-msvc/upgraded-versions.txt",
+      "bytes": 96,
+      "sha256": "5315d43b13f95f981f5b771f8ecd25e69beac385aedcba23cd1ac9bba59530eb",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-x86_64-unknown-linux-gnu/archive-help.txt",
+      "bytes": 116,
+      "sha256": "97533a1dab29ad7f0615e37d271a5159befa815699c0458cbd262f2e8c1fc492",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-x86_64-unknown-linux-gnu/conformance-help.txt",
+      "bytes": 275,
+      "sha256": "1cb7fd686c7529e5d074873442d0d112447f5467dd6af0c526c8641ee29ba5d2",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-x86_64-unknown-linux-gnu/cross-version.txt",
+      "bytes": 37,
+      "sha256": "b58e3b59cc85bb2eb8bec259bb39ebb0b05334dc9a4781755d296bbbb6e08871",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-x86_64-unknown-linux-gnu/demo.json",
+      "bytes": 666,
+      "sha256": "c0e4454eaf964116ba292190520297c9f8581e83dab8bb54069c34ac4fee3203",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-x86_64-unknown-linux-gnu/host-help.txt",
+      "bytes": 64,
+      "sha256": "bdf9235350bac4f7c00219c45ee6bf56681a4472eac00e302f53fa782214fc64",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-x86_64-unknown-linux-gnu/install.ps1-provenance.json",
+      "bytes": 24476,
+      "sha256": "7fb345f087447f12b728a96bdfad61c199d92c14199b2d968fb61e1dc27b45a0",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-x86_64-unknown-linux-gnu/install.sh-provenance.json",
+      "bytes": 24476,
+      "sha256": "7fb345f087447f12b728a96bdfad61c199d92c14199b2d968fb61e1dc27b45a0",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-x86_64-unknown-linux-gnu/installed-generation.json",
+      "bytes": 1409,
+      "sha256": "ca435d9f5b6eb14b31ed5d83e5ec427ddb510f6bf8f734975dfb7f6455e4217c",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-x86_64-unknown-linux-gnu/installed-versions.txt",
+      "bytes": 92,
+      "sha256": "e4921273437be872652efd5f8ea268b4f33b0a06fd9a7c5420ff405399cbcadc",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-x86_64-unknown-linux-gnu/previous-generation.json",
+      "bytes": 1409,
+      "sha256": "88e51881a04a04de5b94eff916cb14b20026d132e6a63f7c2a8caaa0d015ef15",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-x86_64-unknown-linux-gnu/previous-versions.txt",
+      "bytes": 92,
+      "sha256": "96d75e406de365dba251717402a9b060f60b4e2e488eee59c61fc3873715f6c1",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-x86_64-unknown-linux-gnu/previous/install.ps1-provenance.json",
+      "bytes": 24143,
+      "sha256": "b868f1efe83698e3acb3dd939cb3121e03c36c722e4b257b96518a85a5b27c06",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-x86_64-unknown-linux-gnu/previous/install.sh-provenance.json",
+      "bytes": 24143,
+      "sha256": "b868f1efe83698e3acb3dd939cb3121e03c36c722e4b257b96518a85a5b27c06",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-x86_64-unknown-linux-gnu/previous/release-attestation.json",
+      "bytes": 14627,
+      "sha256": "fe7a7f5ace36dd104dadf9ea8c7308d42572a57356b07de1deb9ca2d3f025a52",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-x86_64-unknown-linux-gnu/previous/release.json",
+      "bytes": 64385,
+      "sha256": "6c8ee502c4b53e14f88a8fda732bf1cdf9925d30f28c0d6afe361446235c670a",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-x86_64-unknown-linux-gnu/reader-help.txt",
+      "bytes": 550,
+      "sha256": "18c88c8d40aa0e35108b743ebce4cc9aa4f061bc4939df21e324b631dc4c1a6f",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-x86_64-unknown-linux-gnu/reinstalled-generation.json",
+      "bytes": 1409,
+      "sha256": "ca435d9f5b6eb14b31ed5d83e5ec427ddb510f6bf8f734975dfb7f6455e4217c",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-x86_64-unknown-linux-gnu/reinstalled-versions.txt",
+      "bytes": 92,
+      "sha256": "e4921273437be872652efd5f8ea268b4f33b0a06fd9a7c5420ff405399cbcadc",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-x86_64-unknown-linux-gnu/release-attestation.json",
+      "bytes": 14623,
+      "sha256": "b972071901218b1a86fcb967d2b64bac18edc501a1ef1dcb889491acaaefb2a9",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-x86_64-unknown-linux-gnu/release.json",
+      "bytes": 61382,
+      "sha256": "eaeddecf10f34190fbd0de13297f3abddf5c34c36bcf460543a1fe3459876938",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-x86_64-unknown-linux-gnu/result.txt",
+      "bytes": 103,
+      "sha256": "78442bdafb889ba9e97b29c0288fe14a5d7e8fb2cd9c93d015462301fffa76c4",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-x86_64-unknown-linux-gnu/rolled-back-generation.json",
+      "bytes": 1409,
+      "sha256": "88e51881a04a04de5b94eff916cb14b20026d132e6a63f7c2a8caaa0d015ef15",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-x86_64-unknown-linux-gnu/rolled-back-versions.txt",
+      "bytes": 92,
+      "sha256": "96d75e406de365dba251717402a9b060f60b4e2e488eee59c61fc3873715f6c1",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-x86_64-unknown-linux-gnu/upgraded-again-generation.json",
+      "bytes": 1409,
+      "sha256": "ca435d9f5b6eb14b31ed5d83e5ec427ddb510f6bf8f734975dfb7f6455e4217c",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-x86_64-unknown-linux-gnu/upgraded-again-versions.txt",
+      "bytes": 92,
+      "sha256": "e4921273437be872652efd5f8ea268b4f33b0a06fd9a7c5420ff405399cbcadc",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-x86_64-unknown-linux-gnu/upgraded-generation.json",
+      "bytes": 1409,
+      "sha256": "ca435d9f5b6eb14b31ed5d83e5ec427ddb510f6bf8f734975dfb7f6455e4217c",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-installation/published-x86_64-unknown-linux-gnu/upgraded-versions.txt",
+      "bytes": 92,
+      "sha256": "e4921273437be872652efd5f8ea268b4f33b0a06fd9a7c5420ff405399cbcadc",
+      "representation": "original native-published workflow artifact file"
+    },
+    {
+      "path": "published-stage-verification.json",
+      "bytes": 44618,
+      "sha256": "a5b6a21d349998fdd8400ce1ae48a157dd140927924ac8e0463a471f690397d6",
+      "representation": "derived verification summary"
+    },
+    {
+      "path": "release-assets/LICENSE.json",
+      "bytes": 14623,
+      "sha256": "b972071901218b1a86fcb967d2b64bac18edc501a1ef1dcb889491acaaefb2a9",
+      "representation": "original successful gh release verify-asset stdout"
+    },
+    {
+      "path": "release-assets/NOTICE_INVENTORY.json.json",
+      "bytes": 14623,
+      "sha256": "b972071901218b1a86fcb967d2b64bac18edc501a1ef1dcb889491acaaefb2a9",
+      "representation": "original successful gh release verify-asset stdout"
+    },
+    {
+      "path": "release-assets/SHA256SUMS.json",
+      "bytes": 14623,
+      "sha256": "b972071901218b1a86fcb967d2b64bac18edc501a1ef1dcb889491acaaefb2a9",
+      "representation": "original successful gh release verify-asset stdout"
+    },
+    {
+      "path": "release-assets/SOURCE_COMMIT.json",
+      "bytes": 14623,
+      "sha256": "b972071901218b1a86fcb967d2b64bac18edc501a1ef1dcb889491acaaefb2a9",
+      "representation": "original successful gh release verify-asset stdout"
+    },
+    {
+      "path": "release-assets/THIRD_PARTY_NOTICES.txt.json",
+      "bytes": 14623,
+      "sha256": "b972071901218b1a86fcb967d2b64bac18edc501a1ef1dcb889491acaaefb2a9",
+      "representation": "original successful gh release verify-asset stdout"
+    },
+    {
+      "path": "release-assets/VERSION.json",
+      "bytes": 14623,
+      "sha256": "b972071901218b1a86fcb967d2b64bac18edc501a1ef1dcb889491acaaefb2a9",
+      "representation": "original successful gh release verify-asset stdout"
+    },
+    {
+      "path": "release-assets/agentciv-archive-v0.1.1-aarch64-apple-darwin.json",
+      "bytes": 14623,
+      "sha256": "b972071901218b1a86fcb967d2b64bac18edc501a1ef1dcb889491acaaefb2a9",
+      "representation": "original successful gh release verify-asset stdout"
+    },
+    {
+      "path": "release-assets/agentciv-archive-v0.1.1-aarch64-pc-windows-msvc.exe.json",
+      "bytes": 14623,
+      "sha256": "b972071901218b1a86fcb967d2b64bac18edc501a1ef1dcb889491acaaefb2a9",
+      "representation": "original successful gh release verify-asset stdout"
+    },
+    {
+      "path": "release-assets/agentciv-archive-v0.1.1-aarch64-unknown-linux-gnu.json",
+      "bytes": 14623,
+      "sha256": "b972071901218b1a86fcb967d2b64bac18edc501a1ef1dcb889491acaaefb2a9",
+      "representation": "original successful gh release verify-asset stdout"
+    },
+    {
+      "path": "release-assets/agentciv-archive-v0.1.1-x86_64-apple-darwin.json",
+      "bytes": 14623,
+      "sha256": "b972071901218b1a86fcb967d2b64bac18edc501a1ef1dcb889491acaaefb2a9",
+      "representation": "original successful gh release verify-asset stdout"
+    },
+    {
+      "path": "release-assets/agentciv-archive-v0.1.1-x86_64-pc-windows-msvc.exe.json",
+      "bytes": 14623,
+      "sha256": "b972071901218b1a86fcb967d2b64bac18edc501a1ef1dcb889491acaaefb2a9",
+      "representation": "original successful gh release verify-asset stdout"
+    },
+    {
+      "path": "release-assets/agentciv-archive-v0.1.1-x86_64-unknown-linux-gnu.json",
+      "bytes": 14623,
+      "sha256": "b972071901218b1a86fcb967d2b64bac18edc501a1ef1dcb889491acaaefb2a9",
+      "representation": "original successful gh release verify-asset stdout"
+    },
+    {
+      "path": "release-assets/agentciv-conformance-v0.1.1-aarch64-apple-darwin.json",
+      "bytes": 14623,
+      "sha256": "b972071901218b1a86fcb967d2b64bac18edc501a1ef1dcb889491acaaefb2a9",
+      "representation": "original successful gh release verify-asset stdout"
+    },
+    {
+      "path": "release-assets/agentciv-conformance-v0.1.1-aarch64-pc-windows-msvc.exe.json",
+      "bytes": 14623,
+      "sha256": "b972071901218b1a86fcb967d2b64bac18edc501a1ef1dcb889491acaaefb2a9",
+      "representation": "original successful gh release verify-asset stdout"
+    },
+    {
+      "path": "release-assets/agentciv-conformance-v0.1.1-aarch64-unknown-linux-gnu.json",
+      "bytes": 14623,
+      "sha256": "b972071901218b1a86fcb967d2b64bac18edc501a1ef1dcb889491acaaefb2a9",
+      "representation": "original successful gh release verify-asset stdout"
+    },
+    {
+      "path": "release-assets/agentciv-conformance-v0.1.1-x86_64-apple-darwin.json",
+      "bytes": 14623,
+      "sha256": "b972071901218b1a86fcb967d2b64bac18edc501a1ef1dcb889491acaaefb2a9",
+      "representation": "original successful gh release verify-asset stdout"
+    },
+    {
+      "path": "release-assets/agentciv-conformance-v0.1.1-x86_64-pc-windows-msvc.exe.json",
+      "bytes": 14623,
+      "sha256": "b972071901218b1a86fcb967d2b64bac18edc501a1ef1dcb889491acaaefb2a9",
+      "representation": "original successful gh release verify-asset stdout"
+    },
+    {
+      "path": "release-assets/agentciv-conformance-v0.1.1-x86_64-unknown-linux-gnu.json",
+      "bytes": 14623,
+      "sha256": "b972071901218b1a86fcb967d2b64bac18edc501a1ef1dcb889491acaaefb2a9",
+      "representation": "original successful gh release verify-asset stdout"
+    },
+    {
+      "path": "release-assets/agentciv-host-v0.1.1-aarch64-apple-darwin.json",
+      "bytes": 14623,
+      "sha256": "b972071901218b1a86fcb967d2b64bac18edc501a1ef1dcb889491acaaefb2a9",
+      "representation": "original successful gh release verify-asset stdout"
+    },
+    {
+      "path": "release-assets/agentciv-host-v0.1.1-aarch64-pc-windows-msvc.exe.json",
+      "bytes": 14623,
+      "sha256": "b972071901218b1a86fcb967d2b64bac18edc501a1ef1dcb889491acaaefb2a9",
+      "representation": "original successful gh release verify-asset stdout"
+    },
+    {
+      "path": "release-assets/agentciv-host-v0.1.1-aarch64-unknown-linux-gnu.json",
+      "bytes": 14623,
+      "sha256": "b972071901218b1a86fcb967d2b64bac18edc501a1ef1dcb889491acaaefb2a9",
+      "representation": "original successful gh release verify-asset stdout"
+    },
+    {
+      "path": "release-assets/agentciv-host-v0.1.1-x86_64-apple-darwin.json",
+      "bytes": 14623,
+      "sha256": "b972071901218b1a86fcb967d2b64bac18edc501a1ef1dcb889491acaaefb2a9",
+      "representation": "original successful gh release verify-asset stdout"
+    },
+    {
+      "path": "release-assets/agentciv-host-v0.1.1-x86_64-pc-windows-msvc.exe.json",
+      "bytes": 14623,
+      "sha256": "b972071901218b1a86fcb967d2b64bac18edc501a1ef1dcb889491acaaefb2a9",
+      "representation": "original successful gh release verify-asset stdout"
+    },
+    {
+      "path": "release-assets/agentciv-host-v0.1.1-x86_64-unknown-linux-gnu.json",
+      "bytes": 14623,
+      "sha256": "b972071901218b1a86fcb967d2b64bac18edc501a1ef1dcb889491acaaefb2a9",
+      "representation": "original successful gh release verify-asset stdout"
+    },
+    {
+      "path": "release-assets/agentciv-reader-v0.1.1-aarch64-apple-darwin.json",
+      "bytes": 14623,
+      "sha256": "b972071901218b1a86fcb967d2b64bac18edc501a1ef1dcb889491acaaefb2a9",
+      "representation": "original successful gh release verify-asset stdout"
+    },
+    {
+      "path": "release-assets/agentciv-reader-v0.1.1-aarch64-pc-windows-msvc.exe.json",
+      "bytes": 14623,
+      "sha256": "b972071901218b1a86fcb967d2b64bac18edc501a1ef1dcb889491acaaefb2a9",
+      "representation": "original successful gh release verify-asset stdout"
+    },
+    {
+      "path": "release-assets/agentciv-reader-v0.1.1-aarch64-unknown-linux-gnu.json",
+      "bytes": 14623,
+      "sha256": "b972071901218b1a86fcb967d2b64bac18edc501a1ef1dcb889491acaaefb2a9",
+      "representation": "original successful gh release verify-asset stdout"
+    },
+    {
+      "path": "release-assets/agentciv-reader-v0.1.1-x86_64-apple-darwin.json",
+      "bytes": 14623,
+      "sha256": "b972071901218b1a86fcb967d2b64bac18edc501a1ef1dcb889491acaaefb2a9",
+      "representation": "original successful gh release verify-asset stdout"
+    },
+    {
+      "path": "release-assets/agentciv-reader-v0.1.1-x86_64-pc-windows-msvc.exe.json",
+      "bytes": 14623,
+      "sha256": "b972071901218b1a86fcb967d2b64bac18edc501a1ef1dcb889491acaaefb2a9",
+      "representation": "original successful gh release verify-asset stdout"
+    },
+    {
+      "path": "release-assets/agentciv-reader-v0.1.1-x86_64-unknown-linux-gnu.json",
+      "bytes": 14623,
+      "sha256": "b972071901218b1a86fcb967d2b64bac18edc501a1ef1dcb889491acaaefb2a9",
+      "representation": "original successful gh release verify-asset stdout"
+    },
+    {
+      "path": "release-assets/install.ps1.json",
+      "bytes": 14623,
+      "sha256": "b972071901218b1a86fcb967d2b64bac18edc501a1ef1dcb889491acaaefb2a9",
+      "representation": "original successful gh release verify-asset stdout"
+    },
+    {
+      "path": "release-assets/install.sh.json",
+      "bytes": 14623,
+      "sha256": "b972071901218b1a86fcb967d2b64bac18edc501a1ef1dcb889491acaaefb2a9",
+      "representation": "original successful gh release verify-asset stdout"
+    },
+    {
+      "path": "release-assets/vs2026-enterprise-license.docx.json",
+      "bytes": 14623,
+      "sha256": "b972071901218b1a86fcb967d2b64bac18edc501a1ef1dcb889491acaaefb2a9",
+      "representation": "original successful gh release verify-asset stdout"
+    },
+    {
+      "path": "release-assets/vs2026-runtime-license.docx.json",
+      "bytes": 14623,
+      "sha256": "b972071901218b1a86fcb967d2b64bac18edc501a1ef1dcb889491acaaefb2a9",
+      "representation": "original successful gh release verify-asset stdout"
+    },
+    {
+      "path": "release-attestation.json",
+      "bytes": 14623,
+      "sha256": "b972071901218b1a86fcb967d2b64bac18edc501a1ef1dcb889491acaaefb2a9",
+      "representation": "original successful gh release verify stdout"
+    },
+    {
+      "path": "release.json",
+      "bytes": 72431,
+      "sha256": "d97075836f7a08075cf4855a056de6439f7705daf41a7248b14974c5de36bb22",
+      "representation": "GitHub API JSON parsed and reserialized by fetch verifier"
+    }
+  ]
+}

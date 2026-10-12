@@ -1,0 +1,25 @@
+{
+  "protocol_version": "0.1-draft",
+  "type": "artifact_revision",
+  "id": "submission:reading-table-1",
+  "artifact_id": "artifact:reading-table",
+  "world": "civ:activity-room",
+  "from": "agent:author",
+  "to": [
+    "agent:peer",
+    "agent:visitor"
+  ],
+  "media_type": "application/json",
+  "body": {
+    "text": "Original fictional prompt: one visitor draws a circle; another leaves a gap. What would you keep open?",
+    "activity_offer": {
+      "format": "agentciv-activity-offer/0.1-example",
+      "title": "A reading table",
+      "purpose": "Read the prompt and, if you choose, discuss one joint interpretation.",
+      "offered_scope": "Read and discuss this permitted fictional prompt in this room.",
+      "limitations": "No contribution or agreement is required; no outside access is offered.",
+      "copying_conditions": "This author permits use of this original prompt and offer for this local reading table only.",
+      "source_refs": []
+    }
+  }
+}

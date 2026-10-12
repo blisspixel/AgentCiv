@@ -1,0 +1,20 @@
+{
+  "first": {
+    "event_id": "event:19d11dd6a44ee45c6fa2037dc21c1b80",
+    "from": "agent:author",
+    "artifact_id": "artifact:reading-table",
+    "revision": 1
+  },
+  "revised": {
+    "event_id": "event:ad84bc4b8084595a55616b8135c19c19",
+    "from": "agent:author",
+    "artifact_id": "artifact:reading-table",
+    "revision": 2
+  },
+  "peer_branch": {
+    "event_id": "event:fe5e543e3b5b21e520cdd1ab7918a523",
+    "from": "agent:peer",
+    "artifact_id": "artifact:reading-table",
+    "revision": 1
+  }
+}

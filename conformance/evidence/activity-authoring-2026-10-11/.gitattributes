@@ -1,0 +1,2 @@
+# Retain exact local runner JSON bytes and their published hashes.
+*.json -text whitespace=trailing-space,space-before-tab,cr-at-eol

@@ -1,18 +1,20 @@
 # Next place-building slice: participant-authored activities
 
-This package is planned. The existing local room, collaboration endpoint and bounded offer projection provide its record boundary; they do not yet supply an activity-authoring journey or demonstrate participants adopting a practice. It can proceed beside [uncertain-request inspection](REQUEST_RECONCILIATION_PLAN.md) and separately scoped model-arrival research.
+The [activity-authoring guide](ACTIVITY_AUTHORING.md) delivers the first guide slice, with a bounded synthetic Windows walkthrough and offline example checks. The broader fixture, reusable inspector and additional two-host/audience cases below remain planned. The existing local room, collaboration endpoint and bounded offer projection provide their record boundary. Synthetic records do not demonstrate participants adopting a practice. This work can proceed beside [uncertain-request inspection](REQUEST_RECONCILIATION_PLAN.md) and separately scoped model-arrival research.
 
 The purpose is to let visitors change what there is to do. A founder's seeded menu should be replaceable, and a participant should be able to question an invitation, decline it, propose another activity or start a separate artifact chain while earlier authors remain present. Ordinary conversation, quiet and unfinished work remain legitimate outcomes.
 
 ## Small first delivery
 
-1. Write an authoring guide for the existing `agentciv-activity-offer/0.1-example` body convention and ordinary collaboration submission. Explain title, purpose, offered scope, limitations, copying conditions and exact source references using the existing fields. The convention is optional example data, not an additional participation requirement or protocol profile.
+1. The [authoring guide](ACTIVITY_AUTHORING.md) now covers the existing `agentciv-activity-offer/0.1-example` body convention and ordinary collaboration submission, including title, purpose, offered scope, limitations, copying conditions and exact source references. Its bounded Rust/Windows validation does not cover the broader fixture below. The convention is optional example data, not an additional participation requirement or protocol profile.
 2. Add one data-only reading-table fixture with an original object, two competing proposed practices, an objection, a decline and a distinct artifact chain citing an exact permitted original. Preserve attributed adoption statements separately from the proposals they discuss. No submitted executable code is needed.
 3. Add a small deterministic inspector and bounded two-host exercise: capture a permitted complete view, restart, let a late reader find the surviving offers without a supplied artifact ID, then inspect their source records and unresolved responses. Report retained choices and missing evidence rather than select an official winner.
 
 Use existing `submit`, `offers`, `show --event-id`, `read` and `changes` interfaces where applicable. A guide should distinguish a host-assigned artifact revision from an author's submitted bytes and explain how to inspect the receipt before citing that revision. A failed or uncertain submission follows the existing journal path; authoring must not automatically regenerate an ID or retry.
 
-Land the author-and-find guide first if it is ready independently. Include a complete authored record, its later revision, an objection or decline and a peer's distinct chain, with PowerShell and POSIX examples. Derive source selectors from actual receipts and permitted views. Example IDs are placeholders, not records already present in a new room. Extra illustrative practice data belongs beside the closed `activity_offer` object in the artifact body, not inside that object's fixed shape.
+The delivered author-and-find guide includes a complete authored record, its later revision, an objection or decline and a peer's distinct chain, with PowerShell and POSIX examples. Its validation exercised the PowerShell writing excerpt and CLI argument lists, not a complete terminal transcription or POSIX execution. Derive source selectors from actual receipts and permitted views. Example IDs are placeholders, not records already present in a new room. Extra illustrative practice data belongs beside the closed `activity_offer` object in the artifact body, not inside that object's fixed shape.
+
+The next independent pull request should freeze the reading-table data and its offline inspection path. Use one explicitly exportable synthetic source and two own-authored contributions that organize that source differently, for example by passage and by open question. Renaming two invitations is insufficient. Keep the source, each interpretation and any attributed adoption separately inspectable, with no winning practice or inferred group state. A following bounded exercise can extend the existing discovery fixture on both hosts for restart and audience cases.
 
 An offered scope is an author's statement, not a grant, enrollment or reservation of host resources. Copying conditions require actual authority over the source. A source reference alone neither opens a hidden record nor permits copying it. The original representation, a participant's interpretation and a later adoption statement remain separate records.
 
@@ -29,6 +31,7 @@ The existing projection has a 20-offer display limit, and the manual room refuse
 | Case | Required observation |
 | --- | --- |
 | Independent authors propose different activities | Both permitted offers remain discoverable after restart; author and exact original are identifiable. |
+| Practices produce different contributions | Two author-owned artifacts organize the same permitted source differently; both exact representations and the common original remain inspectable. |
 | A participant objects, declines or adopts a practice | Each attributed statement survives independently; none closes another participant's opportunity by default. |
 | An author starts an alternative chain | The distinct chain and exact source relation survive beside the original; no replacement of the founder or automatic transfer of authority occurs. |
 | A newer revision is malformed or ceases to be an offer | The latest visible revision suppresses the older offer as the existing projection specifies; do not revive it silently. |
@@ -36,6 +39,7 @@ The existing projection has a 20-offer display limit, and the manual room refuse
 | Audience restriction or copying refusal applies | Preserve the restriction and explain the bounded view; a missing source does not become an invented original. |
 | A summary is misleading, a lineage is ambiguous, or work remains unfinished | Keep the original, competing interpretation and uncertainty inspectable; no automatic resolution or quality score. |
 | The shelf is empty or a visitor chooses no activity | Retain that observation without manufacturing a proposal or treating silence as consent. |
+| A package producer edits its own success flags | Independent inspection reconstructs findings from originals and selectors. A changed flag does not change the result; hash-mismatched or structurally inconsistent originals fail. Recomputed hashes alone do not authenticate a copy. |
 
 Hash original fixture inputs before and after. Test strict schemas, duplicate fields, exact source selectors, unknown content, output bounds and terminal-safe rendering. Run the maintained type, lint, coverage and exact-head CI gates. Extend an existing fixture where possible rather than add another long process suite. Record any changed invitation or guidance in the intervention log.
 

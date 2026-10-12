@@ -1,0 +1,678 @@
+{
+  "conclusion": "success",
+  "databaseId": 38213447305,
+  "headBranch": "main",
+  "headSha": "1f0ff2a59eb9bd8fa1eaab65b2f5dac669aed936",
+  "jobs": [
+    {
+      "completedAt": "2026-10-12T06:37:57Z",
+      "conclusion": "success",
+      "databaseId": 114692619073,
+      "name": "preflight",
+      "startedAt": "2026-10-12T06:37:41Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-10-12T06:37:42Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-10-12T06:37:42Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-12T06:37:44Z",
+          "conclusion": "success",
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "number": 2,
+          "startedAt": "2026-10-12T06:37:42Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-12T06:37:55Z",
+          "conclusion": "success",
+          "name": "Require an exact version and successful CI for this commit",
+          "number": 3,
+          "startedAt": "2026-10-12T06:37:44Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-12T06:37:55Z",
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "number": 6,
+          "startedAt": "2026-10-12T06:37:55Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-12T06:37:55Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 7,
+          "startedAt": "2026-10-12T06:37:55Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/blisspixel/AgentCiv/actions/runs/38213447305/job/114692619073"
+    },
+    {
+      "completedAt": "2026-10-12T06:42:21Z",
+      "conclusion": "success",
+      "databaseId": 114692694003,
+      "name": "build (ubuntu-24.04, x86_64-unknown-linux-gnu)",
+      "startedAt": "2026-10-12T06:38:00Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-10-12T06:38:03Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-10-12T06:38:01Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-12T06:38:05Z",
+          "conclusion": "success",
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "number": 2,
+          "startedAt": "2026-10-12T06:38:03Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-12T06:42:15Z",
+          "conclusion": "success",
+          "name": "Build and test native utilities",
+          "number": 3,
+          "startedAt": "2026-10-12T06:38:05Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-12T06:42:15Z",
+          "conclusion": "skipped",
+          "name": "Check Windows release imports for redistributable runtime dependencies",
+          "number": 4,
+          "startedAt": "2026-10-12T06:42:15Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-12T06:42:18Z",
+          "conclusion": "success",
+          "name": "Run actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a",
+          "number": 5,
+          "startedAt": "2026-10-12T06:42:15Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-12T06:42:19Z",
+          "conclusion": "success",
+          "name": "Install and remove the real native binaries through offline fixtures",
+          "number": 6,
+          "startedAt": "2026-10-12T06:42:18Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-12T06:42:19Z",
+          "conclusion": "skipped",
+          "name": "Install and remove real native binaries in Windows PowerShell 5.1",
+          "number": 7,
+          "startedAt": "2026-10-12T06:42:19Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-12T06:42:19Z",
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "number": 14,
+          "startedAt": "2026-10-12T06:42:19Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-12T06:42:19Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 15,
+          "startedAt": "2026-10-12T06:42:19Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/blisspixel/AgentCiv/actions/runs/38213447305/job/114692694003"
+    },
+    {
+      "completedAt": "2026-10-12T06:41:03Z",
+      "conclusion": "success",
+      "databaseId": 114692694013,
+      "name": "build (ubuntu-24.04-arm, aarch64-unknown-linux-gnu)",
+      "startedAt": "2026-10-12T06:38:01Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-10-12T06:38:03Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-10-12T06:38:02Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-12T06:38:04Z",
+          "conclusion": "success",
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "number": 2,
+          "startedAt": "2026-10-12T06:38:03Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-12T06:40:58Z",
+          "conclusion": "success",
+          "name": "Build and test native utilities",
+          "number": 3,
+          "startedAt": "2026-10-12T06:38:04Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-12T06:40:58Z",
+          "conclusion": "skipped",
+          "name": "Check Windows release imports for redistributable runtime dependencies",
+          "number": 4,
+          "startedAt": "2026-10-12T06:40:58Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-12T06:41:01Z",
+          "conclusion": "success",
+          "name": "Run actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a",
+          "number": 5,
+          "startedAt": "2026-10-12T06:40:58Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-12T06:41:01Z",
+          "conclusion": "success",
+          "name": "Install and remove the real native binaries through offline fixtures",
+          "number": 6,
+          "startedAt": "2026-10-12T06:41:01Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-12T06:41:01Z",
+          "conclusion": "skipped",
+          "name": "Install and remove real native binaries in Windows PowerShell 5.1",
+          "number": 7,
+          "startedAt": "2026-10-12T06:41:01Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-12T06:41:02Z",
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "number": 14,
+          "startedAt": "2026-10-12T06:41:01Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-12T06:41:02Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 15,
+          "startedAt": "2026-10-12T06:41:02Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/blisspixel/AgentCiv/actions/runs/38213447305/job/114692694013"
+    },
+    {
+      "completedAt": "2026-10-12T06:44:58Z",
+      "conclusion": "success",
+      "databaseId": 114692694029,
+      "name": "build (windows-11-arm, aarch64-pc-windows-msvc, .exe)",
+      "startedAt": "2026-10-12T06:38:00Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-10-12T06:38:03Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-10-12T06:38:01Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-12T06:38:19Z",
+          "conclusion": "success",
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "number": 2,
+          "startedAt": "2026-10-12T06:38:03Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-12T06:43:51Z",
+          "conclusion": "success",
+          "name": "Build and test native utilities",
+          "number": 3,
+          "startedAt": "2026-10-12T06:38:19Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-12T06:44:23Z",
+          "conclusion": "success",
+          "name": "Check Windows release imports for redistributable runtime dependencies",
+          "number": 4,
+          "startedAt": "2026-10-12T06:43:51Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-12T06:44:26Z",
+          "conclusion": "success",
+          "name": "Run actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a",
+          "number": 5,
+          "startedAt": "2026-10-12T06:44:23Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-12T06:44:26Z",
+          "conclusion": "skipped",
+          "name": "Install and remove the real native binaries through offline fixtures",
+          "number": 6,
+          "startedAt": "2026-10-12T06:44:26Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-12T06:44:52Z",
+          "conclusion": "success",
+          "name": "Install and remove real native binaries in Windows PowerShell 5.1",
+          "number": 7,
+          "startedAt": "2026-10-12T06:44:26Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-12T06:44:57Z",
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "number": 14,
+          "startedAt": "2026-10-12T06:44:52Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-12T06:44:57Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 15,
+          "startedAt": "2026-10-12T06:44:57Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/blisspixel/AgentCiv/actions/runs/38213447305/job/114692694029"
+    },
+    {
+      "completedAt": "2026-10-12T06:46:45Z",
+      "conclusion": "success",
+      "databaseId": 114692694047,
+      "name": "build (windows-2025, x86_64-pc-windows-msvc, .exe)",
+      "startedAt": "2026-10-12T06:37:59Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-10-12T06:38:00Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-10-12T06:37:59Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-12T06:38:08Z",
+          "conclusion": "success",
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "number": 2,
+          "startedAt": "2026-10-12T06:38:00Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-12T06:46:10Z",
+          "conclusion": "success",
+          "name": "Build and test native utilities",
+          "number": 3,
+          "startedAt": "2026-10-12T06:38:08Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-12T06:46:25Z",
+          "conclusion": "success",
+          "name": "Check Windows release imports for redistributable runtime dependencies",
+          "number": 4,
+          "startedAt": "2026-10-12T06:46:10Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-12T06:46:27Z",
+          "conclusion": "success",
+          "name": "Run actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a",
+          "number": 5,
+          "startedAt": "2026-10-12T06:46:25Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-12T06:46:27Z",
+          "conclusion": "skipped",
+          "name": "Install and remove the real native binaries through offline fixtures",
+          "number": 6,
+          "startedAt": "2026-10-12T06:46:27Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-12T06:46:41Z",
+          "conclusion": "success",
+          "name": "Install and remove real native binaries in Windows PowerShell 5.1",
+          "number": 7,
+          "startedAt": "2026-10-12T06:46:27Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-12T06:46:43Z",
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "number": 14,
+          "startedAt": "2026-10-12T06:46:41Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-12T06:46:43Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 15,
+          "startedAt": "2026-10-12T06:46:43Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/blisspixel/AgentCiv/actions/runs/38213447305/job/114692694047"
+    },
+    {
+      "completedAt": "2026-10-12T06:43:09Z",
+      "conclusion": "success",
+      "databaseId": 114692694063,
+      "name": "build (macos-15, aarch64-apple-darwin)",
+      "startedAt": "2026-10-12T06:38:04Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-10-12T06:38:06Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-10-12T06:38:05Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-12T06:38:08Z",
+          "conclusion": "success",
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "number": 2,
+          "startedAt": "2026-10-12T06:38:06Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-12T06:42:59Z",
+          "conclusion": "success",
+          "name": "Build and test native utilities",
+          "number": 3,
+          "startedAt": "2026-10-12T06:38:08Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-12T06:42:59Z",
+          "conclusion": "skipped",
+          "name": "Check Windows release imports for redistributable runtime dependencies",
+          "number": 4,
+          "startedAt": "2026-10-12T06:42:59Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-12T06:43:02Z",
+          "conclusion": "success",
+          "name": "Run actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a",
+          "number": 5,
+          "startedAt": "2026-10-12T06:42:59Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-12T06:43:06Z",
+          "conclusion": "success",
+          "name": "Install and remove the real native binaries through offline fixtures",
+          "number": 6,
+          "startedAt": "2026-10-12T06:43:02Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-12T06:43:06Z",
+          "conclusion": "skipped",
+          "name": "Install and remove real native binaries in Windows PowerShell 5.1",
+          "number": 7,
+          "startedAt": "2026-10-12T06:43:06Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-12T06:43:06Z",
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "number": 14,
+          "startedAt": "2026-10-12T06:43:06Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-12T06:43:07Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 15,
+          "startedAt": "2026-10-12T06:43:06Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/blisspixel/AgentCiv/actions/runs/38213447305/job/114692694063"
+    },
+    {
+      "completedAt": "2026-10-12T06:46:32Z",
+      "conclusion": "success",
+      "databaseId": 114692694094,
+      "name": "build (macos-15-intel, x86_64-apple-darwin)",
+      "startedAt": "2026-10-12T06:38:01Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-10-12T06:38:03Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-10-12T06:38:02Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-12T06:38:07Z",
+          "conclusion": "success",
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "number": 2,
+          "startedAt": "2026-10-12T06:38:03Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-12T06:46:16Z",
+          "conclusion": "success",
+          "name": "Build and test native utilities",
+          "number": 3,
+          "startedAt": "2026-10-12T06:38:07Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-12T06:46:16Z",
+          "conclusion": "skipped",
+          "name": "Check Windows release imports for redistributable runtime dependencies",
+          "number": 4,
+          "startedAt": "2026-10-12T06:46:16Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-12T06:46:21Z",
+          "conclusion": "success",
+          "name": "Run actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a",
+          "number": 5,
+          "startedAt": "2026-10-12T06:46:16Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-12T06:46:29Z",
+          "conclusion": "success",
+          "name": "Install and remove the real native binaries through offline fixtures",
+          "number": 6,
+          "startedAt": "2026-10-12T06:46:21Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-12T06:46:29Z",
+          "conclusion": "skipped",
+          "name": "Install and remove real native binaries in Windows PowerShell 5.1",
+          "number": 7,
+          "startedAt": "2026-10-12T06:46:29Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-12T06:46:30Z",
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "number": 14,
+          "startedAt": "2026-10-12T06:46:29Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-12T06:46:30Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 15,
+          "startedAt": "2026-10-12T06:46:30Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/blisspixel/AgentCiv/actions/runs/38213447305/job/114692694094"
+    },
+    {
+      "completedAt": "2026-10-12T06:47:15Z",
+      "conclusion": "success",
+      "databaseId": 114695029316,
+      "name": "assemble",
+      "startedAt": "2026-10-12T06:46:48Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-10-12T06:46:51Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-10-12T06:46:49Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-12T06:46:53Z",
+          "conclusion": "success",
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "number": 2,
+          "startedAt": "2026-10-12T06:46:51Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-12T06:46:56Z",
+          "conclusion": "success",
+          "name": "Run actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c",
+          "number": 3,
+          "startedAt": "2026-10-12T06:46:53Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-12T06:46:56Z",
+          "conclusion": "success",
+          "name": "Assemble the complete candidate and verification records",
+          "number": 4,
+          "startedAt": "2026-10-12T06:46:56Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-12T06:47:04Z",
+          "conclusion": "success",
+          "name": "Attest the uploaded candidate assets",
+          "number": 5,
+          "startedAt": "2026-10-12T06:46:56Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-12T06:47:13Z",
+          "conclusion": "success",
+          "name": "Run actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a",
+          "number": 6,
+          "startedAt": "2026-10-12T06:47:04Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-12T06:47:13Z",
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "number": 12,
+          "startedAt": "2026-10-12T06:47:13Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-12T06:47:13Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 13,
+          "startedAt": "2026-10-12T06:47:13Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/blisspixel/AgentCiv/actions/runs/38213447305/job/114695029316"
+    },
+    {
+      "completedAt": "2026-10-12T06:47:31Z",
+      "conclusion": "success",
+      "databaseId": 114695166457,
+      "name": "draft",
+      "startedAt": "2026-10-12T06:47:18Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-10-12T06:47:19Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-10-12T06:47:18Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-12T06:47:22Z",
+          "conclusion": "success",
+          "name": "Run actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c",
+          "number": 2,
+          "startedAt": "2026-10-12T06:47:19Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-12T06:47:29Z",
+          "conclusion": "success",
+          "name": "Create a draft, requiring separate reviewed publication",
+          "number": 3,
+          "startedAt": "2026-10-12T06:47:22Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-12T06:47:29Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 4,
+          "startedAt": "2026-10-12T06:47:29Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/blisspixel/AgentCiv/actions/runs/38213447305/job/114695166457"
+    }
+  ],
+  "status": "completed",
+  "url": "https://github.com/blisspixel/AgentCiv/actions/runs/38213447305",
+  "workflowName": "Native release candidate"
+}

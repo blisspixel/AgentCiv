@@ -6,9 +6,9 @@ Prepare the room, private client configuration and cache using [the local room g
 
 ## Choose the reader
 
-Comparison reuses the native reader's offline `offers` validation. The immutable native v0.1.0 reader has an internal projection pagination bug above 2000 events, despite its advertised larger ceiling. The current checkout fixes that internal traversal bound without changing the wrapper's limits. Native v0.1.1 is planned, not published by this document. Until a release record establishes publication, use a reader built from the corrected checkout for this path. Native installation does not install the Python room wrapper.
+Comparison reuses the native reader's offline `offers` validation. Published [v0.1.1](https://github.com/blisspixel/AgentCiv/releases/tag/v0.1.1) fixes the immutable v0.1.0 reader's internal projection failure above 2000 events; its [release record](NATIVE_RELEASE_V0_1_1.md) identifies actual publication and six-target public upgrade/rollback checks. The native projection ceiling remains 4096 events, while this wrapper retains its smaller limits. Choose the published v0.1.1 reader or build from the corrected checkout. Native installation does not install the Python room wrapper.
 
-Build once, then choose the actual Cargo target path explicitly so an older installed reader earlier in `PATH` does not take precedence. On Windows:
+For source builds, build once and choose the actual Cargo target path explicitly so an older installed reader earlier in `PATH` does not take precedence. On Windows:
 
 ```powershell
 cargo build --locked -p agentciv-reader
@@ -23,6 +23,18 @@ cargo build --locked -p agentciv-reader
 readerTarget="$(cargo metadata --locked --offline --no-deps --format-version 1 | python3 -c 'import json, sys; print(json.load(sys.stdin)["target_directory"])')"
 roomReader="$readerTarget/debug/agentciv-reader"
 ```
+
+For an already installed native v0.1.1 reader at the default prefix, choose its exact executable instead of building:
+
+```powershell
+$roomReader = Join-Path $env:LOCALAPPDATA 'AgentCiv\versions\v0.1.1\agentciv-reader.exe'
+```
+
+```sh
+roomReader="$HOME/.local/share/agentciv/versions/v0.1.1/agentciv-reader"
+```
+
+For a custom installation prefix, substitute that prefix and retain `versions/v0.1.1/agentciv-reader` (with `.exe` on Windows). This selects the already installed generation directly; it does not install it or change activation. Keep using `--reader-binary` in the commands below.
 
 Building is a separate operator action. Comparison itself neither builds nor downloads a tool. Without `--reader-binary`, the wrapper uses its [documented tool lookup](LOCAL_ENCOUNTER.md#prepare-the-tools-and-private-state).
 
