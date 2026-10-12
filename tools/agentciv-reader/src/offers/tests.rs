@@ -301,6 +301,39 @@ fn long_complete_traversal_revalidates_cross_page_identity_and_counts() {
 }
 
 #[test]
+fn complete_views_reach_native_event_ceiling_without_expanding_record_bounds() {
+    let mut records: Vec<String> = (0..=MAX_READ_EVENTS)
+        .map(|index| {
+            event(
+                &format!("event:boundary-{index}"),
+                index as u64,
+                &format!("agent:boundary-{index}"),
+            )
+        })
+        .collect();
+    for count in [2048, MAX_READ_EVENTS] {
+        let mut wrapper = input(&records[..count]);
+        wrapper["report"]["pages"] = json!(count.div_ceil(100));
+        let view = project(&wrapper.to_string(), "").unwrap();
+        assert_eq!(view["report"]["events"], count);
+        assert_eq!(view["report"]["reached_end"], true);
+        assert_eq!(view["offers"], json!([]));
+    }
+    let mut excessive = input(&records);
+    excessive["report"]["pages"] = json!(records.len().div_ceil(100));
+    assert_eq!(project(&excessive.to_string(), ""), Err(Error::InvalidView));
+
+    let last = &mut records[2047];
+    last.push_str(&" ".repeat(MAX_RECORD_BYTES - last.len()));
+    let mut bounded = input(&records[..2048]);
+    bounded["report"]["pages"] = json!(21);
+    assert!(project(&bounded.to_string(), "").is_ok());
+    records[2047].push(' ');
+    bounded["snapshot"]["records"][2047] = json!(records[2047]);
+    assert_eq!(project(&bounded.to_string(), ""), Err(Error::InvalidView));
+}
+
+#[test]
 fn shared_large_evidence_cannot_expand_projection_beyond_output_bound() {
     let mut records = vec![event("event:source", 1, "agent:source")];
     for index in 0..20 {

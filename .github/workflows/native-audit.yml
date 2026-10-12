@@ -52,11 +52,15 @@ jobs:
           cargo test --locked --target "$TARGET" -p agentciv-archive -p agentciv-reader
           cargo build --release --locked --target "$TARGET" -p agentciv-archive -p agentciv-reader -p agentciv-host -p agentciv-conformance
           cargo metadata --locked --format-version 1 --filter-platform "$TARGET" > dist/audit/metadata.json
+          audit_version=$(jq -er '[.packages[] | select(.name == "agentciv-archive" or .name == "agentciv-reader" or .name == "agentciv-host" or .name == "agentciv-conformance") | .version] | select(length == 4) | unique | select(length == 1) | .[0]' dist/audit/metadata.json)
+          [[ "$audit_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          printf 'AUDIT_VERSION=v%s\n' "$audit_version" >> "$GITHUB_ENV"
+          printf 'v%s\n' "$audit_version" > dist/audit/VERSION
           for tool in agentciv-archive agentciv-reader agentciv-host agentciv-conformance; do
             binary="target/$TARGET/release/$tool$SUFFIX"
-            test "$("$binary" --version)" = "$tool 0.1.0"
+            test "$("$binary" --version)" = "$tool $audit_version"
             "$binary" --help > "dist/audit/$tool-help.txt"
-            cp "$binary" "dist/$tool-v0.1.0-$TARGET$SUFFIX"
+            cp "$binary" "dist/$tool-v$audit_version-$TARGET$SUFFIX"
           done
           "target/$TARGET/release/agentciv-archive$SUFFIX" demo > dist/audit/demo.json
           grep -q 'source_authenticity' dist/audit/demo.json
@@ -161,11 +165,11 @@ jobs:
       - name: Exercise real native Unix installation and removal
         if: runner.os != 'Windows'
         shell: bash
-        run: sh installers/smoke-install.sh "$PWD/dist" v0.1.0
+        run: sh installers/smoke-install.sh "$PWD/dist" "$AUDIT_VERSION"
       - name: Exercise real native Windows installation and removal
         if: runner.os == 'Windows'
         shell: powershell
-        run: '& .\installers\smoke-install.ps1 -ReleaseDirectory "$PWD/dist" -ReleaseVersion v0.1.0'
+        run: '& .\installers\smoke-install.ps1 -ReleaseDirectory "$PWD/dist" -ReleaseVersion $env:AUDIT_VERSION'
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         if: always()
         with:

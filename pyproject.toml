@@ -10,6 +10,7 @@ files = [
     "examples/participants",
     "examples/inheritance",
     "services/bulletin/test_edge.py",
+    "installers/test_release_workflows.py",
 ]
 
 [tool.coverage.run]

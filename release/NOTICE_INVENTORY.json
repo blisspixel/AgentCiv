@@ -1,7 +1,7 @@
 {
   "inventory_version": "1",
   "status": "reviewed_complete",
-  "source_lock_sha256": "c04074fcac1e4943a7d64cb6f713721358fed0c65ad2a897308a1bc894ae49c8",
+  "source_lock_sha256": "9809a731519af5db1b11958efb37eef0e9eaf8fa165ea29fd8ec1aede49ae5fa",
   "toolchain_file_sha256": "dae18a8743f89707783c1d873595570f29618d0c20f022f8dced263982bba74e",
   "notices_sha256": "1bcf14c8995a3ef4b539a5966d1b53f5ebf2fa62828b87b45d9cd48310b51a91",
   "scope": "All 251 exact-lock registry packages, including build-only and target-specific dependencies; original source notices and selected copyright/license comment blocks; pinned Rust toolchain notices compared across six actual native audits; separately preserved Microsoft build-product/runtime license sources and actual native linkage review. Project MIT does not relicense third-party components.",
@@ -28,7 +28,7 @@
   "workspace_packages_excluded_from_third_party_inventory": [
     {
       "name": "agentciv-archive",
-      "version": "0.1.0"
+      "version": "0.1.1"
     },
     {
       "name": "agentciv-bulletin",
@@ -40,7 +40,7 @@
     },
     {
       "name": "agentciv-conformance",
-      "version": "0.1.0"
+      "version": "0.1.1"
     },
     {
       "name": "agentciv-directory",
@@ -48,11 +48,11 @@
     },
     {
       "name": "agentciv-host",
-      "version": "0.1.0"
+      "version": "0.1.1"
     },
     {
       "name": "agentciv-reader",
-      "version": "0.1.0"
+      "version": "0.1.1"
     }
   ],
   "entries": [
@@ -16621,6 +16621,12 @@
       "web-sys:0.3.105"
     ],
     "scope": "Mechanical exact-lock and source-byte refresh. Native toolchain and source notice applicability reviews remain blocking."
+  },
+  "maintenance_lock_review_v0_1_1": {
+    "record": "release/MAINTENANCE_LOCK_V0_1_1.json",
+    "previous_lock_sha256": "c04074fcac1e4943a7d64cb6f713721358fed0c65ad2a897308a1bc894ae49c8",
+    "current_lock_sha256": "9809a731519af5db1b11958efb37eef0e9eaf8fa165ea29fd8ec1aede49ae5fa",
+    "decision": "Only four local utility package versions changed. All other locked packages, registry sources, checksums and dependency edges remain unchanged; original notice bytes, slice hashes and pinned toolchain configuration are preserved. Actual candidate build products, linkage and publication require separate verification."
   },
   "native_review": {
     "record": "release/NATIVE_REVIEW_2026_10_11.md",

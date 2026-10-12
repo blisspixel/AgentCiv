@@ -160,6 +160,16 @@ def _originals(view: JsonObject) -> list[str]:
     return [str(row) for row in rows]
 
 
+def _contains_secret(value: object, secret: str) -> bool:
+    if isinstance(value, str):
+        return secret in value
+    if isinstance(value, dict):
+        return any(_contains_secret(key, secret) or _contains_secret(item, secret) for key, item in value.items())
+    if isinstance(value, list):
+        return any(_contains_secret(item, secret) for item in value)
+    return False
+
+
 def _validate_view(view: JsonObject, config: JsonObject) -> None:
     transport = _object(view.get("transport"))
     snapshot = _object(view.get("snapshot"))
@@ -174,7 +184,7 @@ def _validate_view(view: JsonObject, config: JsonObject) -> None:
         or projection.get("format") != "agentciv-offer-view/0.1-example" or projection.get("world") != config["world"]
         or projection_report.get("truncated") is not False or projection_report.get("reached_end") is not True):
         raise private.EncounterError("invalid_private_view")
-    if str(config["token"]) in json.dumps(view, ensure_ascii=False):
+    if _contains_secret(view, str(config["token"])):
         raise private.EncounterError("credential_reflected")
 
 
@@ -271,18 +281,26 @@ def sync(config: Path, previous: Path | None = None, save: Path | None = None, *
         "copying_permission": "not_granted"}
 
 
-def show(config: Path, path: Path) -> str:
+def show(config: Path, path: Path, *, event_id: str | None = None) -> str:
     """Render a saved permitted view; quote untrusted text before terminal output."""
     try:
         settings = _configuration(config)
         view = _decode(private.read_bounded(path, MAX_OUTPUT))
         _validate_view(view, settings)
         lines = [f"Room {json.dumps(settings['world'], ensure_ascii=True)}; saved caller view, not live history."]
+        seen: set[str] = set()
+        selected = 0
         for original in _originals(view):
             event = _decode(original.encode("utf-8"))
-            if str(settings["token"]) in json.dumps(civic.decode(original.encode("utf-8")), ensure_ascii=False):
+            identifier = event.get("id")
+            if not isinstance(identifier, str) or identifier in seen:
+                raise private.EncounterError("invalid_private_view")
+            seen.add(identifier)
+            if _contains_secret(event, str(settings["token"])):
                 raise private.EncounterError("credential_reflected")
-            body = _object(event.get("body"))
+            if event_id is not None and identifier != event_id:
+                continue
+            selected += 1
             # Each exact original remains in the view; this is only a readable projection.
             def quote(value: object) -> str:
                 if isinstance(value, Decimal):
@@ -293,6 +311,10 @@ def show(config: Path, path: Path) -> str:
                     return "[" + ", ".join(quote(item) for item in value) + "]"
                 return json.dumps(value, ensure_ascii=True)
             lines.append(f"#{quote(event.get('sequence'))} {quote(event.get('timestamp'))} {quote(event.get('actor'))} {quote(event.get('kind'))} {quote(event.get('id'))}")
+            if event_id is not None:
+                lines.append(f"  record_utf8: {json.dumps(original, ensure_ascii=True)}")
+                continue
+            body = _object(event.get("body"))
             for kind, value in body.items():
                 record = _object(value)
                 lines.append(f"  {quote(kind)} to {quote(record.get('to', []))}")
@@ -308,9 +330,14 @@ def show(config: Path, path: Path) -> str:
                         lines.append(f"  data: {quote(other)}")
                 if kind == "tombstone":
                     lines.append(f"  {quote(record)}")
+        if event_id is not None and selected == 0:
+            raise private.EncounterError("event_not_in_saved_view")
         if len(lines) == 1:
             lines.append("No events in this saved view.")
-        return "\n".join(lines)
+        rendered = "\n".join(lines)
+        if len(rendered.encode("utf-8")) > MAX_OUTPUT:
+            raise private.EncounterError("private_render_too_large")
+        return rendered
     except private.EncounterError:
         raise
     except (ValueError, OSError, KeyError, TypeError, RuntimeError):

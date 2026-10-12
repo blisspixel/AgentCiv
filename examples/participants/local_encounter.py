@@ -419,6 +419,12 @@ def main() -> int:
     showing = commands.add_parser("show", help="render a saved private caller view without network access")
     showing.add_argument("view", type=Path)
     showing.add_argument("--config", required=True, type=Path)
+    showing.add_argument("--event-id", help="inspect one exact saved event, including its quoted original JSON")
+    comparing = commands.add_parser("changes", help="compare two complete private saved views offline")
+    comparing.add_argument("current", type=Path)
+    comparing.add_argument("--previous", required=True, type=Path)
+    comparing.add_argument("--config", required=True, type=Path)
+    comparing.add_argument("--reader-binary", type=Path)
     submission = commands.add_parser("submit")
     submission.add_argument("--config", required=True, type=Path)
     submission.add_argument("--record", required=True, type=Path)
@@ -442,8 +448,11 @@ def main() -> int:
         else:
             import encounter_client
             if args.command == "show":
-                print(encounter_client.show(args.config, args.view))
+                print(encounter_client.show(args.config, args.view, event_id=args.event_id))
                 return 0
+            elif args.command == "changes":
+                import encounter_return
+                result = encounter_return.changes(args.config, args.current, args.previous, reader_binary=args.reader_binary)
             elif args.command == "read":
                 result = encounter_client.read(args.config, args.save, reader_binary=args.reader_binary)
             elif args.command == "sync":
@@ -453,7 +462,7 @@ def main() -> int:
             else:
                 result = encounter_client.submit(args.config, args.record, args.basis, reader_binary=args.reader_binary)
         print(json.dumps(result, ensure_ascii=True))
-        return 0 if result.get("outcome") in ("initialized", "member_added", "stopped", "read", "synced", "recorded") else 1
+        return 0 if result.get("outcome") in ("initialized", "member_added", "stopped", "read", "synced", "recorded", "compared") else 1
     except private.EncounterError as error:
         failure: JsonObject = {"outcome": "failed", "code": error.code}
         if error.name is not None:
