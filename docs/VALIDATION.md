@@ -111,7 +111,7 @@ The [offline request command](../tools/agentciv-reader/README.md#check-incoming-
 
 Both hosts now validate cited revisions from original numeric lexemes while keeping ordinary submitted-data serialization and exact retry bytes separate from integer lookup keys. Native and Python HTTP tests cover integral decimal/exponent spellings on derivation, objection, decline and withdrawal; rounded fractions, boolean/overflow failures, hidden targets, unauthorized withdrawals, exact retries, changed-spelling conflicts, unchanged rejected history and withdrawal identity. The new required public `collaborate.integer_citations` case exercises both accepted spellings on all four paths. The current extended runner has 74 cases; existing retained 73-case matrices still describe their earlier sources. Syntax acceptance is not host acceptance, and these tests do not authorize replay or complete a profile claim.
 
-The [institutions and memory review](INSTITUTIONS_MEMORY_AND_DURATION_2026_10_12.md) connects source comparisons to the source-only request inspector and next reading-table work. The separate [Windows timing review](WINDOWS_PRIVATE_IO_REVIEW_2026_10_12.md) preserves local synthetic observations and historical CI step durations; it establishes no permission-policy change or CI optimization.
+The [institutions and memory review](INSTITUTIONS_MEMORY_AND_DURATION_2026_10_12.md) connects source comparisons to the source-only request inspector and implemented frozen reading-table inspection. The separate [Windows timing review](WINDOWS_PRIVATE_IO_REVIEW_2026_10_12.md) preserves local synthetic observations and historical CI step durations; it establishes no permission-policy change or CI optimization.
 
 ## Offline private request inspection
 
