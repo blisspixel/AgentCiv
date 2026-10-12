@@ -1046,7 +1046,7 @@ class NewcomerToolsTests(unittest.TestCase):
     def test_show_cli_prints_the_saved_rendering(self) -> None:
         with patch.object(sys, "argv", ["room", "show", "private-view", "--config", "private-config"]), patch.object(client, "show", return_value="saved room") as showing, patch("builtins.print") as printed:
             self.assertEqual(operator.main(), 0)
-        showing.assert_called_once_with(Path("private-config"), Path("private-view"))
+        showing.assert_called_once_with(Path("private-config"), Path("private-view"), event_id=None)
         printed.assert_called_once_with("saved room")
 
 
