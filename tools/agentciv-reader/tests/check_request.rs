@@ -162,6 +162,7 @@ fn untrusted_schema_names_and_record_links_make_no_request_or_additional_file() 
 }
 
 #[test]
+#[cfg(not(unix))]
 fn failed_stdout_write_has_a_fixed_error_instead_of_reported_success() {
     let temporary = TempDir::new().unwrap();
     let path = temporary.path().join("private-request.json");
@@ -179,4 +180,31 @@ fn failed_stdout_write_has_a_fixed_error_instead_of_reported_success() {
         .unwrap();
     failed(&output, "output_failed");
     assert_eq!(fs::read(&sink).unwrap(), b"unchanged");
+}
+
+#[test]
+#[cfg(unix)]
+fn closed_stdout_reports_a_real_broken_pipe_as_a_fixed_error() {
+    use std::io::{ErrorKind, Write};
+    use std::os::fd::OwnedFd;
+    use std::os::unix::net::UnixStream;
+
+    let temporary = TempDir::new().unwrap();
+    let path = temporary.path().join("private-request.json");
+    let original = include_str!("../../../conformance/fixtures/valid/message.json");
+    fs::write(&path, original).unwrap();
+    let (reader, mut writer) = UnixStream::pair().unwrap();
+    drop(reader);
+    assert_eq!(
+        writer.write_all(b"probe").unwrap_err().kind(),
+        ErrorKind::BrokenPipe
+    );
+    let output = Command::new(env!("CARGO_BIN_EXE_agentciv-reader"))
+        .args(["check-request", path.to_str().unwrap()])
+        .stdout(OwnedFd::from(writer))
+        .output()
+        .unwrap();
+    failed(&output, "output_failed");
+    assert_eq!(fs::read(&path).unwrap(), original.as_bytes());
+    assert_eq!(fs::read_dir(temporary.path()).unwrap().count(), 1);
 }
