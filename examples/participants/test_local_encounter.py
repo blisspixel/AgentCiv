@@ -26,6 +26,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "examples" / "http-
 import collaboration as civic  # noqa: E402
 import encounter_client as client  # noqa: E402
 import encounter_return as returns  # noqa: E402
+import encounter_request as requests  # noqa: E402
 import encounter_private as private  # noqa: E402
 import local_encounter as operator  # noqa: E402
 import local_participant as wire  # noqa: E402
@@ -805,6 +806,100 @@ class LocalEncounterProcessTests(unittest.TestCase):
         binaries = walk.build_rust_binaries("agentciv-reader", "agentciv-host")
         cls.reader_binary = binaries["agentciv-reader"]
         cls.host_binary = binaries["agentciv-host"]
+
+    def test_lost_responses_inspect_offline_without_promoting_candidates_on_both_hosts(self) -> None:
+        import time
+        for selected in ("python", "rust"):
+            with self.subTest(host=selected), tempfile.TemporaryDirectory(prefix="agentciv-request-inspection-") as temporary:
+                root = Path(temporary).resolve()
+                state = root / "room"
+                initialized = operator.initialize(state, WORLD, [A], [], free_port(), retention_seconds=1)
+                config = Path(str(objects(initialized["clients"])[0]["config"]))
+                settings_a = load(config)
+                origin = str(initialized["origin"])
+                argv = walk.python_argv(state / "host.json") if selected == "python" else [str(self.host_binary), "--config", str(state / "host.json")]
+                owned = operator._start(argv, origin)
+                actual_exchange, actual_capture = wire.exchange, client._capture
+                results: dict[str, JsonObject] = {}
+
+                def send(name: str, *, apply_before_loss: bool = False, fail_before_post: bool = False,
+                         lose_readback: bool = False, kind: str = "message") -> JsonObject:
+                    source = root / (name + ".json")
+                    raw = client._json(authored(kind, "submission:" + name, A))
+                    source.write_bytes(raw)
+
+                    def exchange(method: str, url: str, *, token: str | None = None,
+                                 body: bytes | None = None) -> tuple[int, bytes]:
+                        if method == "POST" and fail_before_post:
+                            raise wire.ParticipantError(0, "synthetic_not_dispatched")
+                        response = actual_exchange(method, url, token=token, body=body)
+                        if method == "POST" and apply_before_loss:
+                            self.assertEqual(response[0], 200)
+                            raise wire.ParticipantError(0, "synthetic_response_lost_after_apply")
+                        return response
+
+                    captures = 0
+
+                    def capture(settings: JsonObject, binary: Path) -> JsonObject:
+                        nonlocal captures
+                        captures += 1
+                        if lose_readback and captures == 2:
+                            raise private.EncounterError("prefix_unavailable")
+                        return actual_capture(settings, binary)
+
+                    with patch.object(wire, "exchange", side_effect=exchange), patch.object(client, "_capture", side_effect=capture):
+                        result = client.submit(config, source, reader_binary=self.reader_binary)
+                    results[name] = result
+                    return result
+
+                try:
+                    operator._wait_ready(owned)
+                    applied = send("lost-applied", apply_before_loss=True)
+                    absent = send("not-dispatched", fail_before_post=True)
+                    readback = send("readback-lost", lose_readback=True)
+                    parent = send("parent", kind="artifact_revision")
+                    withdrawn = send("withdraw-parent", kind="withdrawal")
+                    self.assertEqual([applied["outcome"], absent["outcome"], readback["outcome"]], ["uncertain"] * 3)
+                    self.assertEqual([parent["outcome"], withdrawn["outcome"]], ["recorded"] * 2)
+                    lost_journal = load(Path(str(applied["journal_path"])))
+                    self.assertNotIn("receipt", lost_journal)
+                    self.assertIn("receipt", load(Path(str(readback["journal_path"]))))
+                    # An actual accepted ID reuse after the configured retry window
+                    # yields a second compatible event, not proof of this attempt.
+                    time.sleep(1.1)
+                    status, _ = actual_exchange("POST", origin + "/submit", token=str(settings_a["token"]),
+                        body=str(lost_journal["request_utf8"]).encode())
+                    self.assertEqual(status, 200)
+                    current = client.read(config, reader_binary=self.reader_binary)
+                    view_path = Path(str(current["view_path"]))
+                    observed = load(view_path)
+                    events = [client._decode(raw.encode()) for raw in strings(obj(observed["snapshot"])["records"])]
+                    submitted_ids = [obj(obj(event["body"])["message"])["id"] for event in events if event["kind"] == "message.recorded"]
+                    self.assertEqual(submitted_ids.count("submission:lost-applied"), 2)
+                    self.assertNotIn("submission:not-dispatched", submitted_ids)
+                    self.assertIn("submission:readback-lost", submitted_ids)
+                finally:
+                    operator._stop_owned(owned)
+                # The host is stopped before inspection. Every HTTP/dispatch path
+                # would fail this test, regardless of the known fixture outcome.
+                originals = {path: path.read_bytes() for path in [config, view_path,
+                    *(Path(str(result["journal_path"])) for result in results.values())]}
+                cache = Path(str(settings_a["cache_directory"]))
+                entries = set(cache.iterdir())
+                expected = {"lost-applied": "compatible_candidates", "not-dispatched": "no_match_in_observation",
+                    "readback-lost": "receipt_correlated_match", "parent": "receipt_event_changed",
+                    "withdraw-parent": "withdrawal_target_not_checkable"}
+                with patch.object(wire, "exchange", side_effect=AssertionError("offline inspector attempted HTTP")), \
+                    patch.object(wire, "discover", side_effect=AssertionError("offline inspector attempted discovery")), \
+                    patch.object(client, "_publish", side_effect=AssertionError("offline inspector attempted publication")):
+                    for name, result in results.items():
+                        inspected = requests.inspect(config, Path(str(result["journal_path"])), view_path, reader_binary=self.reader_binary)
+                        self.assertEqual(inspected["evidence_status"], expected[name])
+                        self.assertFalse(inspected["journal_state_changed"])
+                        if name == "lost-applied":
+                            self.assertEqual(len(objects(inspected["compatible_candidates"])), 2)
+                self.assertEqual(originals, {path: path.read_bytes() for path in originals})
+                self.assertEqual(entries, set(cache.iterdir()))
 
     def test_thousand_event_return_validates_prefix_and_late_member_does_not_expire_readers(self) -> None:
         from concurrent.futures import ThreadPoolExecutor

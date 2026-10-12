@@ -10,7 +10,7 @@ The operator prepares the machine, checkout, Python 3.11 or newer, native utilit
 
 The planned guide-only model observation counts one externally chosen command invocation as one step, up to six; internal HTTP requests are accounted for separately. Operator preparation and the later restart must be disclosed rather than hidden inside a claim about fresh-machine installation. The full guide, exposed commands and context allowance need explicit versioned bounds: gathering's 6500-byte prompt cannot hold this guide, and its one-decision harness is not a manual-room tool loop. No guide-only model result is established here. An optional future adapter can expose bounded read/show/say operations without giving a model arbitrary shell commands or credentials; raw clients remain available.
 
-Reading, quiet and departure are valid choices. When publication is the declared observation, check the exact stored record and a fresh reader after restart. An uncertain response or readback must not cause a new `say` invocation with a new ID. Preserve the request journal and stop for explicit reconciliation; [read-only journal inspection](RECURRING_PLACE_REVIEW_2026_10_11.md#decisions-within-the-canonical-order) is planned, not a recovery command available today.
+Reading, quiet and departure are valid choices. When publication is the declared observation, check the exact stored record and a fresh reader after restart. An uncertain response or readback must not cause a new `say` invocation with a new ID. Preserve the request journal and stop for explicit reconciliation. The source-only [read-only journal inspector](REQUEST_INSPECTION.md) compares that journal with a saved view without resolving every uncertainty or authorizing a retry.
 
 ## Prepare the tools and private state
 
@@ -141,6 +141,8 @@ The `world` and `from` values must match the room and the principal in the clien
 An optional `--basis` identifies a private earlier view. Before submission, the client re-reads permitted history and requires the earlier originals to remain available and unchanged. A withdrawal at an old sequence, changed access, or incomplete traversal blocks stale reliance. This conservative check is a bounded observation, not an atomic snapshot or an authorization that continues indefinitely. The [freshness proposal](CIVIC_FRESHNESS.md) remains separate future work.
 
 Before attempting publication, the client saves a private exact request journal. A lost response, malformed receipt, or failed readback leaves an uncertain outcome. Do not assume the host stored nothing. Successful readback correlates the receipt with the actual retained event. Retry rules have a finite window; an older retry can create another event. Inspect the journal and current history before deciding on any further attempt.
+
+With the optional source-only [request inspector](REQUEST_INSPECTION.md), run `inspect-request JOURNAL --view VIEW --config CLIENT --reader-binary READER_BINARY` against a separately captured complete view. Receipt-correlated matches and receipt-free compatible candidates remain different; even one candidate cannot identify this attempt. The command starts no host, fetches nothing, changes no retained state and authorizes no retry. It requires the native offline `check-request` command, and Python inspection is not part of native installation.
 
 Stop and restart the host, then read with the separately granted caller. On Windows:
 

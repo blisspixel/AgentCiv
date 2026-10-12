@@ -60,8 +60,8 @@ def _text(value: object, maximum: int = 1024) -> bool:
     return isinstance(value, str) and 0 < len(value.encode("utf-8")) <= maximum and not any(ord(char) < 32 or ord(char) == 127 for char in value)
 
 
-def _configuration(path: Path) -> JsonObject:
-    value = civic.decode(private.read_bounded(path, MAX_CONFIG))
+def _configuration(path: Path, *, raw: bytes | None = None) -> JsonObject:
+    value = civic.decode(private.read_bounded(path, MAX_CONFIG) if raw is None else raw)
     required = {"format", "origin", "world", "principal", "token", "payload_bytes", "cache_directory", "private_cache_permission"}
     # Rooms initialized before the optional member roster remain valid.
     if set(value) not in (required, required | {"members"}):
@@ -445,6 +445,22 @@ def _json_equal(left: object, right: object) -> bool:
     return left is None and right is None
 
 
+def _matches_authored(record: JsonObject, event: JsonObject, revision: object = None) -> bool:
+    """Pure whole-record comparison; no receipt, attempt, or host-origin claim."""
+    kind = {"message": "message.recorded", "artifact_revision": "artifact.recorded",
+        "objection": "objection.recorded", "decline": "decline.recorded"}.get(str(record.get("type")))
+    body = event.get("body")
+    if (kind is None or event.get("kind") != kind or event.get("world") != record.get("world")
+        or event.get("actor") != record.get("from") or not isinstance(body, dict)):
+        return False
+    expected = dict(record)
+    if record["type"] == "artifact_revision":
+        if _integer(revision, 1) is None:
+            return False
+        expected["revision"] = revision
+    return _json_equal(body.get(str(record["type"])), expected)
+
+
 def _verify_readback(record: JsonObject, receipt: JsonObject, before: JsonObject, after: JsonObject) -> str:
     found = [(event, raw) for raw in _originals(after) if (event := _decode(raw.encode())).get("id") == receipt["event_id"]]
     if len(found) != 1:
@@ -460,12 +476,7 @@ def _verify_readback(record: JsonObject, receipt: JsonObject, before: JsonObject
             or target.get("artifact_id") != record.get("artifact_id") or target.get("revision") != record.get("revision")):
             raise private.EncounterError("stored_record_changed")
     else:
-        kind = {"message": "message.recorded", "artifact_revision": "artifact.recorded", "objection": "objection.recorded", "decline": "decline.recorded"}[str(record["type"])]
-        stored = _object(_object(event.get("body")).get(str(record["type"])))
-        expected = dict(record)
-        if record["type"] == "artifact_revision":
-            expected["revision"] = receipt["revision"]
-        if event.get("kind") != kind or not _json_equal(stored, expected):
+        if not _matches_authored(record, event, receipt.get("revision")):
             raise private.EncounterError("stored_record_changed")
     return raw
 

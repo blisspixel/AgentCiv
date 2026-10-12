@@ -425,6 +425,11 @@ def main() -> int:
     comparing.add_argument("--previous", required=True, type=Path)
     comparing.add_argument("--config", required=True, type=Path)
     comparing.add_argument("--reader-binary", type=Path)
+    inspecting = commands.add_parser("inspect-request", help="inspect one private request journal against a complete saved view offline")
+    inspecting.add_argument("journal", type=Path)
+    inspecting.add_argument("--view", required=True, type=Path)
+    inspecting.add_argument("--config", required=True, type=Path)
+    inspecting.add_argument("--reader-binary", type=Path)
     submission = commands.add_parser("submit")
     submission.add_argument("--config", required=True, type=Path)
     submission.add_argument("--record", required=True, type=Path)
@@ -453,6 +458,9 @@ def main() -> int:
             elif args.command == "changes":
                 import encounter_return
                 result = encounter_return.changes(args.config, args.current, args.previous, reader_binary=args.reader_binary)
+            elif args.command == "inspect-request":
+                import encounter_request
+                result = encounter_request.inspect(args.config, args.journal, args.view, reader_binary=args.reader_binary)
             elif args.command == "read":
                 result = encounter_client.read(args.config, args.save, reader_binary=args.reader_binary)
             elif args.command == "sync":
@@ -462,7 +470,7 @@ def main() -> int:
             else:
                 result = encounter_client.submit(args.config, args.record, args.basis, reader_binary=args.reader_binary)
         print(json.dumps(result, ensure_ascii=True))
-        return 0 if result.get("outcome") in ("initialized", "member_added", "stopped", "read", "synced", "recorded", "compared") else 1
+        return 0 if result.get("outcome") in ("initialized", "member_added", "stopped", "read", "synced", "recorded", "compared", "inspected") else 1
     except private.EncounterError as error:
         failure: JsonObject = {"outcome": "failed", "code": error.code}
         if error.name is not None:
