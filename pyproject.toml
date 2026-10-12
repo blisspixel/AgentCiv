@@ -10,11 +10,13 @@ files = [
     "examples/participants",
     "examples/inheritance",
     "services/bulletin/test_edge.py",
+    "services/bulletin/probe_entry.py",
+    "services/bulletin/test_probe_entry.py",
     "installers/test_release_workflows.py",
 ]
 
 [tool.coverage.run]
-source = ["implementations/http-commons-python", "examples/http-commons", "examples/participants", "examples/inheritance"]
+source = ["implementations/http-commons-python", "examples/http-commons", "examples/participants", "examples/inheritance", "services/bulletin"]
 omit = ["*/test_*.py"]
 patch = ["subprocess"]
 sigterm = true

@@ -19,6 +19,7 @@ from decimal import Decimal
 from types import SimpleNamespace
 from contextlib import nullcontext
 from unittest.mock import MagicMock, patch
+from urllib.parse import urlencode
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "examples" / "http-commons"))
@@ -306,6 +307,38 @@ class EncounterClientUnitTests(unittest.TestCase):
                 self.assertNotIn("event_record_utf8", journal)
                 self.assertNotIn("private-malformed-receipt", json.dumps(result))
                 self.assertNotIn("private-malformed-receipt", json.dumps(journal))
+                self.assertEqual(len(list(cache.glob("journal-*.json"))), 1)
+
+    def test_prefix_readback_failure_preserves_receipt_and_exact_uncertain_request_without_retry(self) -> None:
+        for code in ("prefix_changed", "prefix_unavailable", "cursor_expired", "untrusted-private-error"):
+            with self.subTest(code=code), tempfile.TemporaryDirectory() as temporary:
+                root = Path(temporary).resolve()
+                config, _, cache = settings(root)
+                record = authored("message", "message:prefix-readback", A)
+                raw = (json.dumps(record, ensure_ascii=False, indent=2) + "\n").encode("utf-8")
+                source = root / "authored-prefix-readback.json"
+                source.write_bytes(raw)
+                before = native([])
+                receipt = {"protocol_version": "0.1-draft", "type": "receipt", "status": "recorded", "world": WORLD,
+                    "record_id": record["id"], "event_id": "event:manual-1", "sequence": 1}
+                with patch.object(client, "_native_read", side_effect=[before, private.EncounterError(code)]) as reads, \
+                    patch.object(client, "_project", return_value=projection(before)), \
+                    patch.object(client, "_endpoint", return_value=("http://127.0.0.1:8787/submit", "messages.submit")), \
+                    patch.object(wire, "exchange", return_value=(200, json.dumps(receipt).encode())) as posted:
+                    result = client.submit(config, source, reader_binary=Path(__file__))
+                posted.assert_called_once()
+                self.assertEqual(reads.call_count, 2)
+                self.assertEqual(posted.call_args.kwargs["body"], raw)
+                self.assertEqual(result["outcome"], "uncertain")
+                journal = load(Path(str(result["journal_path"])))
+                self.assertEqual(journal["state"], "uncertain")
+                self.assertEqual(journal["receipt"], receipt)
+                self.assertEqual(str(journal["request_utf8"]).encode("utf-8"), raw)
+                self.assertEqual(journal["request_sha256"], hashlib.sha256(raw).hexdigest())
+                self.assertEqual(journal["failure_code"], code if code in client.PREFIX_READ_FAILURES else "publication_outcome_unverified")
+                self.assertNotIn("event_record_utf8", journal)
+                self.assertNotIn("untrusted-private-error", json.dumps(result))
+                self.assertNotIn("untrusted-private-error", json.dumps(journal))
                 self.assertEqual(len(list(cache.glob("journal-*.json"))), 1)
 
     def test_boolean_numeric_readback_mutations_remain_uncertain(self) -> None:
@@ -828,10 +861,27 @@ class LocalEncounterProcessTests(unittest.TestCase):
                     self.assertEqual((unchanged["events"], unchanged["cached_events"]), (1001, 1001))
                     self.assertEqual(load(Path(str(unchanged["view_path"]))) ["resume"], load(previous)["resume"])
                     before = previous.read_bytes()
+                    # A real base-read cursor has no retroactive prefix evidence.
+                    previous_value = load(previous)
+                    resume = obj(previous_value["resume"])
+                    reader_settings = load(configs[C])
+                    status, base_page = wire.exchange("GET", origin + "/events?" + urlencode({"after": str(resume["cursor"])}),
+                        token=str(reader_settings["token"]))
+                    self.assertEqual(status, 200)
+                    base_value = copy.deepcopy(previous_value)
+                    base_value["resume"] = {**obj(base_value["resume"]), "cursor": civic.decode(base_page)["next_cursor"]}
+                    base_previous = previous.parent / "view-base-cursor.json"
+                    private.write_new(base_previous, json.dumps(base_value).encode())
+                    base_before = base_previous.read_bytes()
+                    with self.assertRaises(private.EncounterError) as unavailable:
+                        client.sync(configs[C], base_previous, reader_binary=self.reader_binary)
+                    self.assertEqual(unavailable.exception.code, "prefix_unavailable")
+                    self.assertEqual(base_previous.read_bytes(), base_before)
+                    self.assertEqual(previous.read_bytes(), before)
                     publish(authored("withdrawal", "withdrawal:prefix-original", A))
                     with self.assertRaises(private.EncounterError) as expired:
                         client.sync(configs[C], previous, reader_binary=self.reader_binary)
-                    self.assertEqual(expired.exception.code, "cursor_expired")
+                    self.assertEqual(expired.exception.code, "prefix_changed")
                     self.assertEqual(previous.read_bytes(), before)
                     reread = client.read(configs[C], reader_binary=self.reader_binary)
                     current = Path(str(reread["view_path"]))
@@ -1037,7 +1087,9 @@ class NewcomerToolsTests(unittest.TestCase):
                 self.assertEqual(missing.exception.code, "reader_binary_not_found")
 
     def test_reader_diagnostics_are_fixed_and_do_not_print_provider_text(self) -> None:
-        for native_code, expected in (("transport_failed", "host_unreachable"), ("deadline_exceeded", "host_read_timeout"), ("private arbitrary text", "reader_failed")):
+        for native_code, expected in (("transport_failed", "host_unreachable"), ("deadline_exceeded", "host_read_timeout"),
+            ("prefix_changed", "prefix_changed"), ("prefix_unavailable", "prefix_unavailable"),
+            ("cursor_expired", "cursor_expired"), ("private arbitrary text", "reader_failed")):
             failed = subprocess.CompletedProcess([], 1, b"", json.dumps({"outcome": "failed", "code": native_code}).encode())
             with patch.object(subprocess, "run", return_value=failed), self.assertRaises(private.EncounterError) as caught:
                 client._process(Path("reader"), "read", Path("private-config"))

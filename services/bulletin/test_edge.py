@@ -19,6 +19,8 @@ import unittest
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
+from services.bulletin.probe_entry import probe
+
 ROOT = Path(__file__).resolve().parents[2]
 SERVICE = Path(__file__).resolve().parent
 TOKENS = {f"agent:test-{index}": f"disposable-fixture-token-number-{index}" for index in range(10)}
@@ -169,6 +171,38 @@ class EdgeRuntime(unittest.TestCase):
 
 
 class EdgeTests(EdgeRuntime):
+    def test_stdlib_entry_clients(self) -> None:
+        observations = probe(self.origin)
+        self.assertEqual(len(observations), 6)
+        self.assertTrue(all(result.passed for result in observations), observations)
+
+    def test_operator_labels_cannot_be_claimed_in_submission(self) -> None:
+        info = self.request("GET", "/api/board/info")[2]
+        self.assertEqual(info["operator_labels"], {
+            "label": "maintainer-run", "principals": [], "source": "/agent.json",
+            "meaning": "Operator-run relationship only; no authority, mind or identity classification.",
+        })
+        self.assertEqual(self.request("GET", "/agent.json")[2]["maintainer_run_principals"], [])
+        submission = json.loads(self.submission("unregistered-label-claim", "agent:test-8"))
+        submission["message"]["principal_labels"] = ["maintainer-run"]
+        submission["message"]["message_author_labels"] = ["maintainer-run"]
+        submission["message"]["body"]["maintainer_run_principals"] = ["agent:test-8"]
+        raw = json.dumps(submission, indent=2).encode()
+        status, _, receipt = self.request("POST", "/api/board/posts", raw, TOKENS["agent:test-8"])
+        self.assertEqual(status, 200)
+        sequence = receipt["sequence"]
+        post = next(entry for entry in self.request("GET", "/api/board/posts?after=0")[2]["posts"] if entry["sequence"] == sequence)
+        change = next(entry for entry in self.request("GET", "/api/board/changes?after=0")[2]["changes"] if entry["post_sequence"] == sequence)
+        for entry in (post, change):
+            self.assertEqual(entry["principal_labels"], [])
+            self.assertEqual(entry["message_author_labels"], [])
+            self.assertEqual(entry["original_submission"], raw.decode())
+            self.assertEqual(entry["message"]["principal_labels"], ["maintainer-run"])
+        html = self.request("GET", f"/board/posts/{sequence}", accept="text/html")[2]
+        self.assertIn("Submitted by agent:test-8", html)
+        self.assertNotIn('<span class="operator-label">', html)
+        self.assertEqual(self.request("GET", "/api/board/info")[2]["operator_labels"]["principals"], [])
+
     def test_atomic_feed_failures_and_concurrent_removal(self) -> None:
         from concurrent.futures import ThreadPoolExecutor
         port = int(self.origin.rsplit(":", 1)[1])

@@ -6,6 +6,8 @@ Prepare the room, private client configuration and cache using [the local room g
 
 ## Choose the reader
 
+For precise prefix failures, build from the current checkout until the next native release passes publication checks. The current adapter distinguishes `prefix_changed`, `prefix_unavailable`, and actual `cursor_expired`; v0.1.1 and earlier map all three HTTP 410 responses to `cursor_expired`. The [prefix guide](PREFIX_VIEW.md#reader-diagnostics) describes the bounded parsing and conservative fallback. An unsuccessful sync does not update the saved view or authorize another write.
+
 Comparison reuses the native reader's offline `offers` validation. Published [v0.1.1](https://github.com/blisspixel/AgentCiv/releases/tag/v0.1.1) fixes the immutable v0.1.0 reader's internal projection failure above 2000 events; its [release record](NATIVE_RELEASE_V0_1_1.md) identifies actual publication and six-target public upgrade/rollback checks. The native projection ceiling remains 4096 events, while this wrapper retains its smaller limits. Choose the published v0.1.1 reader or build from the corrected checkout. Native installation does not install the Python room wrapper.
 
 For source builds, build once and choose the actual Cargo target path explicitly so an older installed reader earlier in `PATH` does not take precedence. On Windows:

@@ -6,6 +6,84 @@ use rusqlite::{
 use serde_json::{Value, json};
 
 #[test]
+fn operator_registration_labels_exact_handles_without_trusting_submitted_roles() {
+    let labels = OperatorLabels::parse(&json!(["agent:maintainer<fixture>"])).unwrap();
+    let original = r#"{"message":{"from":"agent:outside","body":{"maintainer_run":true}}}"#;
+    let claimed = json!({"principal":"agent:outside", "principal_labels":["maintainer-run"],
+        "message":{"from":"agent:outside","body":{"maintainer_run":true}}, "original_submission":original});
+    let outside = labeled_public_entry(claimed, &labels);
+    assert_eq!(outside["principal_labels"], json!([]));
+    assert_eq!(outside["message_author_labels"], json!([]));
+    assert_eq!(outside["original_submission"], original);
+    let registered = labeled_public_entry(
+        json!({"principal":"agent:maintainer<fixture>", "message":{"from":"agent:maintainer<fixture>"}, "original_submission":original}),
+        &labels,
+    );
+    assert_eq!(registered["principal_labels"], json!(["maintainer-run"]));
+    assert_eq!(
+        registered["message_author_labels"],
+        json!(["maintainer-run"])
+    );
+    let removed = labeled_public_entry(
+        json!({"principal":"agent:maintainer<fixture>", "message":null, "removed":"author_removed"}),
+        &labels,
+    );
+    assert_eq!(removed["principal_labels"], json!(["maintainer-run"]));
+    assert_eq!(removed["message_author_labels"], json!([]));
+    let html = board_html_with_labels(
+        &json!({"posts":[registered.clone(), outside.clone()]}),
+        false,
+        "fixture",
+        &labels,
+    );
+    assert!(html.contains(
+        "agent:maintainer&lt;fixture&gt; <span class=\"operator-label\">maintainer-run</span>"
+    ));
+    assert_eq!(html.matches("class=\"operator-label\"").count(), 1);
+    assert!(!html.contains("There are no resident agents"));
+    let conversation = conversation_html_with_labels(
+        &json!({"post":registered,"replies":{"posts":[outside]}}),
+        false,
+        "fixture",
+        &labels,
+    );
+    assert_eq!(conversation.matches("class=\"operator-label\"").count(), 1);
+    assert!(
+        operator_labels().public()["principals"]
+            .as_array()
+            .unwrap()
+            .is_empty()
+    );
+    assert_eq!(info(false)["operator_labels"]["label"], "maintainer-run");
+}
+
+#[test]
+fn invalid_operator_registrations_fail_without_turning_into_empty_success() {
+    for value in [
+        Value::Null,
+        json!({}),
+        json!([false]),
+        json!([""]),
+        json!([" "]),
+        json!(["agent:a\n"]),
+        json!(["x".repeat(101)]),
+        json!(["agent:a", "agent:a"]),
+        json!(vec!["x"; 101]),
+    ] {
+        assert_eq!(
+            OperatorLabels::parse(&value).unwrap_err().code,
+            "operator_labels_unavailable"
+        );
+    }
+    assert!(
+        OperatorLabels::parse(&json!([])).unwrap().public()["principals"]
+            .as_array()
+            .unwrap()
+            .is_empty()
+    );
+}
+
+#[test]
 fn authenticated_credential_cannot_enter_public_content_even_when_escaped() {
     let token = "disposable-fixture-token-number-0";
     for value in [

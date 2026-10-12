@@ -424,6 +424,8 @@ fn deadlines_and_typed_transport_failure_never_retry() {
         Error::Authentication,
         Error::Forbidden,
         Error::CursorExpired,
+        Error::PrefixChanged,
+        Error::PrefixUnavailable,
     ] {
         let mut calls = 0;
         let error = collect(
