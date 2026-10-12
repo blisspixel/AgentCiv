@@ -11,7 +11,7 @@ use crate::{
     Credential, HostConfig, HostError, Visibility, checked_config, load_config, start_test_host,
 };
 
-fn config(dir: &std::path::Path, visibility: Visibility) -> HostConfig {
+pub(super) fn config(dir: &std::path::Path, visibility: Visibility) -> HostConfig {
     HostConfig {
         world_id: "civ:local".to_owned(),
         title: "Local".to_owned(),
@@ -51,14 +51,14 @@ fn message(id: &str, text: &str) -> Vec<u8> {
     .expect("message")
 }
 
-fn client() -> Client {
+pub(super) fn client() -> Client {
     Client::builder()
         .timeout(Duration::from_secs(5))
         .build()
         .expect("client")
 }
 
-fn body_json(response: reqwest::blocking::Response) -> serde_json::Value {
+pub(super) fn body_json(response: reqwest::blocking::Response) -> serde_json::Value {
     let text = response.text().expect("body");
     serde_json::from_str(&text).expect("json")
 }
@@ -573,7 +573,7 @@ async fn public_http_covers_recording_refusal_and_restart() {
     })
     .await
     .expect("runner");
-    assert_eq!(report.cases.len(), 73, "{report:?}");
+    assert_eq!(report.cases.len(), 74, "{report:?}");
     let hidden_cases = [
         "prefix.hidden",
         "collaborate.hidden_visibility",
@@ -608,6 +608,7 @@ async fn public_http_covers_recording_refusal_and_restart() {
         "submit.concurrent_distinct",
         "submit.json_charset",
         "events.empty_cursor",
+        "collaborate.integer_citations",
         "collaborate.client_revision",
         "collaborate.forbidden",
         "collaborate.unauthenticated",
@@ -913,7 +914,7 @@ fn collaborate(base: &str, token: &str, body: serde_json::Value) -> reqwest::blo
         .expect("collaborate")
 }
 
-fn artifact(id: &str, sender: &str, recipients: &[&str]) -> serde_json::Value {
+pub(super) fn artifact(id: &str, sender: &str, recipients: &[&str]) -> serde_json::Value {
     json!({
         "protocol_version": "0.1-draft",
         "type": "artifact_revision",
@@ -1302,7 +1303,7 @@ fn objection_of(
     })
 }
 
-fn problem_code(response: reqwest::blocking::Response) -> (u16, String) {
+pub(super) fn problem_code(response: reqwest::blocking::Response) -> (u16, String) {
     let status = response.status().as_u16();
     (
         status,
@@ -1354,11 +1355,11 @@ fn exercise_review_rules(base: &str) {
         (422, "unknown_target".to_owned())
     );
 
-    // A cited revision must be an exact integer, not 1.0.
+    // A genuinely fractional revision remains invalid.
     let fractional = objection_of(
         "submission:fractional",
         "agent:abc123",
-        ("agent:abc123", "artifact:plan", json!(1.0)),
+        ("agent:abc123", "artifact:plan", json!(1.5)),
     );
     assert_eq!(
         problem_code(collaborate(base, "token-writer", fractional)),
@@ -1370,7 +1371,7 @@ fn exercise_review_rules(base: &str) {
         &["agent:reader"],
     );
     fractional_citation["derived_from"] =
-        json!({"from": "agent:abc123", "artifact_id": "artifact:plan", "revision": 1.0});
+        json!({"from": "agent:abc123", "artifact_id": "artifact:plan", "revision": 1.5});
     assert_eq!(
         problem_code(collaborate(base, "token-writer", fractional_citation)),
         (422, "invalid_record".to_owned())

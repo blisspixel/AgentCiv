@@ -1,6 +1,7 @@
 //! JSON Schema checks for submitted messages. Schemas in the repository stay authoritative.
 
-use serde_json::Value;
+use serde_json::{Value, value::RawValue};
+use std::collections::BTreeMap;
 use std::sync::OnceLock;
 
 const MESSAGE_SCHEMA: &str = include_str!("../../../schemas/message.schema.json");
@@ -72,7 +73,7 @@ pub fn message_error(record: &Value) -> Option<&'static str> {
 /// Validate one collaboration submission. A client-supplied `revision` on an
 /// artifact is rejected after the schema accepts the field, because the host
 /// assigns that number.
-pub fn collaboration_error(record: &Value) -> Option<&'static str> {
+pub fn collaboration_error(record: &Value, bytes: &[u8]) -> Option<&'static str> {
     let Some(object) = record.as_object() else {
         return Some("invalid_record");
     };
@@ -104,18 +105,65 @@ pub fn collaboration_error(record: &Value) -> Option<&'static str> {
     if kind == "artifact_revision" && object.contains_key("revision") {
         return Some("invalid_record");
     }
-    // JSON Schema "integer" admits 1.0. A cited revision must be an exact integer, as in the
-    // Python host, so it never reaches storage as a value the store cannot compare.
+    // Check original numeric lexemes before any floating-point rounding can admit a fraction.
     let cited = match kind {
         "artifact_revision" => object
             .get("derived_from")
             .map(|citation| &citation["revision"]),
         _ => object.get("revision"),
     };
-    if cited.is_some_and(|revision| revision.as_u64().is_none()) {
+    if cited.is_some() && exact_citation_revision(record, bytes).is_none() {
         return Some("invalid_record");
     }
     None
+}
+
+/// An exact in-range citation comparison key, without changing the submitted record.
+/// Decimal and exponent spellings are integers when their mathematical value is integral.
+pub fn exact_citation_revision(record: &Value, bytes: &[u8]) -> Option<i64> {
+    let mut fields: BTreeMap<String, Box<RawValue>> = serde_json::from_slice(bytes).ok()?;
+    if record["type"] == "artifact_revision" {
+        fields = serde_json::from_str(fields.remove("derived_from")?.get()).ok()?;
+    }
+    exact_revision(fields.remove("revision")?.get())
+}
+
+fn exact_revision(raw: &str) -> Option<i64> {
+    if raw.starts_with('-') {
+        return None;
+    }
+    let (coefficient, exponent) = raw.split_once(['e', 'E']).unwrap_or((raw, "0"));
+    let (whole, fraction) = coefficient.split_once('.').unwrap_or((coefficient, ""));
+    let combined = format!("{whole}{fraction}");
+    let digits = combined.trim_start_matches('0');
+    if digits.is_empty() || !digits.bytes().all(|byte| byte.is_ascii_digit()) {
+        return None;
+    }
+    let shift = exponent
+        .parse::<i64>()
+        .ok()?
+        .checked_sub(fraction.len().try_into().ok()?)?;
+    let integer = if shift < 0 {
+        let places: usize = shift.checked_neg()?.try_into().ok()?;
+        if places >= digits.len()
+            || !digits[digits.len() - places..]
+                .bytes()
+                .all(|byte| byte == b'0')
+        {
+            return None;
+        }
+        digits[..digits.len() - places].to_owned()
+    } else {
+        let places: usize = shift.try_into().ok()?;
+        if digits.len().checked_add(places)? > 16 {
+            return None;
+        }
+        format!("{digits}{}", "0".repeat(places))
+    };
+    integer
+        .parse::<i64>()
+        .ok()
+        .filter(|value| (1..=9_007_199_254_740_991).contains(value))
 }
 
 /// Integer literals must fit `i64` or `u64`, where serde_json keeps them exact. A larger one

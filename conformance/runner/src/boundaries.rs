@@ -44,6 +44,10 @@ pub(super) fn collaboration(
         "collaborate.note_boundaries",
         note_boundaries(ctx, world),
     ));
+    cases.push(result_case(
+        "collaborate.integer_citations",
+        integer_citations(ctx),
+    ));
 }
 
 fn post(
@@ -475,6 +479,116 @@ fn content_is_data(
             return Err(
                 "host accessed an untrusted content URL during the bounded observation".to_owned(),
             );
+        }
+    }
+    Ok(())
+}
+
+// Schema integers are mathematical values; request bytes still define retry identity.
+fn integer_citations(ctx: &CollaborationRun<'_>) -> Result<(), String> {
+    for (index, spelling) in ["1.0", "1e0"].iter().enumerate() {
+        let target = format!("artifact:integer-citation-{index}");
+        let seed_id = format!("submission:integer-citation-seed-{index}");
+        let source = artifact_submission(
+            ctx.world_id,
+            ctx.writer.principal,
+            &ctx.audience,
+            &seed_id,
+            &target,
+            "Numeric citation source.",
+        );
+        let seed = check_receipt(
+            post_collaboration(ctx, ctx.writer.token, source.to_string().as_bytes())?,
+            ctx.world_id,
+            &seed_id,
+        )?;
+        for kind in ["artifact_revision", "objection", "decline", "withdrawal"] {
+            let id = format!("submission:integer-citation-{index}-{kind}");
+            let mut submitted = artifact_submission(
+                ctx.world_id,
+                ctx.writer.principal,
+                &ctx.audience,
+                &id,
+                &format!("artifact:integer-derived-{index}"),
+                "Keep extension data.",
+            );
+            submitted["type"] = json!(kind);
+            submitted["body"]["extension"] =
+                json!({"keep":false,"number":18446744073709551615_u64});
+            if kind == "artifact_revision" {
+                submitted["derived_from"] = json!({"from":ctx.writer.principal,"artifact_id":target,"revision":"CITATION_LEXEME"});
+            } else {
+                submitted["artifact_id"] = json!(target);
+                submitted["target_from"] = json!(ctx.writer.principal);
+                submitted["revision"] = json!("CITATION_LEXEME");
+            }
+            let template = submitted.to_string();
+            let raw = template.replace("\"CITATION_LEXEME\"", spelling);
+            let before = read_history(ctx, ctx.writer.token)?;
+            for invalid in ["1.00000000000000000001", "9007199254740991.1", "true"] {
+                let invalid = template.replace("\"CITATION_LEXEME\"", invalid);
+                expect_problem(
+                    post_collaboration(ctx, ctx.writer.token, invalid.as_bytes())?,
+                    StatusCode::UNPROCESSABLE_ENTITY,
+                    "invalid_record",
+                )?;
+            }
+            if read_history(ctx, ctx.writer.token)? != before {
+                return Err("invalid numeric citation changed permitted history".to_owned());
+            }
+            let receipt = check_receipt(
+                post_collaboration(ctx, ctx.writer.token, raw.as_bytes())?,
+                ctx.world_id,
+                &id,
+            )?;
+            let retry = check_receipt(
+                post_collaboration(ctx, ctx.writer.token, raw.as_bytes())?,
+                ctx.world_id,
+                &id,
+            )?;
+            if receipt != retry {
+                return Err("integral citation retry changed receipt".to_owned());
+            }
+            let changed = template.replace(
+                "\"CITATION_LEXEME\"",
+                if *spelling == "1.0" { "1e0" } else { "1.0" },
+            );
+            expect_problem(
+                post_collaboration(ctx, ctx.writer.token, changed.as_bytes())?,
+                StatusCode::CONFLICT,
+                "id_conflict",
+            )?;
+            let after = read_history(ctx, ctx.writer.token)?;
+            let event = require_event(
+                &after,
+                receipt["event_id"]
+                    .as_str()
+                    .ok_or("citation event id absent")?,
+            )?;
+            if kind == "withdrawal" {
+                if event["id"] != seed["event_id"]
+                    || event["sequence"] != seed["sequence"]
+                    || event["kind"] != "artifact.withdrawn"
+                    || event["body"] != json!({})
+                    || after.len() != before.len()
+                {
+                    return Err(
+                        "integral withdrawal changed tombstone identity or appended history"
+                            .to_owned(),
+                    );
+                }
+            } else {
+                let mut expected: Value =
+                    serde_json::from_str(&raw).map_err(|_| "citation fixture invalid")?;
+                if kind == "artifact_revision" {
+                    expected["revision"] = receipt["revision"].clone();
+                }
+                if event["body"][kind] != expected || after.len() != before.len() + 1 {
+                    return Err(
+                        "integral citation changed submitted fields or event count".to_owned()
+                    );
+                }
+            }
         }
     }
     Ok(())

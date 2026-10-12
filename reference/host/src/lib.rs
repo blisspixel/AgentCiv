@@ -285,3 +285,6 @@ fn origin_for(address: SocketAddr) -> String {
         SocketAddr::V6(address) => format!("http://[{}]:{}", address.ip(), address.port()),
     }
 }
+
+#[cfg(test)]
+mod citation_tests;
