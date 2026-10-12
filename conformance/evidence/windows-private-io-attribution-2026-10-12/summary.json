@@ -1,0 +1,41 @@
+{
+  "source": "216e05938f662d944a532b473696e2a5bb4ef01c",
+  "selected_tests": [
+    "test_local_encounter.PrivateEncounterFilesTests.test_private_bytes_bounds_replacement_and_no_overwrite",
+    "test_local_encounter.PrivateEncounterFilesTests.test_lock_is_bounded_and_released_after_failure",
+    "test_local_encounter.EncounterClientUnitTests.test_empty_read_publishes_nothing_and_saved_view_cannot_be_overwritten"
+  ],
+  "selected_test_count": 3,
+  "completed_tests": [
+    {
+      "kind": "test_result",
+      "test": "test_local_encounter.PrivateEncounterFilesTests.test_private_bytes_bounds_replacement_and_no_overwrite",
+      "outcome": "passed",
+      "elapsed_seconds": 6.61708,
+      "acl_calls": 19,
+      "acl_seconds": 6.59493
+    },
+    {
+      "kind": "test_result",
+      "test": "test_local_encounter.PrivateEncounterFilesTests.test_lock_is_bounded_and_released_after_failure",
+      "outcome": "passed",
+      "elapsed_seconds": 7.887865,
+      "acl_calls": 21,
+      "acl_seconds": 7.864028
+    },
+    {
+      "kind": "test_result",
+      "test": "test_local_encounter.EncounterClientUnitTests.test_empty_read_publishes_nothing_and_saved_view_cannot_be_overwritten",
+      "outcome": "passed",
+      "elapsed_seconds": 10.719877,
+      "acl_calls": 32,
+      "acl_seconds": 10.672294
+    }
+  ],
+  "worker_returncode": 0,
+  "supervisor_deadline_refusal": false,
+  "owned_process_tree_termination_returncode": null,
+  "elapsed_seconds": 25.581056,
+  "ceiling_seconds": 120,
+  "outcome": "passed"
+}
