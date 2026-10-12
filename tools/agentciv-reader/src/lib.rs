@@ -4,6 +4,7 @@
 pub mod corrections;
 pub mod http;
 pub mod offers;
+pub mod requests;
 
 use agentciv_archive::{
     MAX_ENTRIES, MAX_INPUT_BYTES, MAX_RECORD_BYTES, parse_unique, validate_event,
@@ -57,6 +58,7 @@ pub enum Error {
     InvalidView,
     InvalidQuery,
     InvalidCorrectionView,
+    InvalidRequest,
 }
 
 impl Error {
@@ -99,6 +101,7 @@ impl Error {
             Self::InvalidView => "invalid_offer_view_input",
             Self::InvalidQuery => "invalid_offer_query",
             Self::InvalidCorrectionView => "invalid_correction_view_input",
+            Self::InvalidRequest => "invalid_request",
         }
     }
 }

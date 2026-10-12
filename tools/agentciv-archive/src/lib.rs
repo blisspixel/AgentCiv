@@ -176,7 +176,11 @@ fn exact_integer(raw: &str) -> Option<u64> {
         .filter(|value| *value <= 9_007_199_254_740_991)
 }
 
-fn exact_integer_field(input: &str, path: &[&str]) -> Option<u64> {
+/// Read a schema integer control from its original JSON number lexeme, without f64 rounding.
+/// The caller must first reject duplicate members and validate the input's syntax and schema.
+/// This helper only checks the selected number is integral and in 0..=9007199254740991;
+/// required fields, positive minima, input bounds and any authority checks belong to the caller.
+pub fn exact_integer_field(input: &str, path: &[&str]) -> Option<u64> {
     let mut raw = input.to_owned();
     for field in path {
         let mut fields: BTreeMap<String, Box<RawValue>> = serde_json::from_str(&raw).ok()?;

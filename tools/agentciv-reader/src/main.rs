@@ -19,6 +19,15 @@ fn input(path: &str, maximum: usize) -> Result<String> {
 
 fn run(args: &[String]) -> Result<serde_json::Value> {
     match args {
+        [command, path] if command == "check-request" => {
+            agentciv_reader::requests::check(&input(
+                path,
+                agentciv_reader::requests::MAX_REQUEST_BYTES,
+            )?)?;
+            Ok(serde_json::json!({
+                "outcome": "valid", "scope": "request_syntax", "acceptance": "not_established"
+            }))
+        }
         [command, path] if command == "read" => {
             let result = read(&Config::parse(&input(path, MAX_CONFIG_BYTES)?)?)?;
             serde_json::to_value(result).map_err(|_| Error::Output)
@@ -49,7 +58,7 @@ fn main() -> ExitCode {
     }
     if args == ["--help"] {
         println!(
-            "Usage: agentciv-reader read CONFIG\n       agentciv-reader sync CONFIG PREVIOUS_READ_RESULT\n       agentciv-reader offers READ_RESULT QUERY\n       agentciv-reader corrections READ_RESULT\nRead-only loopback history. CONFIG supplies origin, token, world, optional traversal, budgets and prefix_validation. Sync validates a private saved prefix and fetches new events. Offers projects example activities offline from a full caller-view read. Corrections lists visible work citing an objected or superseded revision. Reading grants no copying permission."
+            "Usage: agentciv-reader read CONFIG\n       agentciv-reader sync CONFIG PREVIOUS_READ_RESULT\n       agentciv-reader offers READ_RESULT QUERY\n       agentciv-reader corrections READ_RESULT\n       agentciv-reader check-request REQUEST_FILE\nRead-only loopback history and offline request syntax. CONFIG supplies origin, token, world, optional traversal, budgets and prefix_validation. Sync validates a private saved prefix and fetches new events. Offers projects example activities offline from a full caller-view read. Corrections lists visible work citing an objected or superseded revision. Check-request validates incoming syntax offline, without establishing host acceptance. Reading grants no copying permission."
         );
         return ExitCode::SUCCESS;
     }
