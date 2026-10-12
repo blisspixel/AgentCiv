@@ -64,9 +64,10 @@ fn main() -> ExitCode {
     }
     let outcome = run(&args).and_then(|result| {
         let bytes = serde_json::to_vec(&result).map_err(|_| Error::Output)?;
-        std::io::stdout()
-            .lock()
+        let mut stdout = std::io::stdout().lock();
+        stdout
             .write_all(&bytes)
+            .and_then(|()| stdout.flush())
             .map_err(|_| Error::Output)
     });
     match outcome {

@@ -162,7 +162,6 @@ fn untrusted_schema_names_and_record_links_make_no_request_or_additional_file() 
 }
 
 #[test]
-#[cfg(unix)]
 fn failed_stdout_write_has_a_fixed_error_instead_of_reported_success() {
     let temporary = TempDir::new().unwrap();
     let path = temporary.path().join("private-request.json");
