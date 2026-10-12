@@ -4,6 +4,8 @@ Status: [v0.1.1](https://github.com/blisspixel/AgentCiv/releases/tag/v0.1.1) pub
 
 The default contains `agentciv-archive` and `agentciv-reader`. `--with-host-tools` or `-WithHostTools` adds the Rust loopback host and public conformance runner. The repository checker is checkout-only and excluded. Native downloads require no Cargo, Python, Node, account, API key, model pull, paid inference, or administrator access. Python collaboration experiments still require the repository and Python. Installing utilities does not install those experiments.
 
+The checkout prepares v0.1.2 to preserve distinct saved-prefix failure codes. It is not a published release until its exact-main, native candidate, provenance and actual public-download gates pass. [The lock review](../release/MAINTENANCE_LOCK_V0_1_2.json) confirms only the four local utility versions changed; registry dependencies, pinned toolchain and original notice bytes are unchanged. Current published v0.1.1 remains the installable checkpoint above and retains its earlier 410 diagnostic behavior.
+
 ## Install from a checkout today
 
 On Linux or macOS, with Git and Rust available, run from a clean source checkout:

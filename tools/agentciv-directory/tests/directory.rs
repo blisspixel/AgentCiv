@@ -1,7 +1,7 @@
 use std::fs;
 use std::process::Command;
 
-use agentciv_directory::{build, parse, render, run};
+use agentciv_directory::{build, parse, render, render_with_maintainer_handles, run};
 use serde_json::{Value, json};
 
 fn catalog() -> Value {
@@ -18,6 +18,21 @@ fn catalog() -> Value {
 
 fn parse_value(value: &Value) -> Result<agentciv_directory::Directory, String> {
     parse(&serde_json::to_vec(value).unwrap())
+}
+
+#[test]
+fn maintainer_label_comes_from_operator_registry_and_handles_remain_escaped() {
+    let mut value = catalog();
+    value["entries"][0]["name"] = json!("agent:registered<fixture>");
+    value["entries"][0]["listing_steward"] = json!("agent:registered<fixture>");
+    let directory = parse_value(&value).unwrap();
+    let registered =
+        render_with_maintainer_handles(&directory, &["agent:registered<fixture>".into()]);
+    assert_eq!(registered.matches("class=\"operator-label\"").count(), 2);
+    assert!(registered.contains("agent:registered&lt;fixture&gt; <span"));
+    assert!(!render(&directory).contains("class=\"operator-label\""));
+    value["entries"][0]["maintainer_run"] = json!(true);
+    assert!(parse_value(&value).is_err());
 }
 
 #[test]

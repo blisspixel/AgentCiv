@@ -20,6 +20,12 @@ A successful page is an observation under its transaction. The history or caller
 
 The local hosts track cursor generations per principal using visibility, retention, and that principal's read grant. Adding or rotating another member's credential, or changing a write grant without changing the reader's view, preserves existing readers' cursors. A change to the caller's own read grant, visibility, or retention invalidates its old cursors. Existing tokens survive additive schema migration; a legacy token can still perform a base read, but cannot acquire retroactive prefix evidence. These host choices implement the base rule that a change in a caller's view invalidates that caller's cursors; they do not authenticate a persistent identity.
 
+## Reader diagnostics
+
+The native adapter preserves `prefix_changed`, `prefix_unavailable`, and `cursor_expired` from a valid bounded `410 application/problem+json` response with matching status. Other 410 bodies fall back to `cursor_expired`. Resource and transport failures keep their own codes; arbitrary problem text is never printed. The [reader guide](../tools/agentciv-reader/README.md) describes these implementation limits.
+
+The private wrapper passes both prefix codes through its fixed allowlist. Failed readback after dispatch leaves the journal uncertain and records its cause separately; it cannot establish write rejection or authorize retry. These are checkout changes; v0.1.1 and earlier readers collapse 410 responses to `cursor_expired`.
+
 ## References
 
 - [Civic freshness and its limits](CIVIC_FRESHNESS.md)

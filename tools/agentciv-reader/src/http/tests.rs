@@ -164,6 +164,56 @@ fn prefix_page(before: &[String], records: &[String], more: bool, cursor: &str) 
     bytes
 }
 
+fn gone_problem(code: &str) -> Vec<u8> {
+    json!({"type":"https://agentciv.io/problems/reader-return","title":"Untrusted title, never a diagnostic",
+        "status":410,"code":code,"detail":"private source and terminal controls: \u{1b}[31m"})
+    .to_string().into_bytes()
+}
+
+#[test]
+fn gone_problem_codes_remain_distinct_without_returning_partial_history() {
+    let mut wrong_status: Value = serde_json::from_slice(&gone_problem("prefix_changed")).unwrap();
+    wrong_status["status"] = json!(409);
+    let mut wrong_type = wrong_status.clone();
+    wrong_type["status"] = json!(410);
+    wrong_type["type"] = json!("not a URI");
+    for (body, media_type, expected) in [
+        (gone_problem("prefix_changed"), "application/problem+json", "prefix_changed"),
+        (String::from_utf8(gone_problem("prefix_changed")).unwrap().replace("\"status\":410", "\"status\":410.0").into_bytes(), "application/problem+json", "prefix_changed"),
+        (String::from_utf8(gone_problem("prefix_changed")).unwrap().replace("\"status\":410", "\"status\":4.10e2").into_bytes(), "application/problem+json", "prefix_changed"),
+        (String::from_utf8(gone_problem("prefix_changed")).unwrap().replace("\"status\":410", "\"status\":410.0000000000000000001").into_bytes(), "application/problem+json", "cursor_expired"),
+        (String::from_utf8(gone_problem("prefix_changed")).unwrap().replace("\"status\":410", "\"status\":410e99999999999999999999").into_bytes(), "application/problem+json", "cursor_expired"),
+        (gone_problem("prefix_unavailable"), "Application/Problem+JSON; charset=utf-8", "prefix_unavailable"),
+        (gone_problem("cursor_expired"), "application/problem+json", "cursor_expired"),
+        (gone_problem("private unknown code"), "application/problem+json", "cursor_expired"),
+        (gone_problem("prefix_changed"), "text/plain", "cursor_expired"),
+        (b"{}".to_vec(), "application/problem+json", "cursor_expired"),
+        (b"[".to_vec(), "application/problem+json", "cursor_expired"),
+        (vec![0xff], "application/problem+json", "cursor_expired"),
+        (wrong_status.to_string().into_bytes(), "application/problem+json", "cursor_expired"),
+        (wrong_type.to_string().into_bytes(), "application/problem+json", "cursor_expired"),
+        (br#"{"type":"https://agentciv.io/problems/return","title":"private","status":410,"code":"prefix_changed","code":"prefix_unavailable"}"#.to_vec(), "application/problem+json", "cursor_expired"),
+    ] {
+        let mock = Mock::new(move |index, origin| {
+            if index == 0 {
+                return Reply::json(descriptor(origin).to_string().into_bytes());
+            }
+            if index == 1 {
+                return Reply::json(page(&[event("event:one", 1, "agent:a")], true, "private:cursor"));
+            }
+            let mut reply = Reply::json(body.clone());
+            reply.status = 410;
+            reply.headers[0].1 = media_type.into();
+            reply
+        });
+        let error = read(&config(&mock.origin)).unwrap_err();
+        assert_eq!(error.code(), expected);
+        assert_eq!(mock.requests().len(), 3);
+        assert!(!error.code().contains("private"));
+        assert!(!error.code().contains("Untrusted"));
+    }
+}
+
 #[test]
 fn prefix_sync_preserves_exact_cached_bytes_and_fetches_only_the_tail() {
     let first = event("event:first", 1, "agent:a");
@@ -594,7 +644,10 @@ fn content_type_and_restricted_no_store_are_enforced() {
 
 #[test]
 fn declared_streamed_and_aggregate_oversize_stop_before_json_parse() {
-    for kind in ["declared", "chunked", "aggregate"] {
+    for (kind, status) in ["declared", "chunked", "aggregate"]
+        .into_iter()
+        .flat_map(|kind| [200, 410].map(|status| (kind, status)))
+    {
         let mock = Mock::new(move |index, origin| {
             let mut reply = Reply::json(if index == 0 {
                 descriptor(origin).to_string().into_bytes()
@@ -602,6 +655,10 @@ fn declared_streamed_and_aggregate_oversize_stop_before_json_parse() {
                 vec![b'x'; 2048]
             });
             if index == 1 {
+                reply.status = status;
+                if status == 410 {
+                    reply.headers[0].1 = "application/problem+json".into();
+                }
                 if kind == "declared" {
                     reply.length = Some(4096);
                 }
@@ -633,7 +690,10 @@ fn declared_streamed_and_aggregate_oversize_stop_before_json_parse() {
 
 #[test]
 fn interrupted_response_and_global_deadline_have_fixed_failure_without_retry() {
-    for delayed in [false, true] {
+    for (delayed, status) in [false, true]
+        .into_iter()
+        .flat_map(|delayed| [200, 410].map(|status| (delayed, status)))
+    {
         let mock = Mock::new(move |index, origin| {
             let mut reply = Reply::json(if index == 0 {
                 descriptor(origin).to_string().into_bytes()
@@ -641,6 +701,11 @@ fn interrupted_response_and_global_deadline_have_fixed_failure_without_retry() {
                 page(&[], false, "last")
             });
             if index == 1 {
+                reply.status = status;
+                if status == 410 {
+                    reply.body = gone_problem("prefix_changed");
+                    reply.headers[0].1 = "application/problem+json".into();
+                }
                 if delayed {
                     reply.delay = Duration::from_millis(1200);
                 } else {

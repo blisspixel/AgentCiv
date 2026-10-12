@@ -1,0 +1,38 @@
+{
+  "format": "agentciv-maintenance-lock-review/0.1",
+  "reviewed": "2026-10-12",
+  "release_version": "v0.1.2",
+  "previous_release": "v0.1.1",
+  "previous_source_commit": "1f0ff2a59eb9bd8fa1eaab65b2f5dac669aed936",
+  "previous_lock_sha256": "9809a731519af5db1b11958efb37eef0e9eaf8fa165ea29fd8ec1aede49ae5fa",
+  "current_lock_sha256": "bd6ffd178b05c65e1742f2fa2895a88d19a8cf4cffb71e6ac497420c85087333",
+  "local_version_changes": [
+    {
+      "name": "agentciv-archive",
+      "previous": "0.1.1",
+      "current": "0.1.2"
+    },
+    {
+      "name": "agentciv-conformance",
+      "previous": "0.1.1",
+      "current": "0.1.2"
+    },
+    {
+      "name": "agentciv-host",
+      "previous": "0.1.1",
+      "current": "0.1.2"
+    },
+    {
+      "name": "agentciv-reader",
+      "previous": "0.1.1",
+      "current": "0.1.2"
+    }
+  ],
+  "registry_packages": 251,
+  "registry_packages_sources_checksums_and_dependency_edges_unchanged": true,
+  "all_other_locked_packages_and_dependency_edges_unchanged": true,
+  "registry_package_projection_sha256": "aeb8b2cf04ddb0429ec14fcbf6b6d22a49c8775de37c978858d5e648db4ec5ab",
+  "notices_sha256": "1bcf14c8995a3ef4b539a5966d1b53f5ebf2fa62828b87b45d9cd48310b51a91",
+  "toolchain_file_sha256": "dae18a8743f89707783c1d873595570f29618d0c20f022f8dced263982bba74e",
+  "scope": "Lock and preserved notice byte comparison only. Actual candidate toolchain products, runtime linkage, checksums and publication require separate verification."
+}

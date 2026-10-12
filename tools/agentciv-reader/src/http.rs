@@ -8,6 +8,7 @@ use reqwest::{Url, redirect};
 use serde::{Deserialize, Serialize};
 use std::io::Read;
 use std::net::IpAddr;
+use std::sync::OnceLock;
 use std::time::{Duration, Instant};
 
 pub const MAX_CONFIG_BYTES: usize = 65_536;
@@ -119,6 +120,60 @@ fn endpoint(input: &str, origin: &Url) -> Result<Url> {
     Ok(url)
 }
 
+fn status_is_gone(text: &str) -> bool {
+    #[derive(Deserialize)]
+    struct Status {
+        status: Box<serde_json::value::RawValue>,
+    }
+    let Ok(status) = serde_json::from_str::<Status>(text) else {
+        return false;
+    };
+    let (coefficient, exponent) = status
+        .status
+        .get()
+        .split_once(['e', 'E'])
+        .unwrap_or((status.status.get(), "0"));
+    let Ok(exponent) = exponent.parse::<i64>() else {
+        return false;
+    };
+    let (whole, fraction) = coefficient.split_once('.').unwrap_or((coefficient, ""));
+    let digits = format!("{whole}{fraction}");
+    let significant = digits.trim_start_matches('0').trim_end_matches('0');
+    let trailing = digits.len() - digits.trim_end_matches('0').len();
+    significant == "41"
+        && exponent
+            .checked_sub(fraction.len() as i64)
+            .and_then(|power| power.checked_add(trailing as i64))
+            == Some(1)
+}
+
+fn gone_error(body: &[u8]) -> Error {
+    static PROBLEM: OnceLock<jsonschema::Validator> = OnceLock::new();
+    let validator = PROBLEM.get_or_init(|| {
+        let schema = serde_json::from_str::<serde_json::Value>(include_str!(
+            "../../../schemas/problem.schema.json"
+        ))
+        .expect("bundled problem schema");
+        jsonschema::options()
+            .should_validate_formats(true)
+            .build(&schema)
+            .expect("bundled problem validator")
+    });
+    let text = match std::str::from_utf8(body) {
+        Ok(text) => text,
+        Err(_) => return Error::CursorExpired,
+    };
+    let value = match parse_unique(text) {
+        Ok(value) if validator.is_valid(&value) && status_is_gone(text) => value,
+        _ => return Error::CursorExpired,
+    };
+    match value["code"].as_str() {
+        Some("prefix_changed") => Error::PrefixChanged,
+        Some("prefix_unavailable") => Error::PrefixUnavailable,
+        _ => Error::CursorExpired,
+    }
+}
+
 fn get(
     client: &Client,
     url: Url,
@@ -145,20 +200,29 @@ fn get(
             Error::Transport
         }
     })?;
-    match response.status().as_u16() {
-        200 => (),
+    let gone = match response.status().as_u16() {
+        200 => false,
+        410 => true,
         401 => return Err(Error::Authentication),
         403 => return Err(Error::Forbidden),
-        410 => return Err(Error::CursorExpired),
         _ => return Err(Error::Http),
-    }
+    };
     let content_type = response
         .headers()
         .get(CONTENT_TYPE)
         .and_then(|value| value.to_str().ok())
         .and_then(|value| value.split(';').next());
-    if !content_type.is_some_and(|value| value.trim().eq_ignore_ascii_case("application/json")) {
-        return Err(Error::ContentType);
+    let expected_type = if gone {
+        "application/problem+json"
+    } else {
+        "application/json"
+    };
+    if !content_type.is_some_and(|value| value.trim().eq_ignore_ascii_case(expected_type)) {
+        return Err(if gone {
+            Error::CursorExpired
+        } else {
+            Error::ContentType
+        });
     }
     if restricted
         && !response
@@ -194,7 +258,11 @@ fn get(
     if body.len() > allowance {
         return Err(Error::ResponseLimit);
     }
-    Ok(body)
+    if gone {
+        Err(gone_error(&body))
+    } else {
+        Ok(body)
+    }
 }
 
 /// Read exactly the configured caller's view. No credential is sent during discovery.

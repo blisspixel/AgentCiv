@@ -29,6 +29,7 @@ MAX_CONFIG = 65536
 MAX_OUTPUT = 4 * 1024 * 1024
 MAX_CACHE = 16 * 1024 * 1024
 MAX_FILES = 16
+PREFIX_READ_FAILURES = ("prefix_changed", "prefix_unavailable", "cursor_expired")
 BUDGETS: JsonObject = {"max_pages": 32, "max_events": 2048, "max_response_bytes": 262144,
     "max_record_bytes": 16000, "max_total_bytes": 4194304, "seconds": 30}
 
@@ -110,7 +111,7 @@ def _process(binary: Path, command: str, path: Path, previous: Path | None = Non
             raise private.EncounterError("host_unreachable")
         if diagnostic == {"outcome": "failed", "code": "deadline_exceeded"}:
             raise private.EncounterError("host_read_timeout")
-        for code in ("cursor_expired", "prefix_validation_unsupported", "prefix_validation_failed", "invalid_resume_state", "forbidden", "authentication_required"):
+        for code in (*PREFIX_READ_FAILURES, "prefix_validation_unsupported", "prefix_validation_failed", "invalid_resume_state", "forbidden", "authentication_required"):
             if diagnostic == {"outcome": "failed", "code": code}:
                 raise private.EncounterError(code)
     if result.returncode != 0 or len(result.stdout) > MAX_OUTPUT:
@@ -587,6 +588,11 @@ def _publish(settings: JsonObject, raw: bytes, basis: Path | None, reader_binary
                     span = _verify_readback(authored, receipt, before, after)
                     journal.update({"state": "recorded", "event_record_utf8": span})
                     result.update({"outcome": "recorded", "event_id": receipt["event_id"], "sequence": receipt["sequence"]})
+            except private.EncounterError as error:
+                journal["state"] = "uncertain"
+                journal["failure_code"] = error.code if error.code in PREFIX_READ_FAILURES else "publication_outcome_unverified"
+                if error.code in PREFIX_READ_FAILURES:
+                    result["code"] = error.code
             except (ValueError, OSError, KeyError, TypeError, RuntimeError):
                 journal["state"] = "uncertain"
                 journal["failure_code"] = "publication_outcome_unverified"

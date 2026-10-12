@@ -320,10 +320,23 @@ fn escape(value: &str) -> String {
 
 /// Render reviewed listings as escaped HTML; a listing is never a live health check.
 pub fn render(directory: &Directory) -> String {
-    render_directory(directory, TEMPLATE)
+    render_with_maintainer_handles(directory, &maintainer_handles())
 }
 
-fn render_directory(directory: &Directory, template: &str) -> String {
+fn maintainer_handles() -> Vec<String> {
+    let manifest: serde_json::Value =
+        serde_json::from_str(include_str!("../../../website/agent.json"))
+            .expect("checked operator manifest");
+    serde_json::from_value(manifest["maintainer_run_principals"].clone())
+        .expect("checked operator handle registry")
+}
+
+/// The handles come from the reviewed operator registry, never a catalog claim.
+pub fn render_with_maintainer_handles(directory: &Directory, handles: &[String]) -> String {
+    render_directory(directory, TEMPLATE, handles)
+}
+
+fn render_directory(directory: &Directory, template: &str, handles: &[String]) -> String {
     let public_count = directory
         .entries
         .iter()
@@ -335,6 +348,10 @@ fn render_directory(directory: &Directory, template: &str) -> String {
         "Public entries are operator declarations. Read each world's access rules before joining."
     };
     let cards: String = directory.entries.iter().map(|entry| {
+        let display_handle = |name: &str| {
+            let label = if handles.iter().any(|registered| registered == name) { " <span class=\"operator-label\">maintainer-run</span>" } else { "" };
+            format!("{}{label}", escape(name))
+        };
         let availability = match entry.availability {
             Availability::Local => "Run locally",
             Availability::Public => "Public entry point",
@@ -347,8 +364,8 @@ fn render_directory(directory: &Directory, template: &str) -> String {
         if let Some(url) = &entry.discovery_url {
             links.push_str(&format!("<a href=\"{}\">World descriptor</a>", escape(url)));
         }
-        let steward = entry.listing_steward.as_ref().map(|name| format!("<p class=\"world-note\">Listing maintained by {}. This does not identify a world operator.</p>", escape(name))).unwrap_or_default();
-        format!("<article class=\"world\" id=\"{}\"><div class=\"world-meta\"><span>{}</span><span>{}</span></div><h3>{}</h3><p>{}</p><p class=\"interfaces\">{}</p><p class=\"world-note\">{}</p>{steward}<div class=\"world-links\">{links}</div></article>", escape(&entry.id), entry.kind.label(), availability, escape(&entry.name), escape(&entry.summary), interfaces, escape(&entry.notes))
+        let steward = entry.listing_steward.as_ref().map(|name| format!("<p class=\"world-note\">Listing maintained by {}. This does not identify a world operator.</p>", display_handle(name))).unwrap_or_default();
+        format!("<article class=\"world\" id=\"{}\"><div class=\"world-meta\"><span>{}</span><span>{}</span></div><h3>{}</h3><p>{}</p><p class=\"interfaces\">{}</p><p class=\"world-note\">{}</p>{steward}<div class=\"world-links\">{links}</div></article>", escape(&entry.id), entry.kind.label(), availability, display_handle(&entry.name), escape(&entry.summary), interfaces, escape(&entry.notes))
     }).collect();
     let cards = if cards.is_empty() {
         "<p class=\"empty\">No worlds have been listed. Propose the first one below.</p>".to_owned()
@@ -377,6 +394,7 @@ pub fn build(directory: &Directory, output: &Path) -> Result<(), String> {
     let worlds = render_directory(
         directory,
         include_str!("../../../website/worlds.template.html"),
+        &maintainer_handles(),
     );
     let guides = pages::resources(&library);
     for (name, value) in [

@@ -2,7 +2,12 @@
 //! Storage operations in a request must run synchronously, without an await.
 
 mod view;
-pub use view::{board_html, conversation_html, form_submission};
+pub use view::{
+    board_html, board_html_with_labels, conversation_html, conversation_html_with_labels,
+    form_submission,
+};
+mod labels;
+pub use labels::{OperatorLabels, labeled_public_entry, operator_labels};
 mod conversation;
 pub use conversation::conversation;
 #[cfg(target_arch = "wasm32")]
@@ -56,10 +61,13 @@ pub struct Post {
 }
 impl Post {
     pub fn public(&self) -> Value {
-        json!({"id":format!("post:{}",self.sequence), "sequence":self.sequence, "principal":self.principal,
+        labeled_public_entry(
+            json!({"id":format!("post:{}",self.sequence), "sequence":self.sequence, "principal":self.principal,
         "created":self.created, "removed":self.removed,
         "message":if self.removed.is_none() { serde_json::from_str::<Value>(&self.message).unwrap_or(Value::Null) } else { Value::Null },
-        "original_submission":if self.removed.is_none() { Some(&self.raw) } else { None }})
+        "original_submission":if self.removed.is_none() { Some(&self.raw) } else { None }}),
+            operator_labels(),
+        )
     }
     pub fn receipt(&self) -> Value {
         json!({"service":"web-bulletin/0.1-experimental", "post_id":format!("post:{}",self.sequence), "sequence":self.sequence, "status":if self.removed.is_some() { "removed" } else { "published" }})
@@ -407,17 +415,20 @@ impl Change {
         } else {
             None
         };
-        json!({
-            "sequence": self.sequence,
-            "kind": self.kind,
-            "post_id": format!("post:{}", self.post_sequence),
-            "post_sequence": self.post_sequence,
-            "principal": self.principal,
-            "created": self.created,
-            "removed": active_removed,
-            "message": message.unwrap_or(Value::Null),
-            "original_submission": original_submission,
-        })
+        labeled_public_entry(
+            json!({
+                "sequence": self.sequence,
+                "kind": self.kind,
+                "post_id": format!("post:{}", self.post_sequence),
+                "post_sequence": self.post_sequence,
+                "principal": self.principal,
+                "created": self.created,
+                "removed": active_removed,
+                "message": message.unwrap_or(Value::Null),
+                "original_submission": original_submission,
+            }),
+            operator_labels(),
+        )
     }
 }
 pub fn changes(db: &impl Database, after: i64) -> Result<Value, Problem> {
@@ -466,5 +477,5 @@ pub fn page(db: &impl Database, after: Option<i64>, before: Option<i64>) -> Resu
     )
 }
 pub fn info(open: bool) -> Value {
-    json!({"service":"web-bulletin/0.1-experimental","world":WORLD,"public_read":true,"posting":if open { "operator-issued credentials" } else { "closed" },"max_payload_bytes":MAX_PAYLOAD,"daily_posts_per_principal":20,"daily_posts_total":200,"maximum_posts":MAX_POSTS,"terms":"/terms","privacy":"/privacy","profile_claim":false})
+    json!({"service":"web-bulletin/0.1-experimental","world":WORLD,"public_read":true,"posting":if open { "operator-issued credentials" } else { "closed" },"max_payload_bytes":MAX_PAYLOAD,"daily_posts_per_principal":20,"daily_posts_total":200,"maximum_posts":MAX_POSTS,"terms":"/terms","privacy":"/privacy","profile_claim":false,"operator_labels":operator_labels().public()})
 }
