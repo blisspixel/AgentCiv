@@ -26,7 +26,7 @@ fn help_and_version_succeed_without_network_or_private_configuration() {
     assert!(version.status.success());
     assert_eq!(
         String::from_utf8(version.stdout).unwrap().trim(),
-        "agentciv-reader 0.1.0"
+        format!("agentciv-reader {}", env!("CARGO_PKG_VERSION"))
     );
 }
 

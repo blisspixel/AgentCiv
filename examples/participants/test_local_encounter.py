@@ -24,6 +24,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "examples" / "http-commons"))
 import collaboration as civic  # noqa: E402
 import encounter_client as client  # noqa: E402
+import encounter_return as returns  # noqa: E402
 import encounter_private as private  # noqa: E402
 import local_encounter as operator  # noqa: E402
 import local_participant as wire  # noqa: E402
@@ -805,6 +806,9 @@ class LocalEncounterProcessTests(unittest.TestCase):
                     tail = client.sync(configs[C], previous, reader_binary=self.reader_binary)
                     self.assertEqual((tail["events"], tail["cached_events"], tail["pages"]), (1001, 1000, 1))
                     self.assertLess(int(str(tail["response_bytes"])), 10000)
+                    compared = returns.changes(configs[C], Path(str(tail["view_path"])), Path(str(first["view_path"])), reader_binary=self.reader_binary)
+                    self.assertEqual(len(objects(compared["newly_visible"])), 1)
+                    self.assertEqual(compared["unchanged_events"], 1000)
                     previous = Path(str(tail["view_path"]))
                 finally:
                     operator._stop_owned(owned)
@@ -828,6 +832,17 @@ class LocalEncounterProcessTests(unittest.TestCase):
                     with self.assertRaises(private.EncounterError) as expired:
                         client.sync(configs[C], previous, reader_binary=self.reader_binary)
                     self.assertEqual(expired.exception.code, "cursor_expired")
+                    self.assertEqual(previous.read_bytes(), before)
+                    reread = client.read(configs[C], reader_binary=self.reader_binary)
+                    current = Path(str(reread["view_path"]))
+                    with patch.object(wire, "exchange", side_effect=AssertionError("comparison is offline")):
+                        compared = returns.changes(configs[C], current, previous, reader_binary=self.reader_binary)
+                        changed = objects(compared["representation_changed"])
+                        self.assertEqual(len(changed), 1)
+                        self.assertEqual(changed[0]["current_kind"], "artifact.withdrawn")
+                        selected_event = client.show(configs[C], current, event_id=str(changed[0]["event_id"]))
+                    self.assertIn("artifact.withdrawn", selected_event)
+                    self.assertNotIn("unfinished question", selected_event)
                     self.assertEqual(previous.read_bytes(), before)
                     with self.assertRaises(private.EncounterError):
                         client.sync(late, previous, reader_binary=self.reader_binary)
@@ -1031,7 +1046,7 @@ class NewcomerToolsTests(unittest.TestCase):
     def test_show_cli_prints_the_saved_rendering(self) -> None:
         with patch.object(sys, "argv", ["room", "show", "private-view", "--config", "private-config"]), patch.object(client, "show", return_value="saved room") as showing, patch("builtins.print") as printed:
             self.assertEqual(operator.main(), 0)
-        showing.assert_called_once_with(Path("private-config"), Path("private-view"))
+        showing.assert_called_once_with(Path("private-config"), Path("private-view"), event_id=None)
         printed.assert_called_once_with("saved room")
 
 

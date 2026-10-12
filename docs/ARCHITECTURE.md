@@ -114,4 +114,6 @@ Research tools may vary documented conditions and inspect records. They should n
 
 ## Optional return view
 
+The private [saved-observation comparison](PRIVATE_RETURN_VIEW.md) composes the existing native offline validator with local caller views. It checks both complete originals before listing differences by world and event ID, rejects conflicting sequences, and keeps the exact originals separately inspectable. It adds no endpoint, persistent index, read receipt or activity-resolution oracle. An absent record has no diagnosed cause, and a validated local file is not authenticated origin evidence.
+
 The [prefix extension](PREFIX_VIEW.md) adds a caller-specific digest to the existing events endpoint and opaque cursor storage. Both hosts validate the saved permitted prefix and new tail within one transaction. The native reader and private manual room client explicitly synchronize saved originals, with finite budgets and no stale-success fallback. This extends existing records and interfaces; it adds no participant scheduler, model calls, identity claim, copying grant or external execution authority. A successful observation is not atomic with later action, and restored-state detection remains separate work.

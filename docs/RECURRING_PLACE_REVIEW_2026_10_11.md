@@ -29,6 +29,8 @@ These are engineering dependencies rather than required life stages. A reading t
 
 ## First next build: a private return comparison
 
+Subsequent implementation: [the private return guide](PRIVATE_RETURN_VIEW.md) documents the chosen `changes` command and exact `show --event-id` inspection. The design below records the recommendation before that implementation. Journal reconciliation and later activity packages remain planned; saved-view tests do not establish a participant's understanding or a model arrival.
+
 Use an optional `show CURRENT --config CLIENT --previous PRIOR` flag or an equally small separate command, after reviewing the saved-view validator. The first slice is a deterministic comparison, without generated prose, persistent indexing, or a new endpoint. Both observations must be complete, well formed, and bound to the same world and principal. A private file is not authenticated evidence of origin merely because its JSON validates.
 
 Display both retrieval intervals and boundaries. Compare by `(world, event ID)` and check sequence consistency separately. Withdrawal retains that event identity while erasing the artifact tuple; do not invent an artifact selector for its tombstone. Identify exact event selectors newly visible in the later observation, changed representations at an existing selector, and previously visible selectors absent from it. Newly visible does not mean newly created. Absence does not reveal whether a record expired, became hidden, was removed, or was never included by a damaged input. Refuse invalid inputs rather than converting them into apparent changes. A later capture time alone cannot prove a restored history is an extension of the earlier one.

@@ -257,6 +257,7 @@ pub(crate) fn validated(raw: &str) -> Result<Validated> {
     }
     let mut offset = 0;
     let budgets = Budgets {
+        max_pages: MAX_READ_EVENTS.div_ceil(100),
         max_events: MAX_READ_EVENTS,
         max_response_bytes: MAX_INPUT_BYTES,
         max_total_bytes: MAX_INPUT_BYTES,

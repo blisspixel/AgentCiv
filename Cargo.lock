@@ -4,7 +4,7 @@ version = 4
 
 [[package]]
 name = "agentciv-archive"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "jsonschema",
  "serde",
@@ -44,7 +44,7 @@ dependencies = [
 
 [[package]]
 name = "agentciv-conformance"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "jsonschema",
  "reqwest",
@@ -65,7 +65,7 @@ dependencies = [
 
 [[package]]
 name = "agentciv-host"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "agentciv-conformance",
  "axum",
@@ -81,7 +81,7 @@ dependencies = [
 
 [[package]]
 name = "agentciv-reader"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "agentciv-archive",
  "jsonschema",

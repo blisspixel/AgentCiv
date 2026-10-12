@@ -7,6 +7,11 @@ on:
         description: 'Exact already published stable release (vX.Y.Z)'
         required: true
         type: string
+      previous_version:
+        description: 'Optional older published stable release for actual upgrade and rollback'
+        required: false
+        default: ''
+        type: string
 
 permissions:
   contents: read
@@ -14,6 +19,7 @@ permissions:
 
 env:
   RELEASE_VERSION: ${{ inputs.version }}
+  PREVIOUS_RELEASE_VERSION: ${{ inputs.previous_version }}
 
 jobs:
   verify:
@@ -35,6 +41,8 @@ jobs:
           - os: macos-15
             target: aarch64-apple-darwin
     runs-on: ${{ matrix.os }}
+    env:
+      RELEASE_TARGET: ${{ matrix.target }}
     steps:
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
         with:
@@ -45,16 +53,35 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          [[ "$RELEASE_VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
-          mkdir evidence downloads
-          gh api "repos/$GITHUB_REPOSITORY/releases/tags/$RELEASE_VERSION" > evidence/release.json
-          jq -e '.draft == false and .prerelease == false and .immutable == true' evidence/release.json
-          gh release verify "$RELEASE_VERSION" --repo "$GITHUB_REPOSITORY" --format json > evidence/release-attestation.json
-          gh release download "$RELEASE_VERSION" --repo "$GITHUB_REPOSITORY" --dir downloads --pattern SHA256SUMS --pattern SOURCE_COMMIT --pattern install.sh --pattern install.ps1
           python - <<'PY'
-          import hashlib, re
+          import os, re
+          current = os.environ['RELEASE_VERSION']
+          previous = os.environ.get('PREVIOUS_RELEASE_VERSION', '')
+          for version in [current] + ([previous] if previous else []):
+              if len(version) > 64 or re.fullmatch(r'v[0-9]+\.[0-9]+\.[0-9]+', version) is None:
+                  raise SystemExit('invalid published stable version')
+          if previous and tuple(map(int, previous[1:].split('.'))) >= tuple(map(int, current[1:].split('.'))):
+              raise SystemExit('previous release must be older than requested release')
+          PY
+          mkdir evidence downloads
+          versions=("$RELEASE_VERSION")
+          if [ -n "$PREVIOUS_RELEASE_VERSION" ]; then versions+=("$PREVIOUS_RELEASE_VERSION"); fi
+          for release_version in "${versions[@]}"; do
+            folder=downloads
+            evidence_folder=evidence
+            if [ "$release_version" != "$RELEASE_VERSION" ]; then
+              folder=downloads/previous
+              evidence_folder=evidence/previous
+              mkdir "$folder" "$evidence_folder"
+            fi
+            gh api "repos/$GITHUB_REPOSITORY/releases/tags/$release_version" > "$evidence_folder/release.json"
+            jq -e --arg version "$release_version" '.tag_name == $version and .draft == false and .prerelease == false and .immutable == true' "$evidence_folder/release.json"
+            gh release verify "$release_version" --repo "$GITHUB_REPOSITORY" --format json > "$evidence_folder/release-attestation.json"
+            gh release download "$release_version" --repo "$GITHUB_REPOSITORY" --dir "$folder" --pattern SHA256SUMS --pattern SOURCE_COMMIT --pattern VERSION --pattern install.sh --pattern install.ps1
+            python - "$folder" "$release_version" <<'PY'
+          import hashlib, re, sys
           from pathlib import Path
-          folder = Path('downloads')
+          folder = Path(sys.argv[1])
           rows = folder.joinpath('SHA256SUMS').read_text().splitlines()
           parsed = {}
           for row in rows:
@@ -62,16 +89,47 @@ jobs:
               if match is None or match[2] in parsed:
                   raise SystemExit('malformed or duplicate published checksum')
               parsed[match[2]] = match[1]
-          for name in ('SOURCE_COMMIT', 'install.sh', 'install.ps1'):
+          for name in ('SOURCE_COMMIT', 'VERSION', 'install.sh', 'install.ps1'):
               if hashlib.sha256(folder.joinpath(name).read_bytes()).hexdigest() != parsed.get(name):
                   raise SystemExit('published installer or source checksum mismatch')
           if re.fullmatch(r'[0-9a-f]{40}\n', folder.joinpath('SOURCE_COMMIT').read_text()) is None:
               raise SystemExit('invalid published source identity')
+          if folder.joinpath('VERSION').read_bytes() != (sys.argv[2] + '\n').encode():
+              raise SystemExit('published version identity mismatch')
           PY
-          release_source=$(tr -d '\r\n' < downloads/SOURCE_COMMIT)
-          for script in install.sh install.ps1; do
-            gh attestation verify "downloads/$script" --repo "$GITHUB_REPOSITORY" --signer-workflow "$GITHUB_REPOSITORY/.github/workflows/release.yml" --source-digest "$release_source" --source-ref refs/heads/main --deny-self-hosted-runners --format json > "evidence/$script-provenance.json"
+            release_source=$(tr -d '\r\n' < "$folder/SOURCE_COMMIT")
+            for script in install.sh install.ps1; do
+              gh attestation verify "$folder/$script" --repo "$GITHUB_REPOSITORY" --signer-workflow "$GITHUB_REPOSITORY/.github/workflows/release.yml" --source-digest "$release_source" --source-ref refs/heads/main --deny-self-hosted-runners --format json > "$evidence_folder/$script-provenance.json"
+            done
           done
+          cat > downloads/check-generation.py <<'PY'
+          import hashlib, json, re, sys
+          from pathlib import Path
+          prefix, version, target, manifests, output = sys.argv[1:]
+          root = Path(prefix)
+          if root.joinpath('current').read_text().strip() != version:
+              raise SystemExit('installed generation activation mismatch')
+          generation = root / 'versions' / version
+          tools = ['agentciv-archive', 'agentciv-reader', 'agentciv-host', 'agentciv-conformance']
+          if generation.joinpath('components').read_text().split() != tools:
+              raise SystemExit('optional installed components changed')
+          hashes = {}
+          for row in Path(manifests, 'SHA256SUMS').read_text().splitlines():
+              match = re.fullmatch(r'([0-9a-f]{64})  ([A-Za-z0-9_.-]+)', row)
+              if match is None or match[2] in hashes:
+                  raise SystemExit('malformed or duplicate published checksum')
+              hashes[match[2]] = match[1]
+          suffix = '.exe' if 'windows' in target else ''
+          checked = []
+          assets = [(name + suffix, f'{name}-{version}-{target}{suffix}') for name in tools]
+          assets.extend((name, name) for name in ('LICENSE', 'THIRD_PARTY_NOTICES.txt', 'NOTICE_INVENTORY.json'))
+          for installed, asset in assets:
+              digest = hashlib.sha256(generation.joinpath(installed).read_bytes()).hexdigest()
+              if digest != hashes.get(asset):
+                  raise SystemExit('installed binary or notice checksum mismatch')
+              checked.append({'installed': installed, 'asset': asset, 'sha256': digest})
+          Path(output).write_text(json.dumps({'version': version, 'target': target, 'checked': checked}, indent=2) + '\n')
+          PY
       - name: Install exact public assets and preserve an unowned file on removal
         if: runner.os != 'Windows'
         shell: bash
@@ -79,14 +137,36 @@ jobs:
           set -euo pipefail
           release_prefix="$RUNNER_TEMP/agentciv published verification"
           test ! -e "$release_prefix"
-          sh downloads/install.sh --version "$RELEASE_VERSION" --prefix "$release_prefix" --with-host-tools
+          check_generation() {
+            local expected=$1 label=$2 manifests=$3
+            for tool in archive reader host conformance; do
+              actual=$("$release_prefix/bin/agentciv-$tool" --version)
+              test "$actual" = "agentciv-$tool ${expected#v}"
+              printf '%s\n' "$actual" >> "evidence/$label-versions.txt"
+            done
+            python downloads/check-generation.py "$release_prefix" "$expected" "$RELEASE_TARGET" "$manifests" "evidence/$label-generation.json"
+          }
+          if [ -n "$PREVIOUS_RELEASE_VERSION" ]; then
+            sh downloads/install.sh --version "$PREVIOUS_RELEASE_VERSION" --prefix "$release_prefix" --with-host-tools
+            check_generation "$PREVIOUS_RELEASE_VERSION" previous downloads/previous
+            sh downloads/install.sh --version "$RELEASE_VERSION" --prefix "$release_prefix"
+            check_generation "$RELEASE_VERSION" upgraded downloads
+            sh downloads/install.sh --prefix "$release_prefix" --rollback
+            check_generation "$PREVIOUS_RELEASE_VERSION" rolled-back downloads/previous
+            sh downloads/install.sh --version "$RELEASE_VERSION" --prefix "$release_prefix"
+            check_generation "$RELEASE_VERSION" upgraded-again downloads
+            printf '%s\n' "$PREVIOUS_RELEASE_VERSION -> $RELEASE_VERSION -> $PREVIOUS_RELEASE_VERSION -> $RELEASE_VERSION" > evidence/cross-version.txt
+          else
+            sh downloads/install.sh --version "$RELEASE_VERSION" --prefix "$release_prefix" --with-host-tools
+          fi
+          check_generation "$RELEASE_VERSION" installed downloads
           for tool in archive reader host conformance; do
-            test "$("$release_prefix/bin/agentciv-$tool" --version)" = "agentciv-$tool ${RELEASE_VERSION#v}"
             "$release_prefix/bin/agentciv-$tool" --help > "evidence/$tool-help.txt"
           done
           "$release_prefix/bin/agentciv-archive" demo > evidence/demo.json
           grep -q source_authenticity evidence/demo.json
           sh downloads/install.sh --version "$RELEASE_VERSION" --prefix "$release_prefix"
+          check_generation "$RELEASE_VERSION" reinstalled downloads
           printf '%s\n' 'unowned evidence remains' > "$release_prefix/unowned.txt"
           sh downloads/install.sh --prefix "$release_prefix" --uninstall
           test "$(cat "$release_prefix/unowned.txt")" = 'unowned evidence remains'
@@ -99,16 +179,39 @@ jobs:
           $ErrorActionPreference = 'Stop'
           $releasePrefix = Join-Path $env:RUNNER_TEMP 'agentciv published verification'
           if (Test-Path -LiteralPath $releasePrefix) { throw 'verification prefix already exists' }
-          & ./downloads/install.ps1 -Version $env:RELEASE_VERSION -Prefix $releasePrefix -WithHostTools -NoModifyPath
+          function Assert-PublishedGeneration([string]$Expected, [string]$Label, [string]$Manifests) {
+            $versions = @()
+            foreach ($tool in 'archive','reader','host','conformance') {
+              $actual = & (Join-Path $releasePrefix "bin/agentciv-$tool.cmd") --version
+              if ($LASTEXITCODE -ne 0 -or $actual -cne "agentciv-$tool $($Expected.Substring(1))") { throw 'published native version mismatch' }
+              $versions += $actual
+            }
+            $versions | Set-Content -LiteralPath "evidence/$Label-versions.txt"
+            & python downloads/check-generation.py $releasePrefix $Expected $env:RELEASE_TARGET $Manifests "evidence/$Label-generation.json"
+            if ($LASTEXITCODE -ne 0) { throw 'published generation verification failed' }
+          }
+          if ($env:PREVIOUS_RELEASE_VERSION) {
+            & ./downloads/install.ps1 -Version $env:PREVIOUS_RELEASE_VERSION -Prefix $releasePrefix -WithHostTools -NoModifyPath
+            Assert-PublishedGeneration $env:PREVIOUS_RELEASE_VERSION 'previous' 'downloads/previous'
+            & ./downloads/install.ps1 -Version $env:RELEASE_VERSION -Prefix $releasePrefix -NoModifyPath
+            Assert-PublishedGeneration $env:RELEASE_VERSION 'upgraded' 'downloads'
+            & ./downloads/install.ps1 -Prefix $releasePrefix -Rollback -NoModifyPath
+            Assert-PublishedGeneration $env:PREVIOUS_RELEASE_VERSION 'rolled-back' 'downloads/previous'
+            & ./downloads/install.ps1 -Version $env:RELEASE_VERSION -Prefix $releasePrefix -NoModifyPath
+            Assert-PublishedGeneration $env:RELEASE_VERSION 'upgraded-again' 'downloads'
+            "$env:PREVIOUS_RELEASE_VERSION -> $env:RELEASE_VERSION -> $env:PREVIOUS_RELEASE_VERSION -> $env:RELEASE_VERSION" | Set-Content -LiteralPath evidence/cross-version.txt
+          } else {
+            & ./downloads/install.ps1 -Version $env:RELEASE_VERSION -Prefix $releasePrefix -WithHostTools -NoModifyPath
+          }
+          Assert-PublishedGeneration $env:RELEASE_VERSION 'installed' 'downloads'
           foreach ($tool in 'archive','reader','host','conformance') {
-            $actual = & (Join-Path $releasePrefix "bin/agentciv-$tool.cmd") --version
-            if ($LASTEXITCODE -ne 0 -or $actual -cne "agentciv-$tool $($env:RELEASE_VERSION.Substring(1))") { throw 'published native version mismatch' }
             & (Join-Path $releasePrefix "bin/agentciv-$tool.cmd") --help | Set-Content -LiteralPath "evidence/$tool-help.txt"
             if ($LASTEXITCODE -ne 0) { throw 'published native help failed' }
           }
           & (Join-Path $releasePrefix 'bin/agentciv-archive.cmd') demo | Set-Content -LiteralPath evidence/demo.json
           if ($LASTEXITCODE -ne 0 -or (Get-Content -LiteralPath evidence/demo.json -Raw) -notmatch 'source_authenticity') { throw 'published demo failed' }
           & ./downloads/install.ps1 -Version $env:RELEASE_VERSION -Prefix $releasePrefix -NoModifyPath
+          Assert-PublishedGeneration $env:RELEASE_VERSION 'reinstalled' 'downloads'
           [IO.File]::WriteAllText((Join-Path $releasePrefix 'unowned.txt'), 'unowned evidence remains')
           & ./downloads/install.ps1 -Prefix $releasePrefix -Uninstall -NoModifyPath
           if ([IO.File]::ReadAllText((Join-Path $releasePrefix 'unowned.txt')) -cne 'unowned evidence remains') { throw 'unowned file changed' }
