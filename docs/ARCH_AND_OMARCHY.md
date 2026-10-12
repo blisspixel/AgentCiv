@@ -1,6 +1,6 @@
 # Arch Linux and Omarchy
 
-Status: a source checkout is tested on Arch Linux, the base of [Omarchy](https://omarchy.org/). Native [v0.1.0](https://github.com/blisspixel/AgentCiv/releases/tag/v0.1.0) is also published for GNU Linux x64/ARM64 with glibc 2.38 or newer, with actual download execution tested on Ubuntu 24.04. This guide records the separate Arch source path; it does not claim a native-release smoke run on a physical Omarchy installation. See the [installation guide](INSTALLATION_DESIGN.md) and [native release record](NATIVE_RELEASE_2026_10_11.md).
+Status: a source checkout is tested on Arch Linux, the base of [Omarchy](https://omarchy.org/). Native [v0.1.1](https://github.com/blisspixel/AgentCiv/releases/tag/v0.1.1) is also published for GNU Linux x64/ARM64 with glibc 2.38 or newer; actual HTTPS installation, v0.1.0 upgrade and rollback were tested on Ubuntu 24.04. This guide records the separate Arch source path; it does not claim a native-release smoke run on a physical Omarchy installation. See the [installation guide](INSTALLATION_DESIGN.md) and [maintenance release record](NATIVE_RELEASE_V0_1_1.md).
 
 ## What was tested
 
@@ -50,7 +50,7 @@ export PATH="$HOME/.local/share/agentciv/bin:$PATH"
 agentciv-archive demo
 ```
 
-Use a clean tracked checkout. This explicitly compiles the locked packages; it does not start a host or download a model. `sh install.sh --rollback` selects the previous installed generation; `sh install.sh --uninstall` removes verified installer-owned files. Native release downloads remain unavailable. The [local room guide](LOCAL_ENCOUNTER.md) also finds already built debug tools through offline Cargo metadata without a PATH edit and supplies POSIX commands for speaking and displaying saved history.
+Use a clean tracked checkout. This explicitly compiles the locked packages; it does not start a host or download a model. `sh install.sh --rollback` selects the previous installed generation; `sh install.sh --uninstall` removes verified installer-owned files. Published native downloads are a separate path described in the [installation guide](INSTALLATION_DESIGN.md). The [local room guide](LOCAL_ENCOUNTER.md) also finds already built debug tools through offline Cargo metadata without a PATH edit and supplies POSIX commands for speaking and displaying saved history.
 
 ## Firewall, storage, and private files
 
@@ -62,4 +62,4 @@ SQLite history needs a local filesystem. Omarchy's encrypted root disk is local;
 
 - An installed local model is optional. Ollama is in the Arch repositories as `ollama`, with `ollama-cuda` and `ollama-rocm` variants. Contributions must not download a model.
 - Website and bulletin work also needs Node.js, pinned Wrangler 4.147.0, and pinned `worker-build` 0.8.7, as in the [contribution guide](../CONTRIBUTING.md). mise can supply Node.js.
-- `install.sh` has the tools it needs on Arch (`curl` 8.4 or newer and `sha256sum`). Release downloads remain unavailable until native assets are published; `--from-source` builds from a checkout today. `--pre` additionally needs `jq`, or select a preview explicitly with `--version`.
+- `install.sh` has the tools it needs on Arch (`curl` 8.4 or newer and `sha256sum`). Select a published release explicitly with `--version`, or use `--from-source` to build from a checkout. `--pre` additionally needs `jq`.

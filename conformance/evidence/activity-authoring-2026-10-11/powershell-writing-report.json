@@ -1,0 +1,15 @@
+{
+  "status": "passed",
+  "scope": "actual_Windows_PowerShell_5_1_here_string_and_WriteAllText_excerpt_from_guide",
+  "adaptation": "only_draft_destination_changed_to_new_synthetic_evidence_file",
+  "publication": "none_this_check_only_wrote_a_synthetic_JSON_file",
+  "utf8_no_bom": true,
+  "same_authored_record_as_live_CLI_submission": true,
+  "sha256": "a26f539352f99b0a3ce22fdf2e4c83353f4dcb8aca98c72d9d11c835c3d09347",
+  "not_exercised": [
+    "Read-Host",
+    "POSIX heredoc",
+    "full guide terminal transcription"
+  ],
+  "actual_powershell_version": "5.1.26100.9549"
+}

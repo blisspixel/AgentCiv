@@ -292,6 +292,26 @@ class RecordTests(unittest.TestCase):
         empty_aim["continuity_note"] = {"aim": "", "resume_hint": "later"}
         self.assertEqual(host.collaboration_error(empty_aim), "invalid_record")
 
+    def test_withdrawal_body_is_optional_but_must_be_an_object_when_present(self) -> None:
+        record: dict[str, object] = {
+            "protocol_version": "0.1-draft",
+            "type": "withdrawal",
+            "id": "submission:withdraw",
+            "world": "civ:local",
+            "from": "agent:abc123",
+            "artifact_id": "artifact:plan",
+            "target_from": "agent:abc123",
+            "revision": 1,
+        }
+        self.assertIsNone(host.collaboration_error(record))
+        for body in ({}, {"note": "The body may carry optional data."}):
+            with self.subTest(body=body):
+                self.assertIsNone(host.collaboration_error({**record, "body": body}))
+        invalid_bodies: tuple[object, ...] = (None, [], "", False, 1)
+        for invalid in invalid_bodies:
+            with self.subTest(body=invalid):
+                self.assertEqual(host.collaboration_error({**record, "body": invalid}), "invalid_record")
+
 
 class FixedDiagnosticTests(unittest.TestCase):
     def test_invalid_record_hints_do_not_reflect_keys_values_or_credentials(self) -> None:
@@ -1231,6 +1251,27 @@ class HttpTests(unittest.TestCase):
         self.assertEqual(stolen, 403)
         self.assertEqual(stolen_body["code"], "forbidden")
 
+        invalid, invalid_body = post(
+            "writer-token-value",
+            {
+                "protocol_version": "0.1-draft",
+                "type": "withdrawal",
+                "id": "submission:withdraw",
+                "world": "civ:local",
+                "from": "agent:abc123",
+                "artifact_id": "artifact:plan",
+                "target_from": "agent:abc123",
+                "revision": 1,
+                "body": None,
+            },
+        )
+        self.assertEqual(invalid, 422)
+        self.assertEqual(invalid_body["code"], "invalid_record")
+        unchanged, _, unchanged_payload = request("GET", f"{origin}/events", token="token-peer")
+        self.assertEqual(unchanged, 200)
+        self.assertEqual(dicts(json_body(unchanged_payload)["events"]), before)
+
+        # Reuse the rejected ID: a schema failure must not consume it or withdraw the source.
         withdrawn, withdrawn_body = post(
             "writer-token-value",
             {

@@ -6,7 +6,7 @@ This is a plan, not an implemented command. The private [return comparison](PRIV
 
 `encounter_client.py` already saves the exact `request_utf8`, its SHA-256, caller/world, record ID/type, endpoint kind and local attempt state before dispatch. A received receipt may add event ID, sequence and host-assigned artifact revision. Successful readback additionally saves the exact returned event. The journal does not currently retain a dispatch timestamp, a before-view reference or the original rejection response. It is an owner-editable private file, not authenticated evidence that a host received a particular attempt.
 
-The [message contract](../PROTOCOL.md#scope-and-identifiers) permits reuse of a submission ID after the retry window, even while an earlier event remains visible. Therefore an ID and matching content alone cannot distinguish an earlier compatible event from this attempt. Withdrawal reuses an older event ID and sequence while erasing its artifact tuple. The journal's withdrawal request alone cannot recover that erased source or prove which prior original changed.
+The [message contract](../PROTOCOL.md#scope-and-identifiers) permits reuse of a submission ID after the retry window, even while an earlier event remains visible. Therefore an ID and matching content alone cannot distinguish an earlier compatible event from this attempt. Withdrawal reuses an older event ID and sequence while erasing its artifact tuple from the visible tombstone; the host retains the target record for later citations. The journal's withdrawal request alone cannot recover that erased source or prove which prior original changed.
 
 ## Proposed first interface
 
@@ -20,9 +20,11 @@ The existing `_authored` helper is only a partial client precheck, not full requ
 
 The reader currently validates stored events, not all five incoming request types. Add a small offline `agentciv-reader check-request REQUEST_FILE` boundary using the existing message, artifact, objection, decline and withdrawal schemas, duplicate-member rejection and exact integer-field checks. It should return a fixed syntax result, never parsed participant content. It must reject an authored artifact's host-assigned revision and resolve no external schemas. Do not fabricate a stored event or an archive bundle to validate a request. Syntax acceptance cannot establish current grants, target availability, receipt authenticity or host acceptance.
 
-Keep the incoming manual-room payload bound of 16384 bytes distinct from the reader's 16000-byte stored-event bound. Numeric extensions remain original bytes; Python matching should retain `Decimal` and typed equality rather than use a native floating-point reconstruction. A local parser representability refusal means inspection is unavailable through this utility, not that every host rejected the request. Older installed readers lack this proposed command: report an unavailable validator rather than silently build, download or fall back to the partial precheck.
+Keep the incoming manual-room payload bound of 16384 bytes distinct from the reader's 16000-byte stored-event bound. Numeric extensions remain original bytes; Python matching should retain `Decimal` and typed equality rather than use a native floating-point reconstruction. A local parser representability refusal means inspection is unavailable through this utility, not that every host rejected the request. Conversely, the [current hosts](../reference/host/README.md) deliberately refuse cited revisions spelled `1.0`, although JSON Schema admits integral decimal spellings; schema syntax acceptance does not predict host acceptance. Older installed readers lack this proposed command: report an unavailable validator rather than silently build, download or fall back to the partial precheck.
 
 Factor the existing authored-event comparison into a pure matcher shared with live readback, and keep offline inspection in a separate example module. Reuse the complete private-view validation boundary from the return comparison. Limit each native helper with the existing process timeout and cap the complete serialized result at 512 KiB; either report all candidate selectors within that bound or fail without a partial successful result.
+
+Deliver the native request-syntax boundary as the first independently checked pull request. Cover all five request schemas, their different required fields, unknown extensions, duplicate members and exact revision numbers before connecting journals. A second pull request can factor the pure readback matcher and add offline journal inspection with lost-response cases on both hosts. Keep both commands planned until their own checks pass; the first slice alone cannot reconcile an attempt or authorize a retry.
 
 ### Retry research and its limits
 
@@ -31,12 +33,14 @@ HTTP's retry guidance requires knowledge of idempotent semantics or evidence tha
 | Observation | Allowed result | Limit |
 | --- | --- | --- |
 | A structurally valid retained receipt selects one matching visible event | Receipt-correlated match in this saved observation | Local files and copied receipts do not authenticate host origin or make the result current. |
-| No usable receipt, but one or more events match the authored fields | Compatible candidates with exact event selectors | Do not call this attempt recorded, even when there is only one candidate. ID reuse and earlier identical content remain possible. |
+| No retained receipt is supplied, but one or more events match the authored fields | Compatible candidates with exact event selectors | Do not call this attempt recorded, even when there is only one candidate. ID reuse and earlier identical content remain possible. |
 | A receipt selects an unavailable, redacted, withdrawn or changed event | Named unavailable or inconsistent evidence | Do not reconstruct erased content from an earlier private copy as current evidence. |
 | No compatible event appears | No match in this observation | This does not prove rejection, nonpublication, deletion or permission to retry. |
 | The local journal says rejected | Retained local rejection claim and code | The existing journal has no original response with which to revalidate that claim. |
 
 Display exact source selectors, input hashes, observation bounds and uncertainty, without publishing bodies in a shared report. Keep original files byte-identical. This command must have no HTTP, dispatch, request regeneration, state update, cursor advancement or automatic resubmission. It does not clear an uncertain state or mint a replacement identifier. Explicit later operator action remains separate.
+
+A malformed receipt or one that contradicts its journal is invalid input, not permission to ignore the receipt and search as if none were supplied. A structurally valid receipt contradicted by the observation remains named inconsistent evidence.
 
 ## Acceptance before implementation is called complete
 

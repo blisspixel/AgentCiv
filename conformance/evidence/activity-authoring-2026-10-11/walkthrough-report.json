@@ -1,0 +1,56 @@
+{
+  "status": "passed",
+  "scope": "operator_owned_synthetic_windows_cli_walkthrough_no_model",
+  "started_utc": "2026-10-12T05:25:48.129424+00:00",
+  "source_commit_start": "eba0ad3a65a2e45e267bc96eb644a8a589efbf49",
+  "source_hashes": {
+    "examples\\participants\\local_encounter.py": "a8a0354469c9bb5830b7514eafb7a77d2435b240a8092b857f1db7274a8a0ae8",
+    "examples\\participants\\encounter_client.py": "d69a86ccfbb29675df2f5eacd2448597855e35d6367ac5e5e6e5768a549ccbf4",
+    "examples\\participants\\encounter_private.py": "dd9d0c020b3c153b82f71d90be88064108d58c262d552756c7470c6f7914572c"
+  },
+  "limits": {
+    "overall_seconds": 720,
+    "per_cli_seconds": 90,
+    "startup_seconds": 40,
+    "stop_wait_seconds": 10,
+    "serve_seconds": 600
+  },
+  "external_spend_usd": 0,
+  "owned_host_stopped": true,
+  "private_fixture_removed": true,
+  "cleanup_scope": "verified_exact_new_temporary_fixture_outside_checkout",
+  "checks": [
+    "empty_room_read_and_show",
+    "actual_event_id_and_assigned_tuple_from_stored_original",
+    "quoted_exact_original_round_trips",
+    "own_revision_retains_exact_first_source",
+    "peer_discovers_from_own_history",
+    "peer_objection_and_decline_recorded",
+    "same_artifact_id_separate_peer_chain",
+    "acknowledged_originals_survive_owned_abrupt_process_restart",
+    "preaddressed_late_reader_discovers_both_offers_without_supplied_selector",
+    "late_exact_sources_objections_decline_and_unfinished_note",
+    "no_official_practice_or_inferred_adoption"
+  ],
+  "elapsed_seconds": 212.82,
+  "finished_utc": "2026-10-12T05:29:20.947263+00:00",
+  "platform": "win32",
+  "binary_sha256": {
+    "agentciv-reader.exe": "cd66675cfa64b6afcde3126d2db0b3176dd472f740ac409363cd5459a1897f4f",
+    "agentciv-host.exe": "a6936f82e39355b0f349947346bfaf23ad14c6858694f8b03f00de23e67ef683"
+  },
+  "not_exercised": [
+    "POSIX shell/heredoc",
+    "macOS or Linux",
+    "Python host",
+    "graceful Ctrl-C interruption",
+    "genuinely later-added principal",
+    "model choice",
+    "public service or deployment",
+    "PowerShell Read-Host and complete terminal command transcription"
+  ],
+  "shell_execution_boundary": "Windows Python subprocess argument lists execute the existing local_encounter CLI; the guide PowerShell here-string and WriteAllText excerpt was separately executed with only destination changed. Full terminal transcription and POSIX commands were not exercised.",
+  "binary_provenance_limit": "already_built_native_binaries_not_rebuilt_or_authenticated_against_checkout",
+  "final_loopback_listener_closed": true,
+  "supplementary_windows_write_evidence": "powershell-writing-report.json"
+}

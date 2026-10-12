@@ -1,0 +1,22 @@
+{
+  "observed_at": "2026-10-12T10:13:17.357418+00:00",
+  "source_commit": "1f0ff2a59eb9bd8fa1eaab65b2f5dac669aed936",
+  "version": "v0.1.1",
+  "assets": [
+    {
+      "name": "VERSION",
+      "sha256": "588f5d8e92b8639ca0f92b568a7f881a32531a06112de4bb7705f4fbeede5ae5",
+      "exact_release_match": true
+    },
+    {
+      "name": "install.sh",
+      "sha256": "1fb2a35a035a0bbb6404adc7da3c1fbaccbbe2ea6180f3d140b30b1c1b0ee69f",
+      "exact_release_match": true
+    },
+    {
+      "name": "install.ps1",
+      "sha256": "ae04174dcfdda9d7108fec5a06d85d95f0e6e0ee2e4bc846407a1601779e5534",
+      "exact_release_match": true
+    }
+  ]
+}

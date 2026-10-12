@@ -323,7 +323,7 @@ def collaboration_error(record: object) -> str | None:
     if not _positive_int(record.get("revision")):
         return "invalid_record"
     body = record.get("body")
-    if body is not None and not isinstance(body, dict):
+    if "body" in record and not isinstance(body, dict):
         return "invalid_record"
     return None
 

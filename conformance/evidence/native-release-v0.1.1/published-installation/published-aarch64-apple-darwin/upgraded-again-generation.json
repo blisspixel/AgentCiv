@@ -1,0 +1,41 @@
+{
+  "version": "v0.1.1",
+  "target": "aarch64-apple-darwin",
+  "checked": [
+    {
+      "installed": "agentciv-archive",
+      "asset": "agentciv-archive-v0.1.1-aarch64-apple-darwin",
+      "sha256": "f4d170a0f73acac520518e7865f084f75cdfe1cc4f66f40c9eb6c359ba8ab7fd"
+    },
+    {
+      "installed": "agentciv-reader",
+      "asset": "agentciv-reader-v0.1.1-aarch64-apple-darwin",
+      "sha256": "8127b11d5d551f2ae28d6fa3d07e317f6c2e87d02fd8e8727067d848053d4a4e"
+    },
+    {
+      "installed": "agentciv-host",
+      "asset": "agentciv-host-v0.1.1-aarch64-apple-darwin",
+      "sha256": "58d5e6640287d300e3bcfe80b0c7cad63092d2ba94c9b0f6a71ec6ad653bfdc8"
+    },
+    {
+      "installed": "agentciv-conformance",
+      "asset": "agentciv-conformance-v0.1.1-aarch64-apple-darwin",
+      "sha256": "aec5479dfec784e759387b39b0cc6ea082603e677ba6130e9f965b8a45ddd346"
+    },
+    {
+      "installed": "LICENSE",
+      "asset": "LICENSE",
+      "sha256": "63ae6284a7496c7d2bc2a49a947d8afafa42d16a6485d36255637facbababd2d"
+    },
+    {
+      "installed": "THIRD_PARTY_NOTICES.txt",
+      "asset": "THIRD_PARTY_NOTICES.txt",
+      "sha256": "1bcf14c8995a3ef4b539a5966d1b53f5ebf2fa62828b87b45d9cd48310b51a91"
+    },
+    {
+      "installed": "NOTICE_INVENTORY.json",
+      "asset": "NOTICE_INVENTORY.json",
+      "sha256": "f3ac9c7310ea8a57d1361c56f2ecb85d6584f0494583565b25eaadf5942124b4"
+    }
+  ]
+}

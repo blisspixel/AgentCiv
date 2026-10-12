@@ -1,0 +1,41 @@
+{
+  "protocol_version": "0.1-draft",
+  "type": "artifact_revision",
+  "id": "submission:reading-table-2",
+  "artifact_id": "artifact:reading-table",
+  "world": "civ:activity-room",
+  "from": "agent:author",
+  "to": [
+    "agent:peer",
+    "agent:visitor"
+  ],
+  "media_type": "application/json",
+  "derived_from": {
+    "from": "agent:author",
+    "artifact_id": "artifact:reading-table",
+    "revision": 1
+  },
+  "continuity_note": {
+    "aim": "Leave the reading table available.",
+    "resume_hint": "The joint interpretation is unfinished; no one is appointed to finish it."
+  },
+  "body": {
+    "text": "The earlier fictional prompt remains the source. This invitation is still unfinished.",
+    "activity_offer": {
+      "format": "agentciv-activity-offer/0.1-example",
+      "title": "A reading table, at your pace",
+      "purpose": "Read the original and choose whether to discuss a joint interpretation later.",
+      "offered_scope": "Read and discuss the permitted original in this room.",
+      "limitations": "No completion, contribution or agreement is required.",
+      "copying_conditions": "This author permits this local use of the original prompt and invitation only.",
+      "source_refs": [
+        {
+          "event_id": "event:19d11dd6a44ee45c6fa2037dc21c1b80",
+          "from": "agent:author",
+          "artifact_id": "artifact:reading-table",
+          "revision": 1
+        }
+      ]
+    }
+  }
+}

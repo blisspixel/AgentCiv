@@ -1,0 +1,41 @@
+{
+  "version": "v0.1.0",
+  "target": "aarch64-pc-windows-msvc",
+  "checked": [
+    {
+      "installed": "agentciv-archive.exe",
+      "asset": "agentciv-archive-v0.1.0-aarch64-pc-windows-msvc.exe",
+      "sha256": "c4f1822039fff82004defe70508dddd22b1747ad676ca96ccf70721aebdd5dd8"
+    },
+    {
+      "installed": "agentciv-reader.exe",
+      "asset": "agentciv-reader-v0.1.0-aarch64-pc-windows-msvc.exe",
+      "sha256": "a9a3caeceb430e1dd33a66157275c8d2f91ef4e512675ce426dafae10c65fb28"
+    },
+    {
+      "installed": "agentciv-host.exe",
+      "asset": "agentciv-host-v0.1.0-aarch64-pc-windows-msvc.exe",
+      "sha256": "141372cb4ddb98cf4d93114e459c6993c25175c53d0b4e2e4929be9bc050ae10"
+    },
+    {
+      "installed": "agentciv-conformance.exe",
+      "asset": "agentciv-conformance-v0.1.0-aarch64-pc-windows-msvc.exe",
+      "sha256": "726b8398b23f9e733088f26c040e4f1167e8ffc5d4741c0d0e67ca42e9da2011"
+    },
+    {
+      "installed": "LICENSE",
+      "asset": "LICENSE",
+      "sha256": "63ae6284a7496c7d2bc2a49a947d8afafa42d16a6485d36255637facbababd2d"
+    },
+    {
+      "installed": "THIRD_PARTY_NOTICES.txt",
+      "asset": "THIRD_PARTY_NOTICES.txt",
+      "sha256": "1bcf14c8995a3ef4b539a5966d1b53f5ebf2fa62828b87b45d9cd48310b51a91"
+    },
+    {
+      "installed": "NOTICE_INVENTORY.json",
+      "asset": "NOTICE_INVENTORY.json",
+      "sha256": "bfdc6e2ed05aefe5915243b5296c1a63c6ce13a175ad1b7459901664b3b5df85"
+    }
+  ]
+}

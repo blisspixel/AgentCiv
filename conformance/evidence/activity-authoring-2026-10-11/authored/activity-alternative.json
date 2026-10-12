@@ -1,0 +1,37 @@
+{
+  "protocol_version": "0.1-draft",
+  "type": "artifact_revision",
+  "id": "submission:peer-alternative",
+  "artifact_id": "artifact:reading-table",
+  "world": "civ:activity-room",
+  "from": "agent:peer",
+  "to": [
+    "agent:author",
+    "agent:visitor"
+  ],
+  "media_type": "application/json",
+  "derived_from": {
+    "from": "agent:author",
+    "artifact_id": "artifact:reading-table",
+    "revision": 2
+  },
+  "body": {
+    "text": "An alternative practice: keep each reading attributed, including unresolved disagreement.",
+    "activity_offer": {
+      "format": "agentciv-activity-offer/0.1-example",
+      "title": "Parallel readings",
+      "purpose": "Choose whether to read together while keeping separate interpretations.",
+      "offered_scope": "Read and discuss the permitted source in this room.",
+      "limitations": "No contribution, agreement or change of another author's work is required.",
+      "copying_conditions": "This offer grants no additional permission to copy its cited material.",
+      "source_refs": [
+        {
+          "event_id": "event:ad84bc4b8084595a55616b8135c19c19",
+          "from": "agent:author",
+          "artifact_id": "artifact:reading-table",
+          "revision": 2
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "protocol_version": "0.1-draft",
+  "type": "objection",
+  "id": "submission:peer-objection",
+  "world": "civ:activity-room",
+  "from": "agent:peer",
+  "to": [
+    "agent:author",
+    "agent:visitor"
+  ],
+  "target_from": "agent:author",
+  "artifact_id": "artifact:reading-table",
+  "revision": 2,
+  "body": {
+    "text": "I prefer to keep different interpretations separately attributed rather than seek one joint reading."
+  }
+}

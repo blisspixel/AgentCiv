@@ -1,0 +1,234 @@
+{
+  "format": "agentciv-activity-authoring-evidence/0.1-example",
+  "scope": "operator_owned_synthetic_fixture_no_model_or_external_participant",
+  "publication_permission": "operator_authorized_publication_of_this_operator_authored_synthetic_test_evidence_only_not_a_general_reading_or_copying_grant",
+  "dated_directory": "2026-10-11_America_Los_Angeles_UTC_observation_is_2026-10-12",
+  "tested_source_commit": "eba0ad3a65a2e45e267bc96eb644a8a589efbf49",
+  "tested_draft_sha256": "9e19a327d1e0a07dda6c9c1d549a5e7f35d1a29e610c3906964ef472d2dbd2d2",
+  "published_guide": "docs/ACTIVITY_AUTHORING.md",
+  "published_guide_sha256": "0604098bb86ac8288c1e0094c8970da0e3a2cf4942d889264a857590f210f6ec",
+  "guide_changes_after_validation": [
+    "remove_draft_integration_prose",
+    "correct_links_for_docs_directory",
+    "append_actual_bounded_validation_and_limits",
+    "clarify_init_then_foreground_serve_instructions"
+  ],
+  "files": [
+    {
+      "path": "authored/activity-offer.json",
+      "sha256": "c4d26f5b0e3fc32fe81a7231196a1446a8b704fca43321eea80e4bb14aea21b0",
+      "representation": "retained_authored_record_serialization_not_a_transport_capture",
+      "retained_source_file": "activity-offer.json",
+      "retained_source_sha256": "c4d26f5b0e3fc32fe81a7231196a1446a8b704fca43321eea80e4bb14aea21b0",
+      "publication_transformation": "none_bytes_copied_unchanged"
+    },
+    {
+      "path": "authored/activity-revision.json",
+      "sha256": "cd6fa1312fe30a3ac94379a528965ddae53709fefdc01047e8c1775a73ad9cad",
+      "representation": "retained_authored_record_serialization_not_a_transport_capture",
+      "retained_source_file": "activity-revision.json",
+      "retained_source_sha256": "cd6fa1312fe30a3ac94379a528965ddae53709fefdc01047e8c1775a73ad9cad",
+      "publication_transformation": "none_bytes_copied_unchanged"
+    },
+    {
+      "path": "authored/activity-objection.json",
+      "sha256": "72f3fa578c2b697051f23cd3b72b53d3040e5c34e55e269a561e94290c19dad7",
+      "representation": "retained_authored_record_serialization_not_a_transport_capture",
+      "retained_source_file": "activity-objection.json",
+      "retained_source_sha256": "72f3fa578c2b697051f23cd3b72b53d3040e5c34e55e269a561e94290c19dad7",
+      "publication_transformation": "none_bytes_copied_unchanged"
+    },
+    {
+      "path": "authored/activity-decline.json",
+      "sha256": "da231a22b6f4941521eb96d5999a0d5a3c4beb4a1e6de98813377420f15a1d60",
+      "representation": "retained_authored_record_serialization_not_a_transport_capture",
+      "retained_source_file": "activity-decline.json",
+      "retained_source_sha256": "da231a22b6f4941521eb96d5999a0d5a3c4beb4a1e6de98813377420f15a1d60",
+      "publication_transformation": "none_bytes_copied_unchanged"
+    },
+    {
+      "path": "authored/activity-alternative.json",
+      "sha256": "8d3627dfb5e418131f1bd796e9c2ef04a4d2bfd50b12a8f9757a796b6a21dd5e",
+      "representation": "retained_authored_record_serialization_not_a_transport_capture",
+      "retained_source_file": "activity-alternative.json",
+      "retained_source_sha256": "8d3627dfb5e418131f1bd796e9c2ef04a4d2bfd50b12a8f9757a796b6a21dd5e",
+      "publication_transformation": "none_bytes_copied_unchanged"
+    },
+    {
+      "path": "observed-selectors.json",
+      "sha256": "a7cb18f346271a67c1f4412c9fb5d56607aa4b970cf463227fc557358d714258",
+      "representation": "derived_exact_selector_listing_from_observed_originals",
+      "retained_source_file": "observed-selectors.json",
+      "retained_source_sha256": "a7cb18f346271a67c1f4412c9fb5d56607aa4b970cf463227fc557358d714258",
+      "publication_transformation": "none_bytes_copied_unchanged"
+    },
+    {
+      "path": "originals-before-restart.json",
+      "sha256": "66e63d3c33a509c774b3a97ea64e78394236366d27b0e11d59cd324ac8993191",
+      "representation": "snapshot_wrapper_with_exact_returned_event_utf8_strings",
+      "retained_source_file": "originals-before-restart.json",
+      "retained_source_sha256": "66e63d3c33a509c774b3a97ea64e78394236366d27b0e11d59cd324ac8993191",
+      "publication_transformation": "none_bytes_copied_unchanged"
+    },
+    {
+      "path": "originals-after-restart.json",
+      "sha256": "66e63d3c33a509c774b3a97ea64e78394236366d27b0e11d59cd324ac8993191",
+      "representation": "snapshot_wrapper_with_exact_returned_event_utf8_strings",
+      "retained_source_file": "late-reader-originals.json",
+      "retained_source_sha256": "66e63d3c33a509c774b3a97ea64e78394236366d27b0e11d59cd324ac8993191",
+      "publication_transformation": "none_bytes_copied_unchanged"
+    },
+    {
+      "path": "offer-projection-after-restart.json",
+      "sha256": "28b43815c539e4c29e457bb8ecc7bd641690d07daebf75fa7c5480c3639a7fcd",
+      "representation": "derived_native_offer_projection_not_replacement_originals",
+      "retained_source_file": "late-reader-offers.json",
+      "retained_source_sha256": "28b43815c539e4c29e457bb8ecc7bd641690d07daebf75fa7c5480c3639a7fcd",
+      "publication_transformation": "none_bytes_copied_unchanged"
+    },
+    {
+      "path": "walkthrough-report.json",
+      "sha256": "8f08bd98086eebe910b72fd67016e90668f2231e8e150b58b48b387906a4c475",
+      "representation": "sanitized_local_assertion_report_not_native_or_wire_report",
+      "retained_source_file": "walkthrough-report.json",
+      "retained_source_sha256": "8f08bd98086eebe910b72fd67016e90668f2231e8e150b58b48b387906a4c475",
+      "publication_transformation": "none_bytes_copied_unchanged"
+    },
+    {
+      "path": "powershell-writing-report.json",
+      "sha256": "23fdeb15c7a6599e381685bfb8f68c25974b8a561b870573384fb490469a6f05",
+      "representation": "local_writing_check_report",
+      "retained_source_file": "powershell-writing-report.json",
+      "retained_source_sha256": "23fdeb15c7a6599e381685bfb8f68c25974b8a561b870573384fb490469a6f05",
+      "publication_transformation": "none_bytes_copied_unchanged"
+    },
+    {
+      "path": "powershell-written-offer.json",
+      "sha256": "a26f539352f99b0a3ce22fdf2e4c83353f4dcb8aca98c72d9d11c835c3d09347",
+      "representation": "original_bytes_written_by_executed_powershell_excerpt",
+      "retained_source_file": "powershell-written-offer.json",
+      "retained_source_sha256": "a26f539352f99b0a3ce22fdf2e4c83353f4dcb8aca98c72d9d11c835c3d09347",
+      "publication_transformation": "none_bytes_copied_unchanged"
+    },
+    {
+      "path": "offline/valid-input.json",
+      "sha256": "78615f6f55a315f24e9591eb087f7315e62263f164cae630039703602d27413c",
+      "representation": "constructed_offline_native_input_with_synthetic_event_spans",
+      "retained_source_file": "valid-input.json",
+      "retained_source_sha256": "78615f6f55a315f24e9591eb087f7315e62263f164cae630039703602d27413c",
+      "publication_transformation": "none_bytes_copied_unchanged"
+    },
+    {
+      "path": "offline/valid-output.json",
+      "sha256": "de1df097179c224ba410f79ad21a8d8ffd6a4905fa51c49f3ea95eae84ef1c77",
+      "representation": "derived_native_projection_output_bytes",
+      "retained_source_file": "valid-stdout.json",
+      "retained_source_sha256": "de1df097179c224ba410f79ad21a8d8ffd6a4905fa51c49f3ea95eae84ef1c77",
+      "publication_transformation": "none_bytes_copied_unchanged"
+    },
+    {
+      "path": "offline/invalid-offer-control-input.json",
+      "sha256": "011f199ab10f4a953e7620559b6e4a6b8d4341638710de72362264eb689ee2cc",
+      "representation": "constructed_offline_native_input_with_synthetic_event_spans",
+      "retained_source_file": "invalid-offer-control-input.json",
+      "retained_source_sha256": "011f199ab10f4a953e7620559b6e4a6b8d4341638710de72362264eb689ee2cc",
+      "publication_transformation": "none_bytes_copied_unchanged"
+    },
+    {
+      "path": "offline/invalid-offer-control-output.json",
+      "sha256": "fd052d0ada48a196d761fc5b266289d8033976b965f56996ebf70cfe311f8f57",
+      "representation": "derived_native_projection_output_bytes",
+      "retained_source_file": "invalid-offer-control-stdout.json",
+      "retained_source_sha256": "fd052d0ada48a196d761fc5b266289d8033976b965f56996ebf70cfe311f8f57",
+      "publication_transformation": "none_bytes_copied_unchanged"
+    },
+    {
+      "path": "offline/mismatched-source-tuple-input.json",
+      "sha256": "a13631f8b2f1fb9ce0d6cdbd4df1d52caad991fb8ae149d1b84a1c5024fa8c32",
+      "representation": "constructed_offline_native_input_with_synthetic_event_spans",
+      "retained_source_file": "mismatched-source-tuple-input.json",
+      "retained_source_sha256": "a13631f8b2f1fb9ce0d6cdbd4df1d52caad991fb8ae149d1b84a1c5024fa8c32",
+      "publication_transformation": "none_bytes_copied_unchanged"
+    },
+    {
+      "path": "offline/mismatched-source-tuple-output.json",
+      "sha256": "ff2d8b483b04c899eeb1c3d83c97718ea7eeaddbe7a52aedad010404ebf10d64",
+      "representation": "derived_native_projection_output_bytes",
+      "retained_source_file": "mismatched-source-tuple-stdout.json",
+      "retained_source_sha256": "ff2d8b483b04c899eeb1c3d83c97718ea7eeaddbe7a52aedad010404ebf10d64",
+      "publication_transformation": "none_bytes_copied_unchanged"
+    },
+    {
+      "path": "offline-validation-report.json",
+      "sha256": "78316886e0a46919fb50f01ce2f99e282bd27b063eddcddc59dc5df59be97805",
+      "representation": "derived_publication_report_with_absolute_tool_path_omitted",
+      "retained_source_file": "validation-report.json",
+      "retained_source_sha256": "7e5ba8131246e09c77c8c164a75f19dba721da782f8ade84f709e19471834351",
+      "publication_transformation": {
+        "original_retained_sha256": "7e5ba8131246e09c77c8c164a75f19dba721da782f8ade84f709e19471834351",
+        "removed_fields": [
+          "reader_binary"
+        ],
+        "reason": "omit_machine_absolute_tool_path",
+        "added_fields": [
+          "reader_binary_name",
+          "publication_derivation"
+        ],
+        "other_values": "unchanged"
+      }
+    }
+  ],
+  "exact_returned_event_spans": [
+    {
+      "world": "civ:activity-room",
+      "event_id": "event:19d11dd6a44ee45c6fa2037dc21c1b80",
+      "sequence": 1,
+      "kind": "artifact.recorded",
+      "record_utf8_sha256": "6322b54dedd0cc9a2b3b5fe35737d5b5e5082396f32d076e784311cda7210586"
+    },
+    {
+      "world": "civ:activity-room",
+      "event_id": "event:ad84bc4b8084595a55616b8135c19c19",
+      "sequence": 2,
+      "kind": "artifact.recorded",
+      "record_utf8_sha256": "6e4351cef94e2820a8dcbfdfb11eae5f71529521d73d4ca123823033966c2fca"
+    },
+    {
+      "world": "civ:activity-room",
+      "event_id": "event:a08e2e5babb183ae03cac358b7a1572a",
+      "sequence": 3,
+      "kind": "objection.recorded",
+      "record_utf8_sha256": "a122f8778924916717c20491855f9c52de3e025304b699fb05c87585a5750b65"
+    },
+    {
+      "world": "civ:activity-room",
+      "event_id": "event:3c6a75fb3687141519c6eb772da0a3d2",
+      "sequence": 4,
+      "kind": "decline.recorded",
+      "record_utf8_sha256": "9b28771af31b5c6496439816d649e2bf23e676920c68d10da9f65739e826f224"
+    },
+    {
+      "world": "civ:activity-room",
+      "event_id": "event:fe5e543e3b5b21e520cdd1ab7918a523",
+      "sequence": 5,
+      "kind": "artifact.recorded",
+      "record_utf8_sha256": "5cf438dab77aeef7fc9d503dc3194086266105c8898e227f0ca8d922a1da1d53"
+    }
+  ],
+  "preserved_before_after_originals": "all_five_record_utf8_strings_equal",
+  "omitted_local_evidence": [
+    {
+      "file": "commands.json",
+      "sha256": "4845e9a16bce5806c1230a5c3c6a92b27fe7940195b15fb356fdd035732229d0",
+      "reason": "full_local_command_or_machine_path_details_omitted"
+    },
+    {
+      "file": "powershell-utf8-write-check.ps1",
+      "sha256": "5aac7c53a468a57c319c0d1ecfdddfd2a4d66007bfd2b0765a1637ad881c0683",
+      "reason": "full_local_command_or_machine_path_details_omitted"
+    }
+  ],
+  "binary_source_authentication": "not_established_already_built_binaries_and_source_file_hashes_are_separate_observations",
+  "originals_limit": "authored_files_are_unchanged_retained_serializations_of_submitted_values_not_an_independent_HTTP_request_byte_capture; event_record_utf8_strings_are_exact_returned_originals; reports_selectors_and_offer_views_are_derived",
+  "private_material": "credentials_host_configuration_private_temp_paths_and_user_paths_omitted"
+}

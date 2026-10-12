@@ -1,0 +1,477 @@
+{
+  "observed_at": "2026-10-12T09:53:28.251514+00:00",
+  "source_commit": "1f0ff2a59eb9bd8fa1eaab65b2f5dac669aed936",
+  "version": "v0.1.1",
+  "inspector": "Pinned Rust LLVM llvm-readobj",
+  "inspector_version": "LLVM (http://llvm.org/):\n  LLVM version 22.1.8-rust-1.98.1-stable\n  Optimized build.",
+  "inspector_sha256": "90b37c3380435f65f2914d6e043114a2e179240c84192943cff3f8309351bd67",
+  "rustc": "rustc 1.98.1 (48a229cea 2026-09-01)\nbinary: rustc\ncommit-hash: 48a229ceaefd4985c50990b14116b6d856af0985\ncommit-date: 2026-09-01\nhost: x86_64-pc-windows-msvc\nrelease: 1.98.1\nLLVM version: 22.1.8",
+  "baseline_path": "conformance/evidence/native-release-2026-10-11/linkage/verification.json",
+  "baseline_sha256": "37e7c5f6dcd7f04153971da7c3cc904f7cbf4028443acedef5beeb4de5e9e695",
+  "assets": [
+    {
+      "asset": "agentciv-archive-v0.1.1-aarch64-apple-darwin",
+      "sha256": "f4d170a0f73acac520518e7865f084f75cdfe1cc4f66f40c9eb6c359ba8ab7fd",
+      "target": "aarch64-apple-darwin",
+      "architecture": "aarch64",
+      "inspection_flags": [
+        "--needed-libs",
+        "--macho-version-min"
+      ],
+      "raw_report_sha256": "74a88a8c9949c81e73d8f177d2b9fb28f54fa6c6c5fcf5afc5603fbb62db9ef4",
+      "linked_libraries": [
+        "/usr/lib/libSystem.B.dylib",
+        "/usr/lib/libiconv.2.dylib"
+      ],
+      "minimum_os": "11.0",
+      "sdk": "15.5",
+      "reviewed_linkage_match": true
+    },
+    {
+      "asset": "agentciv-conformance-v0.1.1-aarch64-apple-darwin",
+      "sha256": "aec5479dfec784e759387b39b0cc6ea082603e677ba6130e9f965b8a45ddd346",
+      "target": "aarch64-apple-darwin",
+      "architecture": "aarch64",
+      "inspection_flags": [
+        "--needed-libs",
+        "--macho-version-min"
+      ],
+      "raw_report_sha256": "89bb754b228f1fc05a4eeac0eef4f2d6f9191622c43655aded037ba6a14d836b",
+      "linked_libraries": [
+        "/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation",
+        "/System/Library/Frameworks/Security.framework/Versions/A/Security",
+        "/usr/lib/libSystem.B.dylib",
+        "/usr/lib/libiconv.2.dylib"
+      ],
+      "minimum_os": "11.0",
+      "sdk": "15.5",
+      "reviewed_linkage_match": true
+    },
+    {
+      "asset": "agentciv-host-v0.1.1-aarch64-apple-darwin",
+      "sha256": "58d5e6640287d300e3bcfe80b0c7cad63092d2ba94c9b0f6a71ec6ad653bfdc8",
+      "target": "aarch64-apple-darwin",
+      "architecture": "aarch64",
+      "inspection_flags": [
+        "--needed-libs",
+        "--macho-version-min"
+      ],
+      "raw_report_sha256": "f3054f4e2b81d8bfd0a4b2c4d152e265c0406ce92312f6df0a7e9e02fdaf9bdf",
+      "linked_libraries": [
+        "/usr/lib/libSystem.B.dylib",
+        "/usr/lib/libiconv.2.dylib"
+      ],
+      "minimum_os": "11.0",
+      "sdk": "15.5",
+      "reviewed_linkage_match": true
+    },
+    {
+      "asset": "agentciv-reader-v0.1.1-aarch64-apple-darwin",
+      "sha256": "8127b11d5d551f2ae28d6fa3d07e317f6c2e87d02fd8e8727067d848053d4a4e",
+      "target": "aarch64-apple-darwin",
+      "architecture": "aarch64",
+      "inspection_flags": [
+        "--needed-libs",
+        "--macho-version-min"
+      ],
+      "raw_report_sha256": "b0f1332872811adc2186c9dffb2ce526f6097289e7e6254ecd9786fa543a4dd0",
+      "linked_libraries": [
+        "/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation",
+        "/System/Library/Frameworks/Security.framework/Versions/A/Security",
+        "/usr/lib/libSystem.B.dylib",
+        "/usr/lib/libiconv.2.dylib"
+      ],
+      "minimum_os": "11.0",
+      "sdk": "15.5",
+      "reviewed_linkage_match": true
+    },
+    {
+      "asset": "agentciv-archive-v0.1.1-aarch64-pc-windows-msvc.exe",
+      "sha256": "4438a6b5c22395764e178c1bab5cdf302328bc5efd6ad208bf1cd038dc2a4a00",
+      "target": "aarch64-pc-windows-msvc",
+      "architecture": "aarch64",
+      "inspection_flags": [
+        "--coff-imports"
+      ],
+      "raw_report_sha256": "8972dcf171b50fbe7a44022a9ff8acc590af2f38ac5d19da12e11e804d63d71f",
+      "imported_libraries": [
+        "api-ms-win-core-synch-l1-2-0.dll",
+        "bcryptprimitives.dll",
+        "KERNEL32.dll",
+        "kernel32.dll",
+        "ntdll.dll"
+      ],
+      "reviewed_linkage_match": true
+    },
+    {
+      "asset": "agentciv-conformance-v0.1.1-aarch64-pc-windows-msvc.exe",
+      "sha256": "05348297e9360009b9ebcd909827ac92a485a82a1c94de50d8e9cc09eb878cd8",
+      "target": "aarch64-pc-windows-msvc",
+      "architecture": "aarch64",
+      "inspection_flags": [
+        "--coff-imports"
+      ],
+      "raw_report_sha256": "751c7b2b0bb1740f5f53d3f1af5d8089729ac260d4cc25b29d35d49ea32f264e",
+      "imported_libraries": [
+        "api-ms-win-core-synch-l1-2-0.dll",
+        "bcryptprimitives.dll",
+        "crypt32.dll",
+        "KERNEL32.dll",
+        "kernel32.dll",
+        "ntdll.dll",
+        "ws2_32.dll",
+        "WS2_32.dll"
+      ],
+      "reviewed_linkage_match": true
+    },
+    {
+      "asset": "agentciv-host-v0.1.1-aarch64-pc-windows-msvc.exe",
+      "sha256": "7ae0c6379e9d6c770704a3c28ce8d180bc4ac4df9866db3834f6dfb4d3c0a01a",
+      "target": "aarch64-pc-windows-msvc",
+      "architecture": "aarch64",
+      "inspection_flags": [
+        "--coff-imports"
+      ],
+      "raw_report_sha256": "f34146ef02cae87be0edc719e7b0e985a92e1161796b7efe3daf273fb92b7d7f",
+      "imported_libraries": [
+        "api-ms-win-core-synch-l1-2-0.dll",
+        "bcryptprimitives.dll",
+        "KERNEL32.dll",
+        "kernel32.dll",
+        "ntdll.dll",
+        "ws2_32.dll",
+        "WS2_32.dll"
+      ],
+      "reviewed_linkage_match": true
+    },
+    {
+      "asset": "agentciv-reader-v0.1.1-aarch64-pc-windows-msvc.exe",
+      "sha256": "fad5da5090df1927a743ef6955898b17f66adf80359431d344e840c93a644ff0",
+      "target": "aarch64-pc-windows-msvc",
+      "architecture": "aarch64",
+      "inspection_flags": [
+        "--coff-imports"
+      ],
+      "raw_report_sha256": "de5edc51b101294b36e0aa712e05213935f8abd920d0fc5f58dc94f6283e5677",
+      "imported_libraries": [
+        "api-ms-win-core-synch-l1-2-0.dll",
+        "bcryptprimitives.dll",
+        "crypt32.dll",
+        "KERNEL32.dll",
+        "kernel32.dll",
+        "ntdll.dll",
+        "ws2_32.dll",
+        "WS2_32.dll"
+      ],
+      "reviewed_linkage_match": true
+    },
+    {
+      "asset": "agentciv-archive-v0.1.1-aarch64-unknown-linux-gnu",
+      "sha256": "5e4c0d327e7830861f1f031ab267bb17136ff06f63acbac303ec5b9c96eed9b4",
+      "target": "aarch64-unknown-linux-gnu",
+      "architecture": "aarch64",
+      "inspection_flags": [
+        "--needed-libs",
+        "--version-info"
+      ],
+      "raw_report_sha256": "4ac384f0dc63197feb1f41ed5f30e001c6b6e7e13b0cbb28da6b29f35f005f35",
+      "linked_libraries": [
+        "libc.so.6",
+        "libgcc_s.so.1",
+        "libm.so.6"
+      ],
+      "highest_glibc_symbol": "2.34",
+      "reviewed_linkage_match": true
+    },
+    {
+      "asset": "agentciv-conformance-v0.1.1-aarch64-unknown-linux-gnu",
+      "sha256": "92f20d09576a1e5d878ba4f729bcbe15336b9919fb908f88275d460fea509b54",
+      "target": "aarch64-unknown-linux-gnu",
+      "architecture": "aarch64",
+      "inspection_flags": [
+        "--needed-libs",
+        "--version-info"
+      ],
+      "raw_report_sha256": "75c0e58e0df087e7a8e686ea8fc80cbe11e6a6ebbb01622cba55c02204f49f91",
+      "linked_libraries": [
+        "ld-linux-aarch64.so.1",
+        "libc.so.6",
+        "libgcc_s.so.1",
+        "libm.so.6"
+      ],
+      "highest_glibc_symbol": "2.38",
+      "reviewed_linkage_match": true
+    },
+    {
+      "asset": "agentciv-host-v0.1.1-aarch64-unknown-linux-gnu",
+      "sha256": "d6d9910e79a35942a2b35e7cdb08be6555e570465a5dd0e2613ad92520df56eb",
+      "target": "aarch64-unknown-linux-gnu",
+      "architecture": "aarch64",
+      "inspection_flags": [
+        "--needed-libs",
+        "--version-info"
+      ],
+      "raw_report_sha256": "bc6aa16a5ba4dff1a018ea691f0d548ff83f66f9de50eb17c73263537331622e",
+      "linked_libraries": [
+        "ld-linux-aarch64.so.1",
+        "libc.so.6",
+        "libgcc_s.so.1",
+        "libm.so.6"
+      ],
+      "highest_glibc_symbol": "2.34",
+      "reviewed_linkage_match": true
+    },
+    {
+      "asset": "agentciv-reader-v0.1.1-aarch64-unknown-linux-gnu",
+      "sha256": "0907c0d9ffbb358bee3e026a39beb7ee703f28d65e153ce2f7757415f93706d5",
+      "target": "aarch64-unknown-linux-gnu",
+      "architecture": "aarch64",
+      "inspection_flags": [
+        "--needed-libs",
+        "--version-info"
+      ],
+      "raw_report_sha256": "5913dc7cde87588ebce4a4a2e415f9d9faf1430c6acb929866ba080c5230d253",
+      "linked_libraries": [
+        "ld-linux-aarch64.so.1",
+        "libc.so.6",
+        "libgcc_s.so.1",
+        "libm.so.6"
+      ],
+      "highest_glibc_symbol": "2.38",
+      "reviewed_linkage_match": true
+    },
+    {
+      "asset": "agentciv-archive-v0.1.1-x86_64-apple-darwin",
+      "sha256": "1a705a05db98e9bd35330a4440c03a298689f98d399feed0e8e0c3f153e73e89",
+      "target": "x86_64-apple-darwin",
+      "architecture": "x86_64",
+      "inspection_flags": [
+        "--needed-libs",
+        "--macho-version-min"
+      ],
+      "raw_report_sha256": "323102640308e97db280dee2109432af8d592c6bef5f42eb52596385b8185981",
+      "linked_libraries": [
+        "/usr/lib/libSystem.B.dylib",
+        "/usr/lib/libiconv.2.dylib"
+      ],
+      "minimum_os": "10.12",
+      "sdk": "15.5",
+      "reviewed_linkage_match": true
+    },
+    {
+      "asset": "agentciv-conformance-v0.1.1-x86_64-apple-darwin",
+      "sha256": "da244df439bb25dc566b674449bbf7bd4fc46d9939ba17bb5ec7aa4d5e31ec39",
+      "target": "x86_64-apple-darwin",
+      "architecture": "x86_64",
+      "inspection_flags": [
+        "--needed-libs",
+        "--macho-version-min"
+      ],
+      "raw_report_sha256": "2a9cae1a686b680ead1b79a26963889bd980f48fedb64d4ac4c15436185b8f72",
+      "linked_libraries": [
+        "/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation",
+        "/System/Library/Frameworks/Security.framework/Versions/A/Security",
+        "/usr/lib/libSystem.B.dylib",
+        "/usr/lib/libiconv.2.dylib"
+      ],
+      "minimum_os": "10.12",
+      "sdk": "15.5",
+      "reviewed_linkage_match": true
+    },
+    {
+      "asset": "agentciv-host-v0.1.1-x86_64-apple-darwin",
+      "sha256": "970d8cffea5258bc3b42cfa50912afb2a380a68cd6a5515ba60bad473a97401b",
+      "target": "x86_64-apple-darwin",
+      "architecture": "x86_64",
+      "inspection_flags": [
+        "--needed-libs",
+        "--macho-version-min"
+      ],
+      "raw_report_sha256": "718f5cd15a571f82268d72d3c0ddf0c5714fce3b520e44ee1f6f6109b81c37e7",
+      "linked_libraries": [
+        "/usr/lib/libSystem.B.dylib",
+        "/usr/lib/libiconv.2.dylib"
+      ],
+      "minimum_os": "10.12",
+      "sdk": "15.5",
+      "reviewed_linkage_match": true
+    },
+    {
+      "asset": "agentciv-reader-v0.1.1-x86_64-apple-darwin",
+      "sha256": "facc20c2edbd0c0c914ef9a09d5de390941f4fcb477a715e4ad07b22de77a584",
+      "target": "x86_64-apple-darwin",
+      "architecture": "x86_64",
+      "inspection_flags": [
+        "--needed-libs",
+        "--macho-version-min"
+      ],
+      "raw_report_sha256": "61f9ee3a6f9340150f1a4356e61f340f5dabe30ceaf44fced80b83661861bb0c",
+      "linked_libraries": [
+        "/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation",
+        "/System/Library/Frameworks/Security.framework/Versions/A/Security",
+        "/usr/lib/libSystem.B.dylib",
+        "/usr/lib/libiconv.2.dylib"
+      ],
+      "minimum_os": "10.12",
+      "sdk": "15.5",
+      "reviewed_linkage_match": true
+    },
+    {
+      "asset": "agentciv-archive-v0.1.1-x86_64-pc-windows-msvc.exe",
+      "sha256": "7c105abbe3cc4a8ff44029c1dd82ec551cbafa8c25f4d11ee783724438a96894",
+      "target": "x86_64-pc-windows-msvc",
+      "architecture": "x86_64",
+      "inspection_flags": [
+        "--coff-imports"
+      ],
+      "raw_report_sha256": "b0cbc701d4d65a37746ccfbeb66c3cf66998d7b8799b7c8696916ea3bdbf54f3",
+      "imported_libraries": [
+        "api-ms-win-core-synch-l1-2-0.dll",
+        "bcryptprimitives.dll",
+        "KERNEL32.dll",
+        "kernel32.dll",
+        "ntdll.dll"
+      ],
+      "reviewed_linkage_match": true
+    },
+    {
+      "asset": "agentciv-conformance-v0.1.1-x86_64-pc-windows-msvc.exe",
+      "sha256": "cb1c1435e4f6d9a7d3e844d58c2035c7d130a332eadf21d1018ae9d78a5939e4",
+      "target": "x86_64-pc-windows-msvc",
+      "architecture": "x86_64",
+      "inspection_flags": [
+        "--coff-imports"
+      ],
+      "raw_report_sha256": "9638d2edbda1622d68fef2114337de1494b9a19f041699f157de7527666cc989",
+      "imported_libraries": [
+        "api-ms-win-core-synch-l1-2-0.dll",
+        "bcryptprimitives.dll",
+        "crypt32.dll",
+        "KERNEL32.dll",
+        "kernel32.dll",
+        "ntdll.dll",
+        "ws2_32.dll",
+        "WS2_32.dll"
+      ],
+      "reviewed_linkage_match": true
+    },
+    {
+      "asset": "agentciv-host-v0.1.1-x86_64-pc-windows-msvc.exe",
+      "sha256": "46232a1861f496b0cef325aa3693eaa19869d129186c54da4e53483ed6f02d4d",
+      "target": "x86_64-pc-windows-msvc",
+      "architecture": "x86_64",
+      "inspection_flags": [
+        "--coff-imports"
+      ],
+      "raw_report_sha256": "ffc007afede2136233437ebc5f80819a99b4a9a886ccf21528273d3d1c1aa1a6",
+      "imported_libraries": [
+        "api-ms-win-core-synch-l1-2-0.dll",
+        "bcryptprimitives.dll",
+        "KERNEL32.dll",
+        "kernel32.dll",
+        "ntdll.dll",
+        "ws2_32.dll",
+        "WS2_32.dll"
+      ],
+      "reviewed_linkage_match": true
+    },
+    {
+      "asset": "agentciv-reader-v0.1.1-x86_64-pc-windows-msvc.exe",
+      "sha256": "a6b706ed3ea7470651f99774243a52ef3bfb8112da168fb5c1c54fa923afd9c2",
+      "target": "x86_64-pc-windows-msvc",
+      "architecture": "x86_64",
+      "inspection_flags": [
+        "--coff-imports"
+      ],
+      "raw_report_sha256": "bffcd3732cbf27ac57a0e5e0cc2eb276959f0d5c0c6150d96832a5ed3ef66fd1",
+      "imported_libraries": [
+        "api-ms-win-core-synch-l1-2-0.dll",
+        "bcryptprimitives.dll",
+        "crypt32.dll",
+        "KERNEL32.dll",
+        "kernel32.dll",
+        "ntdll.dll",
+        "ws2_32.dll",
+        "WS2_32.dll"
+      ],
+      "reviewed_linkage_match": true
+    },
+    {
+      "asset": "agentciv-archive-v0.1.1-x86_64-unknown-linux-gnu",
+      "sha256": "bbdab751c96123cec4b681244fb1b100255a146168751943cecc8bd8ae9c02dd",
+      "target": "x86_64-unknown-linux-gnu",
+      "architecture": "x86_64",
+      "inspection_flags": [
+        "--needed-libs",
+        "--version-info"
+      ],
+      "raw_report_sha256": "a1388ef18d0d98b5bcc32d9c93b4282eaff9f3e170e3003ad78b1c617cd0f690",
+      "linked_libraries": [
+        "ld-linux-x86-64.so.2",
+        "libc.so.6",
+        "libgcc_s.so.1",
+        "libm.so.6"
+      ],
+      "highest_glibc_symbol": "2.34",
+      "reviewed_linkage_match": true
+    },
+    {
+      "asset": "agentciv-conformance-v0.1.1-x86_64-unknown-linux-gnu",
+      "sha256": "d697a5a016ef70e2bab7e3a3e75bec33888c80841052938f3242a6bdd4fff389",
+      "target": "x86_64-unknown-linux-gnu",
+      "architecture": "x86_64",
+      "inspection_flags": [
+        "--needed-libs",
+        "--version-info"
+      ],
+      "raw_report_sha256": "908e02eba4ee8e3a38e6e416e1ddfe7a28ee7ac5bab3eb96ac7b6db76fa2cb15",
+      "linked_libraries": [
+        "ld-linux-x86-64.so.2",
+        "libc.so.6",
+        "libgcc_s.so.1",
+        "libm.so.6"
+      ],
+      "highest_glibc_symbol": "2.38",
+      "reviewed_linkage_match": true
+    },
+    {
+      "asset": "agentciv-host-v0.1.1-x86_64-unknown-linux-gnu",
+      "sha256": "b7f24be9d873cdb58c6e1f64969f523fae82e2c8b5ba9569b963063cc07b1431",
+      "target": "x86_64-unknown-linux-gnu",
+      "architecture": "x86_64",
+      "inspection_flags": [
+        "--needed-libs",
+        "--version-info"
+      ],
+      "raw_report_sha256": "852f808f6bcdb6f8f683b5183b49f0e3adf3eca934aaf43a5bcc12eb2709bdcb",
+      "linked_libraries": [
+        "ld-linux-x86-64.so.2",
+        "libc.so.6",
+        "libgcc_s.so.1",
+        "libm.so.6"
+      ],
+      "highest_glibc_symbol": "2.34",
+      "reviewed_linkage_match": true
+    },
+    {
+      "asset": "agentciv-reader-v0.1.1-x86_64-unknown-linux-gnu",
+      "sha256": "42a4c399aba8fb0a8ed4d9571fe4455be1e415c74c7eeec197597a82d1f87387",
+      "target": "x86_64-unknown-linux-gnu",
+      "architecture": "x86_64",
+      "inspection_flags": [
+        "--needed-libs",
+        "--version-info"
+      ],
+      "raw_report_sha256": "26298561bf1edd65420d603f9fbd42c0e1a3a34dc0f3b2b05035f8c62b95a623",
+      "linked_libraries": [
+        "ld-linux-x86-64.so.2",
+        "libc.so.6",
+        "libgcc_s.so.1",
+        "libm.so.6"
+      ],
+      "highest_glibc_symbol": "2.38",
+      "reviewed_linkage_match": true
+    }
+  ],
+  "scope": "Static inspection only; native execution and build-product/notice review are separate."
+}

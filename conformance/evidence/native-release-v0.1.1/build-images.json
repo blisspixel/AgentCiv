@@ -1,0 +1,31 @@
+{
+  "observed_at": "2026-10-12T09:53:30.477781+00:00",
+  "source_commit": "1f0ff2a59eb9bd8fa1eaab65b2f5dac669aed936",
+  "version": "v0.1.1",
+  "baseline_sha256": "7fec865a003b3631545bb7d7944e3c131c988673c74922f32a8be2a8edf22e79",
+  "targets": [
+    {
+      "target": "aarch64-pc-windows-msvc",
+      "release_run": 38213447305,
+      "release_job": 114692694029,
+      "image": "windows-11-vs2026-arm64",
+      "image_version": "20261004.176.1",
+      "reviewed_audit_run": 38157571603,
+      "reviewed_audit_job": 114523598867,
+      "reviewed_image_match": true,
+      "retrieved_release_log_sha256": "03f575081c7268a8231943ba36194d3b0b1558abb8459ff392233b4f6ad3f523"
+    },
+    {
+      "target": "x86_64-pc-windows-msvc",
+      "release_run": 38213447305,
+      "release_job": 114692694047,
+      "image": "windows-2025-vs2026",
+      "image_version": "20260925.250.1",
+      "reviewed_audit_run": 38157571603,
+      "reviewed_audit_job": 114523598895,
+      "reviewed_image_match": true,
+      "retrieved_release_log_sha256": "1701ef6d838e528a2051336ca69e750d36c2ebd7ebf2fc506e636926221c8667"
+    }
+  ],
+  "scope": "Actual Windows candidate images match the previously reviewed build-product images; changed images require a separate review."
+}
