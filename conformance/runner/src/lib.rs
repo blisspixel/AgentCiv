@@ -40,7 +40,7 @@ const EXTENDED_CASES: [&str; 17] = [
     "submit.concurrent_conflict",
     "submit.concurrent_distinct",
 ];
-const COLLABORATION_CASES: [&str; 37] = [
+const COLLABORATION_CASES: [&str; 38] = [
     "collaborate.client_revision",
     "collaborate.forbidden",
     "collaborate.unauthenticated",
@@ -78,6 +78,7 @@ const COLLABORATION_CASES: [&str; 37] = [
     "collaborate.concurrent_retry",
     "collaborate.concurrent_conflict",
     "collaborate.concurrent_retry_sequence",
+    "collaborate.integer_citations",
 ];
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]

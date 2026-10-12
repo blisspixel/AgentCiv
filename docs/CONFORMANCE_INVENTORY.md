@@ -43,6 +43,8 @@ For example, `collaborate.hidden_visibility` is optional-skipped in the `members
 
 The current runner also fails a required skipped case when deciding its scoped report result. The [local matrix validator tests](../examples/http-commons/test_validate.py) reject missing, duplicate, failed, unknown, and improperly skipped cases. The inventory complements those runtime report checks. It does not replace them.
 
+The current extended runner adds required `collaborate.integer_citations` when collaboration is advertised, bringing that roster to 74 cases. It checks integral decimal/exponent citation spellings, schema-invalid numbers, unchanged history on rejection, byte-specific retries and the withdrawal's in-place tombstone. Its public-case reference is linked to the applicable citation, schema, retry and receipt clauses. No observation for this new case has been added to the 489 retained inventory entries. The historical 73-case acceptance reports below remain evidence of their named source, rather than current-source results.
+
 ## Evidence map and next tests
 
 The inventory contains the exact source quotations and references. This table groups the remaining work without restating wire rules.

@@ -23,6 +23,7 @@ import time
 import urllib.parse
 from collections.abc import Callable
 from dataclasses import dataclass
+from decimal import Decimal, InvalidOperation
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import TypeGuard
@@ -268,7 +269,7 @@ def message_error(record: object) -> str | None:
     return None
 
 
-def collaboration_error(record: object) -> str | None:
+def collaboration_error(record: object, raw: bytes | None = None) -> str | None:
     """Return a profile error code, or None when the record is a collaboration act."""
 
     if not isinstance(record, dict):
@@ -292,6 +293,8 @@ def collaboration_error(record: object) -> str | None:
         return "invalid_record"
     if not _nonempty_string(record.get("from")):
         return "invalid_record"
+    if raw is not None and not exact_citation_revision(raw):
+        return "invalid_record"
     if kind == "artifact_revision":
         if "revision" in record:
             return "invalid_record"
@@ -311,7 +314,7 @@ def collaboration_error(record: object) -> str | None:
             record.get("target_from")
         ):
             return "invalid_record"
-        if not _positive_int(record.get("revision")):
+        if not _positive_revision(record.get("revision")):
             return "invalid_record"
         if not _audience(record.get("to")) or not isinstance(record.get("body"), dict):
             return "invalid_record"
@@ -320,7 +323,7 @@ def collaboration_error(record: object) -> str | None:
         record.get("target_from")
     ):
         return "invalid_record"
-    if not _positive_int(record.get("revision")):
+    if not _positive_revision(record.get("revision")):
         return "invalid_record"
     body = record.get("body")
     if "body" in record and not isinstance(body, dict):
@@ -356,8 +359,33 @@ def _audience(value: object) -> bool:
     return True
 
 
-def _positive_int(value: object) -> bool:
-    return isinstance(value, int) and not isinstance(value, bool) and 1 <= value <= 9_007_199_254_740_991
+def _positive_revision(value: object) -> bool:
+    return (isinstance(value, (int, float)) and not isinstance(value, bool)
+            and 1 <= value <= 9_007_199_254_740_991
+            and (isinstance(value, int) or value.is_integer()))
+
+
+def exact_citation_revision(raw: bytes) -> bool:
+    """Check only the known citation lexeme, never return reconstructed submitted data."""
+    try:
+        record: object = json.loads(raw, parse_float=Decimal, parse_int=Decimal,
+                                   parse_constant=_reject_constant)
+        if not isinstance(record, dict):
+            return False
+        if record.get("type") == "artifact_revision":
+            if "derived_from" not in record:
+                return True
+            citation = record.get("derived_from")
+            if not isinstance(citation, dict):
+                return False
+        else:
+            citation = record
+        revision = citation.get("revision")
+        return (isinstance(revision, Decimal) and revision.is_finite()
+                and 1 <= revision <= 9_007_199_254_740_991
+                and revision == revision.to_integral_value())
+    except (ValueError, InvalidOperation, OverflowError, RecursionError):
+        return False
 
 
 def _note_shape(value: object) -> bool:
@@ -379,7 +407,7 @@ def _citation_shape(value: object) -> bool:
     return (
         _nonempty_string(value.get("from"))
         and _nonempty_string(value.get("artifact_id"))
-        and _positive_int(value.get("revision"))
+        and _positive_revision(value.get("revision"))
     )
 
 
@@ -764,6 +792,8 @@ class Store:
         self, connection: sqlite3.Connection, principal: str, body: bytes, can_read: bool
     ) -> JsonObject:
         record = parse_object(body)
+        if not exact_citation_revision(body):
+            raise StorageFailure
         record_id = record.get("id")
         if not _nonempty_string(record_id):
             raise StorageFailure
@@ -899,7 +929,10 @@ class Store:
     ) -> sqlite3.Row:
         target_from = citation.get(cited_by)
         artifact_id = citation.get("artifact_id")
-        revision = citation.get("revision")
+        revision_value = citation.get("revision")
+        if not isinstance(revision_value, (int, float)) or not _positive_revision(revision_value):
+            raise StorageFailure
+        revision = int(revision_value)
         visibility = self._required_meta(connection, "visibility")
         for row in self._artifact_rows(connection, target_from, artifact_id, revision):
             event = parse_object(str(row["event_json"]))
@@ -1393,7 +1426,7 @@ class Handler(BaseHTTPRequestHandler):
         except MalformedJson:
             self._problem(400, "malformed_json", "JSON could not be parsed")
             return
-        code = collaboration_error(record)
+        code = collaboration_error(record, body)
         if code == "unsupported_version":
             self._problem(422, code, "Unsupported protocol version")
             return

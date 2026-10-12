@@ -516,6 +516,18 @@ fn collaborate_tx(
                 .map_err(|_| CollaborateError::Storage)?,
         };
         let record: Value = serde_json::from_slice(bytes).map_err(|_| CollaborateError::Storage)?;
+        // Only the lookup copy receives a numeric key. Stored data and retry bytes stay original.
+        let mut lookup = record.clone();
+        if record["type"] != "artifact_revision" || record.get("derived_from").is_some() {
+            let revision = crate::validate::exact_citation_revision(&record, bytes)
+                .ok_or(CollaborateError::Storage)?;
+            let target = if record["type"] == "artifact_revision" {
+                &mut lookup["derived_from"]
+            } else {
+                &mut lookup
+            };
+            target["revision"] = json!(revision);
+        }
         let record_id = record["id"]
             .as_str()
             .ok_or(CollaborateError::Storage)?
@@ -531,7 +543,7 @@ fn collaborate_tx(
         {
             return Ok(saved.receipt.clone());
         }
-        ensure_collaboration_target(conn, principal, can_read, &record)?;
+        ensure_collaboration_target(conn, principal, can_read, &lookup)?;
         if let Some(saved) = saved.as_ref() {
             if saved.created.saturating_add(retention) > now {
                 return Err(CollaborateError::Conflict);
@@ -545,7 +557,7 @@ fn collaborate_tx(
         let kind = record["type"].as_str().ok_or(CollaborateError::Storage)?;
         let receipt = match kind {
             "artifact_revision" => {
-                if let Some(citation) = record.get("derived_from") {
+                if let Some(citation) = lookup.get("derived_from") {
                     require_visible_revision(conn, principal, can_read, citation, "from")?;
                 }
                 let mut stored = record.clone();
@@ -571,7 +583,7 @@ fn collaborate_tx(
                 receipt
             }
             "objection" | "decline" => {
-                require_visible_revision(conn, principal, can_read, &record, "target_from")?;
+                require_visible_revision(conn, principal, can_read, &lookup, "target_from")?;
                 let event_kind = if kind == "objection" {
                     "objection.recorded"
                 } else {
@@ -584,7 +596,7 @@ fn collaborate_tx(
             }
             "withdrawal" => {
                 let row =
-                    require_visible_revision(conn, principal, can_read, &record, "target_from")?;
+                    require_visible_revision(conn, principal, can_read, &lookup, "target_from")?;
                 if row.actor != principal {
                     return Err(CollaborateError::Forbidden);
                 }

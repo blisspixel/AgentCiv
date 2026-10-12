@@ -322,7 +322,7 @@ fn accept_collaboration(
     bytes: &[u8],
 ) -> Result<Value, SubmitRejection> {
     let record = parse_request(bytes)?;
-    if let Some(code) = collaboration_error(&record) {
+    if let Some(code) = collaboration_error(&record, bytes) {
         let title = match code {
             "unsupported_version" => "Unsupported protocol version",
             "unsupported_record_type" => "Unsupported record type",

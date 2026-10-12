@@ -1,0 +1,228 @@
+{
+  "started_utc": "2026-10-12T10:27:49.222372+00:00",
+  "os": "Windows-11-10.0.26200-SP0",
+  "os_version": "10.0.26200",
+  "python": "3.14.7",
+  "limits": {
+    "total_seconds": 90,
+    "work_seconds": 85,
+    "subprocess_seconds": 10,
+    "maximum_acl_calls_including_setup": 15,
+    "noop_samples": 3
+  },
+  "input": "newly owned synthetic directory/file, 16 nonsecret bytes",
+  "acl_calls": [
+    {
+      "number": 1,
+      "phase": "setup_create_directory",
+      "role": "directory",
+      "action": "set",
+      "timeout_seconds": 10.0,
+      "outcome": "passed",
+      "elapsed_seconds": 0.374617
+    },
+    {
+      "number": 2,
+      "phase": "setup_create_directory",
+      "role": "directory",
+      "action": "check",
+      "timeout_seconds": 10.0,
+      "outcome": "passed",
+      "elapsed_seconds": 0.396444
+    },
+    {
+      "number": 3,
+      "phase": "setup_write_synthetic_file",
+      "role": "directory",
+      "action": "check",
+      "timeout_seconds": 10.0,
+      "outcome": "passed",
+      "elapsed_seconds": 0.343701
+    },
+    {
+      "number": 4,
+      "phase": "setup_write_synthetic_file",
+      "role": "file",
+      "action": "set",
+      "timeout_seconds": 10.0,
+      "outcome": "passed",
+      "elapsed_seconds": 0.450177
+    },
+    {
+      "number": 5,
+      "phase": "setup_write_synthetic_file",
+      "role": "directory",
+      "action": "check",
+      "timeout_seconds": 10.0,
+      "outcome": "passed",
+      "elapsed_seconds": 0.344428
+    },
+    {
+      "number": 6,
+      "phase": "setup_write_synthetic_file",
+      "role": "file",
+      "action": "check",
+      "timeout_seconds": 10.0,
+      "outcome": "passed",
+      "elapsed_seconds": 0.387243
+    },
+    {
+      "number": 7,
+      "phase": "directory_check_1",
+      "role": "directory",
+      "action": "check",
+      "timeout_seconds": 10.0,
+      "outcome": "passed",
+      "elapsed_seconds": 0.345608
+    },
+    {
+      "number": 8,
+      "phase": "directory_check_2",
+      "role": "directory",
+      "action": "check",
+      "timeout_seconds": 10.0,
+      "outcome": "passed",
+      "elapsed_seconds": 0.333715
+    },
+    {
+      "number": 9,
+      "phase": "directory_check_3",
+      "role": "directory",
+      "action": "check",
+      "timeout_seconds": 10.0,
+      "outcome": "passed",
+      "elapsed_seconds": 0.365714
+    },
+    {
+      "number": 10,
+      "phase": "file_check_1",
+      "role": "directory",
+      "action": "check",
+      "timeout_seconds": 10.0,
+      "outcome": "passed",
+      "elapsed_seconds": 0.334114
+    },
+    {
+      "number": 11,
+      "phase": "file_check_1",
+      "role": "file",
+      "action": "check",
+      "timeout_seconds": 10.0,
+      "outcome": "passed",
+      "elapsed_seconds": 0.332236
+    },
+    {
+      "number": 12,
+      "phase": "file_check_2",
+      "role": "directory",
+      "action": "check",
+      "timeout_seconds": 10.0,
+      "outcome": "passed",
+      "elapsed_seconds": 0.366259
+    },
+    {
+      "number": 13,
+      "phase": "file_check_2",
+      "role": "file",
+      "action": "check",
+      "timeout_seconds": 10.0,
+      "outcome": "passed",
+      "elapsed_seconds": 0.347232
+    },
+    {
+      "number": 14,
+      "phase": "file_check_3",
+      "role": "directory",
+      "action": "check",
+      "timeout_seconds": 10.0,
+      "outcome": "passed",
+      "elapsed_seconds": 0.446017
+    },
+    {
+      "number": 15,
+      "phase": "file_check_3",
+      "role": "file",
+      "action": "check",
+      "timeout_seconds": 10.0,
+      "outcome": "passed",
+      "elapsed_seconds": 0.339387
+    }
+  ],
+  "operations": [
+    {
+      "name": "setup_create_directory",
+      "outcome": "passed",
+      "elapsed_seconds": 0.772547,
+      "acl_calls": 2
+    },
+    {
+      "name": "setup_write_synthetic_file",
+      "outcome": "passed",
+      "elapsed_seconds": 1.529057,
+      "acl_calls": 4
+    },
+    {
+      "name": "directory_check_1",
+      "outcome": "passed",
+      "elapsed_seconds": 0.346046,
+      "acl_calls": 1
+    },
+    {
+      "name": "directory_check_2",
+      "outcome": "passed",
+      "elapsed_seconds": 0.3344,
+      "acl_calls": 1
+    },
+    {
+      "name": "directory_check_3",
+      "outcome": "passed",
+      "elapsed_seconds": 0.366239,
+      "acl_calls": 1
+    },
+    {
+      "name": "file_check_1",
+      "outcome": "passed",
+      "elapsed_seconds": 0.667452,
+      "acl_calls": 2
+    },
+    {
+      "name": "file_check_2",
+      "outcome": "passed",
+      "elapsed_seconds": 0.714459,
+      "acl_calls": 2
+    },
+    {
+      "name": "file_check_3",
+      "outcome": "passed",
+      "elapsed_seconds": 0.786623,
+      "acl_calls": 2
+    }
+  ],
+  "noop_starts": [
+    {
+      "number": 1,
+      "outcome": "passed",
+      "exit_code": 0,
+      "elapsed_seconds": 0.242985
+    },
+    {
+      "number": 2,
+      "outcome": "passed",
+      "exit_code": 0,
+      "elapsed_seconds": 0.195149
+    },
+    {
+      "number": 3,
+      "outcome": "passed",
+      "exit_code": 0,
+      "elapsed_seconds": 0.19422
+    }
+  ],
+  "powershell": "5.1.26100.9549",
+  "powershell_version_exit_code": 0,
+  "outcome": "completed",
+  "cleanup_containment_verified": true,
+  "cleanup": "removed_exact_owned_file_and_directories",
+  "elapsed_seconds": 6.462528,
+  "total_deadline_met": true
+}

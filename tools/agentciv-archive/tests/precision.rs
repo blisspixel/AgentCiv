@@ -1,4 +1,4 @@
-use agentciv_archive::{export, inspect, validate_event};
+use agentciv_archive::{exact_integer_field, export, inspect, parse_unique, validate_event};
 use serde_json::{Value, json};
 
 fn stored(sequence: &str, revision: &str, citation: Option<&str>) -> String {
@@ -99,4 +99,33 @@ fn legal_safe_boundary_controls_have_exact_identity_despite_float_parser_roundin
             "{raw}"
         );
     }
+}
+
+#[test]
+fn shared_exact_field_helper_preserves_lexeme_boundaries_without_validating_a_record() {
+    for (raw, expected) in [
+        ("1.0", Some(1)),
+        ("10e-1", Some(1)),
+        ("9007199254740991.0", Some(9_007_199_254_740_991)),
+        ("-0.0", Some(0)),
+        ("1.00000000000000000001", None),
+        ("9007199254740991.1", None),
+        ("1e-999", None),
+        ("9007199254740992", None),
+        ("true", None),
+        ("\"1\"", None),
+    ] {
+        let source = format!("{{\"nested\":{{\"\\u0072evision\":{raw}}}}}");
+        assert!(parse_unique(&source).is_ok());
+        assert_eq!(
+            exact_integer_field(&source, &["nested", "revision"]),
+            expected,
+            "{raw}"
+        );
+    }
+    assert_eq!(exact_integer_field("{}", &["missing"]), None);
+    assert_eq!(exact_integer_field("[]", &["revision"]), None);
+    assert_eq!(exact_integer_field("{", &["revision"]), None);
+    // Duplicate detection is the caller's prerequisite, not this numeric helper's claim.
+    assert!(parse_unique("{\"revision\":1,\"\\u0072evision\":2}").is_err());
 }

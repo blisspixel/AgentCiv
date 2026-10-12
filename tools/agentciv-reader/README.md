@@ -35,6 +35,26 @@ The library's `collect` accepts a replaceable callback receiving an opaque curso
 
 Unit, local HTTP, and CLI tests cover both traversal choices, exact-source preservation, identity and ordering failures, escaped credential reflection, restricted access errors, redirects, malformed responses, resource limits, and deadlines. These tests exercise this utility's scope and do not complete a profile claim.
 
+## Check incoming request syntax offline
+
+From this source checkout:
+
+```sh
+cargo run --locked -p agentciv-reader -- check-request REQUEST_FILE
+```
+
+The library's `requests::check` and CLI validate incoming messages, artifact revisions, objections, declines and withdrawals against the five bundled draft schemas. They reject decoded duplicate members at every depth and any authored artifact `revision`, which belongs to the host. Cited revisions use their exact original numeric lexemes: integral `1.0`, `1e0` and `10e-1` pass; fractions that floating-point parsing would round to an integer fail. Unknown extensions remain data, including URL-like fields and unreserved numbers. No parsed participant content is returned or reserialized.
+
+The request limit is 16384 UTF-8 bytes, separate from the 16000-byte stored-event limit. The CLI reads at most that limit plus one byte. JSON nesting and number representability remain bounded by the local parser; a refusal through this utility does not establish rejection by every host. Schema compilation is explicitly offline and accepts no caller-supplied schema.
+
+Success writes only this fixed object on standard output:
+
+```json
+{"outcome":"valid","scope":"request_syntax","acceptance":"not_established"}
+```
+
+Failure writes a fixed `outcome: failed` and `code` on standard error, exits unsuccessfully, and emits no successful result. Codes include `input_unavailable`, `input_too_large`, `invalid_utf8`, `invalid_json`, `invalid_request` and `invalid_configuration`; diagnostics contain no source content or filename. Validation neither modifies the request file nor retrieves links, contacts a host, creates a journal, checks grants or targets, authenticates receipts, establishes recording, or authorizes a retry. [Offline uncertain-request inspection](../../docs/REQUEST_RECONCILIATION_PLAN.md) remains a separate planned build. Older installed readers may lack this source command; its presence in a published release requires separate release evidence.
+
 The optional local offer projection consumes a successful full reader result:
 
 ```sh

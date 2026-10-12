@@ -1444,10 +1444,10 @@ class PublicRunnerTest(unittest.TestCase):
         summary = expect_dict(report["summary"])
         self.assertEqual(summary["failed"], 0)
         self.assertEqual(summary["skipped"], 6)
-        self.assertEqual(summary["passed"], 67)
+        self.assertEqual(summary["passed"], 68)
         cases = dicts(report["cases"])
         ids = {expect_str(case["id"]) for case in cases}
-        self.assertEqual(len(ids), 73)
+        self.assertEqual(len(ids), 74)
         self.assertTrue({"collaborate.concurrent_retry", "collaborate.concurrent_conflict",
                          "collaborate.concurrent_retry_sequence"}.issubset(ids))
         self.assertIn("submit.json_charset", ids)
@@ -1470,6 +1470,7 @@ class PublicRunnerTest(unittest.TestCase):
             "submit.concurrent_retry",
             "submit.concurrent_conflict",
             "submit.concurrent_distinct",
+            "collaborate.integer_citations",
             "collaborate.client_revision",
             "collaborate.forbidden",
             "collaborate.unauthenticated",
@@ -1706,7 +1707,7 @@ class ReviewedRuleTests(unittest.TestCase):
         smuggled["derived_from"] = {"from": "agent:ghost", "artifact_id": plan["artifact_id"], "revision": 1,
             "target_from": "agent:abc123"}
         self.assertEqual(self.collaborate("writer-token-value", smuggled), (422, "unknown_target"))
-        fractional = self.objection("submission:fractional", "agent:abc123", ("agent:abc123", str(plan["artifact_id"]), 1.0))
+        fractional = self.objection("submission:fractional", "agent:abc123", ("agent:abc123", str(plan["artifact_id"]), 1.5))
         self.assertEqual(self.collaborate("writer-token-value", fractional), (422, "invalid_record"))
 
     def test_repeated_after_is_an_invalid_cursor_after_the_grant_checks(self) -> None:
@@ -1719,6 +1720,117 @@ class ReviewedRuleTests(unittest.TestCase):
         status, headers, payload = request("GET", url, token="reader-token-value")
         self.assertEqual((status, at(json_body(payload), "code")), (400, "invalid_cursor"))
         self.assertEqual(headers.get("content-type"), "application/problem+json")
+
+
+class IntegralCitationTests(unittest.TestCase):
+    def test_all_citation_paths_use_exact_values_without_changing_retry_bytes(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            server = host.start_server(config(Path(directory), max_payload_bytes=8192))
+            try:
+                self.exercise(server)
+            finally:
+                server.shutdown()
+                server.server_close()
+
+    def exercise(self, server: host.CommonsServer) -> None:
+        def post(raw: bytes, token: str = "writer-token-value") -> tuple[int, bytes]:
+            status, _, payload = request("POST", f"{server.origin}/collaborate", token, raw)
+            return status, payload
+
+        def history() -> list[object]:
+            status, _, payload = request("GET", f"{server.origin}/events", "writer-token-value")
+            self.assertEqual(status, 200)
+            return expect_list(at(json_body(payload), "events"))
+
+        def record(kind: str, record_id: str, target: str, spelling: str) -> bytes:
+            value: dict[str, object] = {"protocol_version": "0.1-draft", "type": kind, "id": record_id,
+                "world": "civ:local", "from": "agent:abc123", "to": ["agent:reader"],
+                "artifact_id": target, "body": {"extension": {"integer": 18446744073709551615,
+                    "boolean": False, "text": "keep"}}}
+            if kind == "artifact_revision":
+                value.update({"artifact_id": record_id, "media_type": "application/json",
+                    "derived_from": {"from": "agent:abc123", "artifact_id": target, "revision": "LEXEME"}})
+            else:
+                value.update({"target_from": "agent:abc123", "revision": "LEXEME"})
+            return json.dumps(value).replace('"LEXEME"', spelling).encode()
+
+        for index, spelling in enumerate(["1.0", "1e0", "10e-1", "1.0000000000000000000000000000000"]):
+            target = f"artifact:integer-{index}"
+            seed = artifact_revision(f"seed:{index}", "agent:abc123", ["agent:reader"])
+            seed["artifact_id"] = target
+            status, payload = post(json.dumps(seed).encode())
+            self.assertEqual(status, 200)
+            seeded = json_body(payload)
+            for kind in ["artifact_revision", "objection", "decline", "withdrawal"]:
+                raw = record(kind, f"submission:{index}:{kind}", target, spelling)
+                before = history()
+                status, receipt_raw = post(raw)
+                self.assertEqual(status, 200, (kind, spelling, receipt_raw))
+                self.assertEqual(post(raw), (200, receipt_raw))
+                changed = raw.replace(spelling.encode(), b"1.0" if spelling == "1e0" else b"1e0")
+                status, problem = post(changed)
+                self.assertEqual((status, at(json_body(problem), "code")), (409, "id_conflict"))
+                receipt = json_body(receipt_raw)
+                after = history()
+                event = next(row for row in after if at(row, "id") == at(receipt, "event_id"))
+                if kind == "withdrawal":
+                    self.assertEqual(len(after), len(before))
+                    self.assertEqual(at(event, "id"), at(seeded, "event_id"))
+                    self.assertEqual(at(event, "sequence"), at(seeded, "sequence"))
+                    self.assertEqual(at(event, "kind"), "artifact.withdrawn")
+                    self.assertEqual(at(event, "body"), {})
+                else:
+                    expected = expect_dict(json.loads(raw))
+                    if kind == "artifact_revision":
+                        expected["revision"] = at(receipt, "revision")
+                    self.assertEqual(at(event, "body", kind), expected)
+                    self.assertEqual(len(after), len(before) + 1)
+            foreign = record("withdrawal", f"foreign:{index}", target, spelling).replace(
+                b'"from": "agent:abc123"', b'"from": "agent:two"')
+            status, problem = post(foreign, "second-writer-token")
+            self.assertEqual((status, at(json_body(problem), "code")), (403, "forbidden"))
+
+        for kind in ["artifact_revision", "objection", "decline", "withdrawal"]:
+            before = history()
+            for index, spelling in enumerate(["1.5", "1.00000000000000000001", "9007199254740991.1",
+                    "1e-999", "9007199254740992", "0", "-1", "true", "null", '"1"']):
+                status, problem = post(record(kind, f"invalid:{kind}:{index}", "artifact:integer-0", spelling))
+                self.assertEqual((status, at(json_body(problem), "code")), (422, "invalid_record"), (kind, spelling))
+            for spelling in ["1.0", "1e0", "9007199254740991", "9007199254740991.0", "9.007199254740991e15"]:
+                status, problem = post(record(kind, f"absent:{kind}:{spelling}", "artifact:absent", spelling))
+                self.assertEqual((status, at(json_body(problem), "code")), (422, "unknown_target"))
+            self.assertEqual(history(), before)
+
+    def test_integral_spellings_do_not_reveal_hidden_targets(self) -> None:
+        for visibility in ["addressed", "sender_only"]:
+            with tempfile.TemporaryDirectory() as directory:
+                server = host.start_server(config(Path(directory), visibility=visibility))
+                try:
+                    source = artifact_revision("hidden-source", "agent:abc123", ["agent:reader"])
+                    status, _, _ = request("POST", f"{server.origin}/collaborate", "writer-token-value", json.dumps(source).encode())
+                    self.assertEqual(status, 200)
+                    for kind in ["artifact_revision", "objection", "decline", "withdrawal"]:
+                        for spelling in ["1.0", "1e0"]:
+                            foreign = artifact_revision(f"hidden:{kind}:{spelling}", "agent:two", ["agent:two"])
+                            foreign["type"] = kind
+                            if kind == "artifact_revision":
+                                foreign["derived_from"] = {"from": "agent:abc123", "artifact_id": "artifact:plan", "revision": "LEXEME"}
+                            else:
+                                foreign.update({"artifact_id": "artifact:plan", "target_from": "agent:abc123", "revision": "LEXEME"})
+                            raw = json.dumps(foreign).replace('"LEXEME"', spelling).encode()
+                            status, _, problem = request("POST", f"{server.origin}/collaborate", "second-writer-token", raw)
+                            self.assertEqual((status, at(json_body(problem), "code")), (422, "unknown_target"))
+                    status, _, payload = request("GET", f"{server.origin}/events", "writer-token-value")
+                    self.assertEqual(status, 200)
+                    self.assertEqual(len(expect_list(at(json_body(payload), "events"))), 1)
+                finally:
+                    server.shutdown()
+                    server.server_close()
+
+    def test_exact_revision_guard_refuses_malformed_and_overflow(self) -> None:
+        for raw in [b"not json", b"[]", b'{"type":"artifact_revision","derived_from":null}',
+                    b'{"revision":true}', b'{"revision":1e999}', b'{"revision":"1"}', b'{"revision":NaN}']:
+            self.assertFalse(host.exact_citation_revision(raw))
 
 
 if __name__ == "__main__":
