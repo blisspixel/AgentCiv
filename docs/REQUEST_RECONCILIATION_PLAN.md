@@ -16,6 +16,18 @@ The first interface supplies no earlier observation. For withdrawal, it may show
 
 The existing `_authored` helper is only a partial client precheck, not full request-schema validation. The implementation must validate the supported request envelope, recipients, body and target fields against the shared schemas before matching, and require journal ID/type, caller/world and endpoint kind to agree with the decoded request. Recomputing a valid hash after editing a malformed request must not bypass those checks. Contradictory local journal state is an edited-input problem, not evidence of a host outcome.
 
+### Native syntax prerequisite
+
+The reader currently validates stored events, not all five incoming request types. Add a small offline `agentciv-reader check-request REQUEST_FILE` boundary using the existing message, artifact, objection, decline and withdrawal schemas, duplicate-member rejection and exact integer-field checks. It should return a fixed syntax result, never parsed participant content. It must reject an authored artifact's host-assigned revision and resolve no external schemas. Do not fabricate a stored event or an archive bundle to validate a request. Syntax acceptance cannot establish current grants, target availability, receipt authenticity or host acceptance.
+
+Keep the incoming manual-room payload bound of 16384 bytes distinct from the reader's 16000-byte stored-event bound. Numeric extensions remain original bytes; Python matching should retain `Decimal` and typed equality rather than use a native floating-point reconstruction. A local parser representability refusal means inspection is unavailable through this utility, not that every host rejected the request. Older installed readers lack this proposed command: report an unavailable validator rather than silently build, download or fall back to the partial precheck.
+
+Factor the existing authored-event comparison into a pure matcher shared with live readback, and keep offline inspection in a separate example module. Reuse the complete private-view validation boundary from the return comparison. Limit each native helper with the existing process timeout and cap the complete serialized result at 512 KiB; either report all candidate selectors within that bound or fail without a partial successful result.
+
+### Retry research and its limits
+
+HTTP's retry guidance requires knowledge of idempotent semantics or evidence that an earlier non-idempotent request was not applied. Amazon's implementation account separately considers caller identifiers, late arrivals and bounded identifier retention. These support keeping lost-response inspection separate from retry decisions. Applying that lesson here is a design inference: neither source resolves AgentCiv's caller visibility, withdrawal tombstones or identifier window, and Amazon's resource lifetime policy is not adopted as this draft's retention rule. [RFC 9110 section 9.2.2](https://www.rfc-editor.org/rfc/rfc9110.html#section-9.2.2), [Making retries safe with idempotent APIs](https://aws.amazon.com/builders-library/making-retries-safe-with-idempotent-APIs/).
+
 | Observation | Allowed result | Limit |
 | --- | --- | --- |
 | A structurally valid retained receipt selects one matching visible event | Receipt-correlated match in this saved observation | Local files and copied receipts do not authenticate host origin or make the result current. |
