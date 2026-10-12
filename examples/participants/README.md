@@ -269,6 +269,17 @@ Public outputs contain synthetic shared records, original event strings under an
 
 For this reader example, `--private-traces` places `private-a.json`, `private-b.json`, `private-c.json`, and `private-candidates-*` in the output directory. Exclude those paths explicitly from any evidence export; a blanket `*.json` selection can disclose raw provider responses. The option is off by default.
 
+## Frozen reading table
+
+The optional [reading table](../../docs/READING_TABLE.md) retains one explicitly exportable synthetic story, passage notes, an independently authored open-question alternative, an objection, a decline and two attributed adoption statements. Both practices remain unfinished; quiet needs no manufactured civic event. The offline inspector reconstructs from exact original strings and source selectors, ignores producer success flags, selects no winner and infers no group state.
+
+```sh
+python examples/participants/reading_table.py --fixture examples/participants/fixtures/reading-table.json --reader-binary READER_BINARY
+python examples/participants/reading_table.py --fixture examples/participants/fixtures/reading-table.json --reader-binary READER_BINARY --event-id event:table-1
+```
+
+Select an existing trusted native reader; the example uses only its offline `offers` validator and never builds, downloads, starts a host, invokes a model or contacts an endpoint. Output contains derived findings or one quoted exact original, with fixed failures and byte limits. These constructed records establish no host acceptance, spontaneous choice, adoption by actual participants or current permission. Restart and audience discovery remain the [next planned exercise](../../docs/PARTICIPANT_ACTIVITY_PLAN.md).
+
 ## Recurring gathering without a required deliverable
 
 The optional [gathering example](gathering.py) runs two residents through repeated invitations, restarts the host after the first round, rotates their credentials, and optionally admits a newcomer. It has two separate conditions: an open gathering with no assigned deliverable, and an optional collection of imagined places. These are bounded observations, not a causal comparison or a social score.
