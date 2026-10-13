@@ -77,6 +77,10 @@ def _journal(raw: bytes, settings: JsonObject) -> tuple[JsonObject, bytes, JsonO
         permitted = UNCERTAIN_CODES if state == "uncertain" else REJECTION_CODES
         if journal.get("failure_code") not in permitted:
             _invalid()
+        if state == "rejected" and "failure_title" in journal:
+            if not client._safe_problem_title(journal["failure_title"], str(settings["token"])):
+                _invalid()
+            optional.add("failure_title")
     else:
         _invalid()
         optional = set()
@@ -221,7 +225,10 @@ def inspect(config: Path, journal_path: Path, view_path: Path, *, reader_binary:
             "scope": "supplied_private_files_and_one_saved_caller_observation_not_live_history",
             "interpretation": "A candidate does not identify this attempt. Absence has no diagnosed cause. A copied receipt does not authenticate its origin. No retry is authorized."}
         if journal["state"] == "rejected":
-            result["local_rejection_claim"] = {"code": journal["failure_code"], "original_response_retained": False}
+            rejection: JsonObject = {"code": journal["failure_code"], "original_response_retained": False}
+            if "failure_title" in journal:
+                rejection["title"] = journal["failure_title"]
+            result["local_rejection_claim"] = rejection
         if client._contains_secret(result, str(settings["token"])):
             raise private.EncounterError("credential_reflected")
         if len(json.dumps(result, ensure_ascii=True).encode("utf-8")) > MAX_RESULT_BYTES:

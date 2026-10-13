@@ -419,6 +419,58 @@ class EncounterClientUnitTests(unittest.TestCase):
                 patch.object(wire, "exchange", return_value=(422, json.dumps(problem).encode())):
                 result = client.submit(config, source, reader_binary=Path(__file__))
             self.assertEqual((result["outcome"], result["code"]), ("rejected", "wrong_world"))
+            self.assertEqual(result["title"], "Wrong world")
+            journal = load(Path(str(result["journal_path"])))
+            self.assertEqual(journal["failure_title"], "Wrong world")
+
+    def test_submit_preflight_names_fields_without_sending_or_copying_values(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary).resolve()
+            config, value, cache = settings(root)
+            record = authored("message", "message:preflight", A)
+            faults: list[tuple[str, object]] = [("protocol_version", "bad"), ("world", "civ:other"),
+                ("from", "agent:other"), ("id", ""), ("type", "unknown")]
+            for field, invalid in faults:
+                source = root / "input.json"
+                source.write_bytes(client._json({**record, field: invalid}))
+                args = ["local_encounter.py", "submit", "--config", str(config), "--record", str(source)]
+                with self.subTest(field=field), patch.object(sys, "argv", args), patch("builtins.print") as printed, \
+                    patch.object(wire, "exchange", side_effect=AssertionError("preflight must not send")):
+                    self.assertEqual(operator.main(), 1)
+                failure = json.loads(printed.call_args.args[0])
+                self.assertEqual(failure, {"outcome": "failed", "code": "invalid_authored_record",
+                    "field": field, "title": f"Invalid authored record: check /{field}"})
+                self.assertNotIn(str(value["token"]), printed.call_args.args[0])
+            self.assertFalse(list(cache.glob("journal-*")))
+            for raw in (b"not json {", b'{"id":1,"id":2}', b'[]', b'\xff'):
+                source.write_bytes(raw)
+                with self.subTest(raw=raw), patch.object(sys, "argv", args), patch("builtins.print") as printed:
+                    self.assertEqual(operator.main(), 1)
+                failure = json.loads(printed.call_args.args[0])
+                self.assertEqual(failure["code"], "invalid_authored_json")
+                self.assertEqual(failure["title"], "Authored record is not a valid JSON object")
+
+    def test_unsafe_host_titles_are_not_exposed_or_retained(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary).resolve()
+            config, value, _ = settings(root)
+            source = root / "input.json"
+            source.write_bytes(client._json(authored("message", "message:unsafe-title", A)))
+            for title in (str(value["token"]), "bad\ncontrol", "x" * 513, "é" * 257, "\ud800"):
+                problem = {"type": "https://agentciv.io/problems/invalid-record", "title": title,
+                    "status": 422, "code": "invalid_record"}
+                current = native([])
+                with self.subTest(title=title), patch.object(client, "_native_read", return_value=current), \
+                    patch.object(client, "_project", return_value=projection(current)), \
+                    patch.object(client, "_endpoint", return_value=("http://127.0.0.1:8787/submit", "messages.submit")), \
+                    patch.object(wire, "exchange", return_value=(422, json.dumps(problem).encode())):
+                    result = client.submit(config, source, reader_binary=Path(__file__))
+                self.assertEqual(result["code"], "invalid_record")
+                self.assertNotIn("title", result)
+                journal = load(Path(str(result["journal_path"])))
+                self.assertEqual(journal["state"], "rejected")
+                self.assertEqual(journal["failure_code"], "invalid_record")
+                self.assertNotIn("failure_title", journal)
 
     def test_say_fills_the_envelope_from_the_room_and_keeps_the_exact_bytes(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:

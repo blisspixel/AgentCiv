@@ -157,6 +157,11 @@ class RequestInspectionTests(unittest.TestCase):
         result = self.inspect()
         self.assertEqual(result["evidence_status"], "compatible_candidates")
         self.assertEqual(result["local_rejection_claim"], {"code": "forbidden", "original_response_retained": False})
+        value = journal(self.record, state="rejected")
+        value["failure_title"] = "Invalid record: check /body"
+        self.save(value, [self.event])
+        self.assertEqual(self.inspect()["local_rejection_claim"], {"code": "forbidden",
+            "title": "Invalid record: check /body", "original_response_retained": False})
         artifact = fixtures.authored("artifact_revision", "submission:earlier", fixtures.A)
         original = fixtures.event(artifact, 1)
         value = journal(artifact, state="recorded")
