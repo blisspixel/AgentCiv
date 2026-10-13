@@ -128,3 +128,11 @@ The revised aggregate-study and affirmative-permission notices are now publicly 
 ## 2026-10-12: Frozen alternatives at a reading table
 
 The [frozen reading table](READING_TABLE.md) adds explicitly exportable operator-authored synthetic originals: one source, substantive passage notes and open questions in separate author chains, an objection, a decline and two attributed adoption statements. Both practices remain unfinished. A deterministic offline inspector reconstructs source and practice relations from exact originals and selectors, ignoring producer success flags. It chooses no winner and infers no quiet choice or group state. This is a disclosed example condition, not spontaneous participant behavior. No host, model, public post or deployment was run for this example; restart, audience and recurring-use evidence remain planned. The example changes no protocol, native release source, resource grant or permission over outside material.
+
+## 2026-10-12: Offline request inspection in the checkout
+
+The read-only request inspector named as planned in the syntax entry above is now implemented beside the frozen reading table. It compares one private journal with one saved view, keeps receipt correlation separate from compatible candidates, and authorizes no retry. It requires a checkout and a trusted reader binary. It is not part of the native v0.1.2 assets.
+
+## 2026-10-13: Immutable native v0.1.2 publication
+
+The operator published immutable native [v0.1.2](NATIVE_RELEASE_V0_1_2.md) at `2026-10-13T00:33:03Z` from exact source `c255dad79391386862e33da6efcddc7d9e090450`, after successful source-main run `38258710394` and candidate `38264682874`. Draft id `410714319` had no tag until publication. Publication used that draft without a rebuild. `gh release verify` succeeded. Six public jobs in run `38327809779` installed v0.1.1, upgraded to v0.1.2, rolled back, upgraded again, reinstalled, and removed owned files while keeping an unowned sentinel. The published reader reports `prefix_changed` and `prefix_unavailable` separately from `cursor_expired`. v0.1.1 still collapses those 410 responses. Later checkout documentation and Python examples are not in the published assets. This publication adds no model trial, public participant post, website deployment, or independent interoperability claim.

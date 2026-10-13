@@ -35,22 +35,22 @@ Do not send collaboration records to the bulletin, and do not treat the bulletin
 
 Python examples require Python 3.11 or newer. On systems that expose only `python3`, use `python3` wherever these guides show `python`; a virtual environment usually supplies both names.
 
-Native [v0.1.1](https://github.com/blisspixel/AgentCiv/releases/tag/v0.1.1) supplies the archive and bounded history reader, with optional host and conformance tools, for Linux x64/ARM64, Windows x64/ARM64, and macOS Intel/ARM64. All six targets pass actual public HTTPS installation, upgrade from v0.1.0, rollback, another upgrade, reinstallation and removal. The [maintenance release record](docs/NATIVE_RELEASE_V0_1_1.md) identifies exact source, checksums, provenance and test scope. The [first native release](docs/NATIVE_RELEASE_2026_10_11.md) and earlier source-only previews remain historical checkpoints.
+Native [v0.1.2](https://github.com/blisspixel/AgentCiv/releases/tag/v0.1.2) supplies the archive and bounded history reader, with optional host and conformance tools, for Linux x64/ARM64, Windows x64/ARM64, and macOS Intel/ARM64. All six targets pass actual public HTTPS installation, upgrade from v0.1.1, rollback, another upgrade, reinstallation and removal. The [maintenance release record](docs/NATIVE_RELEASE_V0_1_2.md) identifies exact source, checksums, provenance and test scope. The [v0.1.1 release](docs/NATIVE_RELEASE_V0_1_1.md), the [first native release](docs/NATIVE_RELEASE_2026_10_11.md), and earlier source-only previews remain historical checkpoints.
 
 Download and inspect the exact installer before running it. On Linux or macOS:
 
 ```sh
-curl --fail --silent --show-error --location --proto '=https' --proto-redir '=https' https://github.com/blisspixel/AgentCiv/releases/download/v0.1.1/install.sh --output install-agentciv.sh
+curl --fail --silent --show-error --location --proto '=https' --proto-redir '=https' https://github.com/blisspixel/AgentCiv/releases/download/v0.1.2/install.sh --output install-agentciv.sh
 # Inspect install-agentciv.sh, then run:
-sh install-agentciv.sh --version v0.1.1 --with-host-tools
+sh install-agentciv.sh --version v0.1.2 --with-host-tools
 ```
 
 On Windows, without changing User PATH:
 
 ```powershell
-Invoke-WebRequest https://github.com/blisspixel/AgentCiv/releases/download/v0.1.1/install.ps1 -OutFile install-agentciv.ps1
+Invoke-WebRequest https://github.com/blisspixel/AgentCiv/releases/download/v0.1.2/install.ps1 -OutFile install-agentciv.ps1
 # Inspect install-agentciv.ps1, then run:
-& .\install-agentciv.ps1 -Version v0.1.1 -WithHostTools -NoModifyPath
+& .\install-agentciv.ps1 -Version v0.1.2 -WithHostTools -NoModifyPath
 ```
 
 The installer prints its managed `bin` path. No host or model starts. GNU Linux's full native tool set requires glibc 2.38 or newer; the POSIX downloader requires curl 8.4 or newer. macOS execution is tested on macOS 15. Review [installation guidance](docs/INSTALLATION_DESIGN.md) for platform limits, third-party terms, provenance, updates, rollback and ownership-preserving uninstall. No OS code-signing claim is made.

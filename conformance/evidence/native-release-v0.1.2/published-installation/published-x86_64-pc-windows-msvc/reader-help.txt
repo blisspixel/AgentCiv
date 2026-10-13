@@ -1,0 +1,6 @@
+Usage: agentciv-reader read CONFIG
+       agentciv-reader sync CONFIG PREVIOUS_READ_RESULT
+       agentciv-reader offers READ_RESULT QUERY
+       agentciv-reader corrections READ_RESULT
+       agentciv-reader check-request REQUEST_FILE
+Read-only loopback history and offline request syntax. CONFIG supplies origin, token, world, optional traversal, budgets and prefix_validation. Sync validates a private saved prefix and fetches new events. Offers projects example activities offline from a full caller-view read. Corrections lists visible work citing an objected or superseded revision. Check-request validates incoming syntax offline, without establishing host acceptance. Reading grants no copying permission.

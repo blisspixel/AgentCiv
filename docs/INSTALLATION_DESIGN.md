@@ -1,10 +1,10 @@
 # Native utility installation
 
-Status: [v0.1.1](https://github.com/blisspixel/AgentCiv/releases/tag/v0.1.1) publishes all four native tools for six targets. The [maintenance release record](NATIVE_RELEASE_V0_1_1.md) identifies exact green-main source, immutable publication, all-asset checksum/provenance verification, and six passing actual HTTPS installation, upgrade from v0.1.0, rollback, another upgrade, reinstallation and removal jobs. The [v0.1.0 record](NATIVE_RELEASE_2026_10_11.md) remains historical. Offline fixtures and the explicit POSIX source-install path remain available. Installation does not establish a profile, SDK, interoperability or collaboration-quality result.
+Status: [v0.1.2](https://github.com/blisspixel/AgentCiv/releases/tag/v0.1.2) publishes all four native tools for six targets. The [maintenance release record](NATIVE_RELEASE_V0_1_2.md) identifies exact green-main source, immutable publication, manifest and release-attestation verification, and six passing actual HTTPS installation, upgrade from v0.1.1, rollback, another upgrade, reinstallation and removal jobs. The [v0.1.1 record](NATIVE_RELEASE_V0_1_1.md) and the [v0.1.0 record](NATIVE_RELEASE_2026_10_11.md) remain historical. Offline fixtures and the explicit POSIX source-install path remain available. Installation does not establish a profile, SDK, interoperability or collaboration-quality result.
 
 The default contains `agentciv-archive` and `agentciv-reader`. `--with-host-tools` or `-WithHostTools` adds the Rust loopback host and public conformance runner. The repository checker is checkout-only and excluded. Native downloads require no Cargo, Python, Node, account, API key, model pull, paid inference, or administrator access. Python collaboration experiments still require the repository and Python. Installing utilities does not install those experiments.
 
-The checkout prepares v0.1.2 to preserve distinct saved-prefix failure codes. It is not a published release until its exact-main, native candidate, provenance and actual public-download gates pass. [The lock review](../release/MAINTENANCE_LOCK_V0_1_2.json) confirms only the four local utility versions changed; registry dependencies, pinned toolchain and original notice bytes are unchanged. Current published v0.1.1 remains the installable checkpoint above and retains its earlier 410 diagnostic behavior.
+Published v0.1.2 preserves distinct saved-prefix failure codes and adds offline incoming-request syntax checks. [The lock review](../release/MAINTENANCE_LOCK_V0_1_2.json) confirms only the four local utility versions changed; registry dependencies, pinned toolchain and original notice bytes are unchanged. v0.1.1 remains installable and retains its earlier 410 diagnostic behavior. The [release record](NATIVE_RELEASE_V0_1_2.md) separates that published source from later checkout documentation and Python examples.
 
 ## Install from a checkout today
 
@@ -36,7 +36,7 @@ The bootstrap itself is trusted code. Binary checksums do not authenticate that 
 Local parameters are:
 
 ```sh
-sh install.sh --version v0.1.1 --prefix '/absolute/path with spaces/agentciv'
+sh install.sh --version v0.1.2 --prefix '/absolute/path with spaces/agentciv'
 sh install.sh --version v0.1.0-preview.3 --prefix '/absolute/path with spaces/agentciv'
 sh install.sh --pre --prefix '/absolute/path with spaces/agentciv'
 sh install.sh --prefix '/absolute/path with spaces/agentciv' --rollback
@@ -44,12 +44,12 @@ sh install.sh --prefix '/absolute/path with spaces/agentciv' --uninstall
 ```
 
 ```powershell
-& .\install.ps1 -Version v0.1.1 -Prefix 'C:\Users\me\Applications\AgentCiv' -NoModifyPath
+& .\install.ps1 -Version v0.1.2 -Prefix 'C:\Users\me\Applications\AgentCiv' -NoModifyPath
 & .\install.ps1 -Prefix 'C:\Users\me\Applications\AgentCiv' -Rollback
 & .\install.ps1 -Prefix 'C:\Users\me\Applications\AgentCiv' -Uninstall
 ```
 
-`latest` resolves a small `VERSION` asset from the latest stable release, then fetches binaries from that exact version. POSIX `--version` also accepts bounded prerelease tags. POSIX `--pre` requires `jq` and selects the first published prerelease returned by the bounded GitHub releases API listing; it does not change stable `latest` behavior. A source-only preview has no native assets and produces an actionable diagnostic pointing to `--from-source`. Windows currently accepts stable native-release versions only. Re-running the installer explicitly updates it. There is no background updater. Assets are `COMPONENT-vX.Y.Z-TARGET`, with `.exe` on Windows, plus `SHA256SUMS`, installers, `VERSION`, and `LICENSE`. The verified native matrix is Linux x64/ARM64, Windows x64/ARM64, and macOS Intel/ARM64. All six published-download jobs pass for v0.1.1, including actual upgrade from v0.1.0 and rollback; architecture detection alone is insufficient for another release. The complete GNU Linux tool set requires glibc 2.38 or newer. No source-build or architecture fallback occurs silently. GitHub documents free standard runners for public repositories with these architectures. [Runner reference](https://docs.github.com/en/actions/reference/runners/github-hosted-runners).
+`latest` resolves a small `VERSION` asset from the latest stable release, then fetches binaries from that exact version. POSIX `--version` also accepts bounded prerelease tags. POSIX `--pre` requires `jq` and selects the first published prerelease returned by the bounded GitHub releases API listing; it does not change stable `latest` behavior. A source-only preview has no native assets and produces an actionable diagnostic pointing to `--from-source`. Windows currently accepts stable native-release versions only. Re-running the installer explicitly updates it. There is no background updater. Assets are `COMPONENT-vX.Y.Z-TARGET`, with `.exe` on Windows, plus `SHA256SUMS`, installers, `VERSION`, and `LICENSE`. The verified native matrix is Linux x64/ARM64, Windows x64/ARM64, and macOS Intel/ARM64. All six published-download jobs pass for v0.1.2, including actual upgrade from v0.1.1 and rollback; architecture detection alone is insufficient for another release. The complete GNU Linux tool set requires glibc 2.38 or newer. No source-build or architecture fallback occurs silently. GitHub documents free standard runners for public repositories with these architectures. [Runner reference](https://docs.github.com/en/actions/reference/runners/github-hosted-runners).
 
 ## Installation boundaries
 

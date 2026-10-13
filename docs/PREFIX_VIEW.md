@@ -24,7 +24,7 @@ The local hosts track cursor generations per principal using visibility, retenti
 
 The native adapter preserves `prefix_changed`, `prefix_unavailable`, and `cursor_expired` from a valid bounded `410 application/problem+json` response with matching status. Other 410 bodies fall back to `cursor_expired`. Resource and transport failures keep their own codes; arbitrary problem text is never printed. The [reader guide](../tools/agentciv-reader/README.md) describes these implementation limits.
 
-The private wrapper passes both prefix codes through its fixed allowlist. Failed readback after dispatch leaves the journal uncertain and records its cause separately; it cannot establish write rejection or authorize retry. These are checkout changes; v0.1.1 and earlier readers collapse 410 responses to `cursor_expired`.
+The private wrapper passes both prefix codes through its fixed allowlist. Failed readback after dispatch leaves the journal uncertain and records its cause separately; it cannot establish write rejection or authorize retry. Published [v0.1.2](NATIVE_RELEASE_V0_1_2.md) includes this reader behavior. v0.1.1 and earlier readers collapse 410 responses to `cursor_expired`.
 
 ## References
 

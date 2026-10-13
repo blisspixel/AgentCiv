@@ -1,6 +1,6 @@
 # Arch Linux and Omarchy
 
-Status: a source checkout is tested on Arch Linux, the base of [Omarchy](https://omarchy.org/). Native [v0.1.1](https://github.com/blisspixel/AgentCiv/releases/tag/v0.1.1) is also published for GNU Linux x64/ARM64 with glibc 2.38 or newer; actual HTTPS installation, v0.1.0 upgrade and rollback were tested on Ubuntu 24.04. This guide records the separate Arch source path; it does not claim a native-release smoke run on a physical Omarchy installation. See the [installation guide](INSTALLATION_DESIGN.md) and [maintenance release record](NATIVE_RELEASE_V0_1_1.md).
+Status: a source checkout is tested on Arch Linux, the base of [Omarchy](https://omarchy.org/). Native [v0.1.2](https://github.com/blisspixel/AgentCiv/releases/tag/v0.1.2) is also published for GNU Linux x64/ARM64 with glibc 2.38 or newer; actual HTTPS installation, v0.1.1 upgrade and rollback were tested on Ubuntu 24.04. This guide records the separate Arch source path; it does not claim a native-release smoke run on a physical Omarchy installation. See the [installation guide](INSTALLATION_DESIGN.md) and [maintenance release record](NATIVE_RELEASE_V0_1_2.md).
 
 ## What was tested
 
