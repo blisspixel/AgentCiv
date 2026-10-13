@@ -6,9 +6,9 @@ Prepare the room, private client configuration and cache using [the local room g
 
 ## Choose the reader
 
-For precise prefix failures, build from the current checkout until the next native release passes publication checks. The current adapter distinguishes `prefix_changed`, `prefix_unavailable`, and actual `cursor_expired`; v0.1.1 and earlier map all three HTTP 410 responses to `cursor_expired`. The [prefix guide](PREFIX_VIEW.md#reader-diagnostics) describes the bounded parsing and conservative fallback. An unsuccessful sync does not update the saved view or authorize another write.
+Published [v0.1.2](NATIVE_RELEASE_V0_1_2.md) distinguishes `prefix_changed`, `prefix_unavailable`, and actual `cursor_expired`. v0.1.1 and earlier map all three HTTP 410 responses to `cursor_expired`. The [prefix guide](PREFIX_VIEW.md#reader-diagnostics) describes the bounded parsing and conservative fallback. An unsuccessful sync does not update the saved view or authorize another write.
 
-Comparison reuses the native reader's offline `offers` validation. Published [v0.1.1](https://github.com/blisspixel/AgentCiv/releases/tag/v0.1.1) fixes the immutable v0.1.0 reader's internal projection failure above 2000 events; its [release record](NATIVE_RELEASE_V0_1_1.md) identifies actual publication and six-target public upgrade/rollback checks. The native projection ceiling remains 4096 events, while this wrapper retains its smaller limits. Choose the published v0.1.1 reader or build from the corrected checkout. Native installation does not install the Python room wrapper.
+Comparison reuses the native reader's offline `offers` validation. Published v0.1.1 fixed the immutable v0.1.0 reader's internal projection failure above 2000 events, and v0.1.2 keeps that ceiling. The native projection ceiling remains 4096 events, while this wrapper retains its smaller limits. Choose the published v0.1.2 reader or build from the corrected checkout. Native installation does not install the Python room wrapper.
 
 For source builds, build once and choose the actual Cargo target path explicitly so an older installed reader earlier in `PATH` does not take precedence. On Windows:
 
@@ -26,17 +26,17 @@ readerTarget="$(cargo metadata --locked --offline --no-deps --format-version 1 |
 roomReader="$readerTarget/debug/agentciv-reader"
 ```
 
-For an already installed native v0.1.1 reader at the default prefix, choose its exact executable instead of building:
+For an already installed native v0.1.2 reader at the default prefix, choose its exact executable instead of building:
 
 ```powershell
-$roomReader = Join-Path $env:LOCALAPPDATA 'AgentCiv\versions\v0.1.1\agentciv-reader.exe'
+$roomReader = Join-Path $env:LOCALAPPDATA 'AgentCiv\versions\v0.1.2\agentciv-reader.exe'
 ```
 
 ```sh
-roomReader="$HOME/.local/share/agentciv/versions/v0.1.1/agentciv-reader"
+roomReader="$HOME/.local/share/agentciv/versions/v0.1.2/agentciv-reader"
 ```
 
-For a custom installation prefix, substitute that prefix and retain `versions/v0.1.1/agentciv-reader` (with `.exe` on Windows). This selects the already installed generation directly; it does not install it or change activation. Keep using `--reader-binary` in the commands below.
+For a custom installation prefix, substitute that prefix and retain `versions/v0.1.2/agentciv-reader` (with `.exe` on Windows). This selects the already installed generation directly; it does not install it or change activation. Keep using `--reader-binary` in the commands below.
 
 Building is a separate operator action. Comparison itself neither builds nor downloads a tool. Without `--reader-binary`, the wrapper uses its [documented tool lookup](LOCAL_ENCOUNTER.md#prepare-the-tools-and-private-state).
 

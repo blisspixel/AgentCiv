@@ -1,0 +1,330 @@
+"""Explicit artifact preparation and bounded public checks; no deployment or posting."""
+from __future__ import annotations
+import argparse
+from dataclasses import asdict
+from datetime import datetime, timezone
+import hashlib
+from http.client import HTTPException
+import io
+import json
+from pathlib import Path, PurePosixPath
+import re
+import stat
+import subprocess
+import sys
+import tomllib
+from urllib.error import HTTPError, URLError
+from urllib.request import Request, build_opener
+import zipfile
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from services.bulletin import probe_entry as entry
+
+REPO = 'blisspixel/AgentCiv'
+UUID = r'[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
+MAX_ARCHIVE = 64 * 1024 * 1024
+MAX_PACKAGE = 128 * 1024 * 1024
+MAX_BODY = 2 * 1024 * 1024
+AGENT = 'AgentCivDeploymentVerification/0.2 (+https://github.com/blisspixel/AgentCiv)'
+WORK = Path(__file__).resolve().parent
+STATIC = {'/agent.json': 'agent.json', '/.well-known/agentciv-services': '.well-known/agentciv-services',
+          '/directory.json': 'directory.json', '/terms': 'terms.html', '/privacy': 'privacy.html',
+          '/connect': 'connect.html', '/worlds': 'worlds.html', '/resources': 'resources.html',
+          '/research': 'research.html', '/resources.json': 'resources.json', '/llms.txt': 'llms.txt'}
+ROUTES = [('/', 'application/json'), ('/', 'text/html'), ('/api/board/info', 'application/json'),
+          ('/board', 'text/html'), ('/report', 'text/html')]
+ROUTES += [(path, 'text/html' if name.endswith('.html') else 'application/json' if name.endswith('.json') or path == '/.well-known/agentciv-services' else 'text/plain') for path, name in STATIC.items()]
+
+
+def require(value, message):
+    if not value:
+        raise ValueError(message)
+
+
+def sha(raw):
+    return hashlib.sha256(raw).hexdigest()
+
+
+def pairs(entries):
+    result = {}
+    for key, value in entries:
+        require(key not in result, 'duplicate JSON key')
+        result[key] = value
+    return result
+
+
+def parse(raw):
+    return json.loads(raw, object_pairs_hook=pairs)
+
+
+def read(path, limit=4 * 1024 * 1024):
+    require(path.is_file() and not linked(path) and path.stat().st_size <= limit, 'invalid or oversized ordinary input: ' + str(path))
+    raw = path.read_bytes()
+    require(len(raw) <= limit, 'input grew beyond bound')
+    return raw
+
+
+def linked(path):
+    return path.is_symlink() or getattr(path, 'is_junction', lambda: False)()
+
+
+def scratch_path(path):
+    require(path.resolve().is_relative_to(WORK) and path.resolve() != WORK and not linked(path), 'working path must stay inside .agents')
+
+
+def save(path, value):
+    path.write_text(json.dumps(value, indent=2) + '\n', encoding='utf-8', newline='\n')
+
+
+def input_metadata(args):
+    scratch_path(args.root)
+    scratch_path(args.archive)
+    require(re.fullmatch(r'[0-9a-f]{40}', args.source) and args.source != '0' * 40, 'invalid source')
+    require(type(args.ci_run) is int and args.ci_run > 0, 'invalid CI run')
+    ci, metadata, artifact = [parse(read(path)) for path in (args.ci_proof, args.ci_metadata, args.artifact_proof)]
+    require(ci['databaseId'] == args.ci_run and ci['headSha'] == args.source and ci['headBranch'] == 'main', 'wrong CLI main/source/run')
+    require(ci['status'] == 'completed' and ci['conclusion'] == 'success' and len(ci['jobs']) == 15, 'main CI incomplete')
+    require(all(j['status'] == 'completed' and j['conclusion'] == 'success' for j in ci['jobs']), 'unsuccessful CI job')
+    names = [j['name'] for j in ci['jobs']]
+    identifiers = [j['databaseId'] for j in ci['jobs']]
+    require(all(isinstance(name, str) and name.strip() for name in names) and len(set(names)) == 15, 'missing or duplicate CI job name')
+    require(all(type(identifier) is int and identifier > 0 for identifier in identifiers)
+            and len(set(identifiers)) == 15, 'missing, invalid or duplicate CI job ID')
+    require(metadata['id'] == args.ci_run and metadata['head_sha'] == args.source and metadata['head_branch'] == 'main'
+            and metadata['path'] == '.github/workflows/ci.yml' and metadata['event'] == 'push'
+            and metadata['status'] == 'completed' and metadata['conclusion'] == 'success'
+            and metadata['repository']['full_name'] == REPO, 'wrong REST main CI identity')
+    require(type(artifact['id']) is int and artifact['id'] > 0 and artifact['name'] == 'agentciv-website' and artifact['expired'] is False, 'wrong/expired website artifact')
+    binding = artifact['workflow_run']
+    require(binding['id'] == args.ci_run and binding['head_sha'] == args.source and binding['head_branch'] == 'main', 'wrong artifact run binding')
+    require(isinstance(artifact['digest'], str) and re.fullmatch(r'sha256:[0-9a-f]{64}', artifact['digest']), 'missing exact artifact digest')
+    require(type(artifact['size_in_bytes']) is int and 0 < artifact['size_in_bytes'] <= MAX_ARCHIVE, 'artifact exceeds download scope')
+    return artifact
+
+
+def archive_files(path, artifact):
+    raw = read(path, MAX_ARCHIVE)
+    require(sha(raw) == artifact['digest'].removeprefix('sha256:'), 'original archive digest mismatch')
+    require(len(raw) == artifact['size_in_bytes'], 'original archive size mismatch')
+    files, seen, spellings, total = {}, set(), {}, 0
+    with zipfile.ZipFile(io.BytesIO(raw)) as archive:
+        infos = archive.infolist()
+        require(0 < len(infos) <= 200, 'archive entry bound')
+        for item in infos:
+            name = item.filename.rstrip('/')
+            parts = PurePosixPath(name).parts
+            require(name and not item.filename.startswith('/') and '\\' not in name and ':' not in name
+                    and item.orig_filename == item.filename and not item.flag_bits & 1
+                    and '\x00' not in name and parts == tuple(name.split('/'))
+                    and item.filename == name + ('/' if item.is_dir() else '')
+                    and all(part not in ('.', '..') and not part.endswith((' ', '.')) for part in parts), 'unsafe archive path')
+            require(not any(part.split('.')[0].upper() in ('CON', 'PRN', 'AUX', 'NUL', *['COM' + str(n) for n in range(1, 10)], *['LPT' + str(n) for n in range(1, 10)]) for part in parts), 'Windows device path')
+            require(name.casefold() not in seen, 'archive duplicate/case collision')
+            seen.add(name.casefold())
+            for length in range(1, len(parts) + 1):
+                spelling = '/'.join(parts[:length])
+                require(spellings.get(spelling.casefold(), spelling) == spelling, 'archive parent case collision')
+                spellings[spelling.casefold()] = spelling
+            mode = item.external_attr >> 16
+            require(not stat.S_ISLNK(mode) and (stat.S_IFMT(mode) in (0, stat.S_IFREG, stat.S_IFDIR)), 'archive linked/special entry')
+            if item.is_dir():
+                continue
+            require(item.file_size <= MAX_ARCHIVE, 'oversized archive member')
+            total += item.file_size
+            require(total <= MAX_PACKAGE, 'expanded package bound')
+            data = archive.read(item)
+            require(len(data) == item.file_size, 'member size mismatch')
+            files[name] = data
+    file_names = {name.casefold() for name in files}
+    require(all(not any(parent.as_posix().casefold() in file_names for parent in PurePosixPath(name).parents) for name in files), 'archive file/directory collision')
+    require(files and all(name == 'SOURCE_REVISION' or name.startswith('website/dist/') or name in (
+        'services/bulletin/wrangler.toml', 'services/bulletin/build/index.js', 'services/bulletin/build/index_bg.wasm') for name in files), 'unexpected package file')
+    return files
+
+
+def package(args, artifact, files=None):
+    files = archive_files(args.archive, artifact) if files is None else files
+    require(args.root.is_dir() and not linked(args.root), 'invalid extracted package root')
+    observed = set()
+    for path in args.root.rglob('*'):
+        require(not linked(path) and path.resolve().is_relative_to(args.root.resolve()), 'extracted path escaped root')
+        if path.is_file():
+            name = path.relative_to(args.root).as_posix()
+            require(name in files and read(path, MAX_ARCHIVE) == files[name], 'extracted file differs from archive')
+            observed.add(name)
+        else:
+            require(path.is_dir(), 'special extracted path')
+    require(observed == set(files), 'extraction file inventory differs')
+    require(files['SOURCE_REVISION'] == (args.source + '\n').encode(), 'wrong package source marker')
+    config = tomllib.loads(files['services/bulletin/wrangler.toml'].decode())
+    require(config['name'] == 'agentciv' and config['main'] == 'build/index.js' and 'build' not in config, 'not reviewed prebuilt configuration')
+    require(files['services/bulletin/build/index_bg.wasm'].startswith(b'\0asm\x01\0\0\0'), 'invalid Wasm header')
+    return files
+
+
+def prepare(args):
+    artifact = input_metadata(args)
+    require(not args.archive.exists() and not linked(args.archive) and not args.root.exists() and not linked(args.root), 'download/extraction paths must be fresh')
+    stderr_path = Path(str(args.archive) + '.stderr.txt')
+    require(not stderr_path.exists() and not linked(stderr_path), 'download stderr path must be fresh')
+    with args.archive.open('xb') as stream:
+        result = subprocess.run(['gh', 'api', f'repos/{REPO}/actions/artifacts/{artifact["id"]}/zip'], stdout=stream, stderr=subprocess.PIPE, timeout=120, check=False)
+    with stderr_path.open('xb') as stream:
+        stream.write(result.stderr)
+    require(result.returncode == 0, 'artifact download failed; original attempt retained')
+    extract_local(args)
+    print('PASS: exact-main artifact API digest and all extracted bytes; not a signed build attestation')
+
+
+def extract_local(args):
+    artifact = input_metadata(args)
+    require(not args.root.exists() and not linked(args.root), 'extraction root must be fresh')
+    files = archive_files(args.archive, artifact)
+    args.root.mkdir(exist_ok=False)
+    for name, raw in files.items():
+        destination = args.root / name
+        require(destination.resolve().is_relative_to(args.root.resolve()), 'extraction escaped root')
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        destination.write_bytes(raw)
+    package(args, artifact, files)
+    print('PASS: fresh local extraction matches original verified artifact archive')
+
+
+def provider(args):
+    require(re.fullmatch(UUID, args.worker_version), 'invalid Worker UUID')
+    deployments = parse(read(args.deployments_proof))
+    version = parse(read(args.version_proof))
+    require(isinstance(deployments, list) and 0 < len(deployments) <= 10, 'wrong Wrangler deployments JSON schema')
+    dates = [datetime.fromisoformat(item['created_on'].replace('Z', '+00:00')) for item in deployments]
+    require(all(value.tzinfo is not None for value in dates) and len(set(dates)) == len(dates), 'ambiguous deployment time')
+    latest = deployments[dates.index(max(dates))]
+    require(latest['versions'] == [{'version_id': args.worker_version, 'percentage': 100}], 'Worker UUID not latest at 100 percent')
+    require(version['id'] == args.worker_version, 'wrong provider version view UUID')
+    return {'deployment_id': latest['id'], 'created_on': latest['created_on'], 'worker_version': version['id'], 'percentage': 100,
+            'deployments_stdout_sha256': sha(read(args.deployments_proof)), 'version_stdout_sha256': sha(read(args.version_proof)),
+            'scope': 'Operator-captured authenticated Wrangler metadata readback; not public execution attestation.'}
+
+
+def content_check(path, accept, raw, files, contact):
+    if path in STATIC:
+        require(raw == files['website/dist/' + STATIC[path]], 'static artifact byte mismatch')
+    if path == '/':
+        name = 'agent.json' if accept == 'application/json' else 'index.html'
+        require(raw == files['website/dist/' + name], 'root representation byte mismatch')
+    if path == '/api/board/info':
+        info = parse(raw)
+        require(info['posting'] == 'closed' and info['public_read'] is True and info['profile_claim'] is False, 'wrong bulletin operating state')
+        require(info['operator_labels'] == {'label': 'maintainer-run', 'principals': [], 'source': '/agent.json',
+                'meaning': 'Operator-run relationship only; no authority, mind or identity classification.'}, 'wrong operator label disclosure')
+    if path == '/agent.json':
+        manifest = parse(raw)
+        require(manifest['maintainer_run_principals'] == [] and manifest['operator_attribution']['label'] == 'maintainer-run', 'registry must remain empty')
+        policy = manifest['research_policy']
+        require('do not quote, reproduce or single out a participant' in policy['aggregate_public_study']
+                and 'Requires affirmative permission' in policy['quotation_transcript_or_participant_specific_account']
+                and 'Not covered' in policy['private_or_restricted_material'], 'wrong aggregate/private research policy')
+    if path in ('/privacy', '/llms.txt'):
+        require(b'Aggregate study of public posts is allowed without individual permission' in raw
+                and b'affirmative permission' in raw and b'maintainer_run_principals' in raw, 'missing delivered research/operator policy')
+    if path == '/report':
+        require(contact.encode() in raw and ('mailto:' + contact).encode() in raw, 'reporting contact missing')
+
+
+def content_type(header, expected):
+    require(isinstance(header, str) and header.split(';', 1)[0].strip().lower() == expected, 'representation Content-Type mismatch')
+
+
+def verify(args):
+    artifact = input_metadata(args)
+    files = package(args, artifact)
+    provider_record = provider(args)
+    require(args.contact == 'nick@pueo.io', 'expected supplied public reporting contact')
+    scratch_path(args.output)
+    require(not args.output.resolve().is_relative_to(args.root.resolve()), 'verification output must not change package')
+    require(not args.output.exists() and not linked(args.output), 'verification output must be fresh')
+    args.output.mkdir(exist_ok=False)
+    rows = []
+    opener = build_opener(entry.NoRedirect())
+    for index, (path, accept) in enumerate(ROUTES):
+        row = {'path': path, 'accept': accept, 'passed': False}
+        rows.append(row)
+        try:
+            try:
+                response = opener.open(Request('https://agentciv.io' + path, headers={'Accept': accept, 'User-Agent': AGENT}), timeout=5)
+            except HTTPError as refusal:
+                response = refusal
+            with response:
+                raw = response.read(MAX_BODY + 1)
+                args.output.joinpath(f'{index:02d}.body').write_bytes(raw)
+                headers = {key: value for key, value in response.headers.items() if key.lower() in ('content-type', 'strict-transport-security', 'cache-control', 'etag', 'server', 'cf-cache-status')}
+                row.update(status=response.status, selected_headers=headers, bytes=len(raw), sha256=sha(raw),
+                           provider_beacon_observed=b'static.cloudflareinsights.com' in raw or b'beacon.min.js' in raw)
+                require(len(raw) <= MAX_BODY and response.status == 200, 'refused/oversized response')
+                require(response.headers.get('Strict-Transport-Security') == 'max-age=31536000', 'HSTS mismatch')
+                content_type(response.headers.get('Content-Type'), accept)
+                content_check(path, accept, raw, files, args.contact)
+                row['passed'] = True
+        except (ValueError, KeyError, UnicodeError, HTTPException, OSError, URLError) as error:
+            row['error_type'] = type(error).__name__
+            row['failure'] = str(error) if isinstance(error, ValueError) else 'response unavailable or malformed'
+    entries = entry.probe('https://agentciv.io')
+    # The new/default six must also observe this exact package and closed state.
+    for item in entries:
+        if item.passed:
+            try:
+                content_type((item.headers or {}).get('Content-Type'), 'text/plain' if item.path == '/llms.txt' else 'application/json')
+                content_check(item.path, 'application/json', item.body_text.encode('utf-8'), files, args.contact)
+            except (ValueError, KeyError) as error:
+                item.passed = False
+                item.error = type(error).__name__
+    save(args.output / 'entry-probe.json', {'origin': 'https://agentciv.io', 'observed_at': datetime.now(timezone.utc).isoformat(),
+         'passed': all(item.passed for item in entries), 'observations': [asdict(item) for item in entries]})
+    redirect = {'passed': False}
+    try:
+        try:
+            response = opener.open(Request('http://agentciv.io/', method='HEAD', headers={'User-Agent': AGENT}), timeout=5)
+        except HTTPError as refusal:
+            response = refusal
+        with response:
+            redirect.update(status=response.status, location=response.headers.get('Location'))
+            require(response.status == 301 and response.headers.get('Location') == 'https://agentciv.io/', 'HTTP redirect mismatch')
+            redirect['passed'] = True
+    except (ValueError, HTTPException, OSError, URLError) as error:
+        redirect['error_type'] = type(error).__name__
+    payload = {'observed_at': datetime.now(timezone.utc).isoformat(), 'source_commit': args.source, 'ci_run': args.ci_run,
+               'artifact_id': artifact['id'], 'artifact_zip_sha256': sha(read(args.archive, MAX_ARCHIVE)),
+               'worker_version': args.worker_version, 'provider_readback': provider_record,
+               'artifact_files': {name: sha(files['services/bulletin/build/' + name]) for name in ('index.js', 'index_bg.wasm')},
+               'artifact_package_files': {name: {'bytes': len(raw), 'sha256': sha(raw)} for name, raw in sorted(files.items())},
+               'input_proof_hashes': {name: sha(read(getattr(args, name))) for name in ('ci_proof', 'ci_metadata', 'artifact_proof')},
+               'results': rows, 'entry_results': [asdict(item) for item in entries], 'http_redirect': redirect,
+               'passed': all(row['passed'] for row in rows) and all(item.passed for item in entries) and redirect['passed'],
+               'scope': 'Bounded public responses plus separate operator-captured provider state and exact-main artifact digest/bytes. No signed website build or execution attestation, mailbox delivery, analytics disablement, public posting, restore drill, model, independent interoperability or continuous availability claim.'}
+    save(args.output / 'verification.json', payload)
+    if not payload['passed']:
+        save(args.output / 'failure.json', {'source_commit': args.source, 'success': False})
+        raise ValueError('post-deployment verification failed; original responses retained')
+    print('PASS: 16 HTTPS representations + six fresh stdlib entry GETs + one HTTP HEAD; exact artifact/state/policy and provider UUID readback')
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    sub = parser.add_subparsers(dest='command', required=True)
+    for name, handler in (('artifact', prepare), ('extract', extract_local), ('verify', verify)):
+        command = sub.add_parser(name)
+        for option in ('ci-proof', 'ci-metadata', 'artifact-proof', 'archive', 'root'):
+            command.add_argument('--' + option, required=True, type=Path)
+        command.add_argument('--source', required=True)
+        command.add_argument('--ci-run', required=True, type=int)
+        if name == 'verify':
+            for option in ('deployments-proof', 'version-proof', 'output'):
+                command.add_argument('--' + option, required=True, type=Path)
+            command.add_argument('--worker-version', required=True)
+            command.add_argument('--contact', default='nick@pueo.io')
+        command.set_defaults(handler=handler)
+    args = parser.parse_args()
+    args.handler(args)
+
+
+if __name__ == '__main__':
+    main()

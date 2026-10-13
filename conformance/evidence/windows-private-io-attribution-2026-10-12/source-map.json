@@ -1,0 +1,118 @@
+{
+  "kind": "derived_source_comparison",
+  "observed_source": "216e05938f662d944a532b473696e2a5bb4ef01c",
+  "public_reproduction_source": "7d1f921903eb3264a74615f039bea02887980436",
+  "scope": "Ten relevant Git blobs match; the observation is not reattributed to public main. Worktree CRLF bytes remain separately named.",
+  "source_files": [
+    {
+      "path": "examples/participants/test_local_encounter.py",
+      "git_blob_sha256": "68eb34e7ad8656e2611780c6d43c71018f9e132b2958b434fe7aadf4931e7f8a",
+      "worktree_bytes_sha256": "7306d6a5cae42245dcb0ebc11dcd9bb69c18bce824651a0469c8db4a4fe25512",
+      "worktree_bytes": 73292,
+      "git_blob_bytes": 72186,
+      "exact_git_blob_equal_to_public_7d": true,
+      "exact_git_blob_equal_to_public_1f": false,
+      "worktree_exact_git_blob_bytes": false,
+      "worktree_crlf_to_lf_matches_git_blob": true
+    },
+    {
+      "path": "examples/participants/encounter_private.py",
+      "git_blob_sha256": "7a6405424528d05f3ae788580404fff5ac82a0e9c3a3dcb055f101445fce98b0",
+      "worktree_bytes_sha256": "dd9d0c020b3c153b82f71d90be88064108d58c262d552756c7470c6f7914572c",
+      "worktree_bytes": 12423,
+      "git_blob_bytes": 12100,
+      "exact_git_blob_equal_to_public_7d": true,
+      "exact_git_blob_equal_to_public_1f": true,
+      "worktree_exact_git_blob_bytes": false,
+      "worktree_crlf_to_lf_matches_git_blob": true
+    },
+    {
+      "path": "examples/participants/encounter_client.py",
+      "git_blob_sha256": "214b4586a05cffa5ab50ec14a31fe996c0fcbbc4e0c1e7d7a31c4cd64faf8de0",
+      "worktree_bytes_sha256": "10fdc8e5a59b2827b5b4c45e24747fd273f2318351c33e8a3ae2bb5fedf8736b",
+      "worktree_bytes": 33884,
+      "git_blob_bytes": 33279,
+      "exact_git_blob_equal_to_public_7d": true,
+      "exact_git_blob_equal_to_public_1f": false,
+      "worktree_exact_git_blob_bytes": false,
+      "worktree_crlf_to_lf_matches_git_blob": true
+    },
+    {
+      "path": "examples/participants/encounter_return.py",
+      "git_blob_sha256": "c6e19cced7b6494b209e7eb039997f0c0db56c8a36eb0d9a6282fe8bfd7b7cd2",
+      "worktree_bytes_sha256": "6953ddc24a3655bf3cb51a9038e46e3346899add9e3092ba456089f81b870a3d",
+      "worktree_bytes": 7497,
+      "git_blob_bytes": 7362,
+      "exact_git_blob_equal_to_public_7d": true,
+      "exact_git_blob_equal_to_public_1f": true,
+      "worktree_exact_git_blob_bytes": false,
+      "worktree_crlf_to_lf_matches_git_blob": true
+    },
+    {
+      "path": "examples/participants/local_encounter.py",
+      "git_blob_sha256": "23a694c635f59a70a0920ed1a9677a77c6980eb90185b74ae450c0ff1a5f8093",
+      "worktree_bytes_sha256": "a8a0354469c9bb5830b7514eafb7a77d2435b240a8092b857f1db7274a8a0ae8",
+      "worktree_bytes": 23172,
+      "git_blob_bytes": 22694,
+      "exact_git_blob_equal_to_public_7d": true,
+      "exact_git_blob_equal_to_public_1f": true,
+      "worktree_exact_git_blob_bytes": false,
+      "worktree_crlf_to_lf_matches_git_blob": true
+    },
+    {
+      "path": "examples/participants/local_participant.py",
+      "git_blob_sha256": "18cfcb93431029e95cb5ee62e15f8d9b3945b87194a6b5f96c6937c6032581bc",
+      "worktree_bytes_sha256": "cad2e1a152fcb2da571e0fc58ef8694fcf2f62621f402f00bfbeb54c1c5a4f6c",
+      "worktree_bytes": 10361,
+      "git_blob_bytes": 10065,
+      "exact_git_blob_equal_to_public_7d": true,
+      "exact_git_blob_equal_to_public_1f": true,
+      "worktree_exact_git_blob_bytes": false,
+      "worktree_crlf_to_lf_matches_git_blob": true
+    },
+    {
+      "path": "examples/participants/collaboration.py",
+      "git_blob_sha256": "147288c962756d9a44ec53de0ee3a4073227a97f78f209f24acf253f507a7193",
+      "worktree_bytes_sha256": "ef8d90631ef61a986ce815b5316d279775a508a4c4b1363c001e0d915808866f",
+      "worktree_bytes": 38100,
+      "git_blob_bytes": 37401,
+      "exact_git_blob_equal_to_public_7d": true,
+      "exact_git_blob_equal_to_public_1f": true,
+      "worktree_exact_git_blob_bytes": false,
+      "worktree_crlf_to_lf_matches_git_blob": true
+    },
+    {
+      "path": "examples/participants/decision_loop.py",
+      "git_blob_sha256": "349882f85ff61991b9a63c2438187452e5d7b12a4582409afdfe3f602b04f62f",
+      "worktree_bytes_sha256": "8a50380656e08bbdd125d4bf0842f25bbd82486d729b26fc7f83bab29317812f",
+      "worktree_bytes": 12200,
+      "git_blob_bytes": 11951,
+      "exact_git_blob_equal_to_public_7d": true,
+      "exact_git_blob_equal_to_public_1f": true,
+      "worktree_exact_git_blob_bytes": false,
+      "worktree_crlf_to_lf_matches_git_blob": true
+    },
+    {
+      "path": "examples/participants/loopback.py",
+      "git_blob_sha256": "aa8291782ad927b3183666106342b511da61ff9b975cb103a097be32260d430b",
+      "worktree_bytes_sha256": "7367113e16185fdc066dd4223fdc420ade4eb67755fb2fd15015d5f11981209e",
+      "worktree_bytes": 1714,
+      "git_blob_bytes": 1668,
+      "exact_git_blob_equal_to_public_7d": true,
+      "exact_git_blob_equal_to_public_1f": true,
+      "worktree_exact_git_blob_bytes": false,
+      "worktree_crlf_to_lf_matches_git_blob": true
+    },
+    {
+      "path": "examples/http-commons/walk.py",
+      "git_blob_sha256": "bf53aa00476b7c5a103bf575af733cf5a7151d715c8c96e3e5b81e0834e17ddc",
+      "worktree_bytes_sha256": "06cfff5e0a2b2b185051612e672ebd805ae253629b576c3b69907fd8037767db",
+      "worktree_bytes": 34622,
+      "git_blob_bytes": 33698,
+      "exact_git_blob_equal_to_public_7d": true,
+      "exact_git_blob_equal_to_public_1f": true,
+      "worktree_exact_git_blob_bytes": false,
+      "worktree_crlf_to_lf_matches_git_blob": true
+    }
+  ]
+}

@@ -38,8 +38,8 @@ def _time(value: object) -> datetime:
     return parsed
 
 
-def _load(path: Path, settings: JsonObject, binary: Path) -> Observation:
-    view = client._decode(private.read_bounded(path, client.MAX_OUTPUT))
+def _load(path: Path, settings: JsonObject, binary: Path, *, raw: bytes | None = None) -> Observation:
+    view = client._decode(private.read_bounded(path, client.MAX_OUTPUT) if raw is None else raw)
     client._validate_view(view, settings)
     started, finished = _time(view.get("retrieval_started")), _time(view.get("retrieval_finished"))
     if finished < started:

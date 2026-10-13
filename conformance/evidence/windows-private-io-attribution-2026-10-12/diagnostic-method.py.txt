@@ -1,0 +1,160 @@
+"""Ignored, bounded count-only observation of three existing synthetic tests."""
+from __future__ import annotations
+import argparse
+import json
+import os
+from pathlib import Path
+import platform
+import subprocess
+import sys
+import time
+import unittest
+
+TESTS = (
+    "test_local_encounter.PrivateEncounterFilesTests.test_private_bytes_bounds_replacement_and_no_overwrite",
+    "test_local_encounter.PrivateEncounterFilesTests.test_lock_is_bounded_and_released_after_failure",
+    "test_local_encounter.EncounterClientUnitTests.test_empty_read_publishes_nothing_and_saved_view_cannot_be_overwritten",
+)
+
+def emit(handle, value):
+    handle.write(json.dumps(value, separators=(",", ":")) + "\n")
+    handle.flush()
+
+def worker(worktree, output):
+    started = time.monotonic()
+    sys.path.insert(0, str(worktree / "examples" / "participants"))
+    import encounter_private as private
+    original = private._windows_acl
+    with output.open("x", encoding="utf-8", newline="\n") as handle:
+        emit(handle, {"kind":"start", "python":platform.python_version(), "platform":platform.platform(),
+                      "selected_tests":list(TESTS), "ceiling_seconds":120, "worker_deadline_seconds":105})
+        state = {"test":None, "acl_calls":0, "acl_seconds":0.0, "outcome":"passed"}
+        def observed(path, action, directory):
+            if time.monotonic() - started >= 105:
+                raise RuntimeError("diagnostic_deadline")
+            call_started = time.monotonic()
+            outcome = "passed"
+            try:
+                return original(path, action, directory)
+            except BaseException as error:
+                outcome = type(error).__name__
+                raise
+            finally:
+                elapsed = time.monotonic() - call_started
+                state["acl_calls"] += 1
+                state["acl_seconds"] += elapsed
+                emit(handle, {"kind":"acl", "test":state["test"], "action":action,
+                              "role":"directory" if directory else "file", "outcome":outcome,
+                              "elapsed_seconds":round(elapsed, 6)})
+        private._windows_acl = observed
+        class Result(unittest.TestResult):
+            def startTest(self, test):
+                super().startTest(test)
+                state.update(test=test.id(), acl_calls=0, acl_seconds=0.0, outcome="passed")
+                self.test_started = time.monotonic()
+                emit(handle, {"kind":"test_start", "test":test.id()})
+            def addError(self, test, err):
+                state["outcome"] = "error"
+                emit(handle, {"kind":"failure", "test":test.id(), "outcome":"error", "exception_class":err[0].__name__})
+            def addFailure(self, test, err):
+                state["outcome"] = "failed"
+                emit(handle, {"kind":"failure", "test":test.id(), "outcome":"failed", "exception_class":err[0].__name__})
+            def addSkip(self, test, reason):
+                state["outcome"] = "skipped"
+            def addSubTest(self, test, subtest, err):
+                if err is not None:
+                    self.addFailure(test, err)
+            def stopTest(self, test):
+                emit(handle, {"kind":"test_result", "test":test.id(), "outcome":state["outcome"],
+                              "elapsed_seconds":round(time.monotonic()-self.test_started, 6),
+                              "acl_calls":state["acl_calls"], "acl_seconds":round(state["acl_seconds"], 6)})
+                super().stopTest(test)
+        result = Result()
+        outcomes = []
+        try:
+            for name in TESTS:
+                if time.monotonic() - started >= 105:
+                    emit(handle, {"kind":"refused", "reason":"total_deadline"})
+                    return 2
+                suite = unittest.defaultTestLoader.loadTestsFromName(name)
+                if suite.countTestCases() != 1:
+                    emit(handle, {"kind":"refused", "reason":"unexpected_test_count"})
+                    return 2
+                suite.run(result)
+                outcomes.append(state["outcome"])
+            emit(handle, {"kind":"complete", "test_count":result.testsRun,
+                          "outcome":"passed" if outcomes == ["passed"]*3 else "failed",
+                          "elapsed_seconds":round(time.monotonic()-started, 6)})
+            return 0 if outcomes == ["passed"]*3 else 1
+        finally:
+            private._windows_acl = original
+
+def main():
+    if not __debug__:
+        raise SystemExit("diagnostic requires assertions enabled")
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--worktree", type=Path, required=True)
+    parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--worker", action="store_true")
+    args = parser.parse_args()
+    worktree = args.worktree.resolve(strict=True)
+    output = args.output.resolve()
+    owned = Path(__file__).resolve().parent
+    if not worktree.is_relative_to(owned) or not output.is_relative_to(owned):
+        raise SystemExit("diagnostic paths must remain inside owned ignored directory")
+    if sys.platform != "win32":
+        raise SystemExit("Windows observation required")
+    if args.worker:
+        return worker(worktree, output)
+    if output.exists():
+        raise SystemExit("fresh output required")
+    clean = subprocess.check_output(["git", "status", "--porcelain", "--untracked-files=no"], cwd=worktree)
+    if clean:
+        raise SystemExit("clean tracked source required")
+    source = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=worktree).decode().strip()
+    output.mkdir()
+    raw = output / "observations.jsonl"
+    started = time.monotonic()
+    process = subprocess.Popen([sys.executable, str(Path(__file__).resolve()), "--worker", "--worktree", str(worktree), "--output", str(raw)],
+                               cwd=worktree, env={**os.environ,"PYTHONDONTWRITEBYTECODE":"1"},
+                               stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                               creationflags=subprocess.CREATE_NO_WINDOW)
+    refused = False
+    killed = None
+    try:
+        process.wait(timeout=110)
+    except subprocess.TimeoutExpired:
+        refused = True
+        try:
+            killed = subprocess.run(["taskkill", "/PID", str(process.pid), "/T", "/F"],
+                                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=3,
+                                    creationflags=subprocess.CREATE_NO_WINDOW, check=False).returncode
+        except subprocess.SubprocessError:
+            killed = "termination_timeout"
+        if process.poll() is None:
+            process.kill()
+    rows = []
+    if raw.exists():
+        for line in raw.read_bytes().splitlines():
+            try:
+                rows.append(json.loads(line))
+            except (ValueError, UnicodeError):
+                rows.append({"kind":"incomplete_line"})
+    tests = [r for r in rows if r.get("kind") == "test_result"]
+    complete = [r for r in rows if r.get("kind") == "complete"]
+    summary = {"source":source, "selected_tests":list(TESTS), "selected_test_count":3,
+               "completed_tests":tests, "worker_returncode":process.poll(), "supervisor_deadline_refusal":refused,
+               "owned_process_tree_termination_returncode":killed,
+               "elapsed_seconds":round(time.monotonic()-started,6), "ceiling_seconds":120,
+               "outcome":"passed" if not refused and process.returncode == 0 and len(tests)==3
+               and [r["test"] for r in tests] == list(TESTS)
+               and all(r["outcome"] == "passed" for r in tests)
+               and len(complete)==1 and complete[0]["outcome"]=="passed" else "refused_or_failed"}
+    with (output / "summary.json").open("x", encoding="utf-8", newline="\n") as handle:
+        json.dump(summary, handle, indent=2)
+        handle.write("\n")
+    print(json.dumps(summary))
+    return 0 if summary["outcome"] == "passed" else 1
+
+if __name__ == "__main__":
+    raise SystemExit(main())

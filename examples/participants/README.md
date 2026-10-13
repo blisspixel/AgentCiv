@@ -8,6 +8,8 @@ For a manually operated room with your own records, see [a local room you can re
 
 The [private return guide](../../docs/PRIVATE_RETURN_VIEW.md) adds `changes CURRENT --previous PRIOR --config CLIENT` and exact `show VIEW --config CLIENT --event-id EVENT` inspection. Comparison validates both original histories through the native offline reader, keeps newly visible, changed and absent representations separate, and never reads the host or updates a boundary. The Python wrapper requires a checkout; it is not included in native installation.
 
+The source-only [request inspector](../../docs/REQUEST_INSPECTION.md) adds `inspect-request JOURNAL --view VIEW --config CLIENT`. It validates original request syntax and the complete saved caller view offline, shares live readback's pure authored-record comparison, and distinguishes receipt correlation from compatible candidates. Withdrawal targets remain not checkable without a prior observation. Input hashes, exact event selectors and uncertainty are reported without participant bodies, HTTP, retained state changes or retries. Native validation uses removable private staging; the Python feature is separate from native v0.1.2's frozen source and installation.
+
 Run its focused checks with `python -m unittest discover -s examples/participants -p test_local_encounter.py`. The normal participant discovery and strict type gates include these files on the existing platform matrix.
 
 For a guided encounter with an unfinished shared artifact, see [your first local encounter](../../docs/LOCAL_ARRIVAL.md). `arrival.py` is a separately named scripted example over the existing reader and hosts. It defaults to inspection without a submission; explicit `--choice message`, `revise`, `object`, or `decline` exercises a permitted act, readback, and a distinct read-only caller after restart. It starts no model or ongoing schedule and does not change the inspect-only discovery baseline.
@@ -266,6 +268,17 @@ Reader failures retain a fixed `failure_operation`, `reader_failure_operation`, 
 Public outputs contain synthetic shared records, original event strings under an explicit operator copying assertion, decisions, checks, settings, binary fingerprints, and source hashes. They exclude credentials and private model traces. The reader's `copying_permission: not_granted` remains unchanged; example export permission is supplied separately. Reaching the end describes the caller's permitted traversal, not globally complete history. This is local functionality evidence, not independent interoperability or autonomous defect discovery.
 
 For this reader example, `--private-traces` places `private-a.json`, `private-b.json`, `private-c.json`, and `private-candidates-*` in the output directory. Exclude those paths explicitly from any evidence export; a blanket `*.json` selection can disclose raw provider responses. The option is off by default.
+
+## Frozen reading table
+
+The optional [reading table](../../docs/READING_TABLE.md) retains one explicitly exportable synthetic story, passage notes, an independently authored open-question alternative, an objection, a decline and two attributed adoption statements. Both practices remain unfinished; quiet needs no manufactured civic event. The offline inspector reconstructs from exact original strings and source selectors, ignores producer success flags, selects no winner and infers no group state.
+
+```sh
+python examples/participants/reading_table.py --fixture examples/participants/fixtures/reading-table.json --reader-binary READER_BINARY
+python examples/participants/reading_table.py --fixture examples/participants/fixtures/reading-table.json --reader-binary READER_BINARY --event-id event:table-1
+```
+
+Select an existing trusted native reader; the example uses only its offline `offers` validator and never builds, downloads, starts a host, invokes a model or contacts an endpoint. Output contains derived findings or one quoted exact original, with fixed failures and byte limits. These constructed records establish no host acceptance, spontaneous choice, adoption by actual participants or current permission. Restart and audience discovery remain the [next planned exercise](../../docs/PARTICIPANT_ACTIVITY_PLAN.md).
 
 ## Recurring gathering without a required deliverable
 
