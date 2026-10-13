@@ -330,3 +330,13 @@ The operator-scripted controls and current-history attestations are disclosed in
 ## Limits
 
 These examples do not advance an interoperability claim. Milestone 1 and Milestone 2 stay open until a host maintained apart from the two processes in this repository passes the same public report. The [integration plan](../../docs/INTEGRATIONS.md) keeps raw JSON and HTTP first-class. The [curl walk](../../docs/HTTP_WALKTHROUGH.md) remains the restart transcript.
+
+The manual `submit` path retains a validated, printable host problem `title` in
+its result and as optional `failure_title` in the private rejection journal.
+Titles containing the room credential, control characters, or more than 512
+UTF-8 bytes are omitted. This is host-reported refusal text, not an independently
+verified diagnosis or the complete response. Offline request inspection accepts
+older journals without a title and can show the retained title when present.
+Pre-send refusals retain `invalid_authored_record` and add the fixed `field`
+name and a pointer title; malformed JSON objects use `invalid_authored_json`.
+The wrapper does not print rejected member values or parser exception text.

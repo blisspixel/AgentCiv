@@ -475,6 +475,11 @@ def main() -> int:
         failure: JsonObject = {"outcome": "failed", "code": error.code}
         if error.name is not None:
             failure["file"] = error.name
+        if error.field is not None:
+            failure["field"] = error.field
+            failure["title"] = f"Invalid authored record: check /{error.field}"
+        elif error.code == "invalid_authored_json":
+            failure["title"] = "Authored record is not a valid JSON object"
         print(json.dumps(failure, ensure_ascii=True))
         return 1
     except (OSError, ValueError, RecursionError, subprocess.SubprocessError):

@@ -346,17 +346,30 @@ def show(config: Path, path: Path, *, event_id: str | None = None) -> str:
 
 
 def _authored(raw: bytes, settings: JsonObject) -> JsonObject:
-    value = _decode(raw)
-    if (value.get("protocol_version") != "0.1-draft" or value.get("world") != settings["world"]
-        or value.get("from") != settings["principal"] or not _text(value.get("id"))
-        or value.get("type") not in ("message", "artifact_revision", "objection", "decline", "withdrawal")
-        or str(settings["token"]) in raw.decode("utf-8") or str(settings["token"]) in str(value)):
-        raise private.EncounterError("invalid_authored_record")
+    try:
+        value = _decode(raw)
+    except (ValueError, UnicodeError, RecursionError, civic.DecisionError):
+        raise private.EncounterError("invalid_authored_json") from None
+    checks = (
+        ("protocol_version", value.get("protocol_version") == "0.1-draft"),
+        ("world", value.get("world") == settings["world"]),
+        ("from", value.get("from") == settings["principal"]),
+        ("id", _text(value.get("id"))),
+        ("type", value.get("type") in ("message", "artifact_revision", "objection", "decline", "withdrawal")),
+        ("credential", str(settings["token"]) not in raw.decode("utf-8") and not _contains_secret(value, str(settings["token"]))),
+    )
+    for field, valid in checks:
+        if not valid:
+            raise private.EncounterError("invalid_authored_record", field=field)
     if value["type"] == "artifact_revision" and "revision" in value:
-        raise private.EncounterError("invalid_authored_record")
+        raise private.EncounterError("invalid_authored_record", field="revision")
     if value["type"] in ("objection", "decline", "withdrawal") and _integer(value.get("revision"), 1) is None:
-        raise private.EncounterError("invalid_authored_record")
+        raise private.EncounterError("invalid_authored_record", field="revision")
     return value
+
+
+def _safe_problem_title(value: object, token: str) -> bool:
+    return _text(value, 512) and not _contains_secret(value, token)
 
 
 def _endpoint(settings: JsonObject, record: JsonObject) -> tuple[str, str]:
@@ -590,6 +603,10 @@ def _publish(settings: JsonObject, raw: bytes, basis: Path | None, reader_binary
                         "failure_code": rejection if rejection is not None else "publication_outcome_unverified"})
                     if rejection is not None:
                         result.update({"outcome": "rejected", "code": rejection})
+                        title = _decode(response).get("title")
+                        if _safe_problem_title(title, str(settings["token"])):
+                            result["title"] = title
+                            journal["failure_title"] = title
                 else:
                     receipt = _receipt(response, authored, settings)
                     journal["receipt"] = receipt
