@@ -369,7 +369,10 @@ def _authored(raw: bytes, settings: JsonObject) -> JsonObject:
 
 
 def _safe_problem_title(value: object, token: str) -> bool:
-    return _text(value, 512) and not _contains_secret(value, token)
+    try:
+        return _text(value, 512) and not _contains_secret(value, token)
+    except UnicodeError:
+        return False
 
 
 def _endpoint(settings: JsonObject, record: JsonObject) -> tuple[str, str]:

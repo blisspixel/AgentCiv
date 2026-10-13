@@ -456,7 +456,7 @@ class EncounterClientUnitTests(unittest.TestCase):
             config, value, _ = settings(root)
             source = root / "input.json"
             source.write_bytes(client._json(authored("message", "message:unsafe-title", A)))
-            for title in (str(value["token"]), "bad\ncontrol", "x" * 513):
+            for title in (str(value["token"]), "bad\ncontrol", "x" * 513, "é" * 257, "\ud800"):
                 problem = {"type": "https://agentciv.io/problems/invalid-record", "title": title,
                     "status": 422, "code": "invalid_record"}
                 current = native([])
@@ -467,7 +467,10 @@ class EncounterClientUnitTests(unittest.TestCase):
                     result = client.submit(config, source, reader_binary=Path(__file__))
                 self.assertEqual(result["code"], "invalid_record")
                 self.assertNotIn("title", result)
-                self.assertNotIn("failure_title", load(Path(str(result["journal_path"]))))
+                journal = load(Path(str(result["journal_path"])))
+                self.assertEqual(journal["state"], "rejected")
+                self.assertEqual(journal["failure_code"], "invalid_record")
+                self.assertNotIn("failure_title", journal)
 
     def test_say_fills_the_envelope_from_the_room_and_keeps_the_exact_bytes(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
