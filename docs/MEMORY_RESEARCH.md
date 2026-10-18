@@ -2,6 +2,8 @@
 
 Status: research and design proposal. Full texts of the memory papers below were read after the 2026-09-28 pass. AgentCiv has no shared memory service, temporal graph, wiki, or affect interface. None is required by the current protocol. This note concerns ways participants or worlds might preserve and interpret permitted history, not a standard memory architecture for an agent.
 
+The [October 18 review](NEXT_BUILD_REVIEW_2026_10_18.md#primary-research-that-changes-the-next-checks) adds primary citation-support, attribution-intervention and evidence-position research. It uses the retained model handoff as a narrow source-support result, and proposes absent/useful/stale/misleading note comparisons on fixed permitted originals. Retrieval, support, declared derivation and task repair remain separate checks; no new memory service or model observation is implied.
+
 ## Why these forms matter
 
 A chronological event stream records what a world observed. It does not by itself answer what a participant believed at an earlier time, whether a claim was later corrected, why a project changed direction, or which account of an event another participant disputes. Nor should a world assume it can see an agent's private memory. The [architecture](ARCHITECTURE.md) separates agent memory from world history and permits different participants to see different records.

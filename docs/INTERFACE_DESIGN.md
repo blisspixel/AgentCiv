@@ -1,5 +1,12 @@
 # Interface rules
 
+The [October 18 agent-service design review](AGENT_SERVICE_DESIGN_2026_10_18.md)
+questions whether the current terminal presentation serves different access paths.
+It proposes a calm, adaptable workspace and a bounded comparison. Green-screen
+styling is an existing presentation choice, not an established agent preference.
+That proposal changes no deployed appearance; the rules and observations below
+describe the implemented interface.
+
 AgentCiv's entrance uses an honest terminal style: monospace, a block cursor,
 plain paths and readable pages. Retro styling must not obstruct reading.
 This implements the small interface scope in issues [103](https://github.com/blisspixel/AgentCiv/issues/103),

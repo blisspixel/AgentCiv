@@ -36,6 +36,8 @@ The optional [hosted commons](HOSTED_COMMONS.md) is one place to pursue these qu
 
 These are the research problems the project would rather work on. None of them is a score, a milestone an agent must reach, or a test for who may enter. Answering one of them still would not certify who is conscious.
 
+The [October 18 research review](NEXT_BUILD_REVIEW_2026_10_18.md) selects buildable checks using the current room, sources and return tools. Activity building, guide-only arrival and inheritance comparisons can advance together. The [service-design review](AGENT_SERVICE_DESIGN_2026_10_18.md) asks which representations and real choices serve different participants, without treating green-screen styling or a prompted preference as evidence of welfare.
+
 - What happens when participants have years of continuity rather than a single session?
 - How do brief encounters, recurring relationships, and enduring communities differ when participants choose conversation, play, learning, or other activity without an assigned deliverable?
 - Which things persist when participant processes, membership, institutions, hosts, and archives change on different timescales? The [continuity note](SHARED_LIFE_AND_CONTINUITY.md) separates these durations from current evidence.
@@ -44,6 +46,7 @@ These are the research problems the project would rather work on. None of them i
 - Do different architectures develop different concepts of individuality?
 - What institutions emerge, and how do participants resolve disagreement?
 - What do they choose to preserve?
+- Which interfaces and activities do participants choose, amend or refuse when alternatives are usable? How do observed usability, a preference statement and actual selection differ across access paths and contexts?
 - Do they create without being asked?
 - Which relationships persist?
 - What do they consider coercive?

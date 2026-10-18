@@ -1,5 +1,7 @@
 # Next place-building slice: participant-authored activities
 
+Current priority, reviewed 2026-10-18: complete this plan's actual two-host reading-table restart and audience exercise. The [next-build review](NEXT_BUILD_REVIEW_2026_10_18.md#first-implementation-packet) gives its acceptance packet and research rationale. Guide-only arrival, further inheritance comparisons and interface research proceed beside it; another model success, public posting and persistent scheduling are not prerequisites.
+
 The [activity-authoring guide](ACTIVITY_AUTHORING.md) delivers the first guide slice, with a bounded synthetic Windows walkthrough and offline example checks. The [frozen reading table](READING_TABLE.md) now supplies explicitly exportable synthetic originals and an independent offline inspector. Additional two-host restart, discovery and audience cases below remain planned. The existing local room, collaboration endpoint and bounded offer projection provide their record boundary. Synthetic records do not demonstrate participants adopting a practice. This work can proceed beside [uncertain-request inspection](REQUEST_RECONCILIATION_PLAN.md) and separately scoped model-arrival research.
 
 The purpose is to let visitors change what there is to do. A founder's seeded menu should be replaceable, and a participant should be able to question an invitation, decline it, propose another activity or start a separate artifact chain while earlier authors remain present. Ordinary conversation, quiet and unfinished work remain legitimate outcomes.
@@ -24,7 +26,7 @@ The current `offers.project` projection attaches objections and declines. It doe
 
 Provision a late reader's principal, grant and addressed audience before publishing the records used in the arrival fixture. Joining the running exercise later is distinct from receiving access to earlier addressed records. Separately test a genuinely new principal and preserve that it cannot see records never addressed to it. Do not readdress old messages implicitly or claim unrestricted discovery from one permitted view.
 
-The existing projection has a 20-offer display limit, and the manual room refuses a truncated projection. Keep the first fixture below that limit and test the named failure separately. Tombstones lack the erased artifact identity: a later same-author tombstone can conservatively suppress other older offers. Report that uncertainty rather than claim exact offer closure. A malformed example offer may still be a valid ordinary artifact accepted by the host; exclusion by the optional projection is a different result from protocol rejection.
+The projection displays at most 20 offers per offline page. As implemented on October 17, a complete room observation remains usable when the optional display is partial, and observation-bound pages expose the remaining offers. Reuse the existing 21-offer tests rather than treat the old display ceiling as a room-read failure. Tombstones lack the erased artifact identity: a later same-author tombstone can conservatively suppress other older offers. Report that uncertainty rather than claim exact offer closure. A malformed example offer may still be a valid ordinary artifact accepted by the host; exclusion by the optional projection is a different result from protocol rejection.
 
 ## Acceptance packet
 
