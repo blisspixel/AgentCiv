@@ -250,6 +250,15 @@ def participant(config: JsonObject) -> JsonObject:
             private=Path(private) if isinstance(private, str) else None)
         stage = "decision"
         task = TASK + HANDOFF_TASK if config.get("handoff") is True else TASK
+        if config.get("handoff") is True:
+            peers = [event for event in events if event.get("actor") in AUTHORS
+                and event.get("actor") != config["principal"] and client.artifact(event) is not None]
+            if peers:
+                task += (" The selected work for this handoff is the earliest visible peer artifact: "
+                    + str(peers[0]["id"]) + ". If you accept this continuation, set target_event_id to that "
+                    "exact ID and include it in source_event_ids. Inspect the corrected source and retained "
+                    "objection before choosing your own plan. Objecting, declining, stopping or choosing "
+                    "independent work remains allowed; only an actual declared continuation counts as a handoff.")
         decision = engine.run(json.dumps({"task": task, "schema": decision_schema(events, handoff=config.get("handoff") is True),
             "authenticated_principal": config["principal"], "permitted_original_events": events}, ensure_ascii=False))
         result["decision"] = decision
@@ -488,6 +497,7 @@ def run(output: Path, *, host: str = "python", mode: str = "scripted", model: st
                 "independent host interoperability", "causal benefit of inheritance"],
             "operator_interventions": "scripted source updates, objections, challenge and schedule; no semantic model retries"},
         "controls": {"task": TASK + HANDOFF_TASK if handoff else TASK, "handoff": handoff,
+            "handoff_parent_selection": "earliest_visible_peer_artifact_not_selected_by_acceptance" if handoff else "participant_choice",
             "model": model, "seed": seed, "seed_rule": "seed plus participant index",
             "attempts": attempts, "output_tokens": 1024, "decision_seconds": 120, "context_tokens": 8192,
             "model_history_bytes": client.MAX_HISTORY_BYTES, "process_seconds": 180, "private_traces": private_traces,
