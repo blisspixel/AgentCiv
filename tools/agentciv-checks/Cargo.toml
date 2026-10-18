@@ -2,7 +2,7 @@
 name = "agentciv-checks"
 version = "0.1.0"
 edition = "2024"
-rust-version = "1.98"
+rust-version = "1.99"
 license = "MIT"
 description = "Repository checks for AgentCiv documentation and JSON fixtures"
 publish = false

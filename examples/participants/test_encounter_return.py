@@ -220,6 +220,54 @@ class NativeReturnValidationTests(unittest.TestCase):
     def setUpClass(cls) -> None:
         cls.reader = walk.build_rust_binaries("agentciv-reader")["agentciv-reader"]
 
+    def test_correction_return_never_recovers_erased_source_and_refuses_51st_concern(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            config, _, cache = fixtures.settings(Path(temporary).resolve())
+            previous, current = cache / "view-prior.json", cache / "view-current.json"
+            source = fixtures.event(fixtures.authored("artifact_revision", "source:first", fixtures.A), 1)
+            peer_record = fixtures.authored("artifact_revision", "peer:first", fixtures.B)
+            peer_record["artifact_id"] = "artifact:peer"
+            peer_record["derived_from"] = {"from": fixtures.A, "artifact_id": "artifact:shared-reader", "revision": 1}
+            peer = fixtures.event(peer_record, 2)
+            source_body = fixtures.obj(fixtures.obj(source["body"])["artifact_revision"])
+            source_body["body"] = {"text": "ERASED_SOURCE_SENTINEL"}
+            source["body"] = {"artifact_revision": source_body}
+            tombstone = {**source, "kind": "artifact.withdrawn", "body": {}}
+            private.write_new(previous, json.dumps(view([source, peer])).encode())
+            private.write_new(current, json.dumps(view([tombstone, peer], later=True)).encode())
+            originals = {path: path.read_bytes() for path in (previous, current)}
+            with patch.object(wire, "exchange", side_effect=AssertionError("offline only")):
+                result = returns.changes(config, current, previous, reader_binary=self.reader, include_corrections=True)
+            trails = fixtures.obj(result["correction_trails"])
+            self.assertEqual(trails["concerns"], [])
+            self.assertEqual(fixtures.objects(trails["unresolved_citations"])[0]["lineage"], "unknown")
+            self.assertNotIn("ERASED_SOURCE_SENTINEL", json.dumps(result))
+            self.assertEqual(originals, {path: path.read_bytes() for path in originals})
+            current.unlink()
+            previous.unlink()
+            private.write_new(previous, json.dumps(view([])).encode())
+            concerns = []
+            for number in range(51):
+                objection = fixtures.authored("objection", f"objection:{number}", fixtures.B)
+                objection["artifact_id"] = f"artifact:unknown-{number}"
+                concerns.append(fixtures.event(objection, number + 1))
+            private.write_new(current, json.dumps(view(concerns, later=True)).encode())
+            with self.assertRaises(private.EncounterError) as caught:
+                returns.changes(config, current, previous, reader_binary=self.reader, include_corrections=True)
+            self.assertEqual(caught.exception.code, "correction_view_incomplete")
+
+    def test_offers_continuation_failure_is_named_and_offline(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            config, _, cache = fixtures.settings(Path(temporary).resolve())
+            path = cache / "view-empty.json"
+            private.write_new(path, json.dumps(view([])).encode())
+            with patch.object(wire, "exchange", side_effect=AssertionError("offline only")):
+                empty = client.offers(config, path, reader_binary=self.reader)
+                self.assertEqual(empty["offers"], [])
+                with self.assertRaises(private.EncounterError) as caught:
+                    client.offers(config, path, continuation="stale-private-token", reader_binary=self.reader)
+                self.assertEqual(caught.exception.code, "invalid_offer_continuation")
+
     def test_native_event_validation_is_required_and_numeric_originals_survive(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             config, _, cache = fixtures.settings(Path(temporary).resolve())

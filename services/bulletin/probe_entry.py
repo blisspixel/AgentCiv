@@ -1,4 +1,4 @@
-"""Six bounded read-only entry checks, usable against local or deployed HTTP.
+"""Bounded manifest-derived public GET/HEAD checks for local or deployed HTTP.
 
 No credentials, retries, redirects, browser impersonation, or posting. A local
 pass cannot establish deployment or identify the provider's blocking rule.
@@ -13,12 +13,18 @@ from http.client import HTTPException
 import json
 from pathlib import Path
 import sys
+import time
 from typing import Any
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlsplit
 from urllib.request import HTTPRedirectHandler, Request, build_opener
 
-PATHS = ("/agent.json", "/llms.txt", "/api/board/info")
+MAX_INTERFACES = 24
+MAX_PATHS = 30
+MAX_REQUESTS = 64
+MAX_SECONDS = 120
+MISSING_PATH = "/.agentciv-entry-probe-missing"
+PUBLIC_PATHS = ("/", "/robots.txt", "/.well-known/agentciv-services", "/llms.txt", "/api/board/info", MISSING_PATH)
 CONTROL_AGENT = "AgentCivEntryProbe/0.1 (+https://github.com/blisspixel/AgentCiv)"
 MAX_BYTES = 65_536
 TIMEOUT_SECONDS = 5
@@ -35,6 +41,7 @@ class Observation:
     path: str
     client: str
     user_agent: str
+    method: str = "GET"
     status: int | None = None
     headers: dict[str, str] | None = None
     body_text: str = ""
@@ -62,39 +69,136 @@ def expected_body(path: str, data: bytes) -> bool:
         text = data.decode("utf-8")
         if path == "/llms.txt":
             return text.startswith("# AgentCiv service instructions\n") or text.startswith("# AgentCiv service instructions\r\n")
+        if path == "/robots.txt":
+            return "User-agent:" in text
+        if path == "/research":
+            return "<title>" in text and "AgentCiv" in text
         document = json.loads(text)
-        service = "agentciv.io/0.1-experimental" if path == "/agent.json" else "web-bulletin/0.1-experimental"
-        return isinstance(document, dict) and document.get("service") == service
-    except (UnicodeDecodeError, json.JSONDecodeError):
+        if not isinstance(document, dict):
+            return False
+        if path in ("/", "/agent.json", "/.well-known/agentciv-services"):
+            return document.get("service") == "agentciv.io/0.1-experimental"
+        if path == "/api/board/info":
+            return document.get("service") == "web-bulletin/0.1-experimental"
+        if path.startswith("/api/board/posts"):
+            return isinstance(document.get("posts"), list)
+        if path.startswith("/api/board/changes"):
+            return isinstance(document.get("changes"), list)
+        if path.startswith("/api/board/conversations/"):
+            return isinstance(document.get("post"), dict) and isinstance(document.get("replies"), dict)
+        # Catalogs, schemas and future advertised JSON reads must be JSON objects;
+        # a 200 HTML challenge is never an access success.
+        return bool(document)
+    except (UnicodeDecodeError, ValueError, RecursionError):
         return False
+
+
+def descriptor_paths(data: bytes) -> list[str]:
+    """Only bounded same-origin read paths, never arbitrary descriptor URLs."""
+    def pairs(items: list[tuple[str, Any]]) -> dict[str, Any]:
+        result: dict[str, Any] = {}
+        for key, value in items:
+            if key in result:
+                raise ValueError("duplicate descriptor member")
+            result[key] = value
+        return result
+    document = json.loads(data.decode("utf-8"), object_pairs_hook=pairs)
+    if not isinstance(document, dict) or document.get("service") != "agentciv.io/0.1-experimental":
+        raise ValueError("invalid descriptor")
+    interfaces = document.get("interfaces")
+    if not isinstance(interfaces, dict) or not 1 <= len(interfaces) <= MAX_INTERFACES:
+        raise ValueError("invalid interfaces")
+    paths: list[str] = []
+    values = list(interfaces.values())
+    conversation = document.get("conversation_read")
+    if conversation is not None:
+        if not isinstance(conversation, dict) or conversation.get("probe_path") != "/api/board/conversations/1":
+            raise ValueError("invalid conversation probe")
+        values.append(conversation["probe_path"])
+    for value in values:
+        if not isinstance(value, str) or len(value) > 2048 or any(ord(char) < 33 or ord(char) == 127 for char in value):
+            raise ValueError("invalid read path")
+        parsed = urlsplit(value)
+        if (not value.startswith("/") or value.startswith("//") or "\\" in value
+            or parsed.scheme or parsed.netloc or parsed.fragment or "{" in value or "}" in value
+            or parsed.path in ("/board/publish",) or "%" in parsed.path):
+            raise ValueError("invalid read path")
+        paths.append(value)
+    return list(dict.fromkeys(paths))
 
 
 def probe(origin: str) -> list[Observation]:
     origin = origin_value(origin)
     results: list[Observation] = []
-    for client, agent in (("python-default", None), ("truthful-control", CONTROL_AGENT)):
+    deadline = time.monotonic() + MAX_SECONDS
+    clients = (("python-default", None), ("truthful-control", CONTROL_AGENT))
+    discovered: set[str] = set()
+
+    def fetch(path: str, client: str, agent: str | None, method: str = "GET") -> Observation:
         opener = build_opener(NoRedirect())
         actual_agent = dict(opener.addheaders)["User-agent"] if agent is None else agent
-        for path in PATHS:
-            result = Observation(path=path, client=client, user_agent=actual_agent)
-            results.append(result)
-            request = Request(origin + path, headers={} if agent is None else {"User-Agent": agent}, method="GET")
+        result = Observation(path=path, client=client, user_agent=actual_agent, method=method)
+        results.append(result)
+        remaining = deadline - time.monotonic()
+        if remaining <= 0 or len(results) > MAX_REQUESTS:
+            result.error = "probe_budget_exceeded"
+            return result
+        request = Request(origin + path, headers={} if agent is None else {"User-Agent": agent}, method=method)
+        try:
             try:
-                try:
-                    response = opener.open(request, timeout=TIMEOUT_SECONDS)
-                except HTTPError as refusal:
-                    response = refusal
-                with response:
-                    result.status = response.status
-                    result.headers = {name: response.headers[name] for name in ("Content-Type", "Server", "CF-Ray", "CF-Mitigated") if name in response.headers}
-                    data = response.read(MAX_BYTES + 1)
-                    result.bytes_read = len(data)
-                    result.truncated = len(data) > MAX_BYTES
-                    result.body_sha256 = hashlib.sha256(data).hexdigest()
-                    result.body_text = data.decode("utf-8", errors="replace")
+                response = opener.open(request, timeout=min(TIMEOUT_SECONDS, remaining))
+            except HTTPError as refusal:
+                response = refusal
+            with response:
+                result.status = response.status
+                result.headers = {name: response.headers[name] for name in ("Content-Type", "Server", "CF-Ray", "CF-Mitigated") if name in response.headers}
+                chunks = bytearray()
+                while len(chunks) <= MAX_BYTES:
+                    if time.monotonic() >= deadline:
+                        raise TimeoutError("probe deadline")
+                    chunk = response.read1(min(8192, MAX_BYTES + 1 - len(chunks)))
+                    if not chunk:
+                        break
+                    chunks.extend(chunk)
+                data = bytes(chunks)
+                result.bytes_read = len(data)
+                result.truncated = len(data) > MAX_BYTES
+                result.body_sha256 = hashlib.sha256(data).hexdigest()
+                result.body_text = data.decode("utf-8", errors="replace")
+                if method == "HEAD":
+                    result.passed = result.status == 200 and not data
+                elif path == MISSING_PATH:
+                    result.passed = result.status == 404 and not result.truncated
+                elif path == "/api/board/conversations/1" and result.status == 404:
+                    document = json.loads(data)
+                    result.passed = isinstance(document, dict) and document.get("code") == "post_not_found"
+                else:
                     result.passed = result.status == 200 and not result.truncated and expected_body(path, data)
-            except (URLError, OSError, TimeoutError, HTTPException) as error:
-                result.error = type(error).__name__
+                if path == "/agent.json" and method == "GET" and result.passed:
+                    try:
+                        discovered.update(descriptor_paths(data))
+                    except (ValueError, UnicodeError, RecursionError):
+                        result.error = "invalid_descriptor"
+                        result.passed = False
+        except (URLError, OSError, TimeoutError, HTTPException, ValueError, RecursionError) as error:
+            result.error = type(error).__name__
+            result.passed = False
+        return result
+
+    # Bootstrap each identity once. A control descriptor can supply paths to
+    # diagnose a refused default client; its success never excuses that refusal.
+    for client, agent in clients:
+        fetch("/agent.json", client, agent)
+    paths = list(dict.fromkeys([*PUBLIC_PATHS, *sorted(discovered)]))
+    if len(paths) > MAX_PATHS:
+        for result in results:
+            result.passed = False
+            result.error = "descriptor_path_limit"
+        return results
+    for client, agent in clients:
+        for path in paths:
+            fetch(path, client, agent)
+        fetch("/agent.json", client, agent, "HEAD")
     return results
 
 
@@ -110,7 +214,8 @@ def main(argv: list[str] | None = None) -> int:
         passed = all(result.passed for result in results)
         json.dump({"origin": origin, "observed_at": datetime.now(timezone.utc).isoformat(),
                    "python_version": sys.version, "max_bytes_plus_sentinel": MAX_BYTES + 1,
-                   "socket_timeout_seconds": TIMEOUT_SECONDS, "redirects": False, "retries": 0,
+                   "socket_timeout_seconds": TIMEOUT_SECONDS, "max_seconds": MAX_SECONDS,
+                   "max_requests": MAX_REQUESTS, "descriptor_interfaces_limit": MAX_INTERFACES, "redirects": False, "retries": 0,
                    "passed": passed, "observations": [asdict(result) for result in results]}, output, indent=2)
         output.write("\n")
     return 0 if passed else 1

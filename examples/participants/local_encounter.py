@@ -420,11 +420,23 @@ def main() -> int:
     showing.add_argument("view", type=Path)
     showing.add_argument("--config", required=True, type=Path)
     showing.add_argument("--event-id", help="inspect one exact saved event, including its quoted original JSON")
+    offers = commands.add_parser("offers", help="page activities in one complete saved observation offline")
+    offers.add_argument("view", type=Path)
+    offers.add_argument("--config", required=True, type=Path)
+    offers.add_argument("--query", default="")
+    offers.add_argument("--continuation")
+    offers.add_argument("--reader-binary", type=Path)
     comparing = commands.add_parser("changes", help="compare two complete private saved views offline")
     comparing.add_argument("current", type=Path)
     comparing.add_argument("--previous", required=True, type=Path)
     comparing.add_argument("--config", required=True, type=Path)
     comparing.add_argument("--reader-binary", type=Path)
+    returning = commands.add_parser("return", help="inspect changes, corrections and declared dependencies offline")
+    returning.add_argument("current", type=Path)
+    returning.add_argument("--previous", required=True, type=Path)
+    returning.add_argument("--config", required=True, type=Path)
+    returning.add_argument("--event-id")
+    returning.add_argument("--reader-binary", type=Path)
     inspecting = commands.add_parser("inspect-request", help="inspect one private request journal against a complete saved view offline")
     inspecting.add_argument("journal", type=Path)
     inspecting.add_argument("--view", required=True, type=Path)
@@ -458,6 +470,13 @@ def main() -> int:
             elif args.command == "changes":
                 import encounter_return
                 result = encounter_return.changes(args.config, args.current, args.previous, reader_binary=args.reader_binary)
+            elif args.command == "return":
+                import encounter_return
+                result = encounter_return.changes(args.config, args.current, args.previous,
+                    reader_binary=args.reader_binary, include_corrections=True, event_id=args.event_id)
+            elif args.command == "offers":
+                result = encounter_client.offers(args.config, args.view, query=args.query,
+                    continuation=args.continuation, reader_binary=args.reader_binary)
             elif args.command == "inspect-request":
                 import encounter_request
                 result = encounter_request.inspect(args.config, args.journal, args.view, reader_binary=args.reader_binary)
@@ -470,14 +489,17 @@ def main() -> int:
             else:
                 result = encounter_client.submit(args.config, args.record, args.basis, reader_binary=args.reader_binary)
         print(json.dumps(result, ensure_ascii=True))
-        return 0 if result.get("outcome") in ("initialized", "member_added", "stopped", "read", "synced", "recorded", "compared", "inspected") else 1
+        return 0 if result.get("outcome") in ("initialized", "member_added", "stopped", "read", "synced", "recorded", "compared", "inspected", "offers") else 1
     except private.EncounterError as error:
         failure: JsonObject = {"outcome": "failed", "code": error.code}
         if error.name is not None:
             failure["file"] = error.name
         if error.field is not None:
             failure["field"] = error.field
-            failure["title"] = f"Invalid authored record: check /{error.field}"
+            if error.code == "invalid_private_view_path":
+                failure["title"] = "Saved views must be named view-*.json inside this member's configured cache_directory"
+            else:
+                failure["title"] = f"Invalid authored record: check /{error.field}"
         elif error.code == "invalid_authored_json":
             failure["title"] = "Authored record is not a valid JSON object"
         print(json.dumps(failure, ensure_ascii=True))

@@ -20,12 +20,12 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
-      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: '26'
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
         with:
-          python-version: '3.14'
+          python-version: '3.15'
       - name: Install pinned edge tooling
         run: |
           rustup target add wasm32-unknown-unknown
@@ -77,7 +77,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
         with:
-          python-version: '3.14'
+          python-version: '3.15'
       - name: Check native shell syntax and offline behavior
         run: |
           sh -n install.sh
@@ -158,7 +158,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
         with:
-          python-version: "3.14"
+          python-version: "3.15"
       - name: Install Rust coverage tool
         run: cargo install cargo-llvm-cov --locked --version 0.9.1
       - name: Check formatting
@@ -323,7 +323,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-24.04, windows-latest, macos-latest]
-        python-version: ["3.11", "3.14"]
+        python-version: ["3.11", "3.12", "3.13", "3.14", "3.15"]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
@@ -413,7 +413,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
         with:
-          python-version: "3.14"
+          python-version: "3.15"
       - name: Lint Rust
         run: cargo clippy --workspace --all-targets --locked -- -D warnings
       - name: Test Rust

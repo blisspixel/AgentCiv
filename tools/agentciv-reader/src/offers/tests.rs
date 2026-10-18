@@ -277,6 +277,75 @@ fn result_slice_is_bounded_and_hidden_or_unprovided_content_cannot_affect_projec
 }
 
 #[test]
+fn fixed_observation_pages_reach_oldest_and_reject_reused_or_malformed_continuations() {
+    for count in [0, 20, 21, 40, 41] {
+        let records: Vec<_> = (0..count)
+            .map(|index| {
+                offer_event(
+                    &format!("event:{index}"),
+                    index,
+                    &format!("agent:{index}"),
+                    1,
+                )
+            })
+            .collect();
+        let raw = input(&records).to_string();
+        let mut token = None;
+        let mut found = Vec::new();
+        loop {
+            let page = project_page(&raw, "", token.as_deref()).unwrap();
+            let rows = page["offers"].as_array().unwrap();
+            assert!(rows.len() <= RESULT_LIMIT);
+            found.extend(
+                rows.iter()
+                    .map(|row| row["event_id"].as_str().unwrap().to_owned()),
+            );
+            if page["has_more"] == false {
+                assert!(page["next_continuation"].is_null());
+                break;
+            }
+            let next = page["next_continuation"].as_str().unwrap().to_owned();
+            assert_eq!(
+                project_page(&raw, "different", Some(&next)),
+                Err(Error::InvalidContinuation)
+            );
+            assert_eq!(
+                project_page(&(raw.clone() + " "), "", Some(&next)),
+                Err(Error::InvalidContinuation)
+            );
+            token = Some(next);
+        }
+        assert_eq!(
+            found,
+            (0..count)
+                .rev()
+                .map(|i| format!("event:{i}"))
+                .collect::<Vec<_>>()
+        );
+        let page = project_page(&raw, "", None).unwrap();
+        let observation = page["observation_sha256"].as_str().unwrap();
+        for offset in [
+            "0",
+            "1",
+            "-20",
+            "020",
+            "99999999999999999999999999",
+            "10000",
+            "20:extra",
+        ] {
+            assert_eq!(
+                project_page(&raw, "", Some(&format!("v1:{observation}:{offset}"))),
+                Err(Error::InvalidContinuation)
+            );
+        }
+        assert_eq!(
+            project_page(&raw, "", Some("malformed")),
+            Err(Error::InvalidContinuation)
+        );
+    }
+}
+
+#[test]
 fn long_complete_traversal_revalidates_cross_page_identity_and_counts() {
     let records: Vec<String> = (0..205)
         .map(|index| event(&format!("event:{index}"), index, &format!("agent:{index}")))

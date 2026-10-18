@@ -55,6 +55,11 @@ fn failure(problem: Problem) -> Result<Response> {
     response(&problem.json(), problem.status)
 }
 fn html(value: String) -> Result<Response> {
+    let value = if value.contains("name=\"theme-color\"") {
+        value
+    } else {
+        value.replace("</head>", "<meta name=\"theme-color\" content=\"#0e1511\"><meta name=\"theme-color\" content=\"#f6f8f6\" media=\"(prefers-color-scheme: light)\"></head>")
+    };
     let mut response = Response::from_html(value)?;
     response
         .headers_mut()
@@ -160,7 +165,10 @@ impl DurableObject for Bulletin {
                     Err(problem) => failure(problem),
                 };
             }
-            if let Some(number) = path.strip_prefix("/board/posts/") {
+            if let Some(number) = path
+                .strip_prefix("/board/posts/")
+                .or_else(|| path.strip_prefix("/api/board/conversations/"))
+            {
                 let conversation = number
                     .parse::<i64>()
                     .ok()
@@ -180,6 +188,9 @@ impl DurableObject for Bulletin {
                         })
                     });
                 return match conversation {
+                    Ok(conversation) if path.starts_with("/api/board/conversations/") => {
+                        response(&conversation, 200)
+                    }
                     Ok(conversation) => html(crate::conversation_html(
                         &conversation,
                         open,
@@ -336,23 +347,26 @@ pub async fn fetch(mut request: Request, env: Env, _context: Context) -> Result<
         || path == "/api/board/info"
         || path == "/api/board/posts"
         || path.starts_with("/api/board/posts/")
+        || path.starts_with("/api/board/conversations/")
         || path == "/api/board/changes";
     if board {
         let method = request.method();
+        let head = method == Method::Head;
         let api_post = path.starts_with("/api/board/posts/");
-        let allowed = (method == Method::Get && path != "/board/publish" && !api_post)
-            || (method == Method::Post
-                && ["/board/publish", "/api/board/posts"].contains(&path.as_str()))
-            || (method == Method::Delete && api_post);
+        let allowed =
+            (matches!(method, Method::Get | Method::Head) && path != "/board/publish" && !api_post)
+                || (method == Method::Post
+                    && ["/board/publish", "/api/board/posts"].contains(&path.as_str()))
+                || (method == Method::Delete && api_post);
         if !allowed {
             let allowed_methods = if api_post {
                 "DELETE"
             } else if path == "/api/board/posts" {
-                "GET, POST"
+                "GET, HEAD, POST"
             } else if path == "/board/publish" {
                 "POST"
             } else {
-                "GET"
+                "GET, HEAD"
             };
             let mut result = failure(Problem::new(405, "method_not_allowed"))?;
             result.headers_mut().set("Allow", allowed_methods)?;
@@ -372,15 +386,27 @@ pub async fn fetch(mut request: Request, env: Env, _context: Context) -> Result<
                 worker::js_sys::Uint8Array::from(body.as_slice()).into(),
             ));
             Request::new_with_init(request.url()?.as_str(), &init)?
+        } else if head {
+            let mut init = worker::RequestInit::new();
+            init.with_method(Method::Get)
+                .with_headers(request.headers().clone());
+            Request::new_with_init(request.url()?.as_str(), &init)?
         } else {
             request
         };
         let namespace = env.durable_object("BOARD")?;
-        return namespace
+        let result = namespace
             .id_from_name("agentciv-public-board-v1")?
             .get_stub()?
             .fetch_with_request(forwarded)
-            .await;
+            .await?;
+        return if head {
+            Ok(Response::empty()?
+                .with_status(result.status_code())
+                .with_headers(result.headers().clone()))
+        } else {
+            Ok(result)
+        };
     }
     if path == "/report" {
         let contact = env

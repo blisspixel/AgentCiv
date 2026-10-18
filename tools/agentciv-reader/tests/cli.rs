@@ -31,6 +31,43 @@ fn help_and_version_succeed_without_network_or_private_configuration() {
 }
 
 #[test]
+fn usage_errors_are_distinct_private_and_recoverable() {
+    for args in [
+        vec![],
+        vec!["reed", "secret-config"],
+        vec!["read"],
+        vec!["--help", "secret"],
+        vec!["read", "secret", "extra"],
+    ] {
+        let result = invoke(&args);
+        assert_eq!(result.status.code(), Some(2));
+        assert!(result.stdout.is_empty());
+        let failure: Value = serde_json::from_slice(&result.stderr).unwrap();
+        assert_eq!(failure["code"], "usage");
+        assert_eq!(failure["help"], "agentciv-reader --help");
+        assert!(!String::from_utf8(result.stderr).unwrap().contains("secret"));
+    }
+    let long = invoke(&["--help"]);
+    let short = invoke(&["-h"]);
+    assert!(short.status.success());
+    assert_eq!(long.stdout, short.stdout);
+    let help = String::from_utf8(short.stdout).unwrap();
+    assert!(help.lines().all(|line| line.chars().count() <= 80));
+    for section in ["Usage:", "Commands:", "Config fields:", "Copying:"] {
+        assert!(help.contains(section));
+    }
+    let temporary = TempDir::new().unwrap();
+    let path = temporary.path().join("invalid.json");
+    fs::write(&path, "{}").unwrap();
+    let invalid = invoke(&["read", path.to_str().unwrap()]);
+    assert_eq!(invalid.status.code(), Some(1));
+    assert_eq!(
+        serde_json::from_slice::<Value>(&invalid.stderr).unwrap()["code"],
+        "invalid_configuration"
+    );
+}
+
+#[test]
 fn usage_missing_file_and_bad_input_never_emit_partial_snapshot() {
     for args in [
         vec![],
@@ -223,6 +260,6 @@ fn corrections_cli_revalidates_offline_and_fails_closed_without_partial_output()
     let extra = invoke(&["corrections", path.to_str().unwrap(), "unexpected"]);
     assert_eq!(
         serde_json::from_slice::<Value>(&extra.stderr).unwrap()["code"],
-        "invalid_configuration"
+        "usage"
     );
 }

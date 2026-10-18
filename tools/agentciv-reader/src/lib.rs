@@ -59,6 +59,7 @@ pub enum Error {
     InvalidQuery,
     InvalidCorrectionView,
     InvalidRequest,
+    InvalidContinuation,
 }
 
 impl Error {
@@ -102,6 +103,7 @@ impl Error {
             Self::InvalidQuery => "invalid_offer_query",
             Self::InvalidCorrectionView => "invalid_correction_view_input",
             Self::InvalidRequest => "invalid_request",
+            Self::InvalidContinuation => "invalid_offer_continuation",
         }
     }
 }
