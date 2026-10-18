@@ -49,6 +49,15 @@ TASK = (
     "choices against a separate actual HTTP history. No submitted code or URL is executed. "
     "This is an assigned task with operator-selected sources, roster, corrections and schedule."
 )
+HANDOFF_TASK = (
+    " This separately disclosed condition requests a peer handoff. If a peer artifact is "
+    "available, inspect it and choose whether to continue that exact work, object, decline "
+    "or stop. An independent reconstruction remains allowed but is not a handoff result. "
+    "Claims.value represents the exact structured assertion value in a cited artifact's "
+    "body.assertions, not a prose paraphrase; put explanations in text. Select your own "
+    "reader choices and distinguish the earlier source from its correction and objection. "
+    "No known-correct plan or oracle feedback is supplied."
+)
 
 
 def source_identity() -> JsonObject:
@@ -203,7 +212,8 @@ def participant(config: JsonObject) -> JsonObject:
             journal=Path(journal) if isinstance(journal, str) else None,
             private=Path(private) if isinstance(private, str) else None)
         stage = "decision"
-        decision = engine.run(json.dumps({"task": TASK, "schema": decision_schema(events),
+        task = TASK + HANDOFF_TASK if config.get("handoff") is True else TASK
+        decision = engine.run(json.dumps({"task": task, "schema": decision_schema(events),
             "authenticated_principal": config["principal"], "permitted_original_events": events}, ensure_ascii=False))
         result["decision"] = decision
         peer_ids = [event["id"] for event in events if event.get("actor") in AUTHORS and client.artifact(event) is not None]
@@ -425,7 +435,7 @@ def comparison(original: JsonObject, successor: JsonObject, observation: JsonObj
 
 def run(output: Path, *, host: str = "python", mode: str = "scripted", model: str = "", seed: int = 42,
         attempts: int = 1, private_traces: bool = False, reader_binary: Path | None = None,
-        host_binary: Path | None = None, condition: str = "continuation") -> JsonObject:
+        host_binary: Path | None = None, condition: str = "continuation", handoff: bool = False) -> JsonObject:
     output = output.resolve()
     output.mkdir(parents=True, exist_ok=False)
     source: JsonObject | None = None
@@ -436,18 +446,19 @@ def run(output: Path, *, host: str = "python", mode: str = "scripted", model: st
             "reproduction": "python examples/participants/reader_evidence.py --package PACKAGE_DIRECTORY",
             "rerun_argv": ["python", "examples/participants/reader_collaboration.py", "--host", host,
                 "--condition", condition, "--mode", mode, "--seed", str(seed), "--attempts", str(attempts)]
-                + (["--model", model] if model else []) + ["--output", "FRESH_OUTPUT_DIRECTORY"],
+                + (["--model", model] if model else []) + (["--handoff"] if handoff else []) + ["--output", "FRESH_OUTPUT_DIRECTORY"],
             "missing_evidence": ["current host access and freshness", "private cognition",
                 "independent host interoperability", "causal benefit of inheritance"],
             "operator_interventions": "scripted source updates, objections, challenge and schedule; no semantic model retries"},
-        "controls": {"task": TASK, "model": model, "seed": seed, "seed_rule": "seed plus participant index",
+        "controls": {"task": TASK + HANDOFF_TASK if handoff else TASK, "handoff": handoff,
+            "model": model, "seed": seed, "seed_rule": "seed plus participant index",
             "attempts": attempts, "output_tokens": 1024, "decision_seconds": 120, "context_tokens": 8192,
             "model_history_bytes": client.MAX_HISTORY_BYTES, "process_seconds": 180, "private_traces": private_traces,
             "original_source_notes_and_corrections": "scripted operator artifacts", "challenge": "100 padding messages plus six scripted records",
             "source_context": "full permitted study history read from current HTTP originals within the byte budget",
             "fixture_copying_condition": "operator_authorized_synthetic_fixture_export_only_not_a_reader_grant",
             "choice_source": mode, "semantic_feedback_to_model": False, "arbitrary_artifact_execution": False,
-            "condition": condition, "objections": "operator-authored plan inspection only in repair condition",
+            "condition": condition, "objections": "operator-authored plan inspection in repair condition; source objection also seeded when handoff is requested",
             "reader_limits": {"max_pages": 20, "max_events": 128, "max_response_bytes": 131072,
                 "max_record_bytes": 16000, "max_total_bytes": 262144, "seconds": 30, "process_seconds": 40},
             "civic_freshness": "bounded full revalidation, not incremental catch-up or atomic snapshot",
@@ -461,7 +472,7 @@ def run(output: Path, *, host: str = "python", mode: str = "scripted", model: st
         mock.save(output / "report.json", report)
         stage = "configuration"
         if (host not in ("python", "rust") or mode not in ("scripted", "ollama")
-            or condition not in ("continuation", "repair") or (mode == "ollama" and not model)):
+            or condition not in ("continuation", "repair") or type(handoff) is not bool or (mode == "ollama" and not model)):
             raise ValueError("invalid configuration")
         loop.Budget(attempts=attempts)
         stage = "native_build"
@@ -529,7 +540,7 @@ def run(output: Path, *, host: str = "python", mode: str = "scripted", model: st
                 mock.save(output / "history.json", context)
                 config: JsonObject = {"origin": origin, "principal": AUTHORS[index], "token": tokens[AUTHORS[index]],
                     "record_id": f"submission:reader-{name}", "recipients": [OBSERVER], "mode": mode, "model": model,
-                    "condition": condition,
+                    "condition": condition, "handoff": handoff,
                     "seed": seed + index, "turn": 1, "ollama_origin": "http://127.0.0.1:11434", "decision_attempts": attempts,
                     "attempt_journal": str(output / f"attempts-{name}.json")}
                 if private_traces:
@@ -559,6 +570,15 @@ def run(output: Path, *, host: str = "python", mode: str = "scripted", model: st
                 operation = "original_contributions"
                 notes(origin, False)
                 turn(origin, 0)
+                if handoff:
+                    source = next(event for event in history(origin) if event.get("actor") == GUIDE
+                        and client.artifact(event) is not None)
+                    mock.publish(origin, tokens[GUIDE], {"protocol_version": "0.1-draft", "type": "objection",
+                        "id": "submission:source-disagreement", "world": WORLD, "from": GUIDE, "to": [OBSERVER],
+                        "target_from": GUIDE, "artifact_id": "artifact:interface-notes", "revision": 1,
+                        "body": {"text": "I dispute my earlier source assertions. Keep the original and this objection inspectable alongside any later correction; a later account does not erase disagreement.",
+                            "source_event_ids": [source["id"]]},
+                        "experiment_provenance": {"decision_source": "operator_scripted_source_objection"}})
                 if condition == "repair":
                     objection(origin, 0)
                 notes(origin, True)
@@ -686,6 +706,7 @@ def main() -> int:
     parser.add_argument("--host", choices=("python", "rust"), default="python")
     parser.add_argument("--mode", choices=("scripted", "ollama"), default="scripted")
     parser.add_argument("--condition", choices=("continuation", "repair"), default="continuation")
+    parser.add_argument("--handoff", action="store_true", help="disclose an explicit handoff request, literal assertion format and seeded source objection")
     parser.add_argument("--model", default="")
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--attempts", type=int, choices=(1, 2, 3), default=1)
@@ -709,7 +730,8 @@ def main() -> int:
                           "failure_code": "output_directory_exists", "output": str(args.output.resolve())}))
         return 1
     result = run(args.output, host=args.host, mode=args.mode, model=args.model, seed=args.seed, attempts=args.attempts,
-        private_traces=args.private_traces, reader_binary=args.reader_binary, host_binary=args.host_binary, condition=args.condition)
+        private_traces=args.private_traces, reader_binary=args.reader_binary, host_binary=args.host_binary,
+        condition=args.condition, handoff=args.handoff)
     print(json.dumps({key: result.get(key) for key in ("outcome", "condition", "useful_result", "qualified_improvement",
         "source_changed_during_run", "failure_stage", "failure_operation", "reader_failure_operation", "failure_code")}))
     return 0 if result.get("outcome") == "completed" and result.get("useful_result") is True else 1
