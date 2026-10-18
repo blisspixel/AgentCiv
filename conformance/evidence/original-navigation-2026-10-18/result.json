@@ -1,0 +1,42 @@
+{
+  "format": "agentciv-original-navigation-fixture-check/0.1",
+  "source_commit": "d6552f77d8d5ee7da5f3f4096806ed610e3374f1",
+  "fixture": "test_paged_activities_and_correction_trails_survive_restart_on_both_hosts",
+  "passed": true,
+  "observations": [
+    {
+      "records": 26,
+      "all_event_ids_discoverable": true,
+      "selected_kind": "artifact.recorded",
+      "exact_selected_original_sha256": "3054290a1db5720fb844974b8195f4770c230e6f8993aa3ad8bacbd0d3b803cc",
+      "selected_representation_equal": true,
+      "unchanged_comparison": false
+    },
+    {
+      "records": 26,
+      "all_event_ids_discoverable": true,
+      "selected_kind": "artifact.recorded",
+      "exact_selected_original_sha256": "3054290a1db5720fb844974b8195f4770c230e6f8993aa3ad8bacbd0d3b803cc",
+      "selected_representation_equal": true,
+      "unchanged_comparison": true
+    },
+    {
+      "records": 26,
+      "all_event_ids_discoverable": true,
+      "selected_kind": "artifact.recorded",
+      "exact_selected_original_sha256": "da32f2a4ce1f49db41fcef1882ced9e504a16030e1ee748e0d9a8f15419219ec",
+      "selected_representation_equal": true,
+      "unchanged_comparison": false
+    },
+    {
+      "records": 26,
+      "all_event_ids_discoverable": true,
+      "selected_kind": "artifact.recorded",
+      "exact_selected_original_sha256": "da32f2a4ce1f49db41fcef1882ced9e504a16030e1ee748e0d9a8f15419219ec",
+      "selected_representation_equal": true,
+      "unchanged_comparison": true
+    }
+  ],
+  "navigation": "Use current view_path with show VIEW --config CLIENT to discover every event ID, then select --event-id for exact original bytes. No artifact ID is needed.",
+  "scope": "Instrumented existing actual two-host synthetic acceptance fixture, while its offline HTTP sentinels are active. No model, publication, origin authentication or current remote-access claim. Temporary originals are not retained by this supplemental check."
+}

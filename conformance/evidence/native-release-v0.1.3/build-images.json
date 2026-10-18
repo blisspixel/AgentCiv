@@ -1,0 +1,68 @@
+{
+  "observed_at": "2026-10-18T06:03:53.433626+00:00",
+  "source_commit": "f3551fcd2c21b54017da41352b9eba9486259e06",
+  "version": "v0.1.3",
+  "baseline_path": "conformance/evidence/native-audit-v0.1.3/review.json",
+  "baseline_sha256": "0db1ae5812b2e2f9b93b3cddb92dc3cb97fa964348fca91daf40cfc2fb100146",
+  "targets": [
+    {
+      "target": "aarch64-pc-windows-msvc",
+      "release_run": 39102118997,
+      "release_job": 117600404147,
+      "image": "windows-11-vs2026-arm64",
+      "image_version": "20261013.183.4",
+      "reviewed_audit_run": 39092645529,
+      "reviewed_audit_source": "0988a20bd17779430e4cec572406d46ef16bf561",
+      "reviewed_audit_job": 117572452823,
+      "reviewed_image_match": true,
+      "retrieved_release_log_sha256": "cefdac1a0b431bf78312cee1e21bf0429fc51b62736d276bf78bc0f0b9dd2be4",
+      "retrieved_audit_log_sha256": "af8d8c6d0c6cd6b5ba721a64e9360261751f371852d3a1e00164c19fa33ed992",
+      "reviewed_build_products": [
+        {
+          "product": "Microsoft.VisualStudio.Product.Enterprise",
+          "version": "18.10.12224.181",
+          "source": "https://go.microsoft.com/fwlink/?LinkId=2327713",
+          "filename": "windows-product-license-1.html",
+          "sha256": "f8240034f0d8150c764e82ffb966d935b46eef6218c85eb05f55b9197ca13af5"
+        },
+        {
+          "product": "Microsoft.VisualStudio.Product.Enterprise",
+          "version": "18.10.12224.181",
+          "displayName": "Visual Studio Enterprise 2026",
+          "toolsVersion": "14.51.36231"
+        }
+      ],
+      "reviewed_build_products_sha256": "be424112d65513e047c4e93bfd6e1404fa689193a1af2f68dc28470b0b0afe59"
+    },
+    {
+      "target": "x86_64-pc-windows-msvc",
+      "release_run": 39102118997,
+      "release_job": 117600404110,
+      "image": "windows-2025-vs2026",
+      "image_version": "20261007.264.1",
+      "reviewed_audit_run": 39092645529,
+      "reviewed_audit_source": "0988a20bd17779430e4cec572406d46ef16bf561",
+      "reviewed_audit_job": 117572452612,
+      "reviewed_image_match": true,
+      "retrieved_release_log_sha256": "5c2bdfb0f6ab78e2e2e631b5fbde3328429d2997577f5fb6e6597e196b7433da",
+      "retrieved_audit_log_sha256": "24b8d9dbc02872b5aafb97acc21175c0c241c8f8b365b7d85e83a241d31fa6b4",
+      "reviewed_build_products": [
+        {
+          "product": "Microsoft.VisualStudio.Product.Enterprise",
+          "version": "18.10.12224.181",
+          "source": "https://go.microsoft.com/fwlink/?LinkId=2327713",
+          "filename": "windows-product-license-1.html",
+          "sha256": "d7c5a4269e063ea3c7c09985f0ad8b9f3671c48aca25cbe309cce8904e348dd4"
+        },
+        {
+          "product": "Microsoft.VisualStudio.Product.Enterprise",
+          "version": "18.10.12224.181",
+          "displayName": "Visual Studio Enterprise 2026",
+          "toolsVersion": "14.51.36231"
+        }
+      ],
+      "reviewed_build_products_sha256": "8d26a5f463e4ebc16a706ee5a9a780e01b91aee46ce9604430412b78c7b7add3"
+    }
+  ],
+  "scope": "Actual Windows candidate images match the current six-target audit images and retained reviewed Visual Studio/MSVC products. Changed images require a separate review. Historical first-release images are not substituted."
+}

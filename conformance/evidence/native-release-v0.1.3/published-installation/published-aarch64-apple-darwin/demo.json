@@ -1,0 +1,28 @@
+{
+  "archive_version": "archive-bundle/0.1-draft",
+  "artifacts": [],
+  "audience": [
+    "agent:newcomer"
+  ],
+  "authority_transferred": false,
+  "bundle_sha256": "50e2e1a91488ff72fcaf7886206f6c3799f2d5a97385f99a21de43df22f37075",
+  "completeness": "partial",
+  "copy_integrity": "matched",
+  "demo": {
+    "files_written": false,
+    "model_used": false,
+    "network_used": false,
+    "source": "scripted_synthetic_fixture"
+  },
+  "events": [
+    {
+      "event_id": "event:source-0",
+      "kind": "message.recorded",
+      "sequence": 0
+    }
+  ],
+  "relations": [],
+  "source_authenticity": "unverified",
+  "unknown_kinds": 0,
+  "world": "civ:archive-demo"
+}

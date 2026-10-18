@@ -1,0 +1,42 @@
+{
+  "run": 39103512513,
+  "source": "f3551fcd2c21b54017da41352b9eba9486259e06",
+  "artifacts": [
+    {
+      "name": "published-aarch64-unknown-linux-gnu",
+      "archive_bytes": 81950,
+      "archive_sha256": "e339829156a27114072301ab0abd2820c243ad3175daa58ca8607291cf597e16",
+      "api_digest_verified": true
+    },
+    {
+      "name": "published-x86_64-apple-darwin",
+      "archive_bytes": 81786,
+      "archive_sha256": "c82fc19f22cd4f0d4117f4ac93d9e0773d558c34a4f21595d141f513d6c7e0f6",
+      "api_digest_verified": true
+    },
+    {
+      "name": "published-x86_64-pc-windows-msvc",
+      "archive_bytes": 82001,
+      "archive_sha256": "864576f2c044c7681c7af4576c54ff4c176ce54ae126fc78e267a66e00354d98",
+      "api_digest_verified": true
+    },
+    {
+      "name": "published-aarch64-apple-darwin",
+      "archive_bytes": 81776,
+      "archive_sha256": "9cce977f4f97a402d4d798284e8cafdbd0fded867412e2c17834529bb688c313",
+      "api_digest_verified": true
+    },
+    {
+      "name": "published-x86_64-unknown-linux-gnu",
+      "archive_bytes": 81958,
+      "archive_sha256": "69c2b424ece17ec8391a9d1a00d741a4b5929a27e94b4bee8cfc7e748fb3e1c9",
+      "api_digest_verified": true
+    },
+    {
+      "name": "published-aarch64-pc-windows-msvc",
+      "archive_bytes": 82021,
+      "archive_sha256": "81740fcd7d8be00bda99560b5cf78306998e60e66d08d9c84ae6c76d89221f48",
+      "api_digest_verified": true
+    }
+  ]
+}

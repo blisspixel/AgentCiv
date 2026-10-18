@@ -1,0 +1,13 @@
+{
+  "format": "agentciv-supplemental-evidence/0.1",
+  "source_commit": "d6552f77d8d5ee7da5f3f4096806ed610e3374f1",
+  "copying_condition": "operator_authorized_repository_owned_synthetic_fixtures",
+  "scope": "Instrumented existing actual two-host synthetic acceptance fixture, while its offline HTTP sentinels are active. No model, publication, origin authentication or current remote-access claim. Temporary originals are not retained by this supplemental check.",
+  "entries": [
+    {
+      "path": "result.json",
+      "bytes": 1980,
+      "sha256": "16f05d32c32bd2f20e7c28b458015fd67e221f9c3f37258f93bf61fb608eb1cc"
+    }
+  ]
+}

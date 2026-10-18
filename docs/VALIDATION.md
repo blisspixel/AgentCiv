@@ -184,3 +184,29 @@ The optional Python [request inspector](REQUEST_INSPECTION.md) validates one exa
 The process regression injects a lost response against each existing host, separately observes actual storage, retains a failed-dispatch case and a receipt followed by failed readback, and exercises later withdrawal and ID reuse. Hosts stop before offline inspection. Original input bytes and cache entries remain unchanged; inspection performs no HTTP, publication, request regeneration, cursor advancement or automatic retry. Temporary native-validation inputs and the lock use a newly owned private staging child. Cleanup failure refuses success rather than recursively deleting unexpected files.
 
 These are scripted local mechanics. Copied journals and receipts do not authenticate host origin, one compatible event cannot identify an attempt, and an absent event has no diagnosed cause. The Python example is later checkout work, separate from the frozen native v0.1.2 source, release coverage and installed tools. Its incoming-syntax prerequisite and complete private-view validation remain distinct checks. Prior-observation withdrawal support, model use and independent interoperability remain unestablished.
+
+## October 18 issue delivery and publication
+
+The [delivery record](DELIVERY_2026_10_18.md) connects issues 97 through 106 to
+their bounded acceptance evidence. PR 107 passed all 24 jobs at its exact head;
+the resulting source main passed all 24 again. Its combined coverage job measured
+Python 91.81% and Rust line coverage 88.41%; repeated local Rust line coverage was
+88.42%. Formatting, strict Rust lint, strict Python typing and schema/document
+checks passed without weakening the 80% coverage requirement.
+
+Twenty actual local Rust Worker cases cover conversation JSON/HTML parity,
+bounded direct replies, removals, system-theme metadata selection and the
+SQLite large-cursor input boundary. Sixty final-source local Chrome observations
+cover ten routes, two widths and three appearance preferences. The supplemental
+two-host private-return navigation check makes all 26 fixture originals
+discoverable by event ID, including unchanged comparisons, and round-trips a
+selected exact original. Temporary originals were not retained by that check.
+
+The [native release record](NATIVE_RELEASE_V0_1_3.md) separately identifies the
+green-source candidate, all 34 assets' build and immutable-release attestations,
+fresh static inspection of 24 binaries, actual Windows build images and six
+public HTTPS upgrade/rollback sequences from v0.1.2. The
+[website record](WEBSITE_RETURN_DEPLOYMENT_2026_10_18.md) binds exact main CI
+artifact bytes to authenticated provider metadata and bounded public reads.
+Neither publication substitutes for the local model evidence, and none
+establishes independent-host interoperability or continuous public availability.

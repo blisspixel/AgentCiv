@@ -157,8 +157,8 @@ def _corrections(before: Observation, after: Observation, settings: JsonObject,
     new_concerns = projections[1].get("concerns")
     if not isinstance(old_concerns, list) or not isinstance(new_concerns, list):
         raise private.EncounterError("invalid_correction_view")
-    # Retain only digests from earlier concerns for comparison, never historical
-    # source bytes or erased selectors as a reconstruction of the current view.
+    # Prior concerns are used only for comparison, never to reconstruct current
+    # source bytes or erased selectors from historical copies.
     def key(value: object) -> str:
         return json.dumps(value, ensure_ascii=True, sort_keys=True)
     old = {key(client._object(item).get("target")): key(item) for item in old_concerns}

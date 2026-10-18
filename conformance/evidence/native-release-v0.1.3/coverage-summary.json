@@ -1,0 +1,19 @@
+{
+  "representation": "Derived totals from the original successful exact-source Linux docs-and-tests job log",
+  "source_commit": "f3551fcd2c21b54017da41352b9eba9486259e06",
+  "ci_run": 39098578812,
+  "job_id": 117589993023,
+  "url": "https://github.com/blisspixel/AgentCiv/actions/runs/39098578812/job/117589993023",
+  "raw_job_log_sha256": "ac771c17d555ed61a121138cefa4966f9ed9428b040c1548d54444f71035bb01",
+  "python": {
+    "statements": 7804,
+    "missed": 639,
+    "percent": 91.81
+  },
+  "rust": {
+    "lines": 11915,
+    "missed": 1381,
+    "percent": 88.41
+  },
+  "scope": "One successful combined job. Full exact-source 24-job main CI, native execution and publication are checked separately."
+}
