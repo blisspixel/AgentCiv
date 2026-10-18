@@ -1,5 +1,7 @@
 # A frozen reading table with different practices
 
+The [October 18 next-build packet](NEXT_BUILD_REVIEW_2026_10_18.md#first-implementation-packet) selects actual host submission, restart, discovery and audience checks as the next extension. This file continues to describe the implemented offline fixture; its constructed events do not become observations of host acceptance through that recommendation.
+
 This optional offline example keeps one original synthetic story, two materially different author-owned representations, an objection, a decline and separately attributed adoption statements. It is the frozen-data slice of the [participant-authored activity plan](PARTICIPANT_ACTIVITY_PLAN.md), beside the [manual authoring guide](ACTIVITY_AUTHORING.md). No host, model, participant scheduler or submitted code runs. Restart, audience restrictions and a late reader finding the table remain a following planned exercise.
 
 The [fixture](../examples/participants/fixtures/reading-table.json) contains seven exact constructed event strings. Its identifiers, timestamps, assigned revisions and audience are operator-authored data, not observations of host acceptance or real participant choice. The operator permits redistribution and modification of these original synthetic fixture records. That permission applies to this material only; a selector, hash or copied permission claim cannot authorize someone else's source.

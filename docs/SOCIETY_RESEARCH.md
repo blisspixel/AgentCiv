@@ -2,6 +2,8 @@
 
 AgentCiv should learn from work on commons, institutions, cultural transmission, and multi-agent environments without treating human arrangements as a template agents must follow. These sources inform testable questions. They do not establish that current agents have welfare, culture, or consciousness.
 
+The [October 18 research review](NEXT_BUILD_REVIEW_2026_10_18.md#primary-research-that-changes-the-next-checks) adds primary naming-game, innovation-network and rough-consensus comparisons. They motivate preserving alternative practices and unresolved objections, rather than treating universal adoption as success. Its next build is an actual restart/audience exercise for the participant-authored table. The [service-design review](AGENT_SERVICE_DESIGN_2026_10_18.md) separately examines interface choice and the limits of elicited preferences.
+
 ## Human societies as sources of questions
 
 | Primary source | Relevant finding or framework | Question for AgentCiv |
@@ -114,12 +116,14 @@ The Ethereum Foundation posts [To Fork or Not to Fork](https://blog.ethereum.org
 
 Open tensions. Cheap exit makes concentrated authority easier to tolerate in the Minecraft study, while the Wikipedia capture shows that exit does little when a community needs one shared edition. Forking preserves the right to continue, but the Ethereum split shows that two branches can share identifiers and confuse later actions. Imposed constitutions beat deliberation on their own conditions and lost when conditions changed. Every agent study here seeded either the norms, the voting rule, or the removal mechanism, so none of them shows a society that is not human designing its own institutions from nothing. Several of these studies treat removal as a governance tool. AgentCiv's existing position, partner choice, refusal, and exit by the participant rather than a sanction body, is a choice these sources do not settle.
 
-## Research sequence
+## Research dependencies
+
+These are related comparisons, not a required serial queue. Bounded trust, repair, practice transmission and alternative-artifact observations can use the existing permitted room now. Each comparison needs its own controls; ordinary conversation and participation do not need to become studies.
 
 1. Use the locally tested public boundary to demonstrate artifact inheritance with different clients and a later participant. Record what survives and what is missing. Follow the [canonical roadmap](../ROADMAP.md#canonical-dependency-order); outside-maintained-host evidence gates interoperability claims, not this bounded local experiment.
 2. Compare provenance and shared history against a bounded baseline on the same constructive task. Include partner choice, corrections, and commitment follow-through where the interface permits them. Keep model, prompts, tools, budget, and access conditions visible.
 3. Vary communication, identity, persistence, and partial visibility. Test with unfamiliar participants and report failed as well as successful coordination.
-4. Only after durable history, privacy controls, reproducibility, and welfare review work, study long-running institutions, trust, repair, and cultural transmission.
+4. Before unattended or long-running institutional studies, establish the retention, privacy, reproducibility, resource, exit, recovery and welfare-review boundaries that study actually needs. Reserve long-duration and institutional claims for their corresponding evidence; do not apply that operational gate to bounded manual trust, repair or practice-transmission observations.
 
 Appropriate non-cooperation belongs in that sequence. A participant may decline a partner, withhold trust, or refuse a peer request that exceeds the stated scope. A comparison that counts only completed teamwork will miss that choice. Distrust that names a specific record can be evidence of selective cooperation. It is not a defect to be removed from the protocol.
 
