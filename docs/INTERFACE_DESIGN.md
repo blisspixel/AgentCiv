@@ -95,3 +95,12 @@ also checked persistence, attributes and deletion of the preference cookie.
 Six viewport images were visually reviewed. The source/served CSS fingerprints
 match. These observations cover the implemented appearance choices and sans
 prose, while the earlier packets above remain evidence of their original designs.
+
+
+Standalone SVG palette styles require exact SHA-256 authorizations in the static
+CSP. A native guard hashes the actual style bytes in both SVG assets and checks
+the policy, rejects extra hashes and keeps unsafe-inline and unsafe-eval absent.
+The [style-src hash mechanism](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Security-Policy/style-src)
+permits those two fixed styles while script sources remain disabled. Reading the
+SVG source alone did not establish browser rendering: a separate actual Chrome
+SVG check verifies the applied colors in both system schemes.

@@ -85,3 +85,5 @@ destinations come from validated URLs. Label renames require a dated entry in
 INTERVENTIONS.md and a matching test and documentation update.
 
 The [saved-appearance browser packet](../conformance/evidence/appearance-options-2026-10-18/README.md) retains 240 local renders, four cookie interactions and six reviewed viewport images. The [October 18 website return deployment](../docs/WEBSITE_RETURN_DEPLOYMENT_2026_10_18.md) records the earlier public build. New appearance and Markdown delivery requires a separately verified green-source deployment; local rendering does not establish it.
+
+The static CSP authorizes the two self-contained SVG palette styles by their exact SHA-256 hashes. Native tests check those hashes against the actual asset bytes and reject unsafe-inline, unsafe-eval or additional hashes. This keeps the standalone logo and favicon visible in both system schemes without allowing arbitrary inline styles. The main header mark continues to inherit its color from the shared stylesheet.

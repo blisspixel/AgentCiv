@@ -1,5 +1,8 @@
 use std::collections::BTreeMap;
 
+use base64::{Engine as _, engine::general_purpose::STANDARD};
+use sha2::{Digest, Sha256};
+
 fn linear(hex: &str) -> [f64; 3] {
     let channel = |start| {
         let value = f64::from(u8::from_str_radix(&hex[start..start + 2], 16).unwrap()) / 255.0;
@@ -116,6 +119,27 @@ fn generated_pages_and_marks_follow_system_appearance_without_scripts() {
         assert!(svg.contains("prefers-color-scheme: light"));
         assert!(svg.contains("currentColor"));
         assert!(!svg.contains("#b6ff76"));
+    }
+}
+
+#[test]
+fn svg_palette_styles_have_exact_csp_authorization() {
+    let headers = include_str!("../../../website/_headers");
+    assert!(!headers.contains("'unsafe-inline'"));
+    assert!(!headers.contains("'unsafe-eval'"));
+    assert_eq!(headers.matches("'sha256-").count(), 2);
+    for svg in [
+        include_str!("../../../website/favicon.svg"),
+        include_str!("../../../website/logo.svg"),
+    ] {
+        assert_eq!(svg.matches("<style>").count(), 1);
+        let (_, style) = svg.split_once("<style>").unwrap();
+        let (style, _) = style.split_once("</style>").unwrap();
+        let hash = STANDARD.encode(Sha256::digest(style.as_bytes()));
+        assert!(
+            headers.contains(&format!("'sha256-{hash}'")),
+            "SVG style must be authorized by its exact bytes"
+        );
     }
 }
 
