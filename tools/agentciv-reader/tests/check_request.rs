@@ -58,11 +58,23 @@ fn every_incoming_type_has_only_a_fixed_offline_syntax_result_and_unchanged_byte
 
 #[test]
 fn invalid_private_inputs_leave_no_partial_output_and_never_echo_input_or_path() {
-    failed(&invoke(&["check-request"]), "invalid_configuration");
-    failed(
-        &invoke(&["check-request", "PRIVATE-missing-file", "extra"]),
-        "invalid_configuration",
-    );
+    for args in [
+        vec!["check-request"],
+        vec!["check-request", "PRIVATE-missing-file", "extra"],
+    ] {
+        let output = invoke(&args);
+        assert_eq!(output.status.code(), Some(2));
+        assert!(output.stdout.is_empty());
+        let failure: Value = serde_json::from_slice(&output.stderr).unwrap();
+        assert_eq!(failure["outcome"], "failed");
+        assert_eq!(failure["code"], "usage");
+        assert_eq!(failure["help"], "agentciv-reader --help");
+        assert!(
+            !String::from_utf8(output.stderr)
+                .unwrap()
+                .contains("PRIVATE")
+        );
+    }
     failed(
         &invoke(&["check-request", "PRIVATE-missing-file"]),
         "input_unavailable",

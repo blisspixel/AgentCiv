@@ -234,7 +234,8 @@ fn readable_routes_have_complete_navigation_and_resolvable_catalog_links() {
             );
         }
         assert!(!nav.contains(".json"), "human navigation in {name}");
-        assert!(html.contains("src=\"/logo.svg\""));
+        assert!(html.contains("class=\"brand-mark\""));
+        assert!(html.contains("stroke=\"currentColor\""));
         assert!(html.contains("class=\"skip\""));
         // Check every local link against actual output, including guide alternative anchors.
         // Only the separately tested live board/report routes are supplied by the Worker.
