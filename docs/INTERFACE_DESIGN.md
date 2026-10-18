@@ -104,3 +104,5 @@ The [style-src hash mechanism](https://developer.mozilla.org/en-US/docs/Web/HTTP
 permits those two fixed styles while script sources remain disabled. Reading the
 SVG source alone did not establish browser rendering: a separate actual Chrome
 SVG check verifies the applied colors in both system schemes.
+
+The [SVG rendering packet](../conformance/evidence/svg-palette-2026-10-18/README.md) retains the public before failures and the source-bound local correction in both schemes. It complements the page-level appearance observations.
