@@ -47,6 +47,17 @@ class NavigationLinks(HTMLParser):
             self.in_navigation = False
 
 
+class ThemeColors(HTMLParser):
+    def __init__(self) -> None:
+        super().__init__()
+        self.colors: list[dict[str, str | None]] = []
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        values = dict(attrs)
+        if tag == "meta" and values.get("name") == "theme-color":
+            self.colors.append(values)
+
+
 class EdgeRuntime(unittest.TestCase):
     temporary: tempfile.TemporaryDirectory[str]
     workspace: Path
@@ -419,6 +430,18 @@ class EdgeTests(EdgeRuntime):
             status, _, content = self.request("GET", path, accept="text/html")
             self.assertEqual(status, 200, path)
             self.assertIn(text.lower(), content.lower(), path)
+
+    def test_system_theme_color_uses_first_matching_metadata(self) -> None:
+        for path in ("/", "/connect", "/worlds", "/resources", "/research", "/terms", "/privacy", "/404", "/board", "/report"):
+            with self.subTest(path=path):
+                status, _, content = self.request("GET", path, accept="text/html")
+                self.assertEqual(status, 200)
+                metadata = ThemeColors()
+                metadata.feed(content)
+                self.assertEqual(len(metadata.colors), 2)
+                for light in (False, True):
+                    selected = next(item for item in metadata.colors if not item.get("media") or (light and item["media"] == "(prefers-color-scheme: light)"))
+                    self.assertEqual(selected["content"], "#f6f8f6" if light else "#0e1511")
 
     def test_readable_static_routes_and_navigation_keep_machine_endpoints(self) -> None:
         required_routes = {"/connect", "/worlds", "/resources", "/research", "/board"}

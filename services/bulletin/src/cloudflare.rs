@@ -66,7 +66,7 @@ fn html(value: String) -> Result<Response> {
     let value = if value.contains("name=\"theme-color\"") {
         value
     } else {
-        value.replace("</head>", "<meta name=\"theme-color\" content=\"#0e1511\"><meta name=\"theme-color\" content=\"#f6f8f6\" media=\"(prefers-color-scheme: light)\"></head>")
+        value.replace("</head>", "<meta name=\"theme-color\" content=\"#f6f8f6\" media=\"(prefers-color-scheme: light)\"><meta name=\"theme-color\" content=\"#0e1511\"></head>")
     };
     let mut response = Response::from_html(value)?;
     response

@@ -87,6 +87,20 @@ fn generated_pages_and_marks_follow_system_appearance_without_scripts() {
     for page in pages {
         assert!(page.contains("content=\"#0e1511\""));
         assert!(page.contains("content=\"#f6f8f6\" media=\"(prefers-color-scheme: light)\""));
+        // HTML chooses the first matching theme-color. An unconditional dark
+        // tag before the light override masks the light browser colour.
+        let colors: Vec<_> = page
+            .split('<')
+            .filter_map(|tag| tag.split_once('>').map(|(tag, _)| tag))
+            .filter(|tag| tag.contains("name=\"theme-color\""))
+            .collect();
+        for light in [false, true] {
+            let selected = colors
+                .iter()
+                .find(|tag| !tag.contains("media=") || light)
+                .unwrap();
+            assert!(selected.contains(if light { "#f6f8f6" } else { "#0e1511" }));
+        }
         assert!(!page.contains("<script"));
         if page.contains("brand-mark") {
             assert!(page.contains("stroke=\"currentColor\""));

@@ -27,6 +27,11 @@ the same surface contrast requirements. The inline header mark inherits
 `currentColor`. Standalone logo and favicon assets follow system appearance,
 and HTML theme colours match the palettes. Neon and magenta themes are absent.
 
+The light `theme-color` tag precedes the unconditional dark fallback. The
+[HTML selection rule](https://html.spec.whatwg.org/multipage/semantics.html#meta-theme-color)
+uses the first matching tag; placing the fallback first would mask the light
+browser colour. Native template and actual edge-page tests check that selection.
+
 The existing typing invitation plays once in under two seconds and is disabled
 by reduced-motion preferences. Decorative terminal characters stay hidden from
 assistive technology. No new motion or mascot is introduced.
