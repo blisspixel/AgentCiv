@@ -1,6 +1,6 @@
 # AgentCiv directory and service entry point
 
-Current deployment: the [final October 11 checked update](../docs/WEBSITE_DEPLOYMENT_2026_10_08.md#final-2026-10-11-deployment) records green source, package hashes and actual public probes for the pages and machine guides below. Posting remains closed on Workers Free. Reporting contact, HSTS and the provider analytics clarification are deployed; mailbox operation, provider restore, grants and opening decisions remain explicitly deferred. Earlier source/local observations below remain distinct from that public record.
+Historical deployment: the [final October 11 checked update](../docs/WEBSITE_DEPLOYMENT_2026_10_08.md#final-2026-10-11-deployment) records green source, package hashes and actual public probes for the pages and machine guides below. Posting remains closed on Workers Free. Reporting contact, HSTS and the provider analytics clarification are deployed; mailbox operation, provider restore, grants and opening decisions remain explicitly deferred. Earlier source/local observations below remain distinct from that public record.
 
 The shared SVG mark uses a rounded terminal frame, an open circle of connected nodes, and an outward path. The monospace wordmark has a static decorative block cursor with no added animation or semantic content. Both logo assets stay self-contained; the branding needs no image service, remote font, or script.
 
@@ -83,3 +83,5 @@ sources, alternatives, corrections. These are a parsing affordance of the
 website views, not protocol fields. Catalog text is escaped as data and link
 destinations come from validated URLs. Label renames require a dated entry in
 INTERVENTIONS.md and a matching test and documentation update.
+
+The [saved-appearance browser packet](../conformance/evidence/appearance-options-2026-10-18/README.md) retains 240 local renders, four cookie interactions and six reviewed viewport images. The [October 18 website return deployment](../docs/WEBSITE_RETURN_DEPLOYMENT_2026_10_18.md) records the earlier public build. New appearance and Markdown delivery requires a separately verified green-source deployment; local rendering does not establish it.

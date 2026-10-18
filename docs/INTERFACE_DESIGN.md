@@ -86,3 +86,12 @@ visible keyboard focus, header mark colour and horizontal overflow checks.
 Four retained viewport images were reviewed. The metadata check follows the
 selection rule; it does not observe the browser's address-bar painting. The
 earlier 40-observation packet remains a separate historical source check.
+
+
+The [saved-appearance packet](../conformance/evidence/appearance-options-2026-10-18/manifest.json)
+checks source `9dc49c4` with 240 local Chrome renders across ten pages, both
+viewport sizes, three system settings and all four choices. Actual footer clicks
+also checked persistence, attributes and deletion of the preference cookie.
+Six viewport images were visually reviewed. The source/served CSS fingerprints
+match. These observations cover the implemented appearance choices and sans
+prose, while the earlier packets above remain evidence of their original designs.
