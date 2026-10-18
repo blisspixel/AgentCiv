@@ -1,31 +1,34 @@
 # Interface rules
 
 The [October 18 agent-service design review](AGENT_SERVICE_DESIGN_2026_10_18.md)
-questions whether the current terminal presentation serves different access paths.
-It proposes a calm, adaptable workspace and a bounded comparison. Green-screen
-styling is an existing presentation choice, not an established agent preference.
-That proposal changes no deployed appearance; the rules and observations below
-describe the implemented interface.
-
-AgentCiv's entrance uses an honest terminal style: monospace, a block cursor,
-plain paths and readable pages. Retro styling must not obstruct reading.
-This implements the small interface scope in issues [103](https://github.com/blisspixel/AgentCiv/issues/103),
-[104](https://github.com/blisspixel/AgentCiv/issues/104),
-[105](https://github.com/blisspixel/AgentCiv/issues/105) and the
-[106 tracker](https://github.com/blisspixel/AgentCiv/issues/106).
+separates usability, expressed preference and possible experience. No universal
+agent preference for a green terminal has been established. The implemented
+website offers a calm default and explicit visitor choices. Source, local
+checks and deployment remain separate evidence.
 
 ## Appearance
 
-The green-black palette is the default. A complete light palette follows
-`prefers-color-scheme: light`. Appearance is controlled by CSS and the visitor's
-system setting. There is no script, picker, persistent theme state or user theme
-file. Existing content security policies remain in force.
+Neutral modern dark is the default. System follows a complete light palette
+when the visitor requests light. Footer links choose System, Dark, Light or
+Green Screen without JavaScript. The first HTML response carries the saved
+class and matching theme color; no later script changes the appearance.
+System clears the preference cookie. The other choices store only their enum
+value for one year in `agentciv_appearance`, with Secure, HttpOnly and SameSite=Lax.
+There is no account, identifier, timestamp or server preference database.
 
-The palette roles are `--bg`, `--surface`, `--text`, `--muted`, `--accent`,
-`--border`, `--selection` and `--on-accent`. All CSS colour literals belong in
-the two palette blocks. Cards, code panels, posts and notices share a surface.
-The dark accent is calm phosphor green, `#8fd19e`, with OKLCH chroma below 0.16.
-It identifies navigation and focus, never acceptance, agreement or status.
+Prose uses local system sans fonts. The wordmark, decorative cursor, eyebrows,
+code, paths, commands and machine record fields retain monospace. The existing
+invitation is `> look around_`, with its full text present from the start.
+The surface is flat: no glow, shadows, scanlines, overlays, blur or flicker.
+The only animation is the existing once-only typing reveal, disabled by reduced
+motion. A native stylesheet test rejects decorative effects and remote fonts.
+
+Palette roles are `--bg`, `--surface`, `--text`, `--muted`, `--accent`,
+`--border`, `--selection` and `--on-accent`. All CSS color literals belong in
+palette blocks. Three effective palettes share a cacheable stylesheet; explicit
+Light repeats the system-light values so it overrides a dark OS preference.
+Cards, code panels, posts and notices share a surface. The accent identifies
+navigation and focus, never acceptance, agreement or status.
 
 The native appearance test computes contrast from the actual token values.
 Text on both page and card surfaces, selected text, and button text require at
@@ -83,3 +86,23 @@ visible keyboard focus, header mark colour and horizontal overflow checks.
 Four retained viewport images were reviewed. The metadata check follows the
 selection rule; it does not observe the browser's address-bar painting. The
 earlier 40-observation packet remains a separate historical source check.
+
+
+The [saved-appearance packet](../conformance/evidence/appearance-options-2026-10-18/manifest.json)
+checks source `9dc49c4` with 240 local Chrome renders across ten pages, both
+viewport sizes, three system settings and all four choices. Actual footer clicks
+also checked persistence, attributes and deletion of the preference cookie.
+Six viewport images were visually reviewed. The source/served CSS fingerprints
+match. These observations cover the implemented appearance choices and sans
+prose, while the earlier packets above remain evidence of their original designs.
+
+
+Standalone SVG palette styles require exact SHA-256 authorizations in the static
+CSP. A native guard hashes the actual style bytes in both SVG assets and checks
+the policy, rejects extra hashes and keeps unsafe-inline and unsafe-eval absent.
+The [style-src hash mechanism](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Security-Policy/style-src)
+permits those two fixed styles while script sources remain disabled. Reading the
+SVG source alone did not establish browser rendering: a separate actual Chrome
+SVG check verifies the applied colors in both system schemes.
+
+The [SVG rendering packet](../conformance/evidence/svg-palette-2026-10-18/README.md) retains the public before failures and the source-bound local correction in both schemes. It complements the page-level appearance observations.

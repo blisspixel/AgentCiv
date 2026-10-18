@@ -17,9 +17,10 @@ import time
 from typing import Any
 import unittest
 from urllib.error import HTTPError, URLError
-from urllib.request import Request, urlopen
+from urllib.parse import quote
+from urllib.request import Request, build_opener, urlopen
 
-from services.bulletin.probe_entry import probe
+from services.bulletin.probe_entry import NoRedirect, probe
 
 ROOT = Path(__file__).resolve().parents[2]
 SERVICE = Path(__file__).resolve().parent
@@ -139,7 +140,7 @@ class EdgeRuntime(unittest.TestCase):
                     raise
                 time.sleep(0.25)
 
-    def request(self, method: str, path: str, body: bytes | None = None, token: str | None = None, content_type: str = "application/json", accept: str = "application/json", extra_headers: dict[str, str] | None = None) -> tuple[int, dict[str, str], Any]:
+    def request(self, method: str, path: str, body: bytes | None = None, token: str | None = None, content_type: str = "application/json", accept: str = "application/json", extra_headers: dict[str, str] | None = None, raw_response: bool = False) -> tuple[int, dict[str, str], Any]:
         headers = {"Content-Type": content_type, "Accept": accept}
         if token is not None:
             headers["Authorization"] = "Bearer " + token
@@ -151,7 +152,7 @@ class EdgeRuntime(unittest.TestCase):
             response = error
         with response:
             data = response.read(1_000_000)
-            result = json.loads(data) if data and "json" in response.headers.get("Content-Type", "") else data.decode()
+            result = data if raw_response else json.loads(data) if data and "json" in response.headers.get("Content-Type", "") else data.decode()
             return response.status, dict(response.headers), result
 
     def submission(self, identifier: str, principal: str = "agent:test-0", reply: str | None = None) -> bytes:
@@ -441,7 +442,87 @@ class EdgeTests(EdgeRuntime):
                 self.assertEqual(len(metadata.colors), 2)
                 for light in (False, True):
                     selected = next(item for item in metadata.colors if not item.get("media") or (light and item["media"] == "(prefers-color-scheme: light)"))
-                    self.assertEqual(selected["content"], "#f6f8f6" if light else "#0e1511")
+                    self.assertEqual(selected["content"], "#f6f8f6" if light else "#14161a")
+
+    def test_saved_appearance_is_in_first_html_and_agent_links_are_readable(self) -> None:
+        status, _, receipt = self.request("POST", "/api/board/posts", self.submission("appearance-conversation"), TOKENS["agent:test-0"])
+        self.assertEqual(status, 200)
+        routes = ["/", "/connect", "/worlds", "/resources", "/research", "/terms", "/privacy", "/report", "/board", f"/board/posts/{receipt['sequence']}"]
+        for value in ("system", "dark", "light", "green-screen", "invalid"):
+            cookie = {"Cookie": f"agentciv_appearance={value}"}
+            for route in routes:
+                with self.subTest(value=value, route=route):
+                    status, headers, content = self.request("GET", route, accept="text/html", extra_headers=cookie)
+                    self.assertEqual(status, 200)
+                    selected = value if value in ("dark", "light", "green-screen") else "system"
+                    self.assertIn(f'class="appearance-{selected}"', content) if selected != "system" else self.assertNotIn('<html lang="en" class=', content)
+                    self.assertEqual(content.count('aria-current="true"'), 1)
+                    self.assertIn("Cookie", headers.get("Vary", ""))
+                    self.assertNotIn("public", headers.get("Cache-Control", ""))
+                    self.assertNotIn("ETag", headers)
+                    metadata = ThemeColors()
+                    metadata.feed(content)
+                    self.assertEqual(len(metadata.colors), 2 if selected == "system" else 1)
+                    if selected != "system":
+                        self.assertEqual(metadata.colors[0]["content"], {"dark": "#14161a", "light": "#f6f8f6", "green-screen": "#0e1511"}[selected])
+                    match = re.search(r'href="([^"]+)">View as agent</a>', content)
+                    self.assertIsNotNone(match)
+                    assert match is not None
+                    agent_status, agent_headers, _ = self.request("GET", match[1])
+                    self.assertEqual(agent_status, 200, match[1])
+                    self.assertNotIn("text/html", agent_headers.get("Content-Type", ""))
+                    head_status, head_headers, body = self.request("HEAD", route, accept="text/html", extra_headers=cookie)
+                    self.assertEqual(head_status, status)
+                    self.assertEqual(head_headers.get("Vary"), headers.get("Vary"))
+                    self.assertEqual(head_headers.get("Cache-Control"), headers.get("Cache-Control"))
+                    self.assertEqual(body, "")
+
+    def test_preference_redirects_are_bounded_and_cookie_only_records_choice(self) -> None:
+        opener = build_opener(NoRedirect())
+        for value in ("system", "dark", "light", "green-screen"):
+            for target in ("/", "/research", "/board?before=12", "//evil.test", "/\\evil", "/%2f%2fevil", "/board?after=1&before=3", "/research?x=1", "/board?after=%GG", "/\r\nLocation:evil"):
+                with self.subTest(value=value, target=target):
+                    request = Request(self.origin + f"/theme?set={value}&return={quote(target, safe='')}")
+                    with self.assertRaises(HTTPError) as caught:
+                        opener.open(request, timeout=10)
+                    with caught.exception as response:
+                        self.assertEqual(response.code, 303)
+                        self.assertEqual(response.headers.get("Location"), target if target in ("/", "/research", "/board?before=12") else "/")
+                        expected = f"agentciv_appearance={value}; Path=/; Max-Age=31536000; SameSite=Lax; Secure; HttpOnly" if value != "system" else "agentciv_appearance=; Path=/; Max-Age=0; SameSite=Lax; Secure; HttpOnly"
+                        self.assertEqual(response.headers.get("Set-Cookie"), expected)
+                        self.assertEqual(response.headers.get("Cache-Control"), "no-store")
+        for query in ("", "set=Dark", "set=bad", "set=dark&set=light", "set=%FF"):
+            status, headers, body = self.request("GET", "/theme?" + query)
+            self.assertEqual(status, 400)
+            self.assertEqual(body["code"], "invalid_appearance")
+            self.assertNotIn("Set-Cookie", headers)
+        self.assertEqual(self.request("POST", "/theme?set=dark")[0], 405)
+        self.assertIn("Disallow: /theme", self.request("GET", "/robots.txt")[2])
+
+    def test_markdown_twins_and_root_text_keep_machine_bytes_independent_of_cookie(self) -> None:
+        instructions = self.request("GET", "/llms.txt")[2]
+        for accept in ("text/markdown", "text/plain"):
+            status, headers, body = self.request("GET", "/", accept=accept)
+            self.assertEqual(status, 200)
+            self.assertEqual(body, instructions)
+            self.assertEqual(headers.get("Content-Type"), accept + "; charset=utf-8")
+            self.assertEqual(headers.get("Vary"), "Accept")
+        for name in ("connect", "worlds", "resources", "research", "terms", "privacy"):
+            route = f"/{name}.md"
+            status, headers, body = self.request("GET", route)
+            self.assertEqual(status, 200)
+            self.assertEqual(headers.get("Content-Type"), "text/markdown; charset=utf-8")
+            self.assertRegex(body.splitlines()[0], r"^Generated: \d{4}-\d\d-\d\dT.*Z; source commit: (?:[0-9a-f]{40}|unrecorded-development)$")
+            self.assertEqual(self.request("HEAD", route)[2], "")
+            _, html_headers, html = self.request("GET", f"/{name}", accept="text/html")
+            self.assertIn(f'<link rel="alternate" type="text/markdown" href="{route}">', html)
+            self.assertEqual(html_headers.get("Link"), f'<{route}>; rel="alternate"; type="text/markdown", </llms.txt>; rel="describedby"')
+        for route in ("/", "/agent.json", "/directory.json", "/resources.json", "/llms.txt", "/connect.md", "/worlds.md", "/resources.md", "/research.md", "/terms.md", "/privacy.md", "/report.md", "/api/board/posts", "/api/board/changes", "/style.css", "/favicon.svg", "/schemas/0.1-draft/message.schema.json"):
+            original = self.request("GET", route, raw_response=True)
+            for value in ("dark", "light", "green-screen"):
+                status, headers, body = self.request("GET", route, extra_headers={"Cookie": f"agentciv_appearance={value}"}, raw_response=True)
+                self.assertEqual((status, body), (original[0], original[2]), route)
+                self.assertNotIn("Cookie", headers.get("Vary", ""), route)
 
     def test_readable_static_routes_and_navigation_keep_machine_endpoints(self) -> None:
         required_routes = {"/connect", "/worlds", "/resources", "/research", "/board"}
@@ -496,7 +577,7 @@ class EdgeTests(EdgeRuntime):
         self.assertEqual(self.request("GET", "/directory.json")[2]["schema_version"], 1)
 
     def test_payload_preservation_keeps_static_and_mutable_cache_policies_separate(self) -> None:
-        static_policy = "public, max-age=0, must-revalidate, no-transform"
+        static_policy = "private, max-age=0, must-revalidate, no-transform"
         for route, asset in [
             ("/", "index.html"),
             ("/connect", "connect.html"),
@@ -511,7 +592,9 @@ class EdgeTests(EdgeRuntime):
                 status, headers, content = self.request("GET", route, accept="text/html")
                 self.assertEqual(status, 200)
                 self.assertEqual(headers.get("Cache-Control"), static_policy)
-                self.assertEqual(content, (ROOT / "website" / "dist" / asset).read_bytes().decode("utf-8"))
+                self.assertIn("Appearance:", content)
+                self.assertIn("View as agent", content)
+                self.assertEqual(headers.get("Vary"), "Cookie, Accept" if route == "/" else "Cookie")
                 security = {name.lower(): value for name, value in headers.items()}
                 self.assertIn("default-src 'none'", security.get("content-security-policy", ""))
                 self.assertEqual(security.get("x-content-type-options"), "nosniff")
@@ -546,6 +629,9 @@ class EdgeTests(EdgeRuntime):
             ("text/html;q=0.2, application/json;q=0.9", "application/json"),
             ("TEXT/HTML;Q=1", "text/html"),
             ("*/*", "application/json"),
+            ("text/markdown", "text/markdown"),
+            ("text/plain", "text/plain"),
+            ("text/markdown, application/json", "application/json"),
             ("text/html;q=0, */*;q=1", "application/json"),
             ("text/*;q=0.8, application/json;q=0.5", "text/html"),
         ]:
@@ -553,7 +639,7 @@ class EdgeTests(EdgeRuntime):
                 status, headers, _ = self.request("GET", "/", accept=accept)
                 self.assertEqual(status, 200)
                 self.assertIn(expected, headers.get("Content-Type", ""))
-                self.assertEqual(headers.get("Vary"), "Accept")
+                self.assertEqual(headers.get("Vary"), "Cookie, Accept" if expected == "text/html" else "Accept")
         status, headers, result = self.request("GET", "/", accept="text/html;q=0,application/json;q=0")
         self.assertEqual(status, 406)
         self.assertEqual(result["code"], "not_acceptable")
@@ -570,7 +656,7 @@ class EdgeTests(EdgeRuntime):
         self.assertEqual(self.request("POST", "/api/board/posts", raw, TOKENS["agent:test-7"])[0], 200)
 
     def test_root_head_matches_the_selected_get_representation(self) -> None:
-        for accept in ["application/json", "text/html", "*/*", "text/html;q=0,application/json;q=0"]:
+        for accept in ["application/json", "text/html", "text/markdown", "text/plain", "*/*", "text/html;q=0,application/json;q=0"]:
             with self.subTest(accept=accept):
                 get_status, get_headers, _ = self.request("GET", "/", accept=accept)
                 status, headers, body = self.request("HEAD", "/", accept=accept)
@@ -579,7 +665,7 @@ class EdgeTests(EdgeRuntime):
                 self.assertEqual(headers.get("Vary"), get_headers.get("Vary"))
                 self.assertEqual(headers.get("Cache-Control"), get_headers.get("Cache-Control"))
                 self.assertEqual(body, "")
-        for accept in ["application/json", "text/html"]:
+        for accept in ["application/json"]:
             _, original_headers, _ = self.request("GET", "/", accept=accept)
             etag = {key.lower(): value for key, value in original_headers.items()}["etag"]
             for method in ["GET", "HEAD"]:

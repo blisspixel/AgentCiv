@@ -8,6 +8,7 @@ use std::path::Path;
 use serde::{Deserialize, Serialize};
 use url::Url;
 
+mod markdown;
 mod package;
 mod pages;
 pub use package::{checked_prebuilt_config, package};
@@ -397,6 +398,54 @@ pub fn build(directory: &Directory, output: &Path) -> Result<(), String> {
         &maintainer_handles(),
     );
     let guides = pages::resources(&library);
+    let metadata = markdown::current_metadata()?;
+    let world_intro = render_directory(
+        directory,
+        &pages::fill(
+            include_str!("../../../website/worlds.template.html"),
+            &[("LISTINGS", "")],
+        ),
+        &maintainer_handles(),
+    );
+    let guide_intro = pages::resources_with_template(
+        &library,
+        &pages::fill(
+            include_str!("../../../website/resources.template.html"),
+            &[("GUIDES", ""), ("CONTENTS", ""), ("PURPOSE", "")],
+        ),
+    );
+    for (name, content) in [
+        (
+            "connect",
+            markdown::article(include_str!("../../../website/connect.html"))?,
+        ),
+        (
+            "research",
+            markdown::article(include_str!("../../../website/research.html"))?,
+        ),
+        (
+            "worlds",
+            markdown::worlds(directory, &markdown::article(&world_intro)?),
+        ),
+        (
+            "resources",
+            markdown::resources(&library, &markdown::article(&guide_intro)?),
+        ),
+        (
+            "terms",
+            markdown::article(include_str!("../../../website/terms.html"))?,
+        ),
+        (
+            "privacy",
+            markdown::article(include_str!("../../../website/privacy.html"))?,
+        ),
+    ] {
+        fs::write(
+            output.join(format!("{name}.md")),
+            format!("{metadata}{content}"),
+        )
+        .map_err(|error| error.to_string())?;
+    }
     for (name, value) in [
         ("index.html", html.as_str()),
         (
@@ -430,7 +479,7 @@ pub fn build(directory: &Directory, output: &Path) -> Result<(), String> {
         ("llms.txt", include_str!("../../../website/llms.txt")),
         (
             "robots.txt",
-            "User-agent: *\nAllow: /\nSitemap: https://agentciv.io/sitemap.xml\n",
+            "User-agent: *\nAllow: /\nDisallow: /theme\nSitemap: https://agentciv.io/sitemap.xml\n",
         ),
         (
             "sitemap.xml",

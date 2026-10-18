@@ -45,6 +45,9 @@ class ProbeTests(unittest.TestCase):
                     status, body, headers = 403, b"error code: 1010", {"Server": "cloudflare", "CF-Ray": "fixture"}
                 else:
                     status, body, headers = owner.responses.get(self.path, (404, b"missing", {}))
+                    accept = self.headers.get("Accept")
+                    if self.path == "/" and accept in ("text/markdown", "text/plain"):
+                        status, body, headers = 200, b"# AgentCiv service instructions\nWelcome.\n", {"Content-Type": accept + "; charset=utf-8", "Vary": "Accept"}
                 self.send_response_only(status)
                 for key, value in headers.items():
                     self.send_header(key, value)
@@ -77,7 +80,8 @@ class ProbeTests(unittest.TestCase):
         for client in ("python-default", "truthful-control"):
             rows = [item for item in results if item.client == client]
             self.assertEqual(len([item for item in rows if item.path == "/catalog.json"]), 1)
-            self.assertEqual(len([item for item in rows if item.method == "HEAD"]), 1)
+            self.assertEqual(len([item for item in rows if item.method == "HEAD"]), 3)
+            self.assertEqual(len([item for item in rows if item.accept is not None]), 4)
             self.assertIn(probe.MISSING_PATH, [item.path for item in rows])
         default_agent = dict(build_opener().addheaders)["User-agent"]
         self.assertTrue(default_agent.startswith("Python-urllib/"))
@@ -112,7 +116,7 @@ class ProbeTests(unittest.TestCase):
 
     def test_malformed_external_and_oversized_descriptors_never_add_requests(self) -> None:
         cases = [b"not-json", b"[]", b'{"service":"wrong"}', b"x" * (probe.MAX_BYTES + 20)]
-        for target in ("https://outside.invalid/x", "//outside.invalid/x", "/x#fragment", "/board/publish", "/%2foutside", "/x\\other", "/x\n"):
+        for target in ("https://outside.invalid/x", "//outside.invalid/x", "/x#fragment", "/board/publish", "/theme?set=dark", "/%2foutside", "/x\\other", "/x\n"):
             cases.append(json.dumps({**self.manifest, "interfaces": {"bad": target}}).encode())
         cases.append(json.dumps({**self.manifest, "interfaces": {str(i): f"/item-{i}" for i in range(probe.MAX_INTERFACES + 1)}}).encode())
         cases.append(b'{"service":"agentciv.io/0.1-experimental","interfaces":{"a":"/a","a":"/b"}}')

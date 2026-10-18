@@ -10,6 +10,8 @@ mod labels;
 pub use labels::{OperatorLabels, labeled_public_entry, operator_labels};
 mod conversation;
 pub use conversation::conversation;
+#[cfg(any(test, target_arch = "wasm32"))]
+mod appearance;
 #[cfg(target_arch = "wasm32")]
 mod cloudflare;
 #[cfg(any(test, target_arch = "wasm32"))]

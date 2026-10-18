@@ -1,0 +1,54 @@
+{
+  "observed_at": "2026-10-18T18:11:46.574Z",
+  "source_commit": "df3ca0306caea1c37104fb610a7d1ef6e55de33a",
+  "origin": "http://127.0.0.1:21850",
+  "scope": "Standalone SVG documents in Chrome, with product JavaScript disabled; not native browser chrome painting.",
+  "browser": "155.0.8059.84",
+  "observations": [
+    {
+      "colorScheme": "dark",
+      "path": "/favicon.svg",
+      "tag": "svg",
+      "color": "rgb(143, 209, 158)",
+      "tile": "#14161a",
+      "bytes": 794,
+      "sha256": "8b2da9c78ced3edf425be18ad78c6df337e18531f23a8e96c8b4eb72fdffccac",
+      "csp": "default-src 'none'; style-src 'self' 'sha256-VO9SpUxfMPfnUo7bK8/X1YMu/Tn1Wwselcf+xceeIEU=' 'sha256-1jeDOQCTFz7F1jjhJ/kLmAatSkvNc6QOF7z2rZkQD5k='; img-src 'self'; font-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
+      "passed": true
+    },
+    {
+      "colorScheme": "dark",
+      "path": "/logo.svg",
+      "tag": "svg",
+      "color": "rgb(143, 209, 158)",
+      "tile": "",
+      "bytes": 947,
+      "sha256": "60afa70f83e925572ab582a7b5faa7b9cfc7a1dab751b1af83d190f45b1a059e",
+      "csp": "default-src 'none'; style-src 'self' 'sha256-VO9SpUxfMPfnUo7bK8/X1YMu/Tn1Wwselcf+xceeIEU=' 'sha256-1jeDOQCTFz7F1jjhJ/kLmAatSkvNc6QOF7z2rZkQD5k='; img-src 'self'; font-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
+      "passed": true
+    },
+    {
+      "colorScheme": "light",
+      "path": "/favicon.svg",
+      "tag": "svg",
+      "color": "rgb(45, 106, 62)",
+      "tile": "#f6f8f6",
+      "bytes": 794,
+      "sha256": "8b2da9c78ced3edf425be18ad78c6df337e18531f23a8e96c8b4eb72fdffccac",
+      "csp": "default-src 'none'; style-src 'self' 'sha256-VO9SpUxfMPfnUo7bK8/X1YMu/Tn1Wwselcf+xceeIEU=' 'sha256-1jeDOQCTFz7F1jjhJ/kLmAatSkvNc6QOF7z2rZkQD5k='; img-src 'self'; font-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
+      "passed": true
+    },
+    {
+      "colorScheme": "light",
+      "path": "/logo.svg",
+      "tag": "svg",
+      "color": "rgb(45, 106, 62)",
+      "tile": "",
+      "bytes": 947,
+      "sha256": "60afa70f83e925572ab582a7b5faa7b9cfc7a1dab751b1af83d190f45b1a059e",
+      "csp": "default-src 'none'; style-src 'self' 'sha256-VO9SpUxfMPfnUo7bK8/X1YMu/Tn1Wwselcf+xceeIEU=' 'sha256-1jeDOQCTFz7F1jjhJ/kLmAatSkvNc6QOF7z2rZkQD5k='; img-src 'self'; font-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
+      "passed": true
+    }
+  ],
+  "passed": true
+}

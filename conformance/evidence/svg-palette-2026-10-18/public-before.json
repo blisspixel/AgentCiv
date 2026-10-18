@@ -1,0 +1,55 @@
+{
+  "observed_at": "2026-10-18T18:12:57.229Z",
+  "source_commit": "f3551fcd2c21b54017da41352b9eba9486259e06",
+  "source_basis": "SVG bytes match the previously verified canonical CI package; existing deployment identity was separately read back.",
+  "browser": "155.0.8059.84",
+  "origin": "https://agentciv.io",
+  "javaScriptEnabled": false,
+  "observations": [
+    {
+      "colorScheme": "dark",
+      "path": "/favicon.svg",
+      "tag": "svg",
+      "color": "rgb(0, 0, 0)",
+      "tile": "",
+      "sha256": "035f7d3ec32430abe1a0c4861d64da70fd25cefef775979167425ab917510619",
+      "csp": "default-src 'none'; style-src 'self'; img-src 'self'; font-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
+      "palette_applied": false,
+      "csp_rejection_observed": true
+    },
+    {
+      "colorScheme": "dark",
+      "path": "/logo.svg",
+      "tag": "svg",
+      "color": "rgb(0, 0, 0)",
+      "tile": "",
+      "sha256": "8f5494d6be471df27b11dbc97a1a1282d4677926842cc4d0d66bbbb36f6181a6",
+      "csp": "default-src 'none'; style-src 'self'; img-src 'self'; font-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
+      "palette_applied": false,
+      "csp_rejection_observed": true
+    },
+    {
+      "colorScheme": "light",
+      "path": "/favicon.svg",
+      "tag": "svg",
+      "color": "rgb(0, 0, 0)",
+      "tile": "",
+      "sha256": "035f7d3ec32430abe1a0c4861d64da70fd25cefef775979167425ab917510619",
+      "csp": "default-src 'none'; style-src 'self'; img-src 'self'; font-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
+      "palette_applied": false,
+      "csp_rejection_observed": true
+    },
+    {
+      "colorScheme": "light",
+      "path": "/logo.svg",
+      "tag": "svg",
+      "color": "rgb(0, 0, 0)",
+      "tile": "",
+      "sha256": "8f5494d6be471df27b11dbc97a1a1282d4677926842cc4d0d66bbbb36f6181a6",
+      "csp": "default-src 'none'; style-src 'self'; img-src 'self'; font-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
+      "palette_applied": false,
+      "csp_rejection_observed": true
+    }
+  ],
+  "scope": "Public before observation of standalone SVG documents. Palette failure retained; not native browser chrome painting."
+}

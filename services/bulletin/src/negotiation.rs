@@ -1,4 +1,4 @@
-//! Select the website's two root representations without overriding explicit exclusions.
+//! Select root representations without overriding explicit exclusions.
 
 use crate::Problem;
 
@@ -6,6 +6,8 @@ use crate::Problem;
 pub(crate) enum RootView {
     Machine,
     Html,
+    Markdown,
+    Plain,
 }
 
 fn quality(value: &str) -> Option<u16> {
@@ -29,8 +31,15 @@ pub(crate) fn root_view(accept: Option<&str>) -> Result<RootView, Problem> {
     let Some(accept) = accept.filter(|value| !value.trim().is_empty()) else {
         return Ok(RootView::Machine);
     };
-    let representations = [mime::APPLICATION_JSON, mime::TEXT_HTML_UTF_8];
-    let mut choices: [Option<(u8, usize, u16)>; 2] = [None, None];
+    let representations = [
+        mime::APPLICATION_JSON,
+        mime::TEXT_HTML_UTF_8,
+        "text/markdown; charset=utf-8"
+            .parse()
+            .expect("constant MIME"),
+        mime::TEXT_PLAIN_UTF_8,
+    ];
+    let mut choices: [Option<(u8, usize, u16)>; 4] = [None; 4];
     let mut quoted = false;
     let mut escaped = false;
     // Commas inside quoted media parameters do not separate ranges.
@@ -89,13 +98,20 @@ pub(crate) fn root_view(accept: Option<&str>) -> Result<RootView, Problem> {
             }
         }
     }
-    let machine = choices[0].map_or(0, |(_, _, weight)| weight);
-    let html = choices[1].map_or(0, |(_, _, weight)| weight);
-    match (machine, html) {
-        (0, 0) => Err(Problem::new(406, "not_acceptable")),
-        (machine, html) if html > machine => Ok(RootView::Html),
-        _ => Ok(RootView::Machine),
+    let weights = choices.map(|choice| choice.map_or(0, |(_, _, weight)| weight));
+    let maximum = weights.into_iter().max().unwrap_or(0);
+    if maximum == 0 {
+        return Err(Problem::new(406, "not_acceptable"));
     }
+    Ok([
+        RootView::Machine,
+        RootView::Html,
+        RootView::Markdown,
+        RootView::Plain,
+    ][weights
+        .iter()
+        .position(|weight| *weight == maximum)
+        .expect("maximum exists")])
 }
 
 #[cfg(test)]
@@ -108,6 +124,13 @@ mod tests {
         for (accept, expected) in [
             ("", RootView::Machine),
             ("*/*", RootView::Machine),
+            ("text/markdown", RootView::Markdown),
+            ("text/plain", RootView::Plain),
+            (
+                "text/markdown;q=0.8, application/json;q=0.8",
+                RootView::Machine,
+            ),
+            ("text/markdown;q=0, text/plain;q=0.2", RootView::Plain),
             ("application/json, text/html", RootView::Machine),
             ("TEXT/HTML;Q=1", RootView::Html),
             ("text/html;q=0, application/json", RootView::Machine),

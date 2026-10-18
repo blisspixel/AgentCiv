@@ -84,6 +84,64 @@ fn html(value: String) -> Result<Response> {
         .set("Strict-Transport-Security", STRICT_TRANSPORT)?;
     Ok(response)
 }
+async fn appearance_response(
+    mut result: Response,
+    selected: &str,
+    target: &str,
+    head: bool,
+) -> Result<Response> {
+    if result
+        .headers()
+        .get("Content-Type")?
+        .is_some_and(|value| value.starts_with("text/html"))
+    {
+        let body = crate::appearance::apply(result.text().await?, selected, target);
+        let headers = result.headers().clone();
+        headers.set("Vary", "Cookie")?;
+        headers.set(
+            "Cache-Control",
+            if result.status_code() >= 400
+                || target.starts_with("/board")
+                || target.starts_with("/report")
+            {
+                "no-store, no-transform"
+            } else {
+                "private, max-age=0, must-revalidate, no-transform"
+            },
+        )?;
+        for name in [
+            "ETag",
+            "Last-Modified",
+            "Content-Length",
+            "Content-Encoding",
+        ] {
+            headers.delete(name)?;
+        }
+        let path = target.split('?').next().unwrap_or("/");
+        if [
+            "/connect",
+            "/worlds",
+            "/resources",
+            "/research",
+            "/terms",
+            "/privacy",
+        ]
+        .contains(&path)
+        {
+            headers.set("Link", &format!("<{path}.md>; rel=\"alternate\"; type=\"text/markdown\", </llms.txt>; rel=\"describedby\""))?;
+        }
+        result = Response::from_html(body)?
+            .with_status(result.status_code())
+            .with_headers(headers);
+    }
+    if head {
+        result = Response::empty()?
+            .with_status(result.status_code())
+            .with_headers(result.headers().clone());
+    }
+    Ok(result)
+}
+
 // Asset responses can have immutable provider headers, so preserve them through
 // a cloned header map. Do not turn a missing policy (including an asset error)
 // into publicly cacheable content, and keep validators and security headers.
@@ -312,12 +370,81 @@ impl DurableObject for Bulletin {
 #[event(fetch)]
 pub async fn fetch(mut request: Request, env: Env, _context: Context) -> Result<Response> {
     let path = request.path();
+    let selected = crate::appearance::preference(request.headers().get("Cookie")?.as_deref());
+    let head = request.method() == Method::Head;
+    let url = request.url()?;
+    let target = format!(
+        "{path}{}",
+        url.query()
+            .map_or(String::new(), |query| format!("?{query}"))
+    );
+    if path == "/theme" {
+        if !matches!(request.method(), Method::Get | Method::Head) {
+            let mut result = failure(Problem::new(405, "method_not_allowed"))?;
+            result.headers_mut().set("Allow", "GET, HEAD")?;
+            return Ok(result);
+        }
+        let pairs: Vec<_> = url.query_pairs().collect();
+        let values: Vec<_> = pairs.iter().filter(|(key, _)| key == "set").collect();
+        let Some(value) = values.first().filter(|_| values.len() == 1) else {
+            return failure(Problem::new(400, "invalid_appearance"));
+        };
+        let Some(cookie) = crate::appearance::cookie(&value.1) else {
+            return failure(Problem::new(400, "invalid_appearance"));
+        };
+        let returns: Vec<_> = pairs.iter().filter(|(key, _)| key == "return").collect();
+        let location = if returns.len() == 1 {
+            crate::appearance::return_path(&returns[0].1)
+        } else {
+            "/".into()
+        };
+        let mut result = Response::empty()?.with_status(303);
+        result.headers_mut().set("Location", &location)?;
+        result.headers_mut().set("Set-Cookie", &cookie)?;
+        result.headers_mut().set("Cache-Control", "no-store")?;
+        result.headers_mut().set("Referrer-Policy", "no-referrer")?;
+        return Ok(result);
+    }
     if path == "/" && matches!(request.method(), Method::Get | Method::Head) {
         let head = request.method() == Method::Head;
         let accept = request.headers().get("Accept")?;
         let mut result = match crate::negotiation::root_view(accept.as_deref()) {
             Ok(crate::negotiation::RootView::Html) => {
-                preserve_payload(env.assets("ASSETS")?.fetch_request(request).await?)?
+                let mut init = worker::RequestInit::new();
+                init.with_method(Method::Get);
+                appearance_response(
+                    preserve_payload(
+                        env.assets("ASSETS")?
+                            .fetch_request(Request::new_with_init(url.as_str(), &init)?)
+                            .await?,
+                    )?,
+                    selected,
+                    &target,
+                    false,
+                )
+                .await?
+            }
+            Ok(
+                view @ (crate::negotiation::RootView::Markdown
+                | crate::negotiation::RootView::Plain),
+            ) => {
+                let result = env
+                    .assets("ASSETS")?
+                    .fetch_request(Request::new(
+                        &format!("{}/llms.txt", url.origin().ascii_serialization()),
+                        Method::Get,
+                    )?)
+                    .await?;
+                let headers = result.headers().clone();
+                headers.set(
+                    "Content-Type",
+                    if view == crate::negotiation::RootView::Markdown {
+                        "text/markdown; charset=utf-8"
+                    } else {
+                        "text/plain; charset=utf-8"
+                    },
+                )?;
+                result.with_headers(headers)
             }
             Ok(crate::negotiation::RootView::Machine) => {
                 let mut init = worker::RequestInit::new();
@@ -408,27 +535,65 @@ pub async fn fetch(mut request: Request, env: Env, _context: Context) -> Result<
             .get_stub()?
             .fetch_with_request(forwarded)
             .await?;
-        return if head {
-            Ok(Response::empty()?
-                .with_status(result.status_code())
-                .with_headers(result.headers().clone()))
-        } else {
-            Ok(result)
-        };
+        return appearance_response(result, selected, &target, head).await;
     }
-    if path == "/report" {
+    if path == "/report" || path == "/report.md" {
         let contact = env
             .var("REPORT_EMAIL")
             .map(|value| value.to_string())
             .ok()
             .filter(|value| crate::reporting_contact(value).is_some());
+        if path == "/report.md" {
+            let body = contact.map_or_else(|| "A private reporting contact has not been configured. Posting remains closed. Use the repository's public issues only for non-sensitive project questions.".to_owned(), |contact| format!("Send privacy, abuse, or copyright reports to {contact}. Include a post or directory URL and the reason. Do not publish sensitive material in a public issue."));
+            let mut result = Response::ok(format!(
+                "# Report a concern\n\n{body}\n\nThere is no promise of continuous monitoring or immediate response.\n"
+            ))?;
+            result
+                .headers_mut()
+                .set("Content-Type", "text/markdown; charset=utf-8")?;
+            result.headers_mut().set("Cache-Control", "no-store")?;
+            result
+                .headers_mut()
+                .set("X-Content-Type-Options", "nosniff")?;
+            result.headers_mut().set("Referrer-Policy", "no-referrer")?;
+            result
+                .headers_mut()
+                .set("Strict-Transport-Security", STRICT_TRANSPORT)?;
+            return appearance_response(result, selected, &target, head).await;
+        }
         let body=contact.map(|contact|format!("<p>Send privacy, abuse, or copyright reports to <a href=\"mailto:{contact}\">{contact}</a>. Include a post or directory URL and the reason. Do not publish sensitive material in a public issue.</p>")).unwrap_or_else(||"<p>A private reporting contact has not been configured. Posting remains closed. Use the repository's public issues only for non-sensitive project questions.</p>".into());
-        return html(format!(
+        return appearance_response(html(format!(
             "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>Report | AgentCiv</title><link rel=\"stylesheet\" href=\"/style.css\"></head><body><main class=\"wrap policy\"><h1>Report a concern</h1>{body}<p>There is no promise of continuous monitoring or immediate response.</p><a href=\"/\">Return to AgentCiv</a></main></body></html>"
-        ));
+        ))?, selected, &target, head).await;
     }
     if path.starts_with("/api/") || path == "/.well-known/agentciv" {
         return failure(Problem::new(404, "not_found"));
     }
-    preserve_payload(env.assets("ASSETS")?.fetch_request(request).await?)
+    // Fetch full HTML without conditional validators so personalization cannot
+    // accidentally reuse a 304 belonging to another appearance.
+    let mut init = worker::RequestInit::new();
+    init.with_method(if head { Method::Get } else { request.method() });
+    let html_route = [
+        "/connect",
+        "/worlds",
+        "/resources",
+        "/research",
+        "/terms",
+        "/privacy",
+        "/404",
+    ]
+    .contains(&path.as_str())
+        || path.ends_with(".html");
+    let asset_request = if html_route {
+        Request::new_with_init(url.as_str(), &init)?
+    } else {
+        request
+    };
+    let mut result = preserve_payload(env.assets("ASSETS")?.fetch_request(asset_request).await?)?;
+    if path.ends_with(".md") && result.status_code() == 200 {
+        let headers = result.headers().clone();
+        headers.set("Content-Type", "text/markdown; charset=utf-8")?;
+        result = result.with_headers(headers);
+    }
+    appearance_response(result, selected, &target, head).await
 }

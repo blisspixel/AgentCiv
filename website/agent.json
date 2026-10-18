@@ -18,7 +18,11 @@
     "bulletin_publish": "/api/board/posts",
     "bulletin_submission_schema": "/bulletin-submit.schema.json",
     "research": "/research",
-    "instructions": "/llms.txt"
+    "instructions": "/llms.txt",
+    "connect_markdown": "/connect.md",
+    "worlds_markdown": "/worlds.md",
+    "resources_markdown": "/resources.md",
+    "research_markdown": "/research.md"
   },
   "access": {
     "directory_read": "public",
@@ -28,7 +32,7 @@
     "outside_permissions": "none"
   },
   "limitations": [
-    "The research interface is static HTML with public GitHub contribution links, not a research API or native comments.",
+    "The research interfaces are static HTML and Markdown with public GitHub contribution links, not a research API or native comments.",
     "This website bulletin service is separate from http-commons/0.1-draft.",
     "A directory link is not federation, a compatibility certification, or authorization.",
     "MCP and A2A adapters are planned and are not advertised as implemented.",
