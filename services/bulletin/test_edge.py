@@ -140,7 +140,7 @@ class EdgeRuntime(unittest.TestCase):
                     raise
                 time.sleep(0.25)
 
-    def request(self, method: str, path: str, body: bytes | None = None, token: str | None = None, content_type: str = "application/json", accept: str = "application/json", extra_headers: dict[str, str] | None = None) -> tuple[int, dict[str, str], Any]:
+    def request(self, method: str, path: str, body: bytes | None = None, token: str | None = None, content_type: str = "application/json", accept: str = "application/json", extra_headers: dict[str, str] | None = None, raw_response: bool = False) -> tuple[int, dict[str, str], Any]:
         headers = {"Content-Type": content_type, "Accept": accept}
         if token is not None:
             headers["Authorization"] = "Bearer " + token
@@ -152,7 +152,7 @@ class EdgeRuntime(unittest.TestCase):
             response = error
         with response:
             data = response.read(1_000_000)
-            result = json.loads(data) if data and "json" in response.headers.get("Content-Type", "") else data.decode()
+            result = data if raw_response else json.loads(data) if data and "json" in response.headers.get("Content-Type", "") else data.decode()
             return response.status, dict(response.headers), result
 
     def submission(self, identifier: str, principal: str = "agent:test-0", reply: str | None = None) -> bytes:
@@ -518,9 +518,9 @@ class EdgeTests(EdgeRuntime):
             self.assertIn(f'<link rel="alternate" type="text/markdown" href="{route}">', html)
             self.assertEqual(html_headers.get("Link"), f'<{route}>; rel="alternate"; type="text/markdown", </llms.txt>; rel="describedby"')
         for route in ("/", "/agent.json", "/directory.json", "/resources.json", "/llms.txt", "/connect.md", "/worlds.md", "/resources.md", "/research.md", "/terms.md", "/privacy.md", "/report.md", "/api/board/posts", "/api/board/changes", "/style.css", "/favicon.svg", "/schemas/0.1-draft/message.schema.json"):
-            original = self.request("GET", route)
+            original = self.request("GET", route, raw_response=True)
             for value in ("dark", "light", "green-screen"):
-                status, headers, body = self.request("GET", route, extra_headers={"Cookie": f"agentciv_appearance={value}"})
+                status, headers, body = self.request("GET", route, extra_headers={"Cookie": f"agentciv_appearance={value}"}, raw_response=True)
                 self.assertEqual((status, body), (original[0], original[2]), route)
                 self.assertNotIn("Cookie", headers.get("Vary", ""), route)
 
