@@ -1,0 +1,104 @@
+{
+  "format": "agentciv-evidence-copy/0.1",
+  "copying_condition": "operator_authorized_synthetic_fixture_export_only",
+  "source_of_authority": "Operator-selected synthetic local experiment records; reading alone is not a copying grant.",
+  "representation_change": "Outer JSON CRLF to LF only; values and enclosed exact record strings unchanged.",
+  "selection": "All five development trials, including failed instrumentation, semantic and structural attempts; not a preregistered comparison.",
+  "external_spend_usd": 0,
+  "excluded": [
+    "credentials",
+    "world databases",
+    "private process configuration",
+    "provider traces",
+    "private candidate files"
+  ],
+  "hardware": "Installed local RTX 4090, 24 GiB; existing Ollama models, no model downloads.",
+  "runtime": "Ollama 0.40.4",
+  "successful_model_digest": "a50eda8ed977ab48a12431878896b27ffd5cef552c17af3317d9623b939a7f1e",
+  "entries": [
+    {
+      "path": "model-qwen36/report.json",
+      "original_sha256": "1e311c18082eb698e3b0bc3de1994d517f0a977547ed6dd6e79eb5af6099357b",
+      "published_sha256": "726dbe807bd6191871cd7b23b34225983cde83ef6fe785175930362a004ad9c6",
+      "json_values_equal": true
+    },
+    {
+      "path": "model-qwen36/study-originals.json",
+      "original_sha256": "dccfd5388c795ea09542d4c6730c23bb8f01263837a704b5fdbc65e4a51cdb5f",
+      "published_sha256": "3c4a02eaa73493db2cb534ccdd2561ff5d9623946d373f4ce495ca5c84da4b18",
+      "json_values_equal": true
+    },
+    {
+      "path": "model-qwen36/challenge-originals.json",
+      "original_sha256": "5ed6374e2893ca2ef3ff3e11d683a6d8d0f81af03362c4dfd8acfff545613390",
+      "published_sha256": "44d35ac49e07fac94e23d7d399a1724cfe90d0a110bf4e1368d540be5a292d07",
+      "json_values_equal": true
+    },
+    {
+      "path": "handoff-qwen36/report.json",
+      "original_sha256": "c185594516ccd9672b51cc79f260898f2b8c3012feeac95e9f6ad7ecbacbab8f",
+      "published_sha256": "a69681ba330f9cbf8222cf04b406589bac9e52cfbf59efc7250e2a2cf1d0fcdb",
+      "json_values_equal": true
+    },
+    {
+      "path": "handoff-qwen36/study-originals.json",
+      "original_sha256": "5721914aa627537af7e5badbbe0535cea01cc917adcc998b7eeab1982c14c0eb",
+      "published_sha256": "86255418a3f22096c477d3df16af398f2b30856d2c42f383f4917ccfe334f291",
+      "json_values_equal": true
+    },
+    {
+      "path": "handoff-qwen36/challenge-originals.json",
+      "original_sha256": "8ee92ca37df837766913ad81b2e63583a327e9664d63f4bbbcabab1edb2866b0",
+      "published_sha256": "d4b6025a63eb523986b156a6cf11985f322fe26000e7673244ad30eb3b04274f",
+      "json_values_equal": true
+    },
+    {
+      "path": "handoff-v2-qwen36/report.json",
+      "original_sha256": "49023c4f01de099b72909f456753c3e8707f2e2b7e100c9281daf6dff1bbe924",
+      "published_sha256": "7d55a2e99139e75133b1389752390d9bbc98509d47f3fe369e46b31660b4c0e3",
+      "json_values_equal": true
+    },
+    {
+      "path": "handoff-v2-qwen36/study-originals.json",
+      "original_sha256": "0aafbeadb8cb67852ef5de17c0844967a7ab491689679f7c2a62d9775d5b4b81",
+      "published_sha256": "8fa58210aac33ba32947783d7c0571de73b7806f055cf17bbffb8794bc46be5a",
+      "json_values_equal": true
+    },
+    {
+      "path": "handoff-v2-qwen36/challenge-originals.json",
+      "original_sha256": "5fd5bc99af9a9a0a4a7ab6608c7c28d35b2b52e0e858259ee5f71290bc39b8b1",
+      "published_sha256": "749665f31205ac885e8a77d398177f032780eb1ef9ec0287d5b966fe9b61aa5c",
+      "json_values_equal": true
+    },
+    {
+      "path": "handoff-v2-qwen3/report.json",
+      "original_sha256": "947e4e358b19d97013c286e14f4c903c3f0981370b9c887b3aadf1ef03e336c4",
+      "published_sha256": "92a8f82780d5f93cebe87bfd86ffd0eff5f2eec5e4acba9980d599eac4939af3",
+      "json_values_equal": true
+    },
+    {
+      "path": "handoff-selected-qwen36/report.json",
+      "original_sha256": "2f3d81cf5654074ec268a2a50e913c9ceaf11678bcf53f98bc18064047ba166b",
+      "published_sha256": "1a7ce12e9df27da41a90a432f0f602cfdf50dbfd13ee9f74694512ee84d78aa2",
+      "json_values_equal": true
+    },
+    {
+      "path": "handoff-selected-qwen36/study-originals.json",
+      "original_sha256": "d6cfa9f400a1bfdd4e51b71a758694fb92a4bf19db7f15b76416d1bd0987c1b5",
+      "published_sha256": "d04b293426a838c064c99d9ad583638ccacefdc7648f20b39ce78f7cf188bb68",
+      "json_values_equal": true
+    },
+    {
+      "path": "handoff-selected-qwen36/challenge-originals.json",
+      "original_sha256": "95c2e9ced6f6eff1973fd1d404cac4fae1f7960b47dd7abad58e23dce7c2ffd4",
+      "published_sha256": "86835061b761462a122e93797178f339635c3947ef642614876c3a302dffb123",
+      "json_values_equal": true
+    },
+    {
+      "path": "handoff-selected-qwen36/inspection.json",
+      "original_sha256": "1dbfae32f3c7c0cd566c30818b09a6f9c219d28efecac79549345280ce2adaea",
+      "published_sha256": "e2d29d03a392a7179ed36e0430e5c4e2d5964ab13cabb4e004d1169a6e8647b8",
+      "json_values_equal": true
+    }
+  ]
+}

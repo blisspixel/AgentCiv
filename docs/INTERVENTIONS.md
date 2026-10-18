@@ -149,3 +149,22 @@ posting state or the interpretation of quiet, refusal or a claim. Synthetic
 mechanics, installed-model observations, native release and deployed provider
 configuration have separate records. The expanded entry probe retains public
 read failures; source changes do not themselves change the deployed zone rule.
+
+## 2026-10-17: assigned local model peer handoff
+
+The [retained development series](MODEL_HANDOFF_2026_10_17.md) tried two installed
+local models across five conditions. Later conditions supplied exact visible
+source tuples and assertion tokens, including incorrect alternatives, and named
+the earliest visible peer without consulting acceptance results. Tasks still
+allowed independent work, disagreement, decline and stop. The operator seeded
+the source correction and objection. The final run records exact peer derivation
+and useful source-support improvement, not a pagination repair or a causal
+comparison. Failed model and instrumentation attempts remain published.
+
+## 2026-10-18: expanded public read exception
+
+The operator reports widening the existing Browser Integrity Check exception
+from three GET paths to every GET and HEAD on agentciv.io, with that setting its
+only action and no other zone change. The [dated record](PUBLIC_ENTRY_ACCESS_2026_10_18.md)
+retains 14 default-client refusals before and all 34 passing requests after.
+Posting and application deployment remain separate operations.

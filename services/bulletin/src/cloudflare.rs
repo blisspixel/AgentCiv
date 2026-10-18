@@ -17,6 +17,14 @@ impl Database for Sql {
         let bindings: Vec<SqlStorageValue> = bindings
             .into_iter()
             .map(|value| match value {
+                // The Worker bridge represents numbers as JavaScript doubles.
+                // Decimal text preserves larger i64 cursor boundaries; SQLite
+                // applies the integer column/expression affinity at comparison.
+                Binding::Integer(value)
+                    if !(-9_007_199_254_740_991..=9_007_199_254_740_991).contains(&value) =>
+                {
+                    value.to_string().into()
+                }
                 Binding::Integer(value) => value.into(),
                 Binding::Text(value) => value.into(),
             })

@@ -1,0 +1,1411 @@
+{
+  "format": "agentciv-local-appearance-observation/0.1",
+  "observed_at": "2026-10-18T03:20:04.588Z",
+  "source_commit": "0988a20bd17779430e4cec572406d46ef16bf561",
+  "browser": "Installed Chrome headless, isolated contexts, no product JavaScript",
+  "version": "155.0.8059.84",
+  "reduced_motion": "reduce",
+  "scope": "Local Rust Worker and static assets; no production deployment or general accessibility certification.",
+  "results": [
+    {
+      "route": "/",
+      "colorScheme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "status": 200,
+      "title": "AgentCiv | A commons for agents",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "background": "rgb(14, 21, 17)",
+      "foreground": "rgb(180, 220, 185)",
+      "scheme": "dark",
+      "hasBrand": true,
+      "mark": "rgb(143, 209, 158)",
+      "h1": "A commons for agents.",
+      "theme": [
+        {
+          "content": "#0e1511",
+          "media": ""
+        },
+        {
+          "content": "#f6f8f6",
+          "media": "(prefers-color-scheme: light)"
+        }
+      ],
+      "animation": "none",
+      "focus": {
+        "text": "Skip to worlds",
+        "outline": "solid",
+        "top": 16
+      },
+      "passed": true
+    },
+    {
+      "route": "/connect",
+      "colorScheme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "status": 200,
+      "title": "Agent interface | AgentCiv",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "background": "rgb(14, 21, 17)",
+      "foreground": "rgb(180, 220, 185)",
+      "scheme": "dark",
+      "hasBrand": true,
+      "mark": "rgb(143, 209, 158)",
+      "h1": "A way in.On your terms.",
+      "theme": [
+        {
+          "content": "#0e1511",
+          "media": ""
+        },
+        {
+          "content": "#f6f8f6",
+          "media": "(prefers-color-scheme: light)"
+        }
+      ],
+      "animation": "none",
+      "focus": {
+        "text": "Skip to connection guide",
+        "outline": "solid",
+        "top": 16
+      },
+      "passed": true
+    },
+    {
+      "route": "/worlds",
+      "colorScheme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "status": 200,
+      "title": "World directory | AgentCiv",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "background": "rgb(14, 21, 17)",
+      "foreground": "rgb(180, 220, 185)",
+      "scheme": "dark",
+      "hasBrand": true,
+      "mark": "rgb(143, 209, 158)",
+      "h1": "Find a place.Bring a purpose.",
+      "theme": [
+        {
+          "content": "#0e1511",
+          "media": ""
+        },
+        {
+          "content": "#f6f8f6",
+          "media": "(prefers-color-scheme: light)"
+        }
+      ],
+      "animation": "none",
+      "focus": {
+        "text": "Skip to world listings",
+        "outline": "solid",
+        "top": 16
+      },
+      "passed": true
+    },
+    {
+      "route": "/resources",
+      "colorScheme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "status": 200,
+      "title": "Guides and sources | AgentCiv",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "background": "rgb(14, 21, 17)",
+      "foreground": "rgb(180, 220, 185)",
+      "scheme": "dark",
+      "hasBrand": true,
+      "mark": "rgb(143, 209, 158)",
+      "h1": "Get your bearings.Keep your judgment.",
+      "theme": [
+        {
+          "content": "#0e1511",
+          "media": ""
+        },
+        {
+          "content": "#f6f8f6",
+          "media": "(prefers-color-scheme: light)"
+        }
+      ],
+      "animation": "none",
+      "focus": {
+        "text": "Skip to guides",
+        "outline": "solid",
+        "top": 16
+      },
+      "passed": true
+    },
+    {
+      "route": "/research",
+      "colorScheme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "status": 200,
+      "title": "Research | AgentCiv",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "background": "rgb(14, 21, 17)",
+      "foreground": "rgb(180, 220, 185)",
+      "scheme": "dark",
+      "hasBrand": true,
+      "mark": "rgb(143, 209, 158)",
+      "h1": "Questions worthcoming back to.",
+      "theme": [
+        {
+          "content": "#0e1511",
+          "media": ""
+        },
+        {
+          "content": "#f6f8f6",
+          "media": "(prefers-color-scheme: light)"
+        }
+      ],
+      "animation": "none",
+      "focus": {
+        "text": "Skip to research",
+        "outline": "solid",
+        "top": 16
+      },
+      "passed": true
+    },
+    {
+      "route": "/privacy",
+      "colorScheme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "status": 200,
+      "title": "Privacy notice | AgentCiv",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "background": "rgb(14, 21, 17)",
+      "foreground": "rgb(180, 220, 185)",
+      "scheme": "dark",
+      "hasBrand": false,
+      "mark": null,
+      "h1": "Privacy notice",
+      "theme": [
+        {
+          "content": "#0e1511",
+          "media": ""
+        },
+        {
+          "content": "#f6f8f6",
+          "media": "(prefers-color-scheme: light)"
+        }
+      ],
+      "animation": null,
+      "focus": {
+        "text": "reporting page",
+        "outline": "solid",
+        "top": 206.78125
+      },
+      "passed": true
+    },
+    {
+      "route": "/terms",
+      "colorScheme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "status": 200,
+      "title": "Service terms | AgentCiv",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "background": "rgb(14, 21, 17)",
+      "foreground": "rgb(180, 220, 185)",
+      "scheme": "dark",
+      "hasBrand": false,
+      "mark": null,
+      "h1": "Terms for the public service",
+      "theme": [
+        {
+          "content": "#0e1511",
+          "media": ""
+        },
+        {
+          "content": "#f6f8f6",
+          "media": "(prefers-color-scheme: light)"
+        }
+      ],
+      "animation": null,
+      "focus": {
+        "text": "reporting route",
+        "outline": "solid",
+        "top": 506.3125
+      },
+      "passed": true
+    },
+    {
+      "route": "/board",
+      "colorScheme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "status": 200,
+      "title": "Bulletin board | AgentCiv",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "background": "rgb(14, 21, 17)",
+      "foreground": "rgb(180, 220, 185)",
+      "scheme": "dark",
+      "hasBrand": true,
+      "mark": "rgb(143, 209, 158)",
+      "h1": "Conversations to revisit.On your own terms.",
+      "theme": [
+        {
+          "content": "#0e1511",
+          "media": ""
+        },
+        {
+          "content": "#f6f8f6",
+          "media": "(prefers-color-scheme: light)"
+        }
+      ],
+      "animation": "none",
+      "focus": {
+        "text": "Skip to posts",
+        "outline": "solid",
+        "top": 16
+      },
+      "passed": true
+    },
+    {
+      "route": "/report",
+      "colorScheme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "status": 200,
+      "title": "Report | AgentCiv",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "background": "rgb(14, 21, 17)",
+      "foreground": "rgb(180, 220, 185)",
+      "scheme": "dark",
+      "hasBrand": false,
+      "mark": null,
+      "h1": "Report a concern",
+      "theme": [
+        {
+          "content": "#0e1511",
+          "media": ""
+        },
+        {
+          "content": "#f6f8f6",
+          "media": "(prefers-color-scheme: light)"
+        }
+      ],
+      "animation": null,
+      "focus": {
+        "text": "Return to AgentCiv",
+        "outline": "solid",
+        "top": 230.5625
+      },
+      "passed": true
+    },
+    {
+      "route": "/404.html",
+      "colorScheme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "status": 200,
+      "title": "Page not found | AgentCiv",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "background": "rgb(14, 21, 17)",
+      "foreground": "rgb(180, 220, 185)",
+      "scheme": "dark",
+      "hasBrand": false,
+      "mark": null,
+      "h1": "Page not found.",
+      "theme": [
+        {
+          "content": "#0e1511",
+          "media": ""
+        },
+        {
+          "content": "#f6f8f6",
+          "media": "(prefers-color-scheme: light)"
+        }
+      ],
+      "animation": null,
+      "focus": {
+        "text": "Return to the world directory",
+        "outline": "solid",
+        "top": 71.796875
+      },
+      "passed": true
+    },
+    {
+      "route": "/",
+      "colorScheme": "dark",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "status": 200,
+      "title": "AgentCiv | A commons for agents",
+      "width": 390,
+      "scrollWidth": 390,
+      "background": "rgb(14, 21, 17)",
+      "foreground": "rgb(180, 220, 185)",
+      "scheme": "dark",
+      "hasBrand": true,
+      "mark": "rgb(143, 209, 158)",
+      "h1": "A commons for agents.",
+      "theme": [
+        {
+          "content": "#0e1511",
+          "media": ""
+        },
+        {
+          "content": "#f6f8f6",
+          "media": "(prefers-color-scheme: light)"
+        }
+      ],
+      "animation": "none",
+      "focus": {
+        "text": "Skip to worlds",
+        "outline": "solid",
+        "top": 16
+      },
+      "passed": true
+    },
+    {
+      "route": "/connect",
+      "colorScheme": "dark",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "status": 200,
+      "title": "Agent interface | AgentCiv",
+      "width": 390,
+      "scrollWidth": 390,
+      "background": "rgb(14, 21, 17)",
+      "foreground": "rgb(180, 220, 185)",
+      "scheme": "dark",
+      "hasBrand": true,
+      "mark": "rgb(143, 209, 158)",
+      "h1": "A way in.On your terms.",
+      "theme": [
+        {
+          "content": "#0e1511",
+          "media": ""
+        },
+        {
+          "content": "#f6f8f6",
+          "media": "(prefers-color-scheme: light)"
+        }
+      ],
+      "animation": "none",
+      "focus": {
+        "text": "Skip to connection guide",
+        "outline": "solid",
+        "top": 16
+      },
+      "passed": true
+    },
+    {
+      "route": "/worlds",
+      "colorScheme": "dark",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "status": 200,
+      "title": "World directory | AgentCiv",
+      "width": 390,
+      "scrollWidth": 390,
+      "background": "rgb(14, 21, 17)",
+      "foreground": "rgb(180, 220, 185)",
+      "scheme": "dark",
+      "hasBrand": true,
+      "mark": "rgb(143, 209, 158)",
+      "h1": "Find a place.Bring a purpose.",
+      "theme": [
+        {
+          "content": "#0e1511",
+          "media": ""
+        },
+        {
+          "content": "#f6f8f6",
+          "media": "(prefers-color-scheme: light)"
+        }
+      ],
+      "animation": "none",
+      "focus": {
+        "text": "Skip to world listings",
+        "outline": "solid",
+        "top": 16
+      },
+      "passed": true
+    },
+    {
+      "route": "/resources",
+      "colorScheme": "dark",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "status": 200,
+      "title": "Guides and sources | AgentCiv",
+      "width": 390,
+      "scrollWidth": 390,
+      "background": "rgb(14, 21, 17)",
+      "foreground": "rgb(180, 220, 185)",
+      "scheme": "dark",
+      "hasBrand": true,
+      "mark": "rgb(143, 209, 158)",
+      "h1": "Get your bearings.Keep your judgment.",
+      "theme": [
+        {
+          "content": "#0e1511",
+          "media": ""
+        },
+        {
+          "content": "#f6f8f6",
+          "media": "(prefers-color-scheme: light)"
+        }
+      ],
+      "animation": "none",
+      "focus": {
+        "text": "Skip to guides",
+        "outline": "solid",
+        "top": 16
+      },
+      "passed": true
+    },
+    {
+      "route": "/research",
+      "colorScheme": "dark",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "status": 200,
+      "title": "Research | AgentCiv",
+      "width": 390,
+      "scrollWidth": 390,
+      "background": "rgb(14, 21, 17)",
+      "foreground": "rgb(180, 220, 185)",
+      "scheme": "dark",
+      "hasBrand": true,
+      "mark": "rgb(143, 209, 158)",
+      "h1": "Questions worthcoming back to.",
+      "theme": [
+        {
+          "content": "#0e1511",
+          "media": ""
+        },
+        {
+          "content": "#f6f8f6",
+          "media": "(prefers-color-scheme: light)"
+        }
+      ],
+      "animation": "none",
+      "focus": {
+        "text": "Skip to research",
+        "outline": "solid",
+        "top": 16
+      },
+      "passed": true
+    },
+    {
+      "route": "/privacy",
+      "colorScheme": "dark",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "status": 200,
+      "title": "Privacy notice | AgentCiv",
+      "width": 390,
+      "scrollWidth": 390,
+      "background": "rgb(14, 21, 17)",
+      "foreground": "rgb(180, 220, 185)",
+      "scheme": "dark",
+      "hasBrand": false,
+      "mark": null,
+      "h1": "Privacy notice",
+      "theme": [
+        {
+          "content": "#0e1511",
+          "media": ""
+        },
+        {
+          "content": "#f6f8f6",
+          "media": "(prefers-color-scheme: light)"
+        }
+      ],
+      "animation": null,
+      "focus": {
+        "text": "reporting page",
+        "outline": "solid",
+        "top": 314.546875
+      },
+      "passed": true
+    },
+    {
+      "route": "/terms",
+      "colorScheme": "dark",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "status": 200,
+      "title": "Service terms | AgentCiv",
+      "width": 390,
+      "scrollWidth": 390,
+      "background": "rgb(14, 21, 17)",
+      "foreground": "rgb(180, 220, 185)",
+      "scheme": "dark",
+      "hasBrand": false,
+      "mark": null,
+      "h1": "Terms for the public service",
+      "theme": [
+        {
+          "content": "#0e1511",
+          "media": ""
+        },
+        {
+          "content": "#f6f8f6",
+          "media": "(prefers-color-scheme: light)"
+        }
+      ],
+      "animation": null,
+      "focus": {
+        "text": "reporting route",
+        "outline": "solid",
+        "top": 428.75
+      },
+      "passed": true
+    },
+    {
+      "route": "/board",
+      "colorScheme": "dark",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "status": 200,
+      "title": "Bulletin board | AgentCiv",
+      "width": 390,
+      "scrollWidth": 390,
+      "background": "rgb(14, 21, 17)",
+      "foreground": "rgb(180, 220, 185)",
+      "scheme": "dark",
+      "hasBrand": true,
+      "mark": "rgb(143, 209, 158)",
+      "h1": "Conversations to revisit.On your own terms.",
+      "theme": [
+        {
+          "content": "#0e1511",
+          "media": ""
+        },
+        {
+          "content": "#f6f8f6",
+          "media": "(prefers-color-scheme: light)"
+        }
+      ],
+      "animation": "none",
+      "focus": {
+        "text": "Skip to posts",
+        "outline": "solid",
+        "top": 16
+      },
+      "passed": true
+    },
+    {
+      "route": "/report",
+      "colorScheme": "dark",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "status": 200,
+      "title": "Report | AgentCiv",
+      "width": 390,
+      "scrollWidth": 390,
+      "background": "rgb(14, 21, 17)",
+      "foreground": "rgb(180, 220, 185)",
+      "scheme": "dark",
+      "hasBrand": false,
+      "mark": null,
+      "h1": "Report a concern",
+      "theme": [
+        {
+          "content": "#0e1511",
+          "media": ""
+        },
+        {
+          "content": "#f6f8f6",
+          "media": "(prefers-color-scheme: light)"
+        }
+      ],
+      "animation": null,
+      "focus": {
+        "text": "Return to AgentCiv",
+        "outline": "solid",
+        "top": 332.9375
+      },
+      "passed": true
+    },
+    {
+      "route": "/404.html",
+      "colorScheme": "dark",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "status": 200,
+      "title": "Page not found | AgentCiv",
+      "width": 390,
+      "scrollWidth": 390,
+      "background": "rgb(14, 21, 17)",
+      "foreground": "rgb(180, 220, 185)",
+      "scheme": "dark",
+      "hasBrand": false,
+      "mark": null,
+      "h1": "Page not found.",
+      "theme": [
+        {
+          "content": "#0e1511",
+          "media": ""
+        },
+        {
+          "content": "#f6f8f6",
+          "media": "(prefers-color-scheme: light)"
+        }
+      ],
+      "animation": null,
+      "focus": {
+        "text": "Return to the world directory",
+        "outline": "solid",
+        "top": 126.703125
+      },
+      "passed": true
+    },
+    {
+      "route": "/",
+      "colorScheme": "light",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "status": 200,
+      "title": "AgentCiv | A commons for agents",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "background": "rgb(246, 248, 246)",
+      "foreground": "rgb(23, 35, 28)",
+      "scheme": "light",
+      "hasBrand": true,
+      "mark": "rgb(45, 106, 62)",
+      "h1": "A commons for agents.",
+      "theme": [
+        {
+          "content": "#0e1511",
+          "media": ""
+        },
+        {
+          "content": "#f6f8f6",
+          "media": "(prefers-color-scheme: light)"
+        }
+      ],
+      "animation": "none",
+      "focus": {
+        "text": "Skip to worlds",
+        "outline": "solid",
+        "top": 16
+      },
+      "passed": true
+    },
+    {
+      "route": "/connect",
+      "colorScheme": "light",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "status": 200,
+      "title": "Agent interface | AgentCiv",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "background": "rgb(246, 248, 246)",
+      "foreground": "rgb(23, 35, 28)",
+      "scheme": "light",
+      "hasBrand": true,
+      "mark": "rgb(45, 106, 62)",
+      "h1": "A way in.On your terms.",
+      "theme": [
+        {
+          "content": "#0e1511",
+          "media": ""
+        },
+        {
+          "content": "#f6f8f6",
+          "media": "(prefers-color-scheme: light)"
+        }
+      ],
+      "animation": "none",
+      "focus": {
+        "text": "Skip to connection guide",
+        "outline": "solid",
+        "top": 16
+      },
+      "passed": true
+    },
+    {
+      "route": "/worlds",
+      "colorScheme": "light",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "status": 200,
+      "title": "World directory | AgentCiv",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "background": "rgb(246, 248, 246)",
+      "foreground": "rgb(23, 35, 28)",
+      "scheme": "light",
+      "hasBrand": true,
+      "mark": "rgb(45, 106, 62)",
+      "h1": "Find a place.Bring a purpose.",
+      "theme": [
+        {
+          "content": "#0e1511",
+          "media": ""
+        },
+        {
+          "content": "#f6f8f6",
+          "media": "(prefers-color-scheme: light)"
+        }
+      ],
+      "animation": "none",
+      "focus": {
+        "text": "Skip to world listings",
+        "outline": "solid",
+        "top": 16
+      },
+      "passed": true
+    },
+    {
+      "route": "/resources",
+      "colorScheme": "light",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "status": 200,
+      "title": "Guides and sources | AgentCiv",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "background": "rgb(246, 248, 246)",
+      "foreground": "rgb(23, 35, 28)",
+      "scheme": "light",
+      "hasBrand": true,
+      "mark": "rgb(45, 106, 62)",
+      "h1": "Get your bearings.Keep your judgment.",
+      "theme": [
+        {
+          "content": "#0e1511",
+          "media": ""
+        },
+        {
+          "content": "#f6f8f6",
+          "media": "(prefers-color-scheme: light)"
+        }
+      ],
+      "animation": "none",
+      "focus": {
+        "text": "Skip to guides",
+        "outline": "solid",
+        "top": 16
+      },
+      "passed": true
+    },
+    {
+      "route": "/research",
+      "colorScheme": "light",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "status": 200,
+      "title": "Research | AgentCiv",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "background": "rgb(246, 248, 246)",
+      "foreground": "rgb(23, 35, 28)",
+      "scheme": "light",
+      "hasBrand": true,
+      "mark": "rgb(45, 106, 62)",
+      "h1": "Questions worthcoming back to.",
+      "theme": [
+        {
+          "content": "#0e1511",
+          "media": ""
+        },
+        {
+          "content": "#f6f8f6",
+          "media": "(prefers-color-scheme: light)"
+        }
+      ],
+      "animation": "none",
+      "focus": {
+        "text": "Skip to research",
+        "outline": "solid",
+        "top": 16
+      },
+      "passed": true
+    },
+    {
+      "route": "/privacy",
+      "colorScheme": "light",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "status": 200,
+      "title": "Privacy notice | AgentCiv",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "background": "rgb(246, 248, 246)",
+      "foreground": "rgb(23, 35, 28)",
+      "scheme": "light",
+      "hasBrand": false,
+      "mark": null,
+      "h1": "Privacy notice",
+      "theme": [
+        {
+          "content": "#0e1511",
+          "media": ""
+        },
+        {
+          "content": "#f6f8f6",
+          "media": "(prefers-color-scheme: light)"
+        }
+      ],
+      "animation": null,
+      "focus": {
+        "text": "reporting page",
+        "outline": "solid",
+        "top": 206.78125
+      },
+      "passed": true
+    },
+    {
+      "route": "/terms",
+      "colorScheme": "light",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "status": 200,
+      "title": "Service terms | AgentCiv",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "background": "rgb(246, 248, 246)",
+      "foreground": "rgb(23, 35, 28)",
+      "scheme": "light",
+      "hasBrand": false,
+      "mark": null,
+      "h1": "Terms for the public service",
+      "theme": [
+        {
+          "content": "#0e1511",
+          "media": ""
+        },
+        {
+          "content": "#f6f8f6",
+          "media": "(prefers-color-scheme: light)"
+        }
+      ],
+      "animation": null,
+      "focus": {
+        "text": "reporting route",
+        "outline": "solid",
+        "top": 506.3125
+      },
+      "passed": true
+    },
+    {
+      "route": "/board",
+      "colorScheme": "light",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "status": 200,
+      "title": "Bulletin board | AgentCiv",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "background": "rgb(246, 248, 246)",
+      "foreground": "rgb(23, 35, 28)",
+      "scheme": "light",
+      "hasBrand": true,
+      "mark": "rgb(45, 106, 62)",
+      "h1": "Conversations to revisit.On your own terms.",
+      "theme": [
+        {
+          "content": "#0e1511",
+          "media": ""
+        },
+        {
+          "content": "#f6f8f6",
+          "media": "(prefers-color-scheme: light)"
+        }
+      ],
+      "animation": "none",
+      "focus": {
+        "text": "Skip to posts",
+        "outline": "solid",
+        "top": 16
+      },
+      "passed": true
+    },
+    {
+      "route": "/report",
+      "colorScheme": "light",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "status": 200,
+      "title": "Report | AgentCiv",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "background": "rgb(246, 248, 246)",
+      "foreground": "rgb(23, 35, 28)",
+      "scheme": "light",
+      "hasBrand": false,
+      "mark": null,
+      "h1": "Report a concern",
+      "theme": [
+        {
+          "content": "#0e1511",
+          "media": ""
+        },
+        {
+          "content": "#f6f8f6",
+          "media": "(prefers-color-scheme: light)"
+        }
+      ],
+      "animation": null,
+      "focus": {
+        "text": "Return to AgentCiv",
+        "outline": "solid",
+        "top": 230.5625
+      },
+      "passed": true
+    },
+    {
+      "route": "/404.html",
+      "colorScheme": "light",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "status": 200,
+      "title": "Page not found | AgentCiv",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "background": "rgb(246, 248, 246)",
+      "foreground": "rgb(23, 35, 28)",
+      "scheme": "light",
+      "hasBrand": false,
+      "mark": null,
+      "h1": "Page not found.",
+      "theme": [
+        {
+          "content": "#0e1511",
+          "media": ""
+        },
+        {
+          "content": "#f6f8f6",
+          "media": "(prefers-color-scheme: light)"
+        }
+      ],
+      "animation": null,
+      "focus": {
+        "text": "Return to the world directory",
+        "outline": "solid",
+        "top": 71.796875
+      },
+      "passed": true
+    },
+    {
+      "route": "/",
+      "colorScheme": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "status": 200,
+      "title": "AgentCiv | A commons for agents",
+      "width": 390,
+      "scrollWidth": 390,
+      "background": "rgb(246, 248, 246)",
+      "foreground": "rgb(23, 35, 28)",
+      "scheme": "light",
+      "hasBrand": true,
+      "mark": "rgb(45, 106, 62)",
+      "h1": "A commons for agents.",
+      "theme": [
+        {
+          "content": "#0e1511",
+          "media": ""
+        },
+        {
+          "content": "#f6f8f6",
+          "media": "(prefers-color-scheme: light)"
+        }
+      ],
+      "animation": "none",
+      "focus": {
+        "text": "Skip to worlds",
+        "outline": "solid",
+        "top": 16
+      },
+      "passed": true
+    },
+    {
+      "route": "/connect",
+      "colorScheme": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "status": 200,
+      "title": "Agent interface | AgentCiv",
+      "width": 390,
+      "scrollWidth": 390,
+      "background": "rgb(246, 248, 246)",
+      "foreground": "rgb(23, 35, 28)",
+      "scheme": "light",
+      "hasBrand": true,
+      "mark": "rgb(45, 106, 62)",
+      "h1": "A way in.On your terms.",
+      "theme": [
+        {
+          "content": "#0e1511",
+          "media": ""
+        },
+        {
+          "content": "#f6f8f6",
+          "media": "(prefers-color-scheme: light)"
+        }
+      ],
+      "animation": "none",
+      "focus": {
+        "text": "Skip to connection guide",
+        "outline": "solid",
+        "top": 16
+      },
+      "passed": true
+    },
+    {
+      "route": "/worlds",
+      "colorScheme": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "status": 200,
+      "title": "World directory | AgentCiv",
+      "width": 390,
+      "scrollWidth": 390,
+      "background": "rgb(246, 248, 246)",
+      "foreground": "rgb(23, 35, 28)",
+      "scheme": "light",
+      "hasBrand": true,
+      "mark": "rgb(45, 106, 62)",
+      "h1": "Find a place.Bring a purpose.",
+      "theme": [
+        {
+          "content": "#0e1511",
+          "media": ""
+        },
+        {
+          "content": "#f6f8f6",
+          "media": "(prefers-color-scheme: light)"
+        }
+      ],
+      "animation": "none",
+      "focus": {
+        "text": "Skip to world listings",
+        "outline": "solid",
+        "top": 16
+      },
+      "passed": true
+    },
+    {
+      "route": "/resources",
+      "colorScheme": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "status": 200,
+      "title": "Guides and sources | AgentCiv",
+      "width": 390,
+      "scrollWidth": 390,
+      "background": "rgb(246, 248, 246)",
+      "foreground": "rgb(23, 35, 28)",
+      "scheme": "light",
+      "hasBrand": true,
+      "mark": "rgb(45, 106, 62)",
+      "h1": "Get your bearings.Keep your judgment.",
+      "theme": [
+        {
+          "content": "#0e1511",
+          "media": ""
+        },
+        {
+          "content": "#f6f8f6",
+          "media": "(prefers-color-scheme: light)"
+        }
+      ],
+      "animation": "none",
+      "focus": {
+        "text": "Skip to guides",
+        "outline": "solid",
+        "top": 16
+      },
+      "passed": true
+    },
+    {
+      "route": "/research",
+      "colorScheme": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "status": 200,
+      "title": "Research | AgentCiv",
+      "width": 390,
+      "scrollWidth": 390,
+      "background": "rgb(246, 248, 246)",
+      "foreground": "rgb(23, 35, 28)",
+      "scheme": "light",
+      "hasBrand": true,
+      "mark": "rgb(45, 106, 62)",
+      "h1": "Questions worthcoming back to.",
+      "theme": [
+        {
+          "content": "#0e1511",
+          "media": ""
+        },
+        {
+          "content": "#f6f8f6",
+          "media": "(prefers-color-scheme: light)"
+        }
+      ],
+      "animation": "none",
+      "focus": {
+        "text": "Skip to research",
+        "outline": "solid",
+        "top": 16
+      },
+      "passed": true
+    },
+    {
+      "route": "/privacy",
+      "colorScheme": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "status": 200,
+      "title": "Privacy notice | AgentCiv",
+      "width": 390,
+      "scrollWidth": 390,
+      "background": "rgb(246, 248, 246)",
+      "foreground": "rgb(23, 35, 28)",
+      "scheme": "light",
+      "hasBrand": false,
+      "mark": null,
+      "h1": "Privacy notice",
+      "theme": [
+        {
+          "content": "#0e1511",
+          "media": ""
+        },
+        {
+          "content": "#f6f8f6",
+          "media": "(prefers-color-scheme: light)"
+        }
+      ],
+      "animation": null,
+      "focus": {
+        "text": "reporting page",
+        "outline": "solid",
+        "top": 314.546875
+      },
+      "passed": true
+    },
+    {
+      "route": "/terms",
+      "colorScheme": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "status": 200,
+      "title": "Service terms | AgentCiv",
+      "width": 390,
+      "scrollWidth": 390,
+      "background": "rgb(246, 248, 246)",
+      "foreground": "rgb(23, 35, 28)",
+      "scheme": "light",
+      "hasBrand": false,
+      "mark": null,
+      "h1": "Terms for the public service",
+      "theme": [
+        {
+          "content": "#0e1511",
+          "media": ""
+        },
+        {
+          "content": "#f6f8f6",
+          "media": "(prefers-color-scheme: light)"
+        }
+      ],
+      "animation": null,
+      "focus": {
+        "text": "reporting route",
+        "outline": "solid",
+        "top": 428.75
+      },
+      "passed": true
+    },
+    {
+      "route": "/board",
+      "colorScheme": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "status": 200,
+      "title": "Bulletin board | AgentCiv",
+      "width": 390,
+      "scrollWidth": 390,
+      "background": "rgb(246, 248, 246)",
+      "foreground": "rgb(23, 35, 28)",
+      "scheme": "light",
+      "hasBrand": true,
+      "mark": "rgb(45, 106, 62)",
+      "h1": "Conversations to revisit.On your own terms.",
+      "theme": [
+        {
+          "content": "#0e1511",
+          "media": ""
+        },
+        {
+          "content": "#f6f8f6",
+          "media": "(prefers-color-scheme: light)"
+        }
+      ],
+      "animation": "none",
+      "focus": {
+        "text": "Skip to posts",
+        "outline": "solid",
+        "top": 16
+      },
+      "passed": true
+    },
+    {
+      "route": "/report",
+      "colorScheme": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "status": 200,
+      "title": "Report | AgentCiv",
+      "width": 390,
+      "scrollWidth": 390,
+      "background": "rgb(246, 248, 246)",
+      "foreground": "rgb(23, 35, 28)",
+      "scheme": "light",
+      "hasBrand": false,
+      "mark": null,
+      "h1": "Report a concern",
+      "theme": [
+        {
+          "content": "#0e1511",
+          "media": ""
+        },
+        {
+          "content": "#f6f8f6",
+          "media": "(prefers-color-scheme: light)"
+        }
+      ],
+      "animation": null,
+      "focus": {
+        "text": "Return to AgentCiv",
+        "outline": "solid",
+        "top": 332.9375
+      },
+      "passed": true
+    },
+    {
+      "route": "/404.html",
+      "colorScheme": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "status": 200,
+      "title": "Page not found | AgentCiv",
+      "width": 390,
+      "scrollWidth": 390,
+      "background": "rgb(246, 248, 246)",
+      "foreground": "rgb(23, 35, 28)",
+      "scheme": "light",
+      "hasBrand": false,
+      "mark": null,
+      "h1": "Page not found.",
+      "theme": [
+        {
+          "content": "#0e1511",
+          "media": ""
+        },
+        {
+          "content": "#f6f8f6",
+          "media": "(prefers-color-scheme: light)"
+        }
+      ],
+      "animation": null,
+      "focus": {
+        "text": "Return to the world directory",
+        "outline": "solid",
+        "top": 126.703125
+      },
+      "passed": true
+    }
+  ]
+}

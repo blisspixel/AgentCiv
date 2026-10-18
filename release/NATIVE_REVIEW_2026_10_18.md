@@ -1,0 +1,21 @@
+# Native review for v0.1.3
+
+The Rust 1.99.1 native inventory is reviewed for the four v0.1.3 utilities on six targets. [Audit 39092645529](https://github.com/blisspixel/AgentCiv/actions/runs/39092645529) passed all six jobs against exact feature source `0988a20bd17779430e4cec572406d46ef16bf561`. Each job built and exercised actual native tools and ran installation, reinstallation and removal with fixture transport. This is pre-release audit evidence, separate from the final green-main candidate and actual published downloads.
+
+The [retained review](../conformance/evidence/native-audit-v0.1.3/review.json) checks source/run bindings, all six original ZIP digests against authenticated GitHub API metadata, exact lock and toolchain configuration, target dependency applicability/features, compiler notices, linkage and actual Windows build products. The [manifest](../conformance/evidence/native-audit-v0.1.3/manifest.json) retains original runtime reports, compiler metadata and provider pages. Local consistency and API archive binding are not a signed build attestation or OS code signing.
+
+## Compiler and notice changes
+
+The [maintenance lock review](MAINTENANCE_LOCK_V0_1_3.json) preserves all 251 registry packages, sources, checksums and dependency edges. Exactly four local tool package versions change from 0.1.2 to 0.1.3. The pinned compiler changes from Rust 1.98.1 to 1.99.1, commit `58cf8f9c35b355199727627d07ae34a4e2846d67`, LLVM 23.1.1. All six actual compiler identities agree with the reviewed inventory, apart from their native host field.
+
+The same 21 compiler/standard-library/Cargo/Clippy/rustfmt notice paths were collected on all six targets and matched the current inventory byte-for-byte. Only `share/doc/rust/COPYRIGHT.html` and `share/doc/rust/COPYRIGHT-library.html` differ from the previous compiler. Their full original bytes were appended to the notice aggregate. The entire previous 20,262,410-byte aggregate prefix remains unchanged, SHA-256 `1bcf14c8995a3ef4b539a5966d1b53f5ebf2fa62828b87b45d9cd48310b51a91`. Current aggregate SHA-256 is `66f5469ca711e13defcc6b196b1807263ad15e9ce9db81c51fd1610a4245601f`. Existing crate, embedded source-header and provider notice slices retain their exact bytes and offsets.
+
+## Runtime and provider review
+
+All 24 actual native linkage/deployment reports match the earlier reviewed scope. The full GNU tool set still requires glibc 2.38 or newer. macOS Intel and ARM64 load-command minima remain 10.12 and 11.0, SDK 15.5; execution is tested on macOS 15, not those older minima. Windows imports contain no dynamic VCRUNTIME or MSVCP requirement. System dependencies, static runtime terms and distribution limits remain those of the [original review](NATIVE_REVIEW_2026_10_11.md).
+
+Both Windows images now identify Visual Studio Enterprise 2026 version 18.10.12224.181, MSVC tools 14.51.36231. That product patch was already present on the earlier ARM64 image; the earlier x64 image used 18.10.12217.157. Product identifiers, tool version and publisher license URL remain unchanged. Publisher HTML hashes changed; they were not treated as identical originals. The [page comparison](../conformance/evidence/native-audit-v0.1.3/provider-page-comparison.json) records the changed store-footer label and unchanged embedded document URL. Fresh downloads of that original Enterprise/Professional DOCX match the retained document byte-for-byte, SHA-256 `dd2ab92a7c2bb90dd509e16572707a34b13bc0bc09b9199d115f25594ac39053`. No new permission is inferred from HTML similarity. Original component terms remain separate from the project's MIT license.
+
+## Decision and remaining publication checks
+
+This evidence clears the current inventory's native review blocker. It does not itself publish assets or certify general legal compliance. Release preflight must still require reviewed notices with matching hashes, exact package versions, green source CI and an unused version tag. The final candidate must rebuild and test all six targets from exact green main. Review all actual asset checksums, architectures, linkage and provenance before immutable publication, then run all six actual HTTPS install/upgrade/rollback/reinstall/removal sequences. Do not move an existing tag or substitute this earlier feature-source audit for those later gates.

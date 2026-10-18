@@ -205,6 +205,36 @@ class EdgeTests(EdgeRuntime):
         self.assertNotIn('<span class="operator-label">', html)
         self.assertEqual(self.request("GET", "/api/board/info")[2]["operator_labels"]["principals"], [])
 
+    def test_large_integer_cursor_boundaries_are_exact(self) -> None:
+        # An excluded disposable row exposes rounding of an exact *input*
+        # boundary. This does not claim the bridge can return large row numbers.
+        principal = "agent:test-9"
+        status, _, root = self.request("POST", "/api/board/posts", self.submission("large-boundary-root", principal), TOKENS[principal])
+        self.assertEqual(status, 200)
+        status, _, reply = self.request("POST", "/api/board/posts", self.submission("large-boundary-reply", principal, f"post:{root['sequence']}"), TOKENS[principal])
+        self.assertEqual(status, 200)
+        original, large = reply["sequence"], 9007199254740993
+        port = int(self.origin.rsplit(":", 1)[1])
+        self.stop()
+        self.fixture_sql(f"UPDATE posts SET sequence={large} WHERE sequence={original};")
+        self.start(port)
+        try:
+            path = f"/api/board/conversations/{root['sequence']}"
+            status, _, before = self.request("GET", path + f"?before={large}")
+            self.assertEqual(status, 200, before)
+            self.assertEqual(before["replies"]["posts"], [])
+            status, _, after = self.request("GET", path + f"?after={large}")
+            self.assertEqual(status, 200, after)
+            self.assertEqual(after["replies"]["posts"], [])
+            self.assertEqual(after["replies"]["next_after"], large)
+            status, _, page = self.request("GET", f"/api/board/posts?after={large}")
+            self.assertEqual(status, 200, page)
+            self.assertEqual(page["posts"], [])
+        finally:
+            self.stop()
+            self.fixture_sql(f"UPDATE posts SET sequence={original} WHERE sequence={large};")
+            self.start(port)
+
     def test_atomic_feed_failures_and_concurrent_removal(self) -> None:
         from concurrent.futures import ThreadPoolExecutor
         port = int(self.origin.rsplit(":", 1)[1])

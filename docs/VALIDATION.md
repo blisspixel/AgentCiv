@@ -2,6 +2,15 @@
 
 AgentCiv needs validation at several layers. A passing schema test is a start, not a claim that two independent worlds can cooperate or that an agent's inner life has been measured.
 
+The [October 17 local model handoff](MODEL_HANDOFF_2026_10_17.md) retains all five
+development attempts and exact synthetic originals. Its successful offline
+inspection verifies declared earlier-peer derivation and structured source-support
+improvement; pagination repair and causal benefit remain unestablished. The
+[October 18 public-entry record](PUBLIC_ENTRY_ACCESS_2026_10_18.md) preserves
+before/after zone-rule observations. Local light/dark, mobile/desktop and keyboard
+checks have a separate [appearance packet](../conformance/evidence/appearance-2026-10-18/manifest.json).
+None substitutes for exact-source CI, application deployment or native publication.
+
 | Layer | What it checks | What it cannot establish |
 | --- | --- | --- |
 | Document and schema lint | Files parse, links resolve, examples match declared shapes | Shared meaning or correct runtime behavior |

@@ -1,0 +1,356 @@
+{
+  "format": "agentciv-native-audit-evidence/0.1",
+  "audit_run": 39092645529,
+  "source_commit": "0988a20bd17779430e4cec572406d46ef16bf561",
+  "copying_condition": "operator_selected_public_build_metadata_and_original_provider_notices",
+  "representation": "Original retained bytes, including runner CRLF. No native binary, credential or private process configuration included.",
+  "original_zip_digests_verified_against_authenticated_github_api": true,
+  "scope": "Actual six-target pre-release audit plus operator consistency and provider-source review; not final candidate provenance, OS code signing or publication.",
+  "files": [
+    {
+      "path": "review.json",
+      "bytes": 54248,
+      "sha256": "0db1ae5812b2e2f9b93b3cddb92dc3cb97fa964348fca91daf40cfc2fb100146"
+    },
+    {
+      "path": "provider-page-comparison.json",
+      "bytes": 2196,
+      "sha256": "f0d478a04534a1af601dfe355245b08ff21a878cc56281405643d5e03fb24ae6"
+    },
+    {
+      "path": "run.json",
+      "bytes": 16612,
+      "sha256": "040554a5a8676a42b1775bf156ba2af4ae748f92011e3d908b90286bf5971deb"
+    },
+    {
+      "path": "run-api.json",
+      "bytes": 12841,
+      "sha256": "7e2e6c27db4de740aeb5ad462df85c43cf4bcc208314eaddcdf75f387ea30186"
+    },
+    {
+      "path": "artifacts.json",
+      "bytes": 4382,
+      "sha256": "e6bb29062e3436cfe50c116940c7ea2538f367c1e40e6f5b9aa9767591fd67cd"
+    },
+    {
+      "path": "aarch64-apple-darwin/agentciv-archive-build-version.txt",
+      "bytes": 198,
+      "sha256": "b12a3e513a513dcf934b0c45f30b7788af4901e640ea847ecc70b1ce2785e3cd"
+    },
+    {
+      "path": "aarch64-apple-darwin/agentciv-archive-runtime.txt",
+      "bytes": 218,
+      "sha256": "0e25160705d67a9a64101637cee7bedd35d02fa2f981f8eaa9ac675c63e7d2d4"
+    },
+    {
+      "path": "aarch64-apple-darwin/agentciv-conformance-build-version.txt",
+      "bytes": 202,
+      "sha256": "c11ee9cfb77769ae3b33a7b7b13d593cce5ca7c5476bba9e94199506547bf54a"
+    },
+    {
+      "path": "aarch64-apple-darwin/agentciv-conformance-runtime.txt",
+      "bytes": 488,
+      "sha256": "53c135b7f2815e6aaf24514d89ef674f4521a910fdd1ec4c07db946f64bc2999"
+    },
+    {
+      "path": "aarch64-apple-darwin/agentciv-host-build-version.txt",
+      "bytes": 195,
+      "sha256": "f858675a76239537f6eb7b280fc05067cdb4b2593fcce36c25970296248149e7"
+    },
+    {
+      "path": "aarch64-apple-darwin/agentciv-host-runtime.txt",
+      "bytes": 215,
+      "sha256": "3ca34da3aa3b551236c63e58a4973ecd0d242aeffde10bf273065af4f6c8fea7"
+    },
+    {
+      "path": "aarch64-apple-darwin/agentciv-reader-build-version.txt",
+      "bytes": 197,
+      "sha256": "332ffa119096a1438898d67257f030f0ca2cc2236686a3d071606c2eec7a4106"
+    },
+    {
+      "path": "aarch64-apple-darwin/agentciv-reader-runtime.txt",
+      "bytes": 483,
+      "sha256": "319423eb643742025ac17628146c24a3d9bd8dce56d7c19fb6fbdecb1cba342f"
+    },
+    {
+      "path": "aarch64-apple-darwin/cargo.txt",
+      "bytes": 335,
+      "sha256": "6b62f3cb98accd92794afcdc55bc0d15b6e8301d164494901329aac600d37b77"
+    },
+    {
+      "path": "aarch64-apple-darwin/rustc.txt",
+      "bytes": 192,
+      "sha256": "e003fd3d385fcd0de16bc6b049124efb20207831dd810fd4ab39ff079bbb12a5"
+    },
+    {
+      "path": "aarch64-pc-windows-msvc/agentciv-archive-runtime.txt",
+      "bytes": 3883,
+      "sha256": "21db163278ca1fb2e354aaad3a85ac30df66c56cfef0e2bf51e6358e3b511c8d"
+    },
+    {
+      "path": "aarch64-pc-windows-msvc/agentciv-conformance-runtime.txt",
+      "bytes": 6382,
+      "sha256": "7f79990a34c6d262da5d8204aacbf6ef32ecb842b035293ecb302ad42af19e80"
+    },
+    {
+      "path": "aarch64-pc-windows-msvc/agentciv-host-runtime.txt",
+      "bytes": 6382,
+      "sha256": "2a62bc9a95463900e903342daca0db0aa5fc799e13382601c4d25ad7d3df277e"
+    },
+    {
+      "path": "aarch64-pc-windows-msvc/agentciv-reader-runtime.txt",
+      "bytes": 6151,
+      "sha256": "273da39ed08a00965c43a2c99a85331ca13f61857b67ba0478f5cf32c5f4892e"
+    },
+    {
+      "path": "aarch64-pc-windows-msvc/cargo.txt",
+      "bytes": 320,
+      "sha256": "53424a3cfea5ed6961577012e217feff63768b26a74c95e63b6e768ef3810246"
+    },
+    {
+      "path": "aarch64-pc-windows-msvc/rustc.txt",
+      "bytes": 195,
+      "sha256": "0400e842b69023487d35975ececcd0edec4f13d84d2fc9a87a2de331b2df2d2f"
+    },
+    {
+      "path": "aarch64-pc-windows-msvc/windows-build-products.json",
+      "bytes": 562,
+      "sha256": "be424112d65513e047c4e93bfd6e1404fa689193a1af2f68dc28470b0b0afe59"
+    },
+    {
+      "path": "aarch64-pc-windows-msvc/windows-product-license-1.html",
+      "bytes": 235412,
+      "sha256": "f8240034f0d8150c764e82ffb966d935b46eef6218c85eb05f55b9197ca13af5"
+    },
+    {
+      "path": "aarch64-unknown-linux-gnu/agentciv-archive-dynamic.txt",
+      "bytes": 1605,
+      "sha256": "e58bb9be60cb23eae8d6e3c4ccd1696a251067f2c0f859899b67b7200f1bec25"
+    },
+    {
+      "path": "aarch64-unknown-linux-gnu/agentciv-archive-runtime.txt",
+      "bytes": 299,
+      "sha256": "6b77429ef6f0fcf30e4327eaca3e1da715bb6ef1f81d7eb863887a16d300162d"
+    },
+    {
+      "path": "aarch64-unknown-linux-gnu/agentciv-archive-symbol-versions.txt",
+      "bytes": 2582,
+      "sha256": "4d86f56d17c1db455c4f76a4e6e3a01d7fea9e2bccc99432d65a407272a7e0f5"
+    },
+    {
+      "path": "aarch64-unknown-linux-gnu/agentciv-conformance-dynamic.txt",
+      "bytes": 1690,
+      "sha256": "3e0561b33b16ffe5e8afb4ecd1b8798945233f43e66b8a4a170d10a9aa710b71"
+    },
+    {
+      "path": "aarch64-unknown-linux-gnu/agentciv-conformance-runtime.txt",
+      "bytes": 299,
+      "sha256": "1835246b87e9d7b0322cf493ddcd04ad5bac8e31368920f47dd54413d99c1100"
+    },
+    {
+      "path": "aarch64-unknown-linux-gnu/agentciv-conformance-symbol-versions.txt",
+      "bytes": 4076,
+      "sha256": "a08635a8cbe26ff6bcfec765d13642226008110b1fd1e02de2af16b2b70b4962"
+    },
+    {
+      "path": "aarch64-unknown-linux-gnu/agentciv-host-dynamic.txt",
+      "bytes": 1689,
+      "sha256": "5952aa063f2745ea6da96826382f19a58d770287824ed87208add4091981ed87"
+    },
+    {
+      "path": "aarch64-unknown-linux-gnu/agentciv-host-runtime.txt",
+      "bytes": 299,
+      "sha256": "3f3545f251655b3fbbd39e19b50e89cc2a44cbdf8c38feea294e3e965bb93d07"
+    },
+    {
+      "path": "aarch64-unknown-linux-gnu/agentciv-host-symbol-versions.txt",
+      "bytes": 3978,
+      "sha256": "4542ec4e0232c1c521f549587f24f880415ffd2e39cd488c53d5b5747d2ae62b"
+    },
+    {
+      "path": "aarch64-unknown-linux-gnu/agentciv-reader-dynamic.txt",
+      "bytes": 1690,
+      "sha256": "281df2babcdbbf457520cf63bcd343621bda681d5952a1369b9f7d5f09218d12"
+    },
+    {
+      "path": "aarch64-unknown-linux-gnu/agentciv-reader-runtime.txt",
+      "bytes": 299,
+      "sha256": "87a58562b9b09d51a68aa7231220269652638e0cb10111a93f6a37e5457da3e8"
+    },
+    {
+      "path": "aarch64-unknown-linux-gnu/agentciv-reader-symbol-versions.txt",
+      "bytes": 3997,
+      "sha256": "cf9dfaa2a0c5256826d20910292062982c0113e14c82073986684de5e2b1d1fc"
+    },
+    {
+      "path": "aarch64-unknown-linux-gnu/cargo.txt",
+      "bytes": 336,
+      "sha256": "4abdb4a3c86c7a147ab8cf453d293d391e58dd5d4cff68868d1aa8316189ea6a"
+    },
+    {
+      "path": "aarch64-unknown-linux-gnu/rustc.txt",
+      "bytes": 197,
+      "sha256": "ba203e33fe4a5b8e05147bb6e57fb1ddace26d9f799f357420b666887dd7e2f1"
+    },
+    {
+      "path": "x86_64-apple-darwin/agentciv-archive-build-version.txt",
+      "bytes": 144,
+      "sha256": "c9c1edcb60f4737269af089a1833cd9d2df0f3fd2ec28db9667c6f9b3cb0e8e7"
+    },
+    {
+      "path": "x86_64-apple-darwin/agentciv-archive-runtime.txt",
+      "bytes": 217,
+      "sha256": "ddcde9392d8ebd6ea9b45fc0399ddf02021dd299410a1a7a58fe91b76841837a"
+    },
+    {
+      "path": "x86_64-apple-darwin/agentciv-conformance-build-version.txt",
+      "bytes": 148,
+      "sha256": "b0447078bdcaa260a0f4f1cfa68836e7a08f8b036a0f04f18c4371e7b198b131"
+    },
+    {
+      "path": "x86_64-apple-darwin/agentciv-conformance-runtime.txt",
+      "bytes": 487,
+      "sha256": "eada78cba95ed6697c2f9d07dceed111ebb0cd7ebdf792c8c0d1abf68a525719"
+    },
+    {
+      "path": "x86_64-apple-darwin/agentciv-host-build-version.txt",
+      "bytes": 141,
+      "sha256": "30f2d6766231ead62765bc7ad4fd7d68f7556cfeb6550db27bf47cdfbbb9834f"
+    },
+    {
+      "path": "x86_64-apple-darwin/agentciv-host-runtime.txt",
+      "bytes": 214,
+      "sha256": "0c6a33ab8e928b1c36268981564ab45ef8a5e3450844f751797320cc61fff752"
+    },
+    {
+      "path": "x86_64-apple-darwin/agentciv-reader-build-version.txt",
+      "bytes": 143,
+      "sha256": "81f566c1d15fd886e525c874e0e8fb46040067529c69eab427b3bee2985ec041"
+    },
+    {
+      "path": "x86_64-apple-darwin/agentciv-reader-runtime.txt",
+      "bytes": 482,
+      "sha256": "0f341d467788b39eee7c70cba30ced6f2f73fe03d339cb7129626230f6140de3"
+    },
+    {
+      "path": "x86_64-apple-darwin/cargo.txt",
+      "bytes": 334,
+      "sha256": "0cea2daedff000d61c8dc542dc6b8ae9fca042a9570d4dbf0615d88f35e01d0b"
+    },
+    {
+      "path": "x86_64-apple-darwin/rustc.txt",
+      "bytes": 191,
+      "sha256": "bf1658636877f9403ad0a32419fc3b0da3d3164f3585a184108063f8499d7434"
+    },
+    {
+      "path": "x86_64-pc-windows-msvc/agentciv-archive-runtime.txt",
+      "bytes": 3928,
+      "sha256": "a888511b65295314acc956ae28dee0236267c05e415b74891b6b1a3ca3506281"
+    },
+    {
+      "path": "x86_64-pc-windows-msvc/agentciv-conformance-runtime.txt",
+      "bytes": 6349,
+      "sha256": "8b8c77be9edb559b6d4eaac33778782111776ad037ee79fc41268f1edf989613"
+    },
+    {
+      "path": "x86_64-pc-windows-msvc/agentciv-host-runtime.txt",
+      "bytes": 6425,
+      "sha256": "a88a0c48600c7499328844679258bf72e068c7388c53b71893a6525d6b01e58a"
+    },
+    {
+      "path": "x86_64-pc-windows-msvc/agentciv-reader-runtime.txt",
+      "bytes": 6118,
+      "sha256": "87c8a6ff51d5c6241871b77d48ece8ef4b8eb7d7a6a8214e4cc7e2a7eb9937d9"
+    },
+    {
+      "path": "x86_64-pc-windows-msvc/cargo.txt",
+      "bytes": 325,
+      "sha256": "e569e17e69d1abc27efd9ab072a32f4fbad521e3ae1d77a462226786d3d39972"
+    },
+    {
+      "path": "x86_64-pc-windows-msvc/rustc.txt",
+      "bytes": 194,
+      "sha256": "341fed434cf52bd9ba5ab2f3507dbd943a2062212028574e529fc3e7e5ecd7a8"
+    },
+    {
+      "path": "x86_64-pc-windows-msvc/windows-build-products.json",
+      "bytes": 562,
+      "sha256": "8d26a5f463e4ebc16a706ee5a9a780e01b91aee46ce9604430412b78c7b7add3"
+    },
+    {
+      "path": "x86_64-pc-windows-msvc/windows-product-license-1.html",
+      "bytes": 236428,
+      "sha256": "d7c5a4269e063ea3c7c09985f0ad8b9f3671c48aca25cbe309cce8904e348dd4"
+    },
+    {
+      "path": "x86_64-unknown-linux-gnu/agentciv-archive-dynamic.txt",
+      "bytes": 1684,
+      "sha256": "d1671c5461706e89b67288d9386d623ed89190cdd96ee698872d3e0e468e6f9f"
+    },
+    {
+      "path": "x86_64-unknown-linux-gnu/agentciv-archive-runtime.txt",
+      "bytes": 297,
+      "sha256": "a7c8d7c19a82bc8eb63d0b384fc66e836e37a684bc0a58c82074b8502ed8f414"
+    },
+    {
+      "path": "x86_64-unknown-linux-gnu/agentciv-archive-symbol-versions.txt",
+      "bytes": 2952,
+      "sha256": "0683abdfcbc800bf14342dfd6ad9ee7190d770b195f2ec0e6c383f6063ce2ed0"
+    },
+    {
+      "path": "x86_64-unknown-linux-gnu/agentciv-conformance-dynamic.txt",
+      "bytes": 1691,
+      "sha256": "d21cda40b1c5998c4061141c77a14d790e5fc3124496b34359f0a3b39bb41a7b"
+    },
+    {
+      "path": "x86_64-unknown-linux-gnu/agentciv-conformance-runtime.txt",
+      "bytes": 297,
+      "sha256": "4de5da2eb265e79fd77b4cad03f27613f11525830aab571fdef4af558367db38"
+    },
+    {
+      "path": "x86_64-unknown-linux-gnu/agentciv-conformance-symbol-versions.txt",
+      "bytes": 4599,
+      "sha256": "f971600169bea79e0b80d1677efdc0ba64448c2d88897cba9ff18ebea0a3ca1b"
+    },
+    {
+      "path": "x86_64-unknown-linux-gnu/agentciv-host-dynamic.txt",
+      "bytes": 1690,
+      "sha256": "0b3ce317fb6d05f26c90c1db5ba3f7d16b9fde508fd1b331cc0c08a20de10ac0"
+    },
+    {
+      "path": "x86_64-unknown-linux-gnu/agentciv-host-runtime.txt",
+      "bytes": 297,
+      "sha256": "0c1485c4dfd4cf5bdd26d2b94614e4fe60bd2029f547e9fa06d1174a0d13d7e2"
+    },
+    {
+      "path": "x86_64-unknown-linux-gnu/agentciv-host-symbol-versions.txt",
+      "bytes": 4490,
+      "sha256": "b10794d1465e854df2dfb9869d1c98925785040e6794c4c47dd5e763ecbb808e"
+    },
+    {
+      "path": "x86_64-unknown-linux-gnu/agentciv-reader-dynamic.txt",
+      "bytes": 1691,
+      "sha256": "1b2cefc36df3fb1bd615d7fb04b99bd580fe631c4d66b1eae7f75954ef332afb"
+    },
+    {
+      "path": "x86_64-unknown-linux-gnu/agentciv-reader-runtime.txt",
+      "bytes": 297,
+      "sha256": "d93e6d2815b37ddea4672d758d0f43541020090028c686748079c93adab052fe"
+    },
+    {
+      "path": "x86_64-unknown-linux-gnu/agentciv-reader-symbol-versions.txt",
+      "bytes": 4465,
+      "sha256": "18c2c45e4e0b256b56ff8d4c76430b8401ce5a46b10c34659bb44fb170d4de38"
+    },
+    {
+      "path": "x86_64-unknown-linux-gnu/cargo.txt",
+      "bytes": 335,
+      "sha256": "4265e22043d855cb3fc78365fbf272d2b2158881fe23035a18a92f0b0743dee8"
+    },
+    {
+      "path": "x86_64-unknown-linux-gnu/rustc.txt",
+      "bytes": 196,
+      "sha256": "f22d5e4e9ced367e774ce5bc140d9e6b1235c1882fec80d011044851f3ae6369"
+    }
+  ]
+}

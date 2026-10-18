@@ -1,0 +1,48 @@
+
+Version symbols section '.gnu.version' contains 77 entries:
+ Addr: 0x0000000000000a78  Offset: 0x00000a78  Link: 4 (.dynsym)
+  000:   0 (*local*)       2 (GLIBC_2.34)    0 (*local*)       0 (*local*)    
+  004:   0 (*local*)       3 (GLIBC_2.2.5)   4 (GLIBC_2.14)    5 (GCC_3.0)    
+  008:   3 (GLIBC_2.2.5)   3 (GLIBC_2.2.5)   3 (GLIBC_2.2.5)   3 (GLIBC_2.2.5)
+  00c:   3 (GLIBC_2.2.5)   6 (GLIBC_2.3)     3 (GLIBC_2.2.5)   3 (GLIBC_2.2.5)
+  010:   7 (GLIBC_2.29)    3 (GLIBC_2.2.5)   2 (GLIBC_2.34)    3 (GLIBC_2.2.5)
+  014:   3 (GLIBC_2.2.5)   3 (GLIBC_2.2.5)   3 (GLIBC_2.2.5)   3 (GLIBC_2.2.5)
+  018:   8 (GLIBC_2.33)    5 (GCC_3.0)       9 (GLIBC_2.30)    3 (GLIBC_2.2.5)
+  01c:   5 (GCC_3.0)       5 (GCC_3.0)       3 (GLIBC_2.2.5)   3 (GLIBC_2.2.5)
+  020:   3 (GLIBC_2.2.5)   3 (GLIBC_2.2.5)   3 (GLIBC_2.2.5)   3 (GLIBC_2.2.5)
+  024:   3 (GLIBC_2.2.5)   3 (GLIBC_2.2.5)   3 (GLIBC_2.2.5)   3 (GLIBC_2.2.5)
+  028:   2 (GLIBC_2.34)    2 (GLIBC_2.34)    a (GLIBC_2.17)    3 (GLIBC_2.2.5)
+  02c:   3 (GLIBC_2.2.5)   b (GCC_3.3)       3 (GLIBC_2.2.5)   3 (GLIBC_2.2.5)
+  030:   3 (GLIBC_2.2.5)   3 (GLIBC_2.2.5)   c (GLIBC_2.32)    2 (GLIBC_2.34) 
+  034:   3 (GLIBC_2.2.5)   3 (GLIBC_2.2.5)   3 (GLIBC_2.2.5)   8 (GLIBC_2.33) 
+  038:   2 (GLIBC_2.34)    d (GLIBC_2.3.4)   3 (GLIBC_2.2.5)   3 (GLIBC_2.2.5)
+  03c:   e (GLIBC_2.3)     3 (GLIBC_2.2.5)   f (GLIBC_2.28)   10 (GLIBC_2.25) 
+  040:  11 (GLIBC_2.18)    d (GLIBC_2.3.4)   2 (GLIBC_2.34)    3 (GLIBC_2.2.5)
+  044:  12 (GLIBC_2.16)    3 (GLIBC_2.2.5)   5 (GCC_3.0)      13 (GCC_4.2.0)  
+  048:   5 (GCC_3.0)       5 (GCC_3.0)       5 (GCC_3.0)       5 (GCC_3.0)    
+  04c:   5 (GCC_3.0)    
+
+Version needs section '.gnu.version_r' contains 4 entries:
+ Addr: 0x0000000000000b14  Offset: 0x00000b14  Link: 8 (.dynstr)
+  000000: Version: 1  File: libgcc_s.so.1  Cnt: 3
+  0x0040:   Name: GCC_3.0  Flags: none  Version: 5
+  0x0050:   Name: GCC_3.3  Flags: none  Version: 11
+  0x0060:   Name: GCC_4.2.0  Flags: none  Version: 19
+  0x0010: Version: 1  File: libm.so.6  Cnt: 1
+  0x0070:   Name: GLIBC_2.29  Flags: none  Version: 7
+  0x0020: Version: 1  File: libc.so.6  Cnt: 13
+  0x0080:   Name: GLIBC_2.2.5  Flags: none  Version: 3
+  0x0090:   Name: GLIBC_2.3  Flags: none  Version: 14
+  0x00a0:   Name: GLIBC_2.3.4  Flags: none  Version: 13
+  0x00b0:   Name: GLIBC_2.14  Flags: none  Version: 4
+  0x00c0:   Name: GLIBC_2.16  Flags: none  Version: 18
+  0x00d0:   Name: GLIBC_2.17  Flags: none  Version: 10
+  0x00e0:   Name: GLIBC_2.18  Flags: WEAK  Version: 17
+  0x00f0:   Name: GLIBC_2.25  Flags: WEAK  Version: 16
+  0x0100:   Name: GLIBC_2.28  Flags: WEAK  Version: 15
+  0x0110:   Name: GLIBC_2.30  Flags: WEAK  Version: 9
+  0x0120:   Name: GLIBC_2.32  Flags: none  Version: 12
+  0x0130:   Name: GLIBC_2.33  Flags: none  Version: 8
+  0x0140:   Name: GLIBC_2.34  Flags: none  Version: 2
+  0x0030: Version: 1  File: ld-linux-x86-64.so.2  Cnt: 1
+  0x0150:   Name: GLIBC_2.3  Flags: none  Version: 6

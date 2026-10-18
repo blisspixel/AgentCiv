@@ -1,0 +1,56 @@
+[
+  {
+    "target": "aarch64-pc-windows-msvc",
+    "old_sha256": "13b1abc38f4760e2a68f4b2547aec4854354f896ffd41cc6167e668832b23f01",
+    "current_sha256": "f8240034f0d8150c764e82ffb966d935b46eef6218c85eb05f55b9197ca13af5",
+    "visible_text_equal": false,
+    "document_links_equal": true,
+    "document_links": [],
+    "embedded_frames_equal": true,
+    "embedded_frames": [
+      "//view.officeapps.live.com/op/embed.aspx?src=https%3A%2F%2Fvisualstudio.microsoft.com%2Fwp-content%2Fuploads%2F2025%2F10%2FVisual_Studio_2026-License-Enterprise_Professional_ENU.docx"
+    ],
+    "visible_differences": [
+      "--- \n",
+      "+++ \n",
+      "@@ -78,7 +78,7 @@\n",
+      " Returns",
+      " Order tracking",
+      " Certified Refurbished",
+      "-Microsoft Store Promise",
+      "+Why buy from Microsoft Store",
+      " Flexible Payments",
+      " Microsoft in education",
+      " Devices for education"
+    ],
+    "current_original_docx_sha256": "dd2ab92a7c2bb90dd509e16572707a34b13bc0bc09b9199d115f25594ac39053",
+    "current_original_docx_matches_retained": true
+  },
+  {
+    "target": "x86_64-pc-windows-msvc",
+    "old_sha256": "13b1abc38f4760e2a68f4b2547aec4854354f896ffd41cc6167e668832b23f01",
+    "current_sha256": "d7c5a4269e063ea3c7c09985f0ad8b9f3671c48aca25cbe309cce8904e348dd4",
+    "visible_text_equal": false,
+    "document_links_equal": true,
+    "document_links": [],
+    "embedded_frames_equal": true,
+    "embedded_frames": [
+      "//view.officeapps.live.com/op/embed.aspx?src=https%3A%2F%2Fvisualstudio.microsoft.com%2Fwp-content%2Fuploads%2F2025%2F10%2FVisual_Studio_2026-License-Enterprise_Professional_ENU.docx"
+    ],
+    "visible_differences": [
+      "--- \n",
+      "+++ \n",
+      "@@ -78,7 +78,7 @@\n",
+      " Returns",
+      " Order tracking",
+      " Certified Refurbished",
+      "-Microsoft Store Promise",
+      "+Why buy from Microsoft Store",
+      " Flexible Payments",
+      " Microsoft in education",
+      " Devices for education"
+    ],
+    "current_original_docx_sha256": "dd2ab92a7c2bb90dd509e16572707a34b13bc0bc09b9199d115f25594ac39053",
+    "current_original_docx_matches_retained": true
+  }
+]

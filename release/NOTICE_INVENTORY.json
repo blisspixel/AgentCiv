@@ -1,6 +1,6 @@
 {
   "inventory_version": "1",
-  "status": "blocked_release_review",
+  "status": "reviewed_complete",
   "source_lock_sha256": "812445f9f17fd97263f1abe14bf69c21b0a4ddc99569c145b941735980dba90a",
   "toolchain_file_sha256": "64a88070e659a456538b3e05581cd8eb83c3647b1fc5ef82296604e5b1650186",
   "notices_sha256": "66f5469ca711e13defcc6b196b1807263ad15e9ce9db81c51fd1610a4245601f",
@@ -16582,9 +16582,7 @@
       }
     ]
   },
-  "release_blockers": [
-    "Review actual six-target Rust 1.99.1 toolchain notices, build products and native linkage before candidate publication."
-  ],
+  "release_blockers": [],
   "source_review_date": "2026-10-11",
   "previous_notice_prefix": {
     "byte_length": 19269741,
@@ -16669,10 +16667,16 @@
     ],
     "original_crate_and_provider_notice_slices_preserved": true,
     "historical_native_review": "release/NATIVE_REVIEW_2026_10_11.md",
-    "current_native_review": "pending six-target audit",
+    "current_native_review": "release/NATIVE_REVIEW_2026_10_18.md",
     "preserved_previous_aggregate_prefix": {
       "bytes": 20262410,
       "sha256": "1bcf14c8995a3ef4b539a5966d1b53f5ebf2fa62828b87b45d9cd48310b51a91"
-    }
+    },
+    "audit_run": 39092645529,
+    "review_evidence": "conformance/evidence/native-audit-v0.1.3/review.json",
+    "windows_product_version": "18.10.12224.181",
+    "windows_tools_version": "14.51.36231",
+    "linkage_unchanged_from_reviewed_baseline": true,
+    "release_scope": "Reviewed native inventory; final exact-green-main candidate and immutable publication remain separate gates."
   }
 }

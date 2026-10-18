@@ -1,0 +1,207 @@
+﻿
+File: target/x86_64-pc-windows-msvc/release/agentciv-conformance.exe
+Format: COFF-x86-64
+Arch: x86_64
+AddressSize: 64bit
+Import {
+  Name: kernel32.dll
+  ImportLookupTableRVA: 0xAB2178
+  ImportAddressTableRVA: 0x7C3388
+  Symbol: SetNamedPipeHandleState (0)
+  Symbol: CreateIoCompletionPort (0)
+  Symbol: SetHandleInformation (0)
+  Symbol: ReadFile (0)
+  Symbol: CreateFileW (0)
+  Symbol: PostQueuedCompletionStatus (0)
+  Symbol: GetLastError (0)
+  Symbol: GetQueuedCompletionStatusEx (0)
+  Symbol: InitializeSRWLock (0)
+  Symbol: ReleaseSRWLockExclusive (0)
+  Symbol: ReleaseSRWLockShared (0)
+  Symbol: AcquireSRWLockExclusive (0)
+  Symbol: AcquireSRWLockShared (0)
+  Symbol: InitOnceExecuteOnce (0)
+  Symbol: TlsAlloc (0)
+  Symbol: TlsGetValue (0)
+  Symbol: GetOverlappedResult (0)
+  Symbol: TlsSetValue (0)
+  Symbol: SetEndOfFile (0)
+  Symbol: FreeLibrary (0)
+  Symbol: CloseHandle (0)
+  Symbol: WriteFile (0)
+  Symbol: CancelIoEx (0)
+  Symbol: GetProcAddress (0)
+  Symbol: GetModuleHandleA (0)
+  Symbol: SetFileCompletionNotificationModes (0)
+  Symbol: SetLastError (0)
+  Symbol: Sleep (0)
+  Symbol: GetStartupInfoW (0)
+  Symbol: FlsGetValue (0)
+  Symbol: IsProcessorFeaturePresent (0)
+}
+Import {
+  Name: bcryptprimitives.dll
+  ImportLookupTableRVA: 0xAB2110
+  ImportAddressTableRVA: 0x7C3320
+  Symbol: ProcessPrng (0)
+}
+Import {
+  Name: ws2_32.dll
+  ImportLookupTableRVA: 0xAB22B0
+  ImportAddressTableRVA: 0x7C34C0
+  Symbol: WSASend (0)
+  Symbol: ioctlsocket (0)
+  Symbol: connect (0)
+  Symbol: recv (0)
+  Symbol: send (0)
+  Symbol: accept (0)
+  Symbol: bind (0)
+  Symbol: listen (0)
+  Symbol: WSASocketW (0)
+  Symbol: shutdown (0)
+  Symbol: setsockopt (0)
+  Symbol: WSAIoctl (0)
+  Symbol: getsockopt (0)
+  Symbol: closesocket (0)
+  Symbol: getsockname (0)
+  Symbol: getpeername (0)
+  Symbol: WSAGetLastError (0)
+}
+Import {
+  Name: api-ms-win-core-synch-l1-2-0.dll
+  ImportLookupTableRVA: 0xAB20F0
+  ImportAddressTableRVA: 0x7C3300
+  Symbol: WakeByAddressAll (0)
+  Symbol: WaitOnAddress (0)
+  Symbol: WakeByAddressSingle (0)
+}
+Import {
+  Name: crypt32.dll
+  ImportLookupTableRVA: 0xAB2120
+  ImportAddressTableRVA: 0x7C3330
+  Symbol: CertSetCertificateContextProperty (0)
+  Symbol: CertCloseStore (0)
+  Symbol: CertAddEncodedCertificateToStore (0)
+  Symbol: CertFreeCertificateContext (0)
+  Symbol: CertFreeCertificateChain (0)
+  Symbol: CertOpenStore (0)
+  Symbol: CertGetCertificateChain (0)
+  Symbol: CertCreateCertificateChainEngine (0)
+  Symbol: CertFreeCertificateChainEngine (0)
+  Symbol: CertVerifyCertificateChainPolicy (0)
+}
+Import {
+  Name: ntdll.dll
+  ImportLookupTableRVA: 0xAB2278
+  ImportAddressTableRVA: 0x7C3488
+  Symbol: NtWriteFile (679)
+  Symbol: NtReadFile (536)
+  Symbol: NtCreateFile (0)
+  Symbol: NtCancelIoFileEx (0)
+  Symbol: RtlNtStatusToDosError (0)
+  Symbol: NtDeviceIoControlFile (0)
+}
+Import {
+  Name: KERNEL32.dll
+  ImportLookupTableRVA: 0xAB1DF0
+  ImportAddressTableRVA: 0x7C3000
+  Symbol: GetFileInformationByHandle (626)
+  Symbol: HeapSize (901)
+  Symbol: GetStringTypeW (776)
+  Symbol: GetCPInfo (490)
+  Symbol: GetOEMCP (710)
+  Symbol: GetACP (475)
+  Symbol: IsValidCodePage (958)
+  Symbol: OutputDebugStringW (1099)
+  Symbol: LCMapStringW (996)
+  Symbol: CompareStringW (179)
+  Symbol: LoadLibraryExW (1014)
+  Symbol: VirtualProtect (1562)
+  Symbol: UnhandledExceptionFilter (1531)
+  Symbol: IsDebuggerPresent (944)
+  Symbol: GetCommandLineA (511)
+  Symbol: DeleteCriticalSection (303)
+  Symbol: InitializeCriticalSectionEx (919)
+  Symbol: LeaveCriticalSection (1008)
+  Symbol: EnterCriticalSection (343)
+  Symbol: EncodePointer (339)
+  Symbol: RaiseException (1176)
+  Symbol: RtlPcToFileHeader (1299)
+  Symbol: RtlUnwindEx (1303)
+  Symbol: SetUnhandledExceptionFilter (1464)
+  Symbol: InitializeSListHead (922)
+  Symbol: GetSystemTimeAsFileTime (794)
+  Symbol: GetFileSizeEx (632)
+  Symbol: FindNextFileW (436)
+  Symbol: SetStdHandle (1427)
+  Symbol: QueryPerformanceFrequency (1154)
+  Symbol: FormatMessageW (464)
+  Symbol: GetFileType (634)
+  Symbol: FlsSetValue (454)
+  Symbol: IsThreadAFiber (954)
+  Symbol: GetModuleHandleW (677)
+  Symbol: GetModuleHandleExW (676)
+  Symbol: FlsAlloc (450)
+  Symbol: FlsFree (451)
+  Symbol: SetWaitableTimer (1473)
+  Symbol: CreateWaitableTimerExW (285)
+  Symbol: GetConsoleOutputCP (553)
+  Symbol: WriteConsoleW (1631)
+  Symbol: MultiByteToWideChar (1059)
+  Symbol: GetModuleFileNameW (673)
+  Symbol: HeapAlloc (892)
+  Symbol: SetEnvironmentVariableW (1370)
+  Symbol: GetEnvironmentVariableW (612)
+  Symbol: GetFinalPathNameByHandleW (636)
+  Symbol: ReleaseMutex (1254)
+  Symbol: CreateMutexA (243)
+  Symbol: LoadLibraryA (1012)
+  Symbol: WaitForSingleObjectEx (1574)
+  Symbol: SwitchToThread (1491)
+  Symbol: GetSystemInfo (788)
+  Symbol: ExitProcess (390)
+  Symbol: FindClose (413)
+  Symbol: FindFirstFileExW (419)
+  Symbol: lstrlenW (1678)
+  Symbol: GetCommandLineW (512)
+  Symbol: RtlVirtualUnwind (1304)
+  Symbol: GetStdHandle (771)
+  Symbol: WideCharToMultiByte (1612)
+  Symbol: GetConsoleMode (549)
+  Symbol: ReadConsoleW (1190)
+  Symbol: LoadLibraryW (1015)
+  Symbol: FreeEnvironmentStringsW (467)
+  Symbol: WaitForSingleObject (1573)
+  Symbol: GetFullPathNameW (645)
+  Symbol: GetCurrentThreadId (582)
+  Symbol: SetFileInformationByHandle (1382)
+  Symbol: GetCurrentProcess (577)
+  Symbol: GetProcessHeap (740)
+  Symbol: HeapFree (896)
+  Symbol: HeapReAlloc (899)
+  Symbol: QueryPerformanceCounter (1153)
+  Symbol: CreateThread (271)
+  Symbol: GetCurrentProcessId (578)
+  Symbol: FlushFileBuffers (456)
+  Symbol: RtlCaptureContext (1289)
+  Symbol: RtlLookupFunctionEntry (1297)
+  Symbol: GetSystemTimePreciseAsFileTime (795)
+  Symbol: SetFileTime (1388)
+  Symbol: GetFileInformationByHandleEx (627)
+  Symbol: TerminateProcess (1496)
+  Symbol: GetEnvironmentStringsW (610)
+  Symbol: SetFilePointerEx (1385)
+  Symbol: AddVectoredExceptionHandler (20)
+  Symbol: SetThreadStackGuarantee (1451)
+  Symbol: GetCurrentThread (581)
+  Symbol: GetCurrentDirectoryW (570)
+}
+Import {
+  Name: WS2_32.dll
+  ImportLookupTableRVA: 0xAB20C8
+  ImportAddressTableRVA: 0x7C32D8
+  Symbol:  (18)
+  Symbol: getaddrinfo (166)
+  Symbol:  (115)
+  Symbol: freeaddrinfo (165)
+}

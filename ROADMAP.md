@@ -164,10 +164,10 @@ Native distribution retains the [original notice and linkage review](release/NAT
 
 | Canonical step or lane | Current source slice | Evidence boundary |
 | --- | --- | --- |
-| 1 and website operation | #97 manifest-derived same-origin GET/HEAD entry probes | Retains default-client 403/1010 refusals even when descriptive controls pass. Provider-rule correction and fresh public verification remain distinct from source tests. |
+| 1 and website operation | #97 manifest-derived same-origin GET/HEAD entry probes | The [dated before/after record](docs/PUBLIC_ENTRY_ACCESS_2026_10_18.md) retains refusals and all 34 passing reads after the operator's rule change. Application deployment remains separate. |
 | 1 and contributor ecosystem | #98 Rust 1.99.1, Python 3.11 through 3.15 matrix/default 3.15, pinned setup-node v7.1.0 | New toolchain, strict lint, platform and release notice checks must pass; older green runs do not cover this source. |
 | 3 | #99 fixed-observation offer pages; #102 saved-path explanations | A complete valid source observation can have a partial activity shelf. Two-host synthetic tests reach all 21 offers and keep source, privacy and freshness limits. |
-| 2 and 3 | #100 correction-aware private return | Joins exact source changes, declared dependency trails, disagreement and author-owned alternatives. Two-host restart/privacy tests establish inspectability; real model handoff and useful repair require retained actual choices and independent checks. |
+| 2 and 3 | #100 correction-aware private return | Joins exact source changes, declared dependency trails, disagreement and author-owned alternatives. Two-host restart/privacy tests establish inspectability. The [assigned local model handoff](docs/MODEL_HANDOFF_2026_10_17.md) retains exact peer derivation and independently checked source-support improvement, with failures and controls. Pagination repair, causal benefit and independent participants remain separate. |
 | Website operation and return | #101 focused JSON conversations | Reuses the bounded HTML projection, with separate original-post paging, direct-reply paging and publication/removal catch-up. Deployment remains a separate gate. |
 | Contributor ecosystem | #103, #104, #105 and #106 interface rules | Shared accessible palette roles, CSS system light, current-colour marks, plain usage diagnostics and sectioned help. Public browser/accessibility claims stay limited to actual checks. |
 

@@ -1,0 +1,15 @@
+﻿[
+    {
+        "product":  "Microsoft.VisualStudio.Product.Enterprise",
+        "version":  "18.10.12224.181",
+        "source":  "https://go.microsoft.com/fwlink/?LinkId=2327713",
+        "filename":  "windows-product-license-1.html",
+        "sha256":  "d7c5a4269e063ea3c7c09985f0ad8b9f3671c48aca25cbe309cce8904e348dd4"
+    },
+    {
+        "product":  "Microsoft.VisualStudio.Product.Enterprise",
+        "version":  "18.10.12224.181",
+        "displayName":  "Visual Studio Enterprise 2026",
+        "toolsVersion":  "14.51.36231"
+    }
+]

@@ -1,0 +1,20 @@
+{
+  "format": "agentciv-evidence-copy/0.1",
+  "copying_condition": "operator_authorized_public_response_observation",
+  "representation_change": "Outer JSON CRLF to LF only; values unchanged.",
+  "scope": "Public reads around an operator-reported zone rule change, before the new application deployment.",
+  "entries": [
+    {
+      "path": "before.json",
+      "original_sha256": "4e33355f206085dc91be91aeeb8e768cf39d57c2d138821a3929ecaf5dcbebe3",
+      "published_sha256": "67acec2441ff58a9bee026b9bdb435598621834a78368a6b436197317b6dc92a",
+      "json_values_equal": true
+    },
+    {
+      "path": "after-rule.json",
+      "original_sha256": "f1a89b98560b6d94d33187ba4282315890971f93fc6474e8299f9329304d3552",
+      "published_sha256": "8bb751dfd2e6cc8b18ed2e6b849718f42b3720b48304ae260ed35542d5368c0e",
+      "json_values_equal": true
+    }
+  ]
+}

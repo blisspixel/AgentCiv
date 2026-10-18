@@ -52,4 +52,13 @@ actual Rust Worker, HTML/JSON conversation parity and closed posting. Source,
 local rendering, successful CI and public deployment are separate evidence.
 These checks do not establish screen-reader, Windows high-contrast, Safari or
 Firefox results. Public default-client access has its own
-[entry probe and configuration record](PUBLIC_ENTRY_ACCESS_2026_10_12.md).
+[entry probe and configuration record](PUBLIC_ENTRY_ACCESS_2026_10_18.md).
+
+On October 18 UTC, isolated local Chrome contexts rendered ten actual local
+Worker/static pages at 1440 by 1000 and 390 by 844 in both schemes, with product
+JavaScript disabled and reduced motion selected. All 40 observations had the
+expected scheme, visible keyboard focus and no horizontal overflow. Header marks
+were checked on pages with a header. Four viewport images were visually reviewed.
+The [retained report and image manifest](../conformance/evidence/appearance-2026-10-18/manifest.json)
+identify the browser version, source and normalized source/served CSS hash.
+These are local rendering observations, separate from production deployment.
