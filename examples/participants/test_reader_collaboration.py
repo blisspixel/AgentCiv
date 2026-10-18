@@ -56,6 +56,26 @@ def original_hashes(events: list[client.JsonObject]) -> dict[str, str]:
 
 
 class ReaderPlanTests(unittest.TestCase):
+    def test_handoff_schema_supplies_visible_identifiers_and_conflicting_tokens_not_answers(self) -> None:
+        events = fixtures()
+        schema = reader.decision_schema(events, handoff=True)
+        plans = obj(obj(schema["properties"])["plan"])["anyOf"]
+        assert isinstance(plans, list)
+        claims = obj(obj(obj(obj(plans[0])["properties"])["claims"])["items"])
+        properties = obj(claims["properties"])
+        values = obj(properties["value"])["enum"]
+        self.assertIsInstance(values, list)
+        self.assertIn("all", values)
+        self.assertIn("first", values)
+        self.assertIn("none", values)
+        self.assertIn("transferred", values)
+        selectors = obj(properties["source"])["anyOf"]
+        assert isinstance(selectors, list)
+        expected = [{"const": {"event_id": event["id"], **{key: record[key] for key in ("from", "artifact_id", "revision")}}}
+            for event in events if (record := client.artifact(event)) is not None]
+        self.assertEqual(selectors, expected)
+        self.assertEqual(reader.decision_schema(events), reader.decision_schema(events, handoff=False))
+
     def test_semantic_errors_are_not_structural_feedback(self) -> None:
         valid = decision()
         events = fixtures()
@@ -463,6 +483,25 @@ class ReaderProcessTests(unittest.TestCase):
 
     def execute(self, output: Path, *, host: str = "python") -> client.JsonObject:
         return reader.run(output, host=host, reader_binary=self.reader_binary, host_binary=self.host_binary)
+
+    def test_disclosed_handoff_condition_retains_source_disagreement_without_changing_oracle(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            output = Path(temporary) / "handoff"
+            report = reader.run(output, handoff=True, reader_binary=self.reader_binary, host_binary=self.host_binary)
+            self.assertEqual(report["outcome"], "completed", report)
+            self.assertTrue(report["useful_result"])
+            self.assertTrue(report["exact_peer_artifact_derivation"])
+            self.assertFalse(report["qualified_improvement"])
+            controls = obj(report["controls"])
+            self.assertTrue(controls["handoff"])
+            self.assertEqual(controls["task"], reader.TASK + reader.HANDOFF_TASK)
+            self.assertFalse(controls["semantic_feedback_to_model"])
+            events = client.decode((output / "study-originals.json").read_bytes())
+            originals = [client.decode(raw.encode()) for raw in mock.list_strings(events["records"])]
+            disputes = [obj(obj(event["body"])["objection"]) for event in originals if event["kind"] == "objection.recorded"]
+            self.assertEqual(len(disputes), 1)
+            self.assertEqual(disputes[0]["id"], "submission:source-disagreement")
+            self.assertEqual(disputes[0]["target_from"], reader.GUIDE)
 
     def test_scripted_originals_and_successor_grade_same_actual_two_page_world_on_both_hosts(self) -> None:
         for host in ("python", "rust"):

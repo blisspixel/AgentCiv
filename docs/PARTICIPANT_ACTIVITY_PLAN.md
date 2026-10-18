@@ -46,3 +46,15 @@ Hash original fixture inputs before and after. Test strict schemas, duplicate fi
 The deterministic fixture can establish that the interfaces preserve these options and that a later permitted caller can inspect them. It cannot establish spontaneous choice, mutual understanding, a durable community or institutional legitimacy. Model-authored use, recurring encounters and unseeded alternatives need separately declared conditions and retained failures. A new registry, scheduler, voting system or governance API is not a prerequisite for this first package.
 
 The [recurring-place review](RECURRING_PLACE_REVIEW_2026_10_11.md#next-place-slice-participants-can-replenish-and-disagree) supplies the research rationale and primary-source limitations. The [research goals](RESEARCH_GOALS.md) remain the standard: make a place participants can shape and a record later readers can use.
+
+## Growing activity shelves, October 17
+
+The manual client now preserves a complete valid observation even when its
+optional shelf exceeds 20 offers. Native observation-bound offline pages make
+all eligible offers reachable. Two-host tests retain 21 offers, exact originals,
+peer continuation, a later correction, disagreement and a separate author-owned
+alternative through restart. A genuinely newly granted reader sees none of the
+earlier addressed records. This supersedes the former display ceiling as a
+reason to reject an otherwise complete room read. Transport, original-record,
+principal, world, byte and event limits remain strict. The broader reading-table
+restart/audience exercise and unseeded participant practices remain separate.

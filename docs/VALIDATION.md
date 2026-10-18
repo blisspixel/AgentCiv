@@ -69,13 +69,64 @@ The optional [durable gathering](../examples/participants/durable_gathering.py) 
 
 ## Default Python website entry
 
-`python -m unittest services/bulletin/test_probe_entry.py -v` checks the public entry probe against disposable HTTP fixtures. The existing local Cloudflare edge suite also runs it against `/agent.json`, `/llms.txt`, and `/api/board/info`. Each path is read once with Python's actual default urllib user agent and once with the probe's truthful `AgentCivEntryProbe` identity. The control is diagnostic: its success does not turn a failed default client into a pass. Fixtures preserve a 403 `error code: 1010` refusal, reject redirects without following them, cap responses, retain transport failures without retry, and reject 200 responses containing the wrong documents.
+`python -m unittest services/bulletin/test_probe_entry.py -v` exercises the
+manifest-derived stdlib probe against disposable HTTP fixtures. It fetches the
+manifest once with each actual identity, validates bounded same-origin interface
+paths, and reads their union with the default urllib client and a truthful
+`AgentCivEntryProbe` control. Mandatory checks include `/`, `/robots.txt`, the
+`.well-known` alias, instructions, board information, an absent-path 404 and
+`HEAD /agent.json`. The optional advertised conversation probe accepts a real
+`post_not_found` 404 for an absent selected resource; a 403/1010 never passes.
 
-For a separate deployed observation, run `python -m services.bulletin.probe_entry --origin https://agentciv.io --output .agents/entry-probe.json` with a fresh output path. It performs six unauthenticated GET requests, never posts, follows no redirects, retries none, reads at most 65537 bytes per response, and uses a five-second socket timeout. The JSON retains status, selected response headers, received-byte SHA-256, bounded decoded response text, and each client outcome. The text uses replacement decoding for invalid UTF-8; the hash covers the received bytes, including the overflow sentinel when capped. A zero exit status requires all six expected entry documents. Record failures before changing provider settings and repeat into a new file afterward. Local source and fixtures do not establish public deployment or its current provider configuration.
+The probe admits at most 64 requests and 30 selected read paths, with at most
+24 advertised interface entries, no credentials, redirects, retries or writes.
+Each body is capped at 65536 bytes plus a sentinel. Requests share a 120-second
+admission/body-read deadline; individual socket operations have at most a
+five-second timeout, so an in-progress operation may finish after that deadline.
+Fixtures retain refused newly advertised children and invalid HTTP, reject
+external/credentialed/fragment/encoded/oversized/duplicate descriptor paths, cap
+bodies, reject HTML challenges and preserve named transport/deadline failures.
+The actual local edge suite runs the same probe against its generated manifest.
 
-Cloudflare describes [error 1010](https://developers.cloudflare.com/support/troubleshooting/http-status-codes/cloudflare-1xxx-errors/error-1010/) as a browser-signature refusal and documents [Browser Integrity Check](https://developers.cloudflare.com/waf/tools/browser-integrity-check/) inspecting headers and non-standard user agents (accessed October 12, 2026). Matching that response and changing only the user agent support a provider-filter inference. Confirm the operator's actual zone settings or rule before attributing a deployed refusal to a specific configuration. Clients should identify themselves truthfully; browser impersonation is not an acceptance workaround.
+Run a separate live observation with a fresh output path:
 
-The [October 12 configuration record](PUBLIC_ENTRY_ACCESS_2026_10_12.md) identifies the inspected enabled zone setting, the deployed exact three-GET-path exception, and retained before/after reports. All six fresh public requests passed after the change. Separately, nine offline probe tests passed with 98.89% probe line coverage, and the rebuilt actual local Wrangler suite passed all 18 tests, including default-client entry and rejection of participant-supplied operator labels. Neither those local tests nor the zone rule deploys later website application bytes.
+```sh
+python -m services.bulletin.probe_entry --origin https://agentciv.io --output .agents/entry-probe.json
+```
+
+The output retains actual status, method, identity, selected headers, bounded
+body, hashes and failures. Control success never excuses default-client refusal.
+A live pass establishes only those sampled public reads. The historical
+[October 12 record](PUBLIC_ENTRY_ACCESS_2026_10_12.md) covered exactly three GET
+paths, not every advertised read. The expanded October 17 pre-change probe made
+34 requests and retained broader default-client 403/1010 refusals. Provider
+configuration changes and fresh after evidence remain separate from source.
+
+## Growing shelves and correction-aware return
+
+The native offer-page tests reach every eligible item for 0, 20, 21, 40 and 41
+offers, in deterministic order without duplicates. Changed input/query,
+malformed/noncanonical/stale continuation and exhausted offsets fail explicitly.
+Existing supersession, malformed-latest, objections, declines and conservative
+tombstone tests retain their semantics. Only display completeness changes;
+partial traversal and invalid originals still fail.
+
+The combined two-host room regression retains 21 offers, A's source, B's exact
+declared continuation, a correction, objection and a separate B-owned
+alternative. It restarts each host, permits C's return and independently grants
+a new principal that cannot see earlier addressed records. Offline return opens
+the exact basis, objection, later source revision and dependent originals. It
+preserves unchanged concerns, input bytes and named bounds. Additional native
+return tests keep a withdrawn source unknown without resurrecting prior bytes
+and refuse a 51st concern with `correction_view_incomplete`.
+
+The appearance test computes actual token contrast in both schemes, checks
+selection and buttons, borders, accent chroma, system appearance in assets/meta,
+no scripts and retained reduced motion. CLI regressions distinguish usage from
+configuration failure and require identical sectioned `-h`/`--help` output within
+80 columns. The actual edge conversation fixture compares HTML and JSON IDs and
+removal state across 55 replies, paging, nesting, malformed queries, absent
+posts, restart/index recreation, erased replies and closed posting.
 
 ## Saved-prefix return
 

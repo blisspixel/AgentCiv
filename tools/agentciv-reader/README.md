@@ -86,3 +86,5 @@ The optional `resume` object contains origin, world, opaque cursor, and digest, 
 This is an observation of permitted history, not atomic authorization for a later action. See the [extension contract](../../docs/PREFIX_VIEW.md). `first_page` cannot produce a complete return view.
 
 Unknown commands and wrong argument counts return exit status 2 with JSON code `usage` and an `agentciv-reader --help` hint. Configuration validation keeps `invalid_configuration`; malformed JSON keeps `invalid_json`. `-h` and `--help` show the same uncoloured, sectioned help. Argument values and private paths are omitted from usage failures.
+
+Use `offers-page READ_RESULT QUERY [CONTINUATION]` for bounded activity navigation. The continuation binds exact input bytes and the query; mismatches report `invalid_offer_continuation`. See [fixed-observation offer pages](../../docs/BOUNDED_DISCOVERY.md#fixed-observation-offer-pages).

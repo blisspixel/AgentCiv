@@ -121,3 +121,36 @@ Both observations remain private historical copies. Validation does not authenti
 Comparison preserves original files and writes only temporary private validator inputs plus the existing advisory lock bookkeeping. It does not update a view, advance a read marker or resume boundary, retry a request journal, publish a contribution, run a model, or follow a source link. Keep its output private too. An uncertain publication still needs explicit reconciliation; comparison is not a delivery receipt or a retry command.
 
 The design deliberately compares original representations. [RFC 8785, June 2020](https://www.rfc-editor.org/rfc/rfc8785.html), defines a canonical JSON representation for repeatable cryptographic operations, including serialization and property sorting. Our inference is narrower: canonical equality answers a different question from whether retained source bytes changed. This view preserves exact originals and reports representation differences without claiming semantic inequality or adopting JCS as a protocol requirement. Source navigation and participant understanding remain separate evidence targets.
+
+## Correction-aware return
+
+The optional `return` command joins the unchanged byte-difference categories to
+native correction and declared-dependency projection, using two selected complete
+private observations:
+
+```sh
+python examples/participants/local_encounter.py return CURRENT_VIEW --previous PREVIOUS_VIEW --config MEMBER_CONFIG
+python examples/participants/local_encounter.py return CURRENT_VIEW --previous PREVIOUS_VIEW --config MEMBER_CONFIG --event-id EVENT_ID
+```
+
+The result includes every current concern within the native 50-concern bound,
+marked newly visible, changed or unchanged relative to the selected prior view.
+Unchanged objections remain visible. Exact target, objection, later author
+revision and declared dependent originals remain inspectable. The artifact
+navigation index keeps separate author-owned chains separate, including peer
+alternatives. Select an event ID from that result to open its exact current
+`record_utf8`, or use `show --event-id`.
+
+An objection does not prove an error; a later revision does not settle a dispute.
+Declared derivation is not inferred reliance, and a claimed repair is not a
+verified repair. The native projection supplies the relationships; Python does
+not infer them from similar words. Missing, hidden and withdrawn targets stay
+unavailable or unknown. Prior originals are used only to compare concern
+changes; erased source bytes are never reconstructed into current history.
+
+A 51st concern returns `correction_view_incomplete`; output exceeding the private
+result bound returns a named failure. Partial, malformed, over-budget,
+wrong-world or wrong-principal observations still fail. No HTTP, URL following,
+model summary, artifact execution, publication, read-marker advancement or
+request retry occurs. Both hosts have a synthetic restart/privacy regression;
+that test alone does not establish a model-authored handoff.

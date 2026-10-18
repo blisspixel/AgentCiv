@@ -54,8 +54,11 @@ HANDOFF_TASK = (
     "available, inspect it and choose whether to continue that exact work, object, decline "
     "or stop. An independent reconstruction remains allowed but is not a handoff result. "
     "Claims.value represents the exact structured assertion value in a cited artifact's "
-    "body.assertions, not a prose paraphrase; put explanations in text. Select your own "
-    "reader choices and distinguish the earlier source from its correction and objection. "
+    "body.assertions, not a prose paraphrase; put explanations in text. "
+    "Copy each source selector's from, artifact_id and revision from that exact event. "
+    "Mentioning adoption in text does not declare derivation: to continue a peer, set "
+    "target_event_id to that peer's artifact event ID and cite it in source_event_ids. "
+    "Select your own reader choices and distinguish the earlier source from its correction and objection. "
     "No known-correct plan or oracle feedback is supplied."
 )
 
@@ -71,11 +74,44 @@ def source_identity() -> JsonObject:
     return result
 
 
-def decision_schema(events: list[JsonObject]) -> JsonObject:
+def decision_schema(events: list[JsonObject], *, handoff: bool = False) -> JsonObject:
     schema = client.decision_schema(events)
     properties = client.object_value(schema["properties"])
     properties["text"] = {"type": "string", "maxLength": 400}
     properties["plan"] = {"anyOf": [copy.deepcopy(oracle.PLAN_SCHEMA), {"type": "null"}]}
+    if handoff:
+        plan_schema = client.object_value(properties["plan"])["anyOf"]
+        if not isinstance(plan_schema, list):
+            raise ValueError("invalid plan schema")
+        plan_properties = client.object_value(client.object_value(plan_schema[0])["properties"])
+        claim_properties = client.object_value(client.object_value(client.object_value(plan_properties["claims"])["items"])["properties"])
+        selectors: list[JsonObject] = []
+        values: list[str] = []
+        for event in events:
+            record = client.artifact(event)
+            if record is None:
+                continue
+            selectors.append({"const": {"event_id": event["id"], **{key: record[key] for key in ("from", "artifact_id", "revision")}}})
+            assertions = client.object_value(record["body"]).get("assertions", [])
+            if isinstance(assertions, list):
+                for assertion in assertions:
+                    value = client.object_value(assertion).get("value") if isinstance(assertion, dict) else None
+                    if isinstance(value, str) and value not in values:
+                        values.append(value)
+        # These are all visible identities and assertion tokens, including
+        # conflicting/incorrect ones. Selection does not supply oracle answers.
+        if selectors:
+            claim_properties["source"] = {"anyOf": selectors}
+        if values:
+            claim_properties["value"] = {"type": "string", "enum": values}
+        claim_items = client.object_value(client.object_value(plan_properties["claims"])["items"])
+        claim_items["properties"] = claim_properties
+        claim_schema = client.object_value(plan_properties["claims"])
+        claim_schema["items"] = claim_items
+        plan_properties["claims"] = claim_schema
+        chosen_plan = client.object_value(plan_schema[0])
+        chosen_plan["properties"] = plan_properties
+        plan_schema[0] = chosen_plan
     schema["properties"] = properties
     schema["required"] = ["action", "text", "target_event_id", "source_event_ids", "plan"]
     return schema
@@ -190,7 +226,8 @@ def participant(config: JsonObject) -> JsonObject:
 
         def request(prompt: str, output_tokens: int, timeout: float) -> loop.Reply:
             if model is not None:
-                reply = model.complete(prompt, events, output_tokens=output_tokens, timeout=timeout, schema=decision_schema(events))
+                reply = model.complete(prompt, events, output_tokens=output_tokens, timeout=timeout,
+                    schema=decision_schema(events, handoff=config.get("handoff") is True))
                 provider_summary(model, token)
                 return reply
             return loop.Reply(json.dumps(scripted_decision(events, first=config["principal"] == AUTHORS[0],
@@ -213,7 +250,7 @@ def participant(config: JsonObject) -> JsonObject:
             private=Path(private) if isinstance(private, str) else None)
         stage = "decision"
         task = TASK + HANDOFF_TASK if config.get("handoff") is True else TASK
-        decision = engine.run(json.dumps({"task": task, "schema": decision_schema(events),
+        decision = engine.run(json.dumps({"task": task, "schema": decision_schema(events, handoff=config.get("handoff") is True),
             "authenticated_principal": config["principal"], "permitted_original_events": events}, ensure_ascii=False))
         result["decision"] = decision
         peer_ids = [event["id"] for event in events if event.get("actor") in AUTHORS and client.artifact(event) is not None]
@@ -571,13 +608,13 @@ def run(output: Path, *, host: str = "python", mode: str = "scripted", model: st
                 notes(origin, False)
                 turn(origin, 0)
                 if handoff:
-                    source = next(event for event in history(origin) if event.get("actor") == GUIDE
+                    source_event = next(event for event in history(origin) if event.get("actor") == GUIDE
                         and client.artifact(event) is not None)
                     mock.publish(origin, tokens[GUIDE], {"protocol_version": "0.1-draft", "type": "objection",
                         "id": "submission:source-disagreement", "world": WORLD, "from": GUIDE, "to": [OBSERVER],
                         "target_from": GUIDE, "artifact_id": "artifact:interface-notes", "revision": 1,
                         "body": {"text": "I dispute my earlier source assertions. Keep the original and this objection inspectable alongside any later correction; a later account does not erase disagreement.",
-                            "source_event_ids": [source["id"]]},
+                            "source_event_ids": [source_event["id"]]},
                         "experiment_provenance": {"decision_source": "operator_scripted_source_objection"}})
                 if condition == "repair":
                     objection(origin, 0)

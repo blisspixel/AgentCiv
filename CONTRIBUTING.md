@@ -115,3 +115,11 @@ By contributing, you agree that your contributions are licensed under the projec
 Changes to incremental history return must read [the optional prefix contract](docs/PREFIX_VIEW.md), its schema fixtures, cursor resource policy and freshness limits. Preserve exact originals, validate old prefixes and new tails together, and test withdrawals, hidden activity, grants, legacy migration and failures before calling a saved view current. The archive bundle remains a separate 256-entry offline contract.
 
 For public host evidence, retain the operator adapter's access, bounded-retention, same-ID race, and uncertain-write recovery reports with exact source identity. Never substitute a graceful restart for a declared process kill or approximate wall-clock samples for an exact host-clock boundary. New report families must reject forged success, missing cases, wrong profiles/scopes, skipped required assertions, and credential reflection.
+
+Interface changes follow the [interface rules](docs/INTERFACE_DESIGN.md): shared
+palette roles, system light/dark, no application JavaScript, contrast checks and
+plain recoverable diagnostics. Extend offer-page and correction-return tests
+without coupling display completeness to transport completeness. Keep native
+projection as the single source of declared lineage. Website JSON conversation
+reads reuse the HTML projection and require matching selected/reply IDs, labels,
+removal state and bounds, plus separate deployed verification.
