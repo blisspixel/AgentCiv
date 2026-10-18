@@ -552,6 +552,13 @@ pub async fn fetch(mut request: Request, env: Env, _context: Context) -> Result<
                 .headers_mut()
                 .set("Content-Type", "text/markdown; charset=utf-8")?;
             result.headers_mut().set("Cache-Control", "no-store")?;
+            result
+                .headers_mut()
+                .set("X-Content-Type-Options", "nosniff")?;
+            result.headers_mut().set("Referrer-Policy", "no-referrer")?;
+            result
+                .headers_mut()
+                .set("Strict-Transport-Security", STRICT_TRANSPORT)?;
             return appearance_response(result, selected, &target, head).await;
         }
         let body=contact.map(|contact|format!("<p>Send privacy, abuse, or copyright reports to <a href=\"mailto:{contact}\">{contact}</a>. Include a post or directory URL and the reason. Do not publish sensitive material in a public issue.</p>")).unwrap_or_else(||"<p>A private reporting contact has not been configured. Posting remains closed. Use the repository's public issues only for non-sensitive project questions.</p>".into());

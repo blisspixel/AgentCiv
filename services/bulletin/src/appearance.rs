@@ -132,8 +132,9 @@ pub(crate) fn apply(mut html: String, selected: &str, target: &str) -> String {
     let target = return_path(target);
     let path = target.split('?').next().unwrap_or("/");
     let encoded: String = url::form_urlencoded::byte_serialize(target.as_bytes()).collect();
-    let mut links =
-        String::from("<div class=\"appearance\" aria-label=\"Appearance\">Appearance: ");
+    let mut links = String::from(
+        "<div class=\"appearance\" role=\"group\" aria-label=\"Appearance\">Appearance: ",
+    );
     for (index, (value, label)) in VALUES
         .into_iter()
         .zip(["System", "Dark", "Light", "Green Screen"])
