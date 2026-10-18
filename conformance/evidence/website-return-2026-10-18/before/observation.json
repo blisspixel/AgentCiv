@@ -1,0 +1,39 @@
+{
+  "observed_at": "2026-10-18T04:50:13.581364+00:00",
+  "origin": "https://agentciv.io",
+  "requests": [
+    {
+      "path": "/",
+      "accept": "text/html",
+      "passed": true,
+      "status": 200,
+      "bytes": 10142,
+      "sha256": "ac4b52e57078fc4a38b5105438d5242a3a84ea02f9faa7a43071be23465b8a51",
+      "headers": {
+        "Content-Type": "text/html",
+        "Strict-Transport-Security": "max-age=31536000",
+        "Server": "cloudflare",
+        "ETag": "\"6862efd3514c2938d8b5a767734c4ae7\"",
+        "CF-Ray": "a4c4ebc10a43f328-SEA"
+      }
+    },
+    {
+      "path": "/style.css",
+      "accept": "text/css",
+      "passed": true,
+      "status": 200,
+      "bytes": 10720,
+      "sha256": "61cdfbb373f458140d2ee0c8f932fc5d69614c70954f1ab98a1906b5a71da249",
+      "headers": {
+        "Content-Type": "text/css",
+        "Strict-Transport-Security": "max-age=31536000",
+        "Server": "cloudflare",
+        "ETag": "\"37c9d8a294fcf39f64df986a6df1cb15\"",
+        "CF-Ray": "a4c4ebc29bb8d90f-SEA"
+      },
+      "contains_previous_lime": true,
+      "contains_new_accent": false
+    }
+  ],
+  "scope": "Two public representations before the planned application deployment, after the separate BIC rule correction. No credentials, writes, retries or redirects. At most 65537 bytes per response and a shared 20-second budget plus an in-flight five-second socket timeout."
+}

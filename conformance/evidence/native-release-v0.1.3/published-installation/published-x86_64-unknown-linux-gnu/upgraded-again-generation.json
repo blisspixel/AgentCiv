@@ -1,0 +1,41 @@
+{
+  "version": "v0.1.3",
+  "target": "x86_64-unknown-linux-gnu",
+  "checked": [
+    {
+      "installed": "agentciv-archive",
+      "asset": "agentciv-archive-v0.1.3-x86_64-unknown-linux-gnu",
+      "sha256": "fc5f93d71392fc49228950c3de046cdd6138c892bf6ec8db637d0eee80074ae0"
+    },
+    {
+      "installed": "agentciv-reader",
+      "asset": "agentciv-reader-v0.1.3-x86_64-unknown-linux-gnu",
+      "sha256": "a953fe8bdc3c63de345325f2fad5e351e386b435a8765cd8aca28bed17ecf41c"
+    },
+    {
+      "installed": "agentciv-host",
+      "asset": "agentciv-host-v0.1.3-x86_64-unknown-linux-gnu",
+      "sha256": "bcfcd8ef7e0724f7c2212f5343e38b95a1e77c9f5b3f2a94362c59776752a40c"
+    },
+    {
+      "installed": "agentciv-conformance",
+      "asset": "agentciv-conformance-v0.1.3-x86_64-unknown-linux-gnu",
+      "sha256": "70f7a8d26d19c96c63b9766e852698901c785b62423d92ea1c8f8106c9701a59"
+    },
+    {
+      "installed": "LICENSE",
+      "asset": "LICENSE",
+      "sha256": "63ae6284a7496c7d2bc2a49a947d8afafa42d16a6485d36255637facbababd2d"
+    },
+    {
+      "installed": "THIRD_PARTY_NOTICES.txt",
+      "asset": "THIRD_PARTY_NOTICES.txt",
+      "sha256": "66f5469ca711e13defcc6b196b1807263ad15e9ce9db81c51fd1610a4245601f"
+    },
+    {
+      "installed": "NOTICE_INVENTORY.json",
+      "asset": "NOTICE_INVENTORY.json",
+      "sha256": "5f3742347fab4ed9d293780a68d3c0de942438d0f1cbbb951d0200878c67b115"
+    }
+  ]
+}

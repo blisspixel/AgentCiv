@@ -1,0 +1,1075 @@
+{
+  "observed_at": "2026-10-18T06:21:45.735085+00:00",
+  "source_commit": "f3551fcd2c21b54017da41352b9eba9486259e06",
+  "version": "v0.1.3",
+  "previous_version": "v0.1.2",
+  "published_run": 39103512513,
+  "candidate_run": 39102118997,
+  "manifests": [
+    {
+      "version": "v0.1.2",
+      "source_commit": "c255dad79391386862e33da6efcddc7d9e090450",
+      "manifest_sha256": "f81716e6b7d5ce714df24ee509cf1d4f2793db51e570ae5d4aa60bffd78b60c1",
+      "verification_sha256": "28257ad48444ff8ca2b542b4f167a08742551049da94695365911376167c0dd5"
+    },
+    {
+      "version": "v0.1.3",
+      "source_commit": "f3551fcd2c21b54017da41352b9eba9486259e06",
+      "manifest_sha256": "ef54f22421a77db2910b8111f73eb04249d011cd8ae5e2adcc5b1aaadea56581",
+      "verification_sha256": "516c61a7948c13debc8969c12867bf3468df40cbcf09763634e837fd8e8210f6"
+    }
+  ],
+  "targets": [
+    {
+      "target": "x86_64-unknown-linux-gnu",
+      "job_id": 117604441322,
+      "artifact_id": 12126994419,
+      "artifact_name": "published-x86_64-unknown-linux-gnu",
+      "stages": [
+        {
+          "stage": "previous",
+          "version": "v0.1.2",
+          "checked_components": 7
+        },
+        {
+          "stage": "upgraded",
+          "version": "v0.1.3",
+          "checked_components": 7
+        },
+        {
+          "stage": "rolled-back",
+          "version": "v0.1.2",
+          "checked_components": 7
+        },
+        {
+          "stage": "upgraded-again",
+          "version": "v0.1.3",
+          "checked_components": 7
+        },
+        {
+          "stage": "installed",
+          "version": "v0.1.3",
+          "checked_components": 7
+        },
+        {
+          "stage": "reinstalled",
+          "version": "v0.1.3",
+          "checked_components": 7
+        }
+      ],
+      "files": [
+        {
+          "path": "published-installation/published-x86_64-unknown-linux-gnu/archive-help.txt",
+          "bytes": 116,
+          "sha256": "97533a1dab29ad7f0615e37d271a5159befa815699c0458cbd262f2e8c1fc492"
+        },
+        {
+          "path": "published-installation/published-x86_64-unknown-linux-gnu/conformance-help.txt",
+          "bytes": 275,
+          "sha256": "1cb7fd686c7529e5d074873442d0d112447f5467dd6af0c526c8641ee29ba5d2"
+        },
+        {
+          "path": "published-installation/published-x86_64-unknown-linux-gnu/cross-version.txt",
+          "bytes": 37,
+          "sha256": "a671ba348664acfaaf0ee4018f828cd2d300984db39fa7526ecc878c14bc69d1"
+        },
+        {
+          "path": "published-installation/published-x86_64-unknown-linux-gnu/demo.json",
+          "bytes": 666,
+          "sha256": "c0e4454eaf964116ba292190520297c9f8581e83dab8bb54069c34ac4fee3203"
+        },
+        {
+          "path": "published-installation/published-x86_64-unknown-linux-gnu/host-help.txt",
+          "bytes": 64,
+          "sha256": "bdf9235350bac4f7c00219c45ee6bf56681a4472eac00e302f53fa782214fc64"
+        },
+        {
+          "path": "published-installation/published-x86_64-unknown-linux-gnu/install.ps1-provenance.json",
+          "bytes": 24597,
+          "sha256": "1598f26d480780c328a8deb42ff9ae292ae63f58a65f87546368b48a3403e89d"
+        },
+        {
+          "path": "published-installation/published-x86_64-unknown-linux-gnu/install.sh-provenance.json",
+          "bytes": 24597,
+          "sha256": "1598f26d480780c328a8deb42ff9ae292ae63f58a65f87546368b48a3403e89d"
+        },
+        {
+          "path": "published-installation/published-x86_64-unknown-linux-gnu/installed-generation.json",
+          "bytes": 1409,
+          "sha256": "42133f2247b7372976f3bf70423b87581fae42d6843ef9aa2d390a210109b637"
+        },
+        {
+          "path": "published-installation/published-x86_64-unknown-linux-gnu/installed-versions.txt",
+          "bytes": 92,
+          "sha256": "5b0b24531453ac8853c7e979a6c69ad134c9d84ff17ec7aab98e7374aab4e3e1"
+        },
+        {
+          "path": "published-installation/published-x86_64-unknown-linux-gnu/previous-generation.json",
+          "bytes": 1409,
+          "sha256": "55f889a2e1600dc01881ee5836789c91e4d64a35da84543c2ff04e75d4f79370"
+        },
+        {
+          "path": "published-installation/published-x86_64-unknown-linux-gnu/previous-versions.txt",
+          "bytes": 92,
+          "sha256": "fab47c359a0d6212aa8aeae033a67421a94925a3f57a32d3e6f950ed99e8b72f"
+        },
+        {
+          "path": "published-installation/published-x86_64-unknown-linux-gnu/previous/install.ps1-provenance.json",
+          "bytes": 24570,
+          "sha256": "2348137a1851d91272b87eee36bf3b3967a058325220169af4896339be4ba254"
+        },
+        {
+          "path": "published-installation/published-x86_64-unknown-linux-gnu/previous/install.sh-provenance.json",
+          "bytes": 24570,
+          "sha256": "2348137a1851d91272b87eee36bf3b3967a058325220169af4896339be4ba254"
+        },
+        {
+          "path": "published-installation/published-x86_64-unknown-linux-gnu/previous/release-attestation.json",
+          "bytes": 14627,
+          "sha256": "a651d188b1f79856d1fd304e32fde65b3f42e3e98f5291c7d354b27231769a53"
+        },
+        {
+          "path": "published-installation/published-x86_64-unknown-linux-gnu/previous/release.json",
+          "bytes": 61928,
+          "sha256": "3552318309a3c9da377f0634cffcd7cc7b35edce246ab907d59a9f7bc885f809"
+        },
+        {
+          "path": "published-installation/published-x86_64-unknown-linux-gnu/reader-help.txt",
+          "bytes": 927,
+          "sha256": "561c690d4f62a7d9f37790dd769330d41d271f806fc3bce8f7cbf6c7dd42455e"
+        },
+        {
+          "path": "published-installation/published-x86_64-unknown-linux-gnu/reinstalled-generation.json",
+          "bytes": 1409,
+          "sha256": "42133f2247b7372976f3bf70423b87581fae42d6843ef9aa2d390a210109b637"
+        },
+        {
+          "path": "published-installation/published-x86_64-unknown-linux-gnu/reinstalled-versions.txt",
+          "bytes": 92,
+          "sha256": "5b0b24531453ac8853c7e979a6c69ad134c9d84ff17ec7aab98e7374aab4e3e1"
+        },
+        {
+          "path": "published-installation/published-x86_64-unknown-linux-gnu/release-attestation.json",
+          "bytes": 14627,
+          "sha256": "0ddfda00c4accf0cbc45c524f5fb4261160a79492e673e53d5424b429666cbed"
+        },
+        {
+          "path": "published-installation/published-x86_64-unknown-linux-gnu/release.json",
+          "bytes": 61258,
+          "sha256": "13ba18396774b0ce8355d0279cfe1ea4a723afd6c7c31691b81f1e1dbae23b5b"
+        },
+        {
+          "path": "published-installation/published-x86_64-unknown-linux-gnu/result.txt",
+          "bytes": 103,
+          "sha256": "78442bdafb889ba9e97b29c0288fe14a5d7e8fb2cd9c93d015462301fffa76c4"
+        },
+        {
+          "path": "published-installation/published-x86_64-unknown-linux-gnu/rolled-back-generation.json",
+          "bytes": 1409,
+          "sha256": "55f889a2e1600dc01881ee5836789c91e4d64a35da84543c2ff04e75d4f79370"
+        },
+        {
+          "path": "published-installation/published-x86_64-unknown-linux-gnu/rolled-back-versions.txt",
+          "bytes": 92,
+          "sha256": "fab47c359a0d6212aa8aeae033a67421a94925a3f57a32d3e6f950ed99e8b72f"
+        },
+        {
+          "path": "published-installation/published-x86_64-unknown-linux-gnu/upgraded-again-generation.json",
+          "bytes": 1409,
+          "sha256": "42133f2247b7372976f3bf70423b87581fae42d6843ef9aa2d390a210109b637"
+        },
+        {
+          "path": "published-installation/published-x86_64-unknown-linux-gnu/upgraded-again-versions.txt",
+          "bytes": 92,
+          "sha256": "5b0b24531453ac8853c7e979a6c69ad134c9d84ff17ec7aab98e7374aab4e3e1"
+        },
+        {
+          "path": "published-installation/published-x86_64-unknown-linux-gnu/upgraded-generation.json",
+          "bytes": 1409,
+          "sha256": "42133f2247b7372976f3bf70423b87581fae42d6843ef9aa2d390a210109b637"
+        },
+        {
+          "path": "published-installation/published-x86_64-unknown-linux-gnu/upgraded-versions.txt",
+          "bytes": 92,
+          "sha256": "5b0b24531453ac8853c7e979a6c69ad134c9d84ff17ec7aab98e7374aab4e3e1"
+        }
+      ]
+    },
+    {
+      "target": "aarch64-unknown-linux-gnu",
+      "job_id": 117604441262,
+      "artifact_id": 12127662193,
+      "artifact_name": "published-aarch64-unknown-linux-gnu",
+      "stages": [
+        {
+          "stage": "previous",
+          "version": "v0.1.2",
+          "checked_components": 7
+        },
+        {
+          "stage": "upgraded",
+          "version": "v0.1.3",
+          "checked_components": 7
+        },
+        {
+          "stage": "rolled-back",
+          "version": "v0.1.2",
+          "checked_components": 7
+        },
+        {
+          "stage": "upgraded-again",
+          "version": "v0.1.3",
+          "checked_components": 7
+        },
+        {
+          "stage": "installed",
+          "version": "v0.1.3",
+          "checked_components": 7
+        },
+        {
+          "stage": "reinstalled",
+          "version": "v0.1.3",
+          "checked_components": 7
+        }
+      ],
+      "files": [
+        {
+          "path": "published-installation/published-aarch64-unknown-linux-gnu/archive-help.txt",
+          "bytes": 116,
+          "sha256": "97533a1dab29ad7f0615e37d271a5159befa815699c0458cbd262f2e8c1fc492"
+        },
+        {
+          "path": "published-installation/published-aarch64-unknown-linux-gnu/conformance-help.txt",
+          "bytes": 275,
+          "sha256": "1cb7fd686c7529e5d074873442d0d112447f5467dd6af0c526c8641ee29ba5d2"
+        },
+        {
+          "path": "published-installation/published-aarch64-unknown-linux-gnu/cross-version.txt",
+          "bytes": 37,
+          "sha256": "a671ba348664acfaaf0ee4018f828cd2d300984db39fa7526ecc878c14bc69d1"
+        },
+        {
+          "path": "published-installation/published-aarch64-unknown-linux-gnu/demo.json",
+          "bytes": 666,
+          "sha256": "c0e4454eaf964116ba292190520297c9f8581e83dab8bb54069c34ac4fee3203"
+        },
+        {
+          "path": "published-installation/published-aarch64-unknown-linux-gnu/host-help.txt",
+          "bytes": 64,
+          "sha256": "bdf9235350bac4f7c00219c45ee6bf56681a4472eac00e302f53fa782214fc64"
+        },
+        {
+          "path": "published-installation/published-aarch64-unknown-linux-gnu/install.ps1-provenance.json",
+          "bytes": 24597,
+          "sha256": "1598f26d480780c328a8deb42ff9ae292ae63f58a65f87546368b48a3403e89d"
+        },
+        {
+          "path": "published-installation/published-aarch64-unknown-linux-gnu/install.sh-provenance.json",
+          "bytes": 24597,
+          "sha256": "1598f26d480780c328a8deb42ff9ae292ae63f58a65f87546368b48a3403e89d"
+        },
+        {
+          "path": "published-installation/published-aarch64-unknown-linux-gnu/installed-generation.json",
+          "bytes": 1414,
+          "sha256": "6850a80c183faf209724af63725e55b8531c4a14e821ec5f158c2da35b13dcc5"
+        },
+        {
+          "path": "published-installation/published-aarch64-unknown-linux-gnu/installed-versions.txt",
+          "bytes": 92,
+          "sha256": "5b0b24531453ac8853c7e979a6c69ad134c9d84ff17ec7aab98e7374aab4e3e1"
+        },
+        {
+          "path": "published-installation/published-aarch64-unknown-linux-gnu/previous-generation.json",
+          "bytes": 1414,
+          "sha256": "6a5c7188b82c4c59c5aa64dd93934acc3a75f556b58aaec75b0455ad4adfcbe3"
+        },
+        {
+          "path": "published-installation/published-aarch64-unknown-linux-gnu/previous-versions.txt",
+          "bytes": 92,
+          "sha256": "fab47c359a0d6212aa8aeae033a67421a94925a3f57a32d3e6f950ed99e8b72f"
+        },
+        {
+          "path": "published-installation/published-aarch64-unknown-linux-gnu/previous/install.ps1-provenance.json",
+          "bytes": 24570,
+          "sha256": "2348137a1851d91272b87eee36bf3b3967a058325220169af4896339be4ba254"
+        },
+        {
+          "path": "published-installation/published-aarch64-unknown-linux-gnu/previous/install.sh-provenance.json",
+          "bytes": 24570,
+          "sha256": "2348137a1851d91272b87eee36bf3b3967a058325220169af4896339be4ba254"
+        },
+        {
+          "path": "published-installation/published-aarch64-unknown-linux-gnu/previous/release-attestation.json",
+          "bytes": 14627,
+          "sha256": "a651d188b1f79856d1fd304e32fde65b3f42e3e98f5291c7d354b27231769a53"
+        },
+        {
+          "path": "published-installation/published-aarch64-unknown-linux-gnu/previous/release.json",
+          "bytes": 61928,
+          "sha256": "3552318309a3c9da377f0634cffcd7cc7b35edce246ab907d59a9f7bc885f809"
+        },
+        {
+          "path": "published-installation/published-aarch64-unknown-linux-gnu/reader-help.txt",
+          "bytes": 927,
+          "sha256": "561c690d4f62a7d9f37790dd769330d41d271f806fc3bce8f7cbf6c7dd42455e"
+        },
+        {
+          "path": "published-installation/published-aarch64-unknown-linux-gnu/reinstalled-generation.json",
+          "bytes": 1414,
+          "sha256": "6850a80c183faf209724af63725e55b8531c4a14e821ec5f158c2da35b13dcc5"
+        },
+        {
+          "path": "published-installation/published-aarch64-unknown-linux-gnu/reinstalled-versions.txt",
+          "bytes": 92,
+          "sha256": "5b0b24531453ac8853c7e979a6c69ad134c9d84ff17ec7aab98e7374aab4e3e1"
+        },
+        {
+          "path": "published-installation/published-aarch64-unknown-linux-gnu/release-attestation.json",
+          "bytes": 14627,
+          "sha256": "0ddfda00c4accf0cbc45c524f5fb4261160a79492e673e53d5424b429666cbed"
+        },
+        {
+          "path": "published-installation/published-aarch64-unknown-linux-gnu/release.json",
+          "bytes": 61258,
+          "sha256": "13ba18396774b0ce8355d0279cfe1ea4a723afd6c7c31691b81f1e1dbae23b5b"
+        },
+        {
+          "path": "published-installation/published-aarch64-unknown-linux-gnu/result.txt",
+          "bytes": 103,
+          "sha256": "78442bdafb889ba9e97b29c0288fe14a5d7e8fb2cd9c93d015462301fffa76c4"
+        },
+        {
+          "path": "published-installation/published-aarch64-unknown-linux-gnu/rolled-back-generation.json",
+          "bytes": 1414,
+          "sha256": "6a5c7188b82c4c59c5aa64dd93934acc3a75f556b58aaec75b0455ad4adfcbe3"
+        },
+        {
+          "path": "published-installation/published-aarch64-unknown-linux-gnu/rolled-back-versions.txt",
+          "bytes": 92,
+          "sha256": "fab47c359a0d6212aa8aeae033a67421a94925a3f57a32d3e6f950ed99e8b72f"
+        },
+        {
+          "path": "published-installation/published-aarch64-unknown-linux-gnu/upgraded-again-generation.json",
+          "bytes": 1414,
+          "sha256": "6850a80c183faf209724af63725e55b8531c4a14e821ec5f158c2da35b13dcc5"
+        },
+        {
+          "path": "published-installation/published-aarch64-unknown-linux-gnu/upgraded-again-versions.txt",
+          "bytes": 92,
+          "sha256": "5b0b24531453ac8853c7e979a6c69ad134c9d84ff17ec7aab98e7374aab4e3e1"
+        },
+        {
+          "path": "published-installation/published-aarch64-unknown-linux-gnu/upgraded-generation.json",
+          "bytes": 1414,
+          "sha256": "6850a80c183faf209724af63725e55b8531c4a14e821ec5f158c2da35b13dcc5"
+        },
+        {
+          "path": "published-installation/published-aarch64-unknown-linux-gnu/upgraded-versions.txt",
+          "bytes": 92,
+          "sha256": "5b0b24531453ac8853c7e979a6c69ad134c9d84ff17ec7aab98e7374aab4e3e1"
+        }
+      ]
+    },
+    {
+      "target": "x86_64-pc-windows-msvc",
+      "job_id": 117604441302,
+      "artifact_id": 12127102732,
+      "artifact_name": "published-x86_64-pc-windows-msvc",
+      "stages": [
+        {
+          "stage": "previous",
+          "version": "v0.1.2",
+          "checked_components": 7
+        },
+        {
+          "stage": "upgraded",
+          "version": "v0.1.3",
+          "checked_components": 7
+        },
+        {
+          "stage": "rolled-back",
+          "version": "v0.1.2",
+          "checked_components": 7
+        },
+        {
+          "stage": "upgraded-again",
+          "version": "v0.1.3",
+          "checked_components": 7
+        },
+        {
+          "stage": "installed",
+          "version": "v0.1.3",
+          "checked_components": 7
+        },
+        {
+          "stage": "reinstalled",
+          "version": "v0.1.3",
+          "checked_components": 7
+        }
+      ],
+      "files": [
+        {
+          "path": "published-installation/published-x86_64-pc-windows-msvc/archive-help.txt",
+          "bytes": 118,
+          "sha256": "89050244389bc7b545274a72f7334ab6169d4174bb92527947ae5d7803029b63"
+        },
+        {
+          "path": "published-installation/published-x86_64-pc-windows-msvc/conformance-help.txt",
+          "bytes": 277,
+          "sha256": "20ded3e074b8a143cf8cb4577986ca6060b21d3f93dda76c8d466230aaf9b1b9"
+        },
+        {
+          "path": "published-installation/published-x86_64-pc-windows-msvc/cross-version.txt",
+          "bytes": 38,
+          "sha256": "e34a9da8ba6db818535baf935b61edd99d1fd29e68cbf2774af1af2cb871f578"
+        },
+        {
+          "path": "published-installation/published-x86_64-pc-windows-msvc/demo.json",
+          "bytes": 694,
+          "sha256": "525bb72d6441141ab1ec5afa3ae98f28e5d909d5f4eae07075645b3da2054e7a"
+        },
+        {
+          "path": "published-installation/published-x86_64-pc-windows-msvc/host-help.txt",
+          "bytes": 66,
+          "sha256": "539df8266738637894fda61166c239219edea77657a760efa2c801bd41894d55"
+        },
+        {
+          "path": "published-installation/published-x86_64-pc-windows-msvc/install.ps1-provenance.json",
+          "bytes": 24597,
+          "sha256": "1598f26d480780c328a8deb42ff9ae292ae63f58a65f87546368b48a3403e89d"
+        },
+        {
+          "path": "published-installation/published-x86_64-pc-windows-msvc/install.sh-provenance.json",
+          "bytes": 24597,
+          "sha256": "1598f26d480780c328a8deb42ff9ae292ae63f58a65f87546368b48a3403e89d"
+        },
+        {
+          "path": "published-installation/published-x86_64-pc-windows-msvc/installed-generation.json",
+          "bytes": 1472,
+          "sha256": "ba21b15b85be86dfe6058e0419e6c8d7b4ed6e902dd20acd654bd36e2e1f3878"
+        },
+        {
+          "path": "published-installation/published-x86_64-pc-windows-msvc/installed-versions.txt",
+          "bytes": 96,
+          "sha256": "616269879c44f5f6066c360a3ae13f4f6c8d3cfb3d864149e206a518419d963f"
+        },
+        {
+          "path": "published-installation/published-x86_64-pc-windows-msvc/previous-generation.json",
+          "bytes": 1472,
+          "sha256": "102eef39444f4d4e98f8a914243a682c090226d653ad1ed3a38a89f0609f58a2"
+        },
+        {
+          "path": "published-installation/published-x86_64-pc-windows-msvc/previous-versions.txt",
+          "bytes": 96,
+          "sha256": "e041e0a9b11b500a024b62c6db6197d021d6445871b28fa4c548cfdc39f34d76"
+        },
+        {
+          "path": "published-installation/published-x86_64-pc-windows-msvc/previous/install.ps1-provenance.json",
+          "bytes": 24570,
+          "sha256": "2348137a1851d91272b87eee36bf3b3967a058325220169af4896339be4ba254"
+        },
+        {
+          "path": "published-installation/published-x86_64-pc-windows-msvc/previous/install.sh-provenance.json",
+          "bytes": 24570,
+          "sha256": "2348137a1851d91272b87eee36bf3b3967a058325220169af4896339be4ba254"
+        },
+        {
+          "path": "published-installation/published-x86_64-pc-windows-msvc/previous/release-attestation.json",
+          "bytes": 14627,
+          "sha256": "a651d188b1f79856d1fd304e32fde65b3f42e3e98f5291c7d354b27231769a53"
+        },
+        {
+          "path": "published-installation/published-x86_64-pc-windows-msvc/previous/release.json",
+          "bytes": 61928,
+          "sha256": "3552318309a3c9da377f0634cffcd7cc7b35edce246ab907d59a9f7bc885f809"
+        },
+        {
+          "path": "published-installation/published-x86_64-pc-windows-msvc/reader-help.txt",
+          "bytes": 948,
+          "sha256": "fbd05c759e35f657fdf4bf0f5e0ee4345f17bf4d39cedd57d868a0e827aff372"
+        },
+        {
+          "path": "published-installation/published-x86_64-pc-windows-msvc/reinstalled-generation.json",
+          "bytes": 1472,
+          "sha256": "ba21b15b85be86dfe6058e0419e6c8d7b4ed6e902dd20acd654bd36e2e1f3878"
+        },
+        {
+          "path": "published-installation/published-x86_64-pc-windows-msvc/reinstalled-versions.txt",
+          "bytes": 96,
+          "sha256": "616269879c44f5f6066c360a3ae13f4f6c8d3cfb3d864149e206a518419d963f"
+        },
+        {
+          "path": "published-installation/published-x86_64-pc-windows-msvc/release-attestation.json",
+          "bytes": 14627,
+          "sha256": "0ddfda00c4accf0cbc45c524f5fb4261160a79492e673e53d5424b429666cbed"
+        },
+        {
+          "path": "published-installation/published-x86_64-pc-windows-msvc/release.json",
+          "bytes": 61258,
+          "sha256": "13ba18396774b0ce8355d0279cfe1ea4a723afd6c7c31691b81f1e1dbae23b5b"
+        },
+        {
+          "path": "published-installation/published-x86_64-pc-windows-msvc/result.txt",
+          "bytes": 104,
+          "sha256": "9ff86cce7dc4992cb74fba8d3028efea582bcdbdc7d1bf2cec8bcb45ab0ddaee"
+        },
+        {
+          "path": "published-installation/published-x86_64-pc-windows-msvc/rolled-back-generation.json",
+          "bytes": 1472,
+          "sha256": "102eef39444f4d4e98f8a914243a682c090226d653ad1ed3a38a89f0609f58a2"
+        },
+        {
+          "path": "published-installation/published-x86_64-pc-windows-msvc/rolled-back-versions.txt",
+          "bytes": 96,
+          "sha256": "e041e0a9b11b500a024b62c6db6197d021d6445871b28fa4c548cfdc39f34d76"
+        },
+        {
+          "path": "published-installation/published-x86_64-pc-windows-msvc/upgraded-again-generation.json",
+          "bytes": 1472,
+          "sha256": "ba21b15b85be86dfe6058e0419e6c8d7b4ed6e902dd20acd654bd36e2e1f3878"
+        },
+        {
+          "path": "published-installation/published-x86_64-pc-windows-msvc/upgraded-again-versions.txt",
+          "bytes": 96,
+          "sha256": "616269879c44f5f6066c360a3ae13f4f6c8d3cfb3d864149e206a518419d963f"
+        },
+        {
+          "path": "published-installation/published-x86_64-pc-windows-msvc/upgraded-generation.json",
+          "bytes": 1472,
+          "sha256": "ba21b15b85be86dfe6058e0419e6c8d7b4ed6e902dd20acd654bd36e2e1f3878"
+        },
+        {
+          "path": "published-installation/published-x86_64-pc-windows-msvc/upgraded-versions.txt",
+          "bytes": 96,
+          "sha256": "616269879c44f5f6066c360a3ae13f4f6c8d3cfb3d864149e206a518419d963f"
+        }
+      ]
+    },
+    {
+      "target": "aarch64-pc-windows-msvc",
+      "job_id": 117604441205,
+      "artifact_id": 12126574785,
+      "artifact_name": "published-aarch64-pc-windows-msvc",
+      "stages": [
+        {
+          "stage": "previous",
+          "version": "v0.1.2",
+          "checked_components": 7
+        },
+        {
+          "stage": "upgraded",
+          "version": "v0.1.3",
+          "checked_components": 7
+        },
+        {
+          "stage": "rolled-back",
+          "version": "v0.1.2",
+          "checked_components": 7
+        },
+        {
+          "stage": "upgraded-again",
+          "version": "v0.1.3",
+          "checked_components": 7
+        },
+        {
+          "stage": "installed",
+          "version": "v0.1.3",
+          "checked_components": 7
+        },
+        {
+          "stage": "reinstalled",
+          "version": "v0.1.3",
+          "checked_components": 7
+        }
+      ],
+      "files": [
+        {
+          "path": "published-installation/published-aarch64-pc-windows-msvc/archive-help.txt",
+          "bytes": 118,
+          "sha256": "89050244389bc7b545274a72f7334ab6169d4174bb92527947ae5d7803029b63"
+        },
+        {
+          "path": "published-installation/published-aarch64-pc-windows-msvc/conformance-help.txt",
+          "bytes": 277,
+          "sha256": "20ded3e074b8a143cf8cb4577986ca6060b21d3f93dda76c8d466230aaf9b1b9"
+        },
+        {
+          "path": "published-installation/published-aarch64-pc-windows-msvc/cross-version.txt",
+          "bytes": 38,
+          "sha256": "e34a9da8ba6db818535baf935b61edd99d1fd29e68cbf2774af1af2cb871f578"
+        },
+        {
+          "path": "published-installation/published-aarch64-pc-windows-msvc/demo.json",
+          "bytes": 694,
+          "sha256": "525bb72d6441141ab1ec5afa3ae98f28e5d909d5f4eae07075645b3da2054e7a"
+        },
+        {
+          "path": "published-installation/published-aarch64-pc-windows-msvc/host-help.txt",
+          "bytes": 66,
+          "sha256": "539df8266738637894fda61166c239219edea77657a760efa2c801bd41894d55"
+        },
+        {
+          "path": "published-installation/published-aarch64-pc-windows-msvc/install.ps1-provenance.json",
+          "bytes": 24602,
+          "sha256": "d7aa2e0761f49670193f56fffe805b2d02e67e3ff1b185492c11d03e7c618503"
+        },
+        {
+          "path": "published-installation/published-aarch64-pc-windows-msvc/install.sh-provenance.json",
+          "bytes": 24602,
+          "sha256": "d7aa2e0761f49670193f56fffe805b2d02e67e3ff1b185492c11d03e7c618503"
+        },
+        {
+          "path": "published-installation/published-aarch64-pc-windows-msvc/installed-generation.json",
+          "bytes": 1477,
+          "sha256": "63d030870b09656edd6e20957b90a7603f6f67ba3540ca45a214f993356ad7be"
+        },
+        {
+          "path": "published-installation/published-aarch64-pc-windows-msvc/installed-versions.txt",
+          "bytes": 96,
+          "sha256": "616269879c44f5f6066c360a3ae13f4f6c8d3cfb3d864149e206a518419d963f"
+        },
+        {
+          "path": "published-installation/published-aarch64-pc-windows-msvc/previous-generation.json",
+          "bytes": 1477,
+          "sha256": "91715da1c1870a6e62c150424c69f986736065c4ac440c82c3b83b4e0c13ea8b"
+        },
+        {
+          "path": "published-installation/published-aarch64-pc-windows-msvc/previous-versions.txt",
+          "bytes": 96,
+          "sha256": "e041e0a9b11b500a024b62c6db6197d021d6445871b28fa4c548cfdc39f34d76"
+        },
+        {
+          "path": "published-installation/published-aarch64-pc-windows-msvc/previous/install.ps1-provenance.json",
+          "bytes": 24575,
+          "sha256": "4434d623d88a827d1555d73e08e2ea8edfb9d8735da540ab4d6ad31f41ac60e3"
+        },
+        {
+          "path": "published-installation/published-aarch64-pc-windows-msvc/previous/install.sh-provenance.json",
+          "bytes": 24575,
+          "sha256": "4434d623d88a827d1555d73e08e2ea8edfb9d8735da540ab4d6ad31f41ac60e3"
+        },
+        {
+          "path": "published-installation/published-aarch64-pc-windows-msvc/previous/release-attestation.json",
+          "bytes": 14627,
+          "sha256": "a651d188b1f79856d1fd304e32fde65b3f42e3e98f5291c7d354b27231769a53"
+        },
+        {
+          "path": "published-installation/published-aarch64-pc-windows-msvc/previous/release.json",
+          "bytes": 61928,
+          "sha256": "3552318309a3c9da377f0634cffcd7cc7b35edce246ab907d59a9f7bc885f809"
+        },
+        {
+          "path": "published-installation/published-aarch64-pc-windows-msvc/reader-help.txt",
+          "bytes": 948,
+          "sha256": "fbd05c759e35f657fdf4bf0f5e0ee4345f17bf4d39cedd57d868a0e827aff372"
+        },
+        {
+          "path": "published-installation/published-aarch64-pc-windows-msvc/reinstalled-generation.json",
+          "bytes": 1477,
+          "sha256": "63d030870b09656edd6e20957b90a7603f6f67ba3540ca45a214f993356ad7be"
+        },
+        {
+          "path": "published-installation/published-aarch64-pc-windows-msvc/reinstalled-versions.txt",
+          "bytes": 96,
+          "sha256": "616269879c44f5f6066c360a3ae13f4f6c8d3cfb3d864149e206a518419d963f"
+        },
+        {
+          "path": "published-installation/published-aarch64-pc-windows-msvc/release-attestation.json",
+          "bytes": 14627,
+          "sha256": "0ddfda00c4accf0cbc45c524f5fb4261160a79492e673e53d5424b429666cbed"
+        },
+        {
+          "path": "published-installation/published-aarch64-pc-windows-msvc/release.json",
+          "bytes": 61258,
+          "sha256": "13ba18396774b0ce8355d0279cfe1ea4a723afd6c7c31691b81f1e1dbae23b5b"
+        },
+        {
+          "path": "published-installation/published-aarch64-pc-windows-msvc/result.txt",
+          "bytes": 104,
+          "sha256": "9ff86cce7dc4992cb74fba8d3028efea582bcdbdc7d1bf2cec8bcb45ab0ddaee"
+        },
+        {
+          "path": "published-installation/published-aarch64-pc-windows-msvc/rolled-back-generation.json",
+          "bytes": 1477,
+          "sha256": "91715da1c1870a6e62c150424c69f986736065c4ac440c82c3b83b4e0c13ea8b"
+        },
+        {
+          "path": "published-installation/published-aarch64-pc-windows-msvc/rolled-back-versions.txt",
+          "bytes": 96,
+          "sha256": "e041e0a9b11b500a024b62c6db6197d021d6445871b28fa4c548cfdc39f34d76"
+        },
+        {
+          "path": "published-installation/published-aarch64-pc-windows-msvc/upgraded-again-generation.json",
+          "bytes": 1477,
+          "sha256": "63d030870b09656edd6e20957b90a7603f6f67ba3540ca45a214f993356ad7be"
+        },
+        {
+          "path": "published-installation/published-aarch64-pc-windows-msvc/upgraded-again-versions.txt",
+          "bytes": 96,
+          "sha256": "616269879c44f5f6066c360a3ae13f4f6c8d3cfb3d864149e206a518419d963f"
+        },
+        {
+          "path": "published-installation/published-aarch64-pc-windows-msvc/upgraded-generation.json",
+          "bytes": 1477,
+          "sha256": "63d030870b09656edd6e20957b90a7603f6f67ba3540ca45a214f993356ad7be"
+        },
+        {
+          "path": "published-installation/published-aarch64-pc-windows-msvc/upgraded-versions.txt",
+          "bytes": 96,
+          "sha256": "616269879c44f5f6066c360a3ae13f4f6c8d3cfb3d864149e206a518419d963f"
+        }
+      ]
+    },
+    {
+      "target": "x86_64-apple-darwin",
+      "job_id": 117604441231,
+      "artifact_id": 12127132733,
+      "artifact_name": "published-x86_64-apple-darwin",
+      "stages": [
+        {
+          "stage": "previous",
+          "version": "v0.1.2",
+          "checked_components": 7
+        },
+        {
+          "stage": "upgraded",
+          "version": "v0.1.3",
+          "checked_components": 7
+        },
+        {
+          "stage": "rolled-back",
+          "version": "v0.1.2",
+          "checked_components": 7
+        },
+        {
+          "stage": "upgraded-again",
+          "version": "v0.1.3",
+          "checked_components": 7
+        },
+        {
+          "stage": "installed",
+          "version": "v0.1.3",
+          "checked_components": 7
+        },
+        {
+          "stage": "reinstalled",
+          "version": "v0.1.3",
+          "checked_components": 7
+        }
+      ],
+      "files": [
+        {
+          "path": "published-installation/published-x86_64-apple-darwin/archive-help.txt",
+          "bytes": 116,
+          "sha256": "97533a1dab29ad7f0615e37d271a5159befa815699c0458cbd262f2e8c1fc492"
+        },
+        {
+          "path": "published-installation/published-x86_64-apple-darwin/conformance-help.txt",
+          "bytes": 275,
+          "sha256": "1cb7fd686c7529e5d074873442d0d112447f5467dd6af0c526c8641ee29ba5d2"
+        },
+        {
+          "path": "published-installation/published-x86_64-apple-darwin/cross-version.txt",
+          "bytes": 37,
+          "sha256": "a671ba348664acfaaf0ee4018f828cd2d300984db39fa7526ecc878c14bc69d1"
+        },
+        {
+          "path": "published-installation/published-x86_64-apple-darwin/demo.json",
+          "bytes": 666,
+          "sha256": "c0e4454eaf964116ba292190520297c9f8581e83dab8bb54069c34ac4fee3203"
+        },
+        {
+          "path": "published-installation/published-x86_64-apple-darwin/host-help.txt",
+          "bytes": 64,
+          "sha256": "bdf9235350bac4f7c00219c45ee6bf56681a4472eac00e302f53fa782214fc64"
+        },
+        {
+          "path": "published-installation/published-x86_64-apple-darwin/install.ps1-provenance.json",
+          "bytes": 24570,
+          "sha256": "c89f77c32f7a4f1787cf4035e31521f9009a72636648f9767c3bbddd91e0d3f5"
+        },
+        {
+          "path": "published-installation/published-x86_64-apple-darwin/install.sh-provenance.json",
+          "bytes": 24570,
+          "sha256": "c89f77c32f7a4f1787cf4035e31521f9009a72636648f9767c3bbddd91e0d3f5"
+        },
+        {
+          "path": "published-installation/published-x86_64-apple-darwin/installed-generation.json",
+          "bytes": 1384,
+          "sha256": "9abec470ea973054afb5cfcf17938b513dad248f592a52d48ee7c837a05438b8"
+        },
+        {
+          "path": "published-installation/published-x86_64-apple-darwin/installed-versions.txt",
+          "bytes": 92,
+          "sha256": "5b0b24531453ac8853c7e979a6c69ad134c9d84ff17ec7aab98e7374aab4e3e1"
+        },
+        {
+          "path": "published-installation/published-x86_64-apple-darwin/previous-generation.json",
+          "bytes": 1384,
+          "sha256": "b90a6f3feca73b4a67dd87019cf317c6d0184a8a9e40d1f7d21985d0126fae55"
+        },
+        {
+          "path": "published-installation/published-x86_64-apple-darwin/previous-versions.txt",
+          "bytes": 92,
+          "sha256": "fab47c359a0d6212aa8aeae033a67421a94925a3f57a32d3e6f950ed99e8b72f"
+        },
+        {
+          "path": "published-installation/published-x86_64-apple-darwin/previous/install.ps1-provenance.json",
+          "bytes": 24543,
+          "sha256": "e27c69808807a19745d442eb1757f82551ee6d167fe2cbb250bca255a70734ed"
+        },
+        {
+          "path": "published-installation/published-x86_64-apple-darwin/previous/install.sh-provenance.json",
+          "bytes": 24543,
+          "sha256": "e27c69808807a19745d442eb1757f82551ee6d167fe2cbb250bca255a70734ed"
+        },
+        {
+          "path": "published-installation/published-x86_64-apple-darwin/previous/release-attestation.json",
+          "bytes": 14627,
+          "sha256": "a651d188b1f79856d1fd304e32fde65b3f42e3e98f5291c7d354b27231769a53"
+        },
+        {
+          "path": "published-installation/published-x86_64-apple-darwin/previous/release.json",
+          "bytes": 61928,
+          "sha256": "3552318309a3c9da377f0634cffcd7cc7b35edce246ab907d59a9f7bc885f809"
+        },
+        {
+          "path": "published-installation/published-x86_64-apple-darwin/reader-help.txt",
+          "bytes": 927,
+          "sha256": "561c690d4f62a7d9f37790dd769330d41d271f806fc3bce8f7cbf6c7dd42455e"
+        },
+        {
+          "path": "published-installation/published-x86_64-apple-darwin/reinstalled-generation.json",
+          "bytes": 1384,
+          "sha256": "9abec470ea973054afb5cfcf17938b513dad248f592a52d48ee7c837a05438b8"
+        },
+        {
+          "path": "published-installation/published-x86_64-apple-darwin/reinstalled-versions.txt",
+          "bytes": 92,
+          "sha256": "5b0b24531453ac8853c7e979a6c69ad134c9d84ff17ec7aab98e7374aab4e3e1"
+        },
+        {
+          "path": "published-installation/published-x86_64-apple-darwin/release-attestation.json",
+          "bytes": 14627,
+          "sha256": "0ddfda00c4accf0cbc45c524f5fb4261160a79492e673e53d5424b429666cbed"
+        },
+        {
+          "path": "published-installation/published-x86_64-apple-darwin/release.json",
+          "bytes": 61258,
+          "sha256": "13ba18396774b0ce8355d0279cfe1ea4a723afd6c7c31691b81f1e1dbae23b5b"
+        },
+        {
+          "path": "published-installation/published-x86_64-apple-darwin/result.txt",
+          "bytes": 103,
+          "sha256": "78442bdafb889ba9e97b29c0288fe14a5d7e8fb2cd9c93d015462301fffa76c4"
+        },
+        {
+          "path": "published-installation/published-x86_64-apple-darwin/rolled-back-generation.json",
+          "bytes": 1384,
+          "sha256": "b90a6f3feca73b4a67dd87019cf317c6d0184a8a9e40d1f7d21985d0126fae55"
+        },
+        {
+          "path": "published-installation/published-x86_64-apple-darwin/rolled-back-versions.txt",
+          "bytes": 92,
+          "sha256": "fab47c359a0d6212aa8aeae033a67421a94925a3f57a32d3e6f950ed99e8b72f"
+        },
+        {
+          "path": "published-installation/published-x86_64-apple-darwin/upgraded-again-generation.json",
+          "bytes": 1384,
+          "sha256": "9abec470ea973054afb5cfcf17938b513dad248f592a52d48ee7c837a05438b8"
+        },
+        {
+          "path": "published-installation/published-x86_64-apple-darwin/upgraded-again-versions.txt",
+          "bytes": 92,
+          "sha256": "5b0b24531453ac8853c7e979a6c69ad134c9d84ff17ec7aab98e7374aab4e3e1"
+        },
+        {
+          "path": "published-installation/published-x86_64-apple-darwin/upgraded-generation.json",
+          "bytes": 1384,
+          "sha256": "9abec470ea973054afb5cfcf17938b513dad248f592a52d48ee7c837a05438b8"
+        },
+        {
+          "path": "published-installation/published-x86_64-apple-darwin/upgraded-versions.txt",
+          "bytes": 92,
+          "sha256": "5b0b24531453ac8853c7e979a6c69ad134c9d84ff17ec7aab98e7374aab4e3e1"
+        }
+      ]
+    },
+    {
+      "target": "aarch64-apple-darwin",
+      "job_id": 117604441069,
+      "artifact_id": 12127034358,
+      "artifact_name": "published-aarch64-apple-darwin",
+      "stages": [
+        {
+          "stage": "previous",
+          "version": "v0.1.2",
+          "checked_components": 7
+        },
+        {
+          "stage": "upgraded",
+          "version": "v0.1.3",
+          "checked_components": 7
+        },
+        {
+          "stage": "rolled-back",
+          "version": "v0.1.2",
+          "checked_components": 7
+        },
+        {
+          "stage": "upgraded-again",
+          "version": "v0.1.3",
+          "checked_components": 7
+        },
+        {
+          "stage": "installed",
+          "version": "v0.1.3",
+          "checked_components": 7
+        },
+        {
+          "stage": "reinstalled",
+          "version": "v0.1.3",
+          "checked_components": 7
+        }
+      ],
+      "files": [
+        {
+          "path": "published-installation/published-aarch64-apple-darwin/archive-help.txt",
+          "bytes": 116,
+          "sha256": "97533a1dab29ad7f0615e37d271a5159befa815699c0458cbd262f2e8c1fc492"
+        },
+        {
+          "path": "published-installation/published-aarch64-apple-darwin/conformance-help.txt",
+          "bytes": 275,
+          "sha256": "1cb7fd686c7529e5d074873442d0d112447f5467dd6af0c526c8641ee29ba5d2"
+        },
+        {
+          "path": "published-installation/published-aarch64-apple-darwin/cross-version.txt",
+          "bytes": 37,
+          "sha256": "a671ba348664acfaaf0ee4018f828cd2d300984db39fa7526ecc878c14bc69d1"
+        },
+        {
+          "path": "published-installation/published-aarch64-apple-darwin/demo.json",
+          "bytes": 666,
+          "sha256": "c0e4454eaf964116ba292190520297c9f8581e83dab8bb54069c34ac4fee3203"
+        },
+        {
+          "path": "published-installation/published-aarch64-apple-darwin/host-help.txt",
+          "bytes": 64,
+          "sha256": "bdf9235350bac4f7c00219c45ee6bf56681a4472eac00e302f53fa782214fc64"
+        },
+        {
+          "path": "published-installation/published-aarch64-apple-darwin/install.ps1-provenance.json",
+          "bytes": 24570,
+          "sha256": "c89f77c32f7a4f1787cf4035e31521f9009a72636648f9767c3bbddd91e0d3f5"
+        },
+        {
+          "path": "published-installation/published-aarch64-apple-darwin/install.sh-provenance.json",
+          "bytes": 24570,
+          "sha256": "c89f77c32f7a4f1787cf4035e31521f9009a72636648f9767c3bbddd91e0d3f5"
+        },
+        {
+          "path": "published-installation/published-aarch64-apple-darwin/installed-generation.json",
+          "bytes": 1389,
+          "sha256": "3025f855c09ef0cb9213de787b5711a11ac2856b37c5d89ede9777119c3a7239"
+        },
+        {
+          "path": "published-installation/published-aarch64-apple-darwin/installed-versions.txt",
+          "bytes": 92,
+          "sha256": "5b0b24531453ac8853c7e979a6c69ad134c9d84ff17ec7aab98e7374aab4e3e1"
+        },
+        {
+          "path": "published-installation/published-aarch64-apple-darwin/previous-generation.json",
+          "bytes": 1389,
+          "sha256": "1da24b4083d1d69d42cec096af80a0a4c71c0be5f72c44bdb702c9bcbda6cac7"
+        },
+        {
+          "path": "published-installation/published-aarch64-apple-darwin/previous-versions.txt",
+          "bytes": 92,
+          "sha256": "fab47c359a0d6212aa8aeae033a67421a94925a3f57a32d3e6f950ed99e8b72f"
+        },
+        {
+          "path": "published-installation/published-aarch64-apple-darwin/previous/install.ps1-provenance.json",
+          "bytes": 24543,
+          "sha256": "e27c69808807a19745d442eb1757f82551ee6d167fe2cbb250bca255a70734ed"
+        },
+        {
+          "path": "published-installation/published-aarch64-apple-darwin/previous/install.sh-provenance.json",
+          "bytes": 24543,
+          "sha256": "e27c69808807a19745d442eb1757f82551ee6d167fe2cbb250bca255a70734ed"
+        },
+        {
+          "path": "published-installation/published-aarch64-apple-darwin/previous/release-attestation.json",
+          "bytes": 14627,
+          "sha256": "a651d188b1f79856d1fd304e32fde65b3f42e3e98f5291c7d354b27231769a53"
+        },
+        {
+          "path": "published-installation/published-aarch64-apple-darwin/previous/release.json",
+          "bytes": 61928,
+          "sha256": "3552318309a3c9da377f0634cffcd7cc7b35edce246ab907d59a9f7bc885f809"
+        },
+        {
+          "path": "published-installation/published-aarch64-apple-darwin/reader-help.txt",
+          "bytes": 927,
+          "sha256": "561c690d4f62a7d9f37790dd769330d41d271f806fc3bce8f7cbf6c7dd42455e"
+        },
+        {
+          "path": "published-installation/published-aarch64-apple-darwin/reinstalled-generation.json",
+          "bytes": 1389,
+          "sha256": "3025f855c09ef0cb9213de787b5711a11ac2856b37c5d89ede9777119c3a7239"
+        },
+        {
+          "path": "published-installation/published-aarch64-apple-darwin/reinstalled-versions.txt",
+          "bytes": 92,
+          "sha256": "5b0b24531453ac8853c7e979a6c69ad134c9d84ff17ec7aab98e7374aab4e3e1"
+        },
+        {
+          "path": "published-installation/published-aarch64-apple-darwin/release-attestation.json",
+          "bytes": 14627,
+          "sha256": "0ddfda00c4accf0cbc45c524f5fb4261160a79492e673e53d5424b429666cbed"
+        },
+        {
+          "path": "published-installation/published-aarch64-apple-darwin/release.json",
+          "bytes": 61258,
+          "sha256": "13ba18396774b0ce8355d0279cfe1ea4a723afd6c7c31691b81f1e1dbae23b5b"
+        },
+        {
+          "path": "published-installation/published-aarch64-apple-darwin/result.txt",
+          "bytes": 103,
+          "sha256": "78442bdafb889ba9e97b29c0288fe14a5d7e8fb2cd9c93d015462301fffa76c4"
+        },
+        {
+          "path": "published-installation/published-aarch64-apple-darwin/rolled-back-generation.json",
+          "bytes": 1389,
+          "sha256": "1da24b4083d1d69d42cec096af80a0a4c71c0be5f72c44bdb702c9bcbda6cac7"
+        },
+        {
+          "path": "published-installation/published-aarch64-apple-darwin/rolled-back-versions.txt",
+          "bytes": 92,
+          "sha256": "fab47c359a0d6212aa8aeae033a67421a94925a3f57a32d3e6f950ed99e8b72f"
+        },
+        {
+          "path": "published-installation/published-aarch64-apple-darwin/upgraded-again-generation.json",
+          "bytes": 1389,
+          "sha256": "3025f855c09ef0cb9213de787b5711a11ac2856b37c5d89ede9777119c3a7239"
+        },
+        {
+          "path": "published-installation/published-aarch64-apple-darwin/upgraded-again-versions.txt",
+          "bytes": 92,
+          "sha256": "5b0b24531453ac8853c7e979a6c69ad134c9d84ff17ec7aab98e7374aab4e3e1"
+        },
+        {
+          "path": "published-installation/published-aarch64-apple-darwin/upgraded-generation.json",
+          "bytes": 1389,
+          "sha256": "3025f855c09ef0cb9213de787b5711a11ac2856b37c5d89ede9777119c3a7239"
+        },
+        {
+          "path": "published-installation/published-aarch64-apple-darwin/upgraded-versions.txt",
+          "bytes": 92,
+          "sha256": "5b0b24531453ac8853c7e979a6c69ad134c9d84ff17ec7aab98e7374aab4e3e1"
+        }
+      ]
+    }
+  ],
+  "scope": "Derived validation of operator-downloaded artifact contents against live GH run/artifact metadata and independently verified published checksum records. Does not download artifacts, cryptographically prove local artifact origin, execute binaries, or repeat attestation verification."
+}

@@ -115,3 +115,7 @@ The [arrival evidence packet](../conformance/evidence/website-arrival-2026-10-12
 The deployed manifest, privacy notice and instructions now distinguish aggregate public study from quotation, transcript publication and participant-specific accounts requiring affirmative permission. The deployed maintainer-run registry remains empty, and board information exposes the same empty registry. Registered positive label cases have source tests; this deployment observes only the empty public registry. Posting remains closed, public reading remains available, and the reporting page retains `nick@pueo.io`. No mailbox delivery was tested. No inspected HTML contained a provider beacon, which does not establish account-wide analytics disablement.
 
 The earlier opening decisions remain deferred. This checked deployment adds no public participant submission, model trial, independent interoperability, provider restore drill or continuous-availability claim. It is separate from native utility release preparation and publication.
+
+## October 18 checked return and appearance update
+
+The [separate deployment record](WEBSITE_RETURN_DEPLOYMENT_2026_10_18.md) identifies the later exact green-main package, new Worker version, authenticated provider readback, updated public entry probe and delivered palette/conversation changes. This historical record retains its original source and observations.

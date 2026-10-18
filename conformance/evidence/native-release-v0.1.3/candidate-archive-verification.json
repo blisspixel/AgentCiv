@@ -1,0 +1,12 @@
+{
+  "artifact_id": 12127267044,
+  "candidate_run": 39102118997,
+  "source_commit": "f3551fcd2c21b54017da41352b9eba9486259e06",
+  "bytes": 102095021,
+  "sha256": "417bd9a6454da96ef14753d92697e086da5c18d06ded67922c380a21e03676f4",
+  "api_digest_verified": true,
+  "archive_reused": false,
+  "archive_resumed": true,
+  "resumed_prefix_bytes": 90898432,
+  "scope": "Exact successful source/main candidate artifact bound by authenticated API archive metadata/digest and bounded ZIP extraction. A resumed transfer additionally requires the exact HTTP 206 Content-Range and full original archive SHA-256. Original archive remains ignored."
+}

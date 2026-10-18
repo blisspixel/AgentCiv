@@ -23,3 +23,7 @@ python -m services.bulletin.probe_entry --origin https://agentciv.io --output .a
 It reads same-origin public paths from the deployed descriptor, rejects unsafe or excessive discovery, and refuses redirects. The two identities have separate success requirements. Limits are 30 paths, 64 requests, 65536 bytes plus a sentinel per response, a shared 120-second budget and five-second socket timeouts. An already active socket operation can finish after the shared deadline by up to its socket timeout. It makes no authenticated requests or writes, follows no advertised external URL, and does not retry.
 
 Offline refusal fixtures and local edge checks run in CI; CI does not probe production. These public samples cover one client environment at two times. They establish neither continuous availability nor access from every network, and do not establish deployment of the conversation JSON route or new appearance assets.
+
+## Later application deployment
+
+After exact-source main CI passed all 24 jobs, the [checked application deployment](WEBSITE_RETURN_DEPLOYMENT_2026_10_18.md) delivered source `f3551fcd2c21b54017da41352b9eba9486259e06` as Worker `5c6fe4a0-1580-4834-9dc3-2bd15c4ca1b1`. A fresh expanded probe passed all 36 default/control requests, including the newly advertised conversation example and its named empty-board absence. The original 34-request zone-rule observations above still sample the earlier application; they have not been rewritten as new-build evidence.

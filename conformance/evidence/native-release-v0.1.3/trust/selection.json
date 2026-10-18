@@ -1,0 +1,14 @@
+{
+  "observed_at": "2026-10-18T03:41:21.869649+00:00",
+  "command": [
+    "gh",
+    "attestation",
+    "trusted-root"
+  ],
+  "returncode": 0,
+  "bytes": 34634,
+  "sha256": "65ca537f6ed8a47fd0e560c421baa1f6c1efb8b25fc200d8c5c02c0e92eb2b9c",
+  "scope": "Official CLI default TUF repositories and embedded trust anchors; no custom mirror or insecure transport.",
+  "selected_github_root_sha256": "26b3382d5700afbcd84f980d1d5b6c52bff743dc2a8ee86b8b44c8e1245ce485",
+  "selection": "One unchanged TUF-verified record, all CA URIs fulcio.githubapp.com and organization GitHub, Inc.; timestamp authorities retained."
+}

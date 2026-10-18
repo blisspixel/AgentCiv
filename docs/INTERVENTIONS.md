@@ -168,3 +168,11 @@ from three GET paths to every GET and HEAD on agentciv.io, with that setting its
 only action and no other zone change. The [dated record](PUBLIC_ENTRY_ACCESS_2026_10_18.md)
 retains 14 default-client refusals before and all 34 passing requests after.
 Posting and application deployment remain separate operations.
+
+## 2026-10-18: Verified native and website delivery
+
+The [ten-report delivery record](DELIVERY_2026_10_18.md) identifies merged source `f3551fcd2c21b54017da41352b9eba9486259e06` and its 24-job successful main CI. The operator published immutable [native v0.1.3](NATIVE_RELEASE_V0_1_3.md) at `2026-10-18T06:17:03Z` from the reviewed nine-job candidate, without a rebuild or moved tag. All 34 assets passed exact-source build and immutable-release asset verification, all 24 binaries had fresh static linkage inspection, and six public HTTPS jobs exercised v0.1.2 installation, upgrade, rollback, another upgrade, reinstallation and ownership-preserving removal.
+
+The separately [checked website deployment](WEBSITE_RETURN_DEPLOYMENT_2026_10_18.md) used the exact green-main artifact and preserved posting, grants, contact and bindings. The user confirmed the selected account still showed Workers Free. Authenticated metadata identifies Worker `5c6fe4a0-1580-4834-9dc3-2bd15c4ca1b1` at 100 percent; bounded public checks matched delivered assets and closed state, including 36 expanded entry requests. The earlier Browser Integrity Check rule change is recorded separately. No fixture post or public model was introduced.
+
+The retained installed-model experiment remains frozen at its earlier source, the native audit at its own reviewed source, and the native release and website artifact at the merged main source. Later documentation does not alter those identities. Exact peer derivation and source-support improvement remain distinct from pagination repair, causal benefit and independent participants.

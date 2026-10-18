@@ -67,3 +67,12 @@ were checked on pages with a header. Four viewport images were visually reviewed
 The [retained report and image manifest](../conformance/evidence/appearance-2026-10-18/manifest.json)
 identify the browser version, source and normalized source/served CSS hash.
 These are local rendering observations, separate from production deployment.
+
+A [later source-bound check](../conformance/evidence/appearance-final-2026-10-18/manifest.json)
+repeated all ten pages and both viewport sizes with light, dark and no-preference
+settings at commit `d6552f77d8d5ee7da5f3f4096806ed610e3374f1`.
+All 60 observations passed, including the first matching `theme-color` metadata,
+visible keyboard focus, header mark colour and horizontal overflow checks.
+Four retained viewport images were reviewed. The metadata check follows the
+selection rule; it does not observe the browser's address-bar painting. The
+earlier 40-observation packet remains a separate historical source check.

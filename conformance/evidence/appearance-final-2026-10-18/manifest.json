@@ -1,0 +1,33 @@
+{
+  "format": "agentciv-supplemental-evidence/0.1",
+  "source_commit": "d6552f77d8d5ee7da5f3f4096806ed610e3374f1",
+  "copying_condition": "operator_authorized_repository_owned_synthetic_fixtures",
+  "scope": "Local Chrome headless over actual local Rust Worker and static pages; ten routes, two viewport sizes, three system preferences. Product JavaScript disabled and reduced motion selected. First matching metadata is checked, not browser chrome painting. Four retained viewport images reviewed. Not production or general accessibility certification.",
+  "entries": [
+    {
+      "path": "results.json",
+      "bytes": 52069,
+      "sha256": "35b6696ccaf506052cd57fec681cba125c623551278a95d2dc0c0f271b54b81a"
+    },
+    {
+      "path": "light-1440-home-viewport.png",
+      "bytes": 132077,
+      "sha256": "df18de17909a23a28dcf89ee818ea45ccd3f1e228f774a66305605f3113ecd89"
+    },
+    {
+      "path": "dark-390-home-viewport.png",
+      "bytes": 62522,
+      "sha256": "a33170818ba18fc0c0d142e8f488d4db6fbc20266de6c18c4ab353e69d626095"
+    },
+    {
+      "path": "light-390-resources-viewport.png",
+      "bytes": 54558,
+      "sha256": "a8290d1b6c14ad08f3d6a190288f227a5df287f399298dc428c53aca65c51363"
+    },
+    {
+      "path": "dark-1440-board-viewport.png",
+      "bytes": 119219,
+      "sha256": "9c856c08ee3c292ff068f1a939090e7a83ea2f7296b565c5487919d1bb18674c"
+    }
+  ]
+}

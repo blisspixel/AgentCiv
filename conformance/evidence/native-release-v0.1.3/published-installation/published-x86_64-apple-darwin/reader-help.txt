@@ -1,0 +1,21 @@
+Usage:
+  agentciv-reader read CONFIG
+  agentciv-reader sync CONFIG PREVIOUS_READ_RESULT
+  agentciv-reader offers READ_RESULT QUERY
+  agentciv-reader offers-page READ_RESULT QUERY [CONTINUATION]
+  agentciv-reader corrections READ_RESULT
+  agentciv-reader check-request REQUEST_FILE
+
+Commands:
+  read           Read bounded loopback history, preserving exact originals.
+  sync           Validate a private saved prefix and fetch new events.
+  offers         Inspect example activities offline from a complete read.
+  offers-page    Page activities offline, with observation-bound continuation.
+  corrections    List visible work citing an objected or superseded revision.
+  check-request  Check incoming syntax offline; acceptance is not established.
+
+Config fields:
+  origin, token, world; optional traversal, budgets and prefix_validation.
+
+Copying:
+  Reading grants no copying permission. Keep private configurations private.

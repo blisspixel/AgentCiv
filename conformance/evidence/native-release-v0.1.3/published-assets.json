@@ -1,0 +1,315 @@
+{
+  "observed_at": "2026-10-18T06:20:59.939125+00:00",
+  "source_commit": "f3551fcd2c21b54017da41352b9eba9486259e06",
+  "version": "v0.1.3",
+  "candidate_run": 39102118997,
+  "published": true,
+  "assets": [
+    {
+      "name": "agentciv-archive-v0.1.3-aarch64-apple-darwin",
+      "sha256": "dbd5e42c03304b657fd734a5b4d79ccc745dab5bf3a1b0092380066934981350",
+      "build_provenance_verified": true,
+      "build_invocations": [
+        "https://github.com/blisspixel/AgentCiv/actions/runs/39102118997/attempts/1"
+      ],
+      "immutable_release_asset_verified": true
+    },
+    {
+      "name": "agentciv-archive-v0.1.3-aarch64-pc-windows-msvc.exe",
+      "sha256": "b79ef8aaf6271c6679f1f61db068e4b2be355a7e012598820b61d8a84bf8a775",
+      "build_provenance_verified": true,
+      "build_invocations": [
+        "https://github.com/blisspixel/AgentCiv/actions/runs/39102118997/attempts/1"
+      ],
+      "immutable_release_asset_verified": true
+    },
+    {
+      "name": "agentciv-archive-v0.1.3-aarch64-unknown-linux-gnu",
+      "sha256": "2687d1470da4e4de89218ca0ff3dec1fcedc526de7a0f3875f80c1a72154f2f0",
+      "build_provenance_verified": true,
+      "build_invocations": [
+        "https://github.com/blisspixel/AgentCiv/actions/runs/39102118997/attempts/1"
+      ],
+      "immutable_release_asset_verified": true
+    },
+    {
+      "name": "agentciv-archive-v0.1.3-x86_64-apple-darwin",
+      "sha256": "1200e5020b2fc9601b76b8972f44b4b8c7f947cf6dff1552efd7f3324cd62242",
+      "build_provenance_verified": true,
+      "build_invocations": [
+        "https://github.com/blisspixel/AgentCiv/actions/runs/39102118997/attempts/1"
+      ],
+      "immutable_release_asset_verified": true
+    },
+    {
+      "name": "agentciv-archive-v0.1.3-x86_64-pc-windows-msvc.exe",
+      "sha256": "75f2d1f8f2d5057f94a898b9858730e775f738f8dfc03a1ff5423ff4ff4ba2e3",
+      "build_provenance_verified": true,
+      "build_invocations": [
+        "https://github.com/blisspixel/AgentCiv/actions/runs/39102118997/attempts/1"
+      ],
+      "immutable_release_asset_verified": true
+    },
+    {
+      "name": "agentciv-archive-v0.1.3-x86_64-unknown-linux-gnu",
+      "sha256": "fc5f93d71392fc49228950c3de046cdd6138c892bf6ec8db637d0eee80074ae0",
+      "build_provenance_verified": true,
+      "build_invocations": [
+        "https://github.com/blisspixel/AgentCiv/actions/runs/39102118997/attempts/1"
+      ],
+      "immutable_release_asset_verified": true
+    },
+    {
+      "name": "agentciv-conformance-v0.1.3-aarch64-apple-darwin",
+      "sha256": "55acd4b4584f82642b52a0d9360f520fc96279b10a8646269db8cf394de98cc3",
+      "build_provenance_verified": true,
+      "build_invocations": [
+        "https://github.com/blisspixel/AgentCiv/actions/runs/39102118997/attempts/1"
+      ],
+      "immutable_release_asset_verified": true
+    },
+    {
+      "name": "agentciv-conformance-v0.1.3-aarch64-pc-windows-msvc.exe",
+      "sha256": "96a2cd88066094a48e75eee99ad8bb3bb75fbc6b0bea2b46096c43b8a4119020",
+      "build_provenance_verified": true,
+      "build_invocations": [
+        "https://github.com/blisspixel/AgentCiv/actions/runs/39102118997/attempts/1"
+      ],
+      "immutable_release_asset_verified": true
+    },
+    {
+      "name": "agentciv-conformance-v0.1.3-aarch64-unknown-linux-gnu",
+      "sha256": "a2d066648a74e8d706e4deb97d841d9eff0e4d4728a29c983606926e43a6a34b",
+      "build_provenance_verified": true,
+      "build_invocations": [
+        "https://github.com/blisspixel/AgentCiv/actions/runs/39102118997/attempts/1"
+      ],
+      "immutable_release_asset_verified": true
+    },
+    {
+      "name": "agentciv-conformance-v0.1.3-x86_64-apple-darwin",
+      "sha256": "2e81af4f27fc0df54eda8e36813e453a38310304d92c8941d5d5090b049cc1b9",
+      "build_provenance_verified": true,
+      "build_invocations": [
+        "https://github.com/blisspixel/AgentCiv/actions/runs/39102118997/attempts/1"
+      ],
+      "immutable_release_asset_verified": true
+    },
+    {
+      "name": "agentciv-conformance-v0.1.3-x86_64-pc-windows-msvc.exe",
+      "sha256": "29aa9139a52c851eac4fbdfeb448450c9aaaa64308226a8acddbbdc9f2e9790a",
+      "build_provenance_verified": true,
+      "build_invocations": [
+        "https://github.com/blisspixel/AgentCiv/actions/runs/39102118997/attempts/1"
+      ],
+      "immutable_release_asset_verified": true
+    },
+    {
+      "name": "agentciv-conformance-v0.1.3-x86_64-unknown-linux-gnu",
+      "sha256": "70f7a8d26d19c96c63b9766e852698901c785b62423d92ea1c8f8106c9701a59",
+      "build_provenance_verified": true,
+      "build_invocations": [
+        "https://github.com/blisspixel/AgentCiv/actions/runs/39102118997/attempts/1"
+      ],
+      "immutable_release_asset_verified": true
+    },
+    {
+      "name": "agentciv-host-v0.1.3-aarch64-apple-darwin",
+      "sha256": "e68ba80071f564a4839c14e9ac9142e3014d582b4526c094f6786aa075d79290",
+      "build_provenance_verified": true,
+      "build_invocations": [
+        "https://github.com/blisspixel/AgentCiv/actions/runs/39102118997/attempts/1"
+      ],
+      "immutable_release_asset_verified": true
+    },
+    {
+      "name": "agentciv-host-v0.1.3-aarch64-pc-windows-msvc.exe",
+      "sha256": "469ad807cd6c0270fb6d70e50787e03b928acda6bf0ec17594746d1b4ebfdd4f",
+      "build_provenance_verified": true,
+      "build_invocations": [
+        "https://github.com/blisspixel/AgentCiv/actions/runs/39102118997/attempts/1"
+      ],
+      "immutable_release_asset_verified": true
+    },
+    {
+      "name": "agentciv-host-v0.1.3-aarch64-unknown-linux-gnu",
+      "sha256": "34c2a8579640fd891cc7c7176585a2101c217ed7cf002d6b63189d7e535e9a1c",
+      "build_provenance_verified": true,
+      "build_invocations": [
+        "https://github.com/blisspixel/AgentCiv/actions/runs/39102118997/attempts/1"
+      ],
+      "immutable_release_asset_verified": true
+    },
+    {
+      "name": "agentciv-host-v0.1.3-x86_64-apple-darwin",
+      "sha256": "6a5e5f6382f9dcb230cd5c052ed90ca774259fa89bb57130b2f01e9eb3a086c2",
+      "build_provenance_verified": true,
+      "build_invocations": [
+        "https://github.com/blisspixel/AgentCiv/actions/runs/39102118997/attempts/1"
+      ],
+      "immutable_release_asset_verified": true
+    },
+    {
+      "name": "agentciv-host-v0.1.3-x86_64-pc-windows-msvc.exe",
+      "sha256": "deda61ab712f1dd9f203e816cd9c53d5047b3e067c7d929d72ab6adc68b8ed88",
+      "build_provenance_verified": true,
+      "build_invocations": [
+        "https://github.com/blisspixel/AgentCiv/actions/runs/39102118997/attempts/1"
+      ],
+      "immutable_release_asset_verified": true
+    },
+    {
+      "name": "agentciv-host-v0.1.3-x86_64-unknown-linux-gnu",
+      "sha256": "bcfcd8ef7e0724f7c2212f5343e38b95a1e77c9f5b3f2a94362c59776752a40c",
+      "build_provenance_verified": true,
+      "build_invocations": [
+        "https://github.com/blisspixel/AgentCiv/actions/runs/39102118997/attempts/1"
+      ],
+      "immutable_release_asset_verified": true
+    },
+    {
+      "name": "agentciv-reader-v0.1.3-aarch64-apple-darwin",
+      "sha256": "99c5ad13ec38dd2e91482d9be8f7d9222c5370ade04e5b1b0fc0a8e1dac3c20c",
+      "build_provenance_verified": true,
+      "build_invocations": [
+        "https://github.com/blisspixel/AgentCiv/actions/runs/39102118997/attempts/1"
+      ],
+      "immutable_release_asset_verified": true
+    },
+    {
+      "name": "agentciv-reader-v0.1.3-aarch64-pc-windows-msvc.exe",
+      "sha256": "37eeda5c94a6cbf566ecd3299e7a32930f11971a2f576d0d5bfa12753f700147",
+      "build_provenance_verified": true,
+      "build_invocations": [
+        "https://github.com/blisspixel/AgentCiv/actions/runs/39102118997/attempts/1"
+      ],
+      "immutable_release_asset_verified": true
+    },
+    {
+      "name": "agentciv-reader-v0.1.3-aarch64-unknown-linux-gnu",
+      "sha256": "25d0fbec7378c18ffa3ab65b45ff44de9f5dae4ff21b15871c61220ead497429",
+      "build_provenance_verified": true,
+      "build_invocations": [
+        "https://github.com/blisspixel/AgentCiv/actions/runs/39102118997/attempts/1"
+      ],
+      "immutable_release_asset_verified": true
+    },
+    {
+      "name": "agentciv-reader-v0.1.3-x86_64-apple-darwin",
+      "sha256": "c5b24b901ab66b0c5230032b7e8966d77619b73f55d72fddcc642a9da1c9742d",
+      "build_provenance_verified": true,
+      "build_invocations": [
+        "https://github.com/blisspixel/AgentCiv/actions/runs/39102118997/attempts/1"
+      ],
+      "immutable_release_asset_verified": true
+    },
+    {
+      "name": "agentciv-reader-v0.1.3-x86_64-pc-windows-msvc.exe",
+      "sha256": "4e3678ee5304db853966a4f0523b3d828eb1314511cc76b66bf36659a9788926",
+      "build_provenance_verified": true,
+      "build_invocations": [
+        "https://github.com/blisspixel/AgentCiv/actions/runs/39102118997/attempts/1"
+      ],
+      "immutable_release_asset_verified": true
+    },
+    {
+      "name": "agentciv-reader-v0.1.3-x86_64-unknown-linux-gnu",
+      "sha256": "a953fe8bdc3c63de345325f2fad5e351e386b435a8765cd8aca28bed17ecf41c",
+      "build_provenance_verified": true,
+      "build_invocations": [
+        "https://github.com/blisspixel/AgentCiv/actions/runs/39102118997/attempts/1"
+      ],
+      "immutable_release_asset_verified": true
+    },
+    {
+      "name": "install.ps1",
+      "sha256": "ae04174dcfdda9d7108fec5a06d85d95f0e6e0ee2e4bc846407a1601779e5534",
+      "build_provenance_verified": true,
+      "build_invocations": [
+        "https://github.com/blisspixel/AgentCiv/actions/runs/39102118997/attempts/1"
+      ],
+      "immutable_release_asset_verified": true
+    },
+    {
+      "name": "install.sh",
+      "sha256": "1fb2a35a035a0bbb6404adc7da3c1fbaccbbe2ea6180f3d140b30b1c1b0ee69f",
+      "build_provenance_verified": true,
+      "build_invocations": [
+        "https://github.com/blisspixel/AgentCiv/actions/runs/39102118997/attempts/1"
+      ],
+      "immutable_release_asset_verified": true
+    },
+    {
+      "name": "LICENSE",
+      "sha256": "63ae6284a7496c7d2bc2a49a947d8afafa42d16a6485d36255637facbababd2d",
+      "build_provenance_verified": true,
+      "build_invocations": [
+        "https://github.com/blisspixel/AgentCiv/actions/runs/39102118997/attempts/1"
+      ],
+      "immutable_release_asset_verified": true
+    },
+    {
+      "name": "NOTICE_INVENTORY.json",
+      "sha256": "5f3742347fab4ed9d293780a68d3c0de942438d0f1cbbb951d0200878c67b115",
+      "build_provenance_verified": true,
+      "build_invocations": [
+        "https://github.com/blisspixel/AgentCiv/actions/runs/39102118997/attempts/1"
+      ],
+      "immutable_release_asset_verified": true
+    },
+    {
+      "name": "SHA256SUMS",
+      "sha256": "ef54f22421a77db2910b8111f73eb04249d011cd8ae5e2adcc5b1aaadea56581",
+      "build_provenance_verified": true,
+      "build_invocations": [
+        "https://github.com/blisspixel/AgentCiv/actions/runs/39102118997/attempts/1"
+      ],
+      "immutable_release_asset_verified": true
+    },
+    {
+      "name": "SOURCE_COMMIT",
+      "sha256": "2808fde4d12a369b2b3dddeee80fc0af8841d65aa640a6ef8ffd02412b778c71",
+      "build_provenance_verified": true,
+      "build_invocations": [
+        "https://github.com/blisspixel/AgentCiv/actions/runs/39102118997/attempts/1"
+      ],
+      "immutable_release_asset_verified": true
+    },
+    {
+      "name": "THIRD_PARTY_NOTICES.txt",
+      "sha256": "66f5469ca711e13defcc6b196b1807263ad15e9ce9db81c51fd1610a4245601f",
+      "build_provenance_verified": true,
+      "build_invocations": [
+        "https://github.com/blisspixel/AgentCiv/actions/runs/39102118997/attempts/1"
+      ],
+      "immutable_release_asset_verified": true
+    },
+    {
+      "name": "VERSION",
+      "sha256": "5450e154dea2edecefdef8517b9cf508e9a4cc29ef9211600158c1568bdbbf6a",
+      "build_provenance_verified": true,
+      "build_invocations": [
+        "https://github.com/blisspixel/AgentCiv/actions/runs/39102118997/attempts/1"
+      ],
+      "immutable_release_asset_verified": true
+    },
+    {
+      "name": "vs2026-enterprise-license.docx",
+      "sha256": "dd2ab92a7c2bb90dd509e16572707a34b13bc0bc09b9199d115f25594ac39053",
+      "build_provenance_verified": true,
+      "build_invocations": [
+        "https://github.com/blisspixel/AgentCiv/actions/runs/39102118997/attempts/1"
+      ],
+      "immutable_release_asset_verified": true
+    },
+    {
+      "name": "vs2026-runtime-license.docx",
+      "sha256": "08651651a7602fc7c0e2763de0fde1ff9f868df2780597cd1775ee9d6441c783",
+      "build_provenance_verified": true,
+      "build_invocations": [
+        "https://github.com/blisspixel/AgentCiv/actions/runs/39102118997/attempts/1"
+      ],
+      "immutable_release_asset_verified": true
+    }
+  ]
+}
