@@ -1,17 +1,17 @@
-/* Colour literals live only in these palette blocks. */
+/* Shared cacheable stylesheet. Saved classes override system appearance. */
 :root {
   color-scheme: dark;
-  --bg: #0e1511;
-  --surface: #151f19;
-  --text: #b4dcb9;
-  --muted: #82ab89;
+  --bg: #14161a;
+  --surface: #1c1f24;
+  --text: #d6d9de;
+  --muted: #9ba1aa;
   --accent: #8fd19e;
-  --border: #658a6d;
-  --selection: #24402d;
-  --on-accent: #0e1511;
+  --border: #6b7380;
+  --selection: #2b3a30;
+  --on-accent: #14161a;
 }
 @media (prefers-color-scheme: light) {
-  :root {
+  :root:not(.appearance-dark):not(.appearance-green-screen) {
     color-scheme: light;
     --bg: #f6f8f6;
     --surface: #ffffff;
@@ -23,8 +23,30 @@
     --on-accent: #ffffff;
   }
 }
+:root.appearance-light {
+  color-scheme: light;
+  --bg: #f6f8f6;
+  --surface: #ffffff;
+  --text: #17231c;
+  --muted: #4f6157;
+  --accent: #2d6a3e;
+  --border: #718479;
+  --selection: #d5e8d8;
+  --on-accent: #ffffff;
+}
+:root.appearance-green-screen {
+  color-scheme: dark;
+  --bg: #0e1511;
+  --surface: #151f19;
+  --text: #b4dcb9;
+  --muted: #86b08d;
+  --accent: #8fd19e;
+  --border: #658a6d;
+  --selection: #24402d;
+  --on-accent: #0e1511;
+}
 ::selection { color: var(--text); background: var(--selection); }
-:root { font-family: ui-monospace, "Cascadia Code", Consolas, monospace; background: var(--bg); color: var(--text); font-synthesis: none; }
+:root { font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif; background: var(--bg); color: var(--text); font-synthesis: none; }
 * { box-sizing: border-box; }
 html { scroll-padding-top: 2rem; }
 body { margin: 0; line-height: 1.6; }
@@ -146,6 +168,11 @@ input:focus-visible, textarea:focus-visible, button:focus-visible, summary:focus
 @media (max-width:640px) { .machine-interface dl { grid-template-columns: 1fr; gap: .5rem; } .machine-interface dd { margin-bottom: .8rem; } .post { padding: 1rem; } }
 
 .connection-step > .terminal-console { display: flex; align-items: baseline; gap: .65ch; max-width: 100%; margin: 1.2rem 0 .7rem; color: var(--accent); font: 1rem ui-monospace, "Cascadia Code", Consolas, monospace; line-height: 1.6; }
-.terminal-typing { display: inline-block; flex: 0 0 auto; width: 21ch; max-width: calc(100% - 3ch); overflow: hidden; white-space: nowrap; animation: terminal-type 1.8s steps(21, end) .15s both; }
-@keyframes terminal-type { from { width: 0; } to { width: 21ch; } }
+.terminal-typing { display: inline-block; flex: 0 0 auto; width: 11ch; max-width: calc(100% - 3ch); overflow: hidden; white-space: nowrap; animation: terminal-type 1.8s steps(11, end) .15s both; }
+@keyframes terminal-type { from { width: 0; } to { width: 11ch; } }
 @media (prefers-reduced-motion: reduce) { .terminal-typing { animation: none; } }
+
+.brand, .eyebrow, .small-link, .world-meta, .interfaces, .step-number, .machine-interface, code, pre, .post-author, .post details, .terminal-console { font-family: ui-monospace, "Cascadia Code", Consolas, monospace; }
+.appearance { flex-basis: 100%; display: flex; flex-wrap: wrap; align-items: baseline; gap: .6rem; }
+.appearance [aria-current="true"] { color: var(--text); font-weight: 700; }
+.agent-view { margin-inline-start: 1rem; }

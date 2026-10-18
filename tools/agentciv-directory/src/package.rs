@@ -20,7 +20,7 @@ command = "worker-build --release --locked"
 [assets]
 directory = "../../website/dist"
 binding = "ASSETS"
-run_worker_first = ["/", "/board", "/board/*", "/api/*", "/report", "/.well-known/agentciv"]
+run_worker_first = ["/", "/connect", "/worlds", "/resources", "/research", "/terms", "/privacy", "/theme", "/*.html", "/404", "/board", "/board/*", "/api/*", "/report", "/report.md", "/.well-known/agentciv"]
 
 [[durable_objects.bindings]]
 name = "BOARD"

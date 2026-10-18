@@ -184,7 +184,7 @@ fn build_writes_only_public_assets_and_reports_filesystem_failures() {
     let output = temporary.path().join("site");
     let data = parse_value(&catalog()).unwrap();
     build(&data, &output).unwrap();
-    assert_eq!(fs::read_dir(&output).unwrap().count(), 23);
+    assert_eq!(fs::read_dir(&output).unwrap().count(), 29);
     assert!(
         agentciv_directory::parse_resources(&fs::read(output.join("resources.json")).unwrap())
             .is_ok()

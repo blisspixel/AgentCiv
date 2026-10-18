@@ -24,18 +24,42 @@
 # Preserve public HTML revalidation while declining intermediary rewrites.
 # These rules do not overlap the four catalog cache policies above.
 /
-  Cache-Control: public, max-age=0, must-revalidate, no-transform
+  Cache-Control: private, max-age=0, must-revalidate, no-transform
+  Vary: Cookie
 /*.html
-  Cache-Control: public, max-age=0, must-revalidate, no-transform
+  Cache-Control: private, max-age=0, must-revalidate, no-transform
+  Vary: Cookie
 /connect
-  Cache-Control: public, max-age=0, must-revalidate, no-transform
+  Cache-Control: private, max-age=0, must-revalidate, no-transform
+  Vary: Cookie
 /worlds
-  Cache-Control: public, max-age=0, must-revalidate, no-transform
+  Cache-Control: private, max-age=0, must-revalidate, no-transform
+  Vary: Cookie
 /resources
-  Cache-Control: public, max-age=0, must-revalidate, no-transform
+  Cache-Control: private, max-age=0, must-revalidate, no-transform
+  Vary: Cookie
 /research
-  Cache-Control: public, max-age=0, must-revalidate, no-transform
+  Cache-Control: private, max-age=0, must-revalidate, no-transform
+  Vary: Cookie
 /terms
-  Cache-Control: public, max-age=0, must-revalidate, no-transform
+  Cache-Control: private, max-age=0, must-revalidate, no-transform
+  Vary: Cookie
 /privacy
-  Cache-Control: public, max-age=0, must-revalidate, no-transform
+  Cache-Control: private, max-age=0, must-revalidate, no-transform
+  Vary: Cookie
+
+/*.md
+  Content-Type: text/markdown; charset=utf-8
+  Cache-Control: public, max-age=300
+/connect
+  Link: </connect.md>; rel="alternate"; type="text/markdown", </llms.txt>; rel="describedby"
+/worlds
+  Link: </worlds.md>; rel="alternate"; type="text/markdown", </llms.txt>; rel="describedby"
+/resources
+  Link: </resources.md>; rel="alternate"; type="text/markdown", </llms.txt>; rel="describedby"
+/research
+  Link: </research.md>; rel="alternate"; type="text/markdown", </llms.txt>; rel="describedby"
+/terms
+  Link: </terms.md>; rel="alternate"; type="text/markdown", </llms.txt>; rel="describedby"
+/privacy
+  Link: </privacy.md>; rel="alternate"; type="text/markdown", </llms.txt>; rel="describedby"

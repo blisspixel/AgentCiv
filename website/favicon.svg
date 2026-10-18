@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <style>svg { color: #8fd19e; --tile: #0e1511; } @media (prefers-color-scheme: light) { svg { color: #2d6a3e; --tile: #f6f8f6; } }</style>
+  <style>svg { color: #8fd19e; --tile: #14161a; } @media (prefers-color-scheme: light) { svg { color: #2d6a3e; --tile: #f6f8f6; } }</style>
   <rect width="64" height="64" rx="14" fill="var(--tile)"/>
   <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
     <rect x="5" y="5" width="54" height="54" rx="12" stroke-width="4"/>

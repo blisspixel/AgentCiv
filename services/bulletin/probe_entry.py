@@ -42,6 +42,7 @@ class Observation:
     client: str
     user_agent: str
     method: str = "GET"
+    accept: str | None = None
     status: int | None = None
     headers: dict[str, str] | None = None
     body_text: str = ""
@@ -71,6 +72,8 @@ def expected_body(path: str, data: bytes) -> bool:
             return text.startswith("# AgentCiv service instructions\n") or text.startswith("# AgentCiv service instructions\r\n")
         if path == "/robots.txt":
             return "User-agent:" in text
+        if path.endswith(".md"):
+            return text.startswith("Generated: ") and "source commit:" in text.splitlines()[0] and "\n" in text
         if path == "/research":
             return "<title>" in text and "AgentCiv" in text
         document = json.loads(text)
@@ -121,7 +124,7 @@ def descriptor_paths(data: bytes) -> list[str]:
         parsed = urlsplit(value)
         if (not value.startswith("/") or value.startswith("//") or "\\" in value
             or parsed.scheme or parsed.netloc or parsed.fragment or "{" in value or "}" in value
-            or parsed.path in ("/board/publish",) or "%" in parsed.path):
+            or parsed.path in ("/board/publish", "/theme") or "%" in parsed.path):
             raise ValueError("invalid read path")
         paths.append(value)
     return list(dict.fromkeys(paths))
@@ -134,16 +137,19 @@ def probe(origin: str) -> list[Observation]:
     clients = (("python-default", None), ("truthful-control", CONTROL_AGENT))
     discovered: set[str] = set()
 
-    def fetch(path: str, client: str, agent: str | None, method: str = "GET") -> Observation:
+    def fetch(path: str, client: str, agent: str | None, method: str = "GET", accept: str | None = None) -> Observation:
         opener = build_opener(NoRedirect())
         actual_agent = dict(opener.addheaders)["User-agent"] if agent is None else agent
-        result = Observation(path=path, client=client, user_agent=actual_agent, method=method)
+        result = Observation(path=path, client=client, user_agent=actual_agent, method=method, accept=accept)
         results.append(result)
         remaining = deadline - time.monotonic()
         if remaining <= 0 or len(results) > MAX_REQUESTS:
             result.error = "probe_budget_exceeded"
             return result
-        request = Request(origin + path, headers={} if agent is None else {"User-Agent": agent}, method=method)
+        headers = {} if agent is None else {"User-Agent": agent}
+        if accept is not None:
+            headers["Accept"] = accept
+        request = Request(origin + path, headers=headers, method=method)
         try:
             try:
                 response = opener.open(request, timeout=min(TIMEOUT_SECONDS, remaining))
@@ -151,7 +157,7 @@ def probe(origin: str) -> list[Observation]:
                 response = refusal
             with response:
                 result.status = response.status
-                result.headers = {name: response.headers[name] for name in ("Content-Type", "Server", "CF-Ray", "CF-Mitigated") if name in response.headers}
+                result.headers = {name: response.headers[name] for name in ("Content-Type", "Server", "CF-Ray", "CF-Mitigated", "Vary", "Cache-Control") if name in response.headers}
                 chunks = bytearray()
                 while len(chunks) <= MAX_BYTES:
                     if time.monotonic() >= deadline:
@@ -166,7 +172,12 @@ def probe(origin: str) -> list[Observation]:
                 result.body_sha256 = hashlib.sha256(data).hexdigest()
                 result.body_text = data.decode("utf-8", errors="replace")
                 if method == "HEAD":
-                    result.passed = result.status == 200 and not data
+                    result.passed = result.status == 200 and not data and (accept is None or response.headers.get_content_type() == accept)
+                elif accept is not None:
+                    result.passed = (result.status == 200 and not result.truncated
+                                     and response.headers.get_content_type() == accept
+                                     and "accept" in response.headers.get("Vary", "").lower()
+                                     and expected_body("/llms.txt", data))
                 elif path == MISSING_PATH:
                     result.passed = result.status == 404 and not result.truncated
                 elif path == "/api/board/conversations/1" and result.status == 404:
@@ -199,6 +210,9 @@ def probe(origin: str) -> list[Observation]:
         for path in paths:
             fetch(path, client, agent)
         fetch("/agent.json", client, agent, "HEAD")
+        for accept in ("text/markdown", "text/plain"):
+            for method in ("GET", "HEAD"):
+                fetch("/", client, agent, method, accept)
     return results
 
 

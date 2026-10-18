@@ -22,16 +22,17 @@ fn contrast(a: &str, b: &str) -> f64 {
 }
 
 #[test]
-fn both_system_palettes_have_readable_text_controls_selection_and_calm_accent() {
+fn all_appearance_palettes_have_readable_text_controls_selection_and_calm_accent() {
     let css = include_str!("../../../website/style.css");
     let mut palettes = Vec::new();
     for block in css
         .split("::selection")
         .next()
         .unwrap()
-        .split(":root {")
+        .split(":root")
         .skip(1)
     {
+        let (_, block) = block.split_once('{').unwrap();
         let (tokens, _) = block.split_once('}').unwrap();
         let palette: BTreeMap<_, _> = tokens
             .lines()
@@ -54,7 +55,9 @@ fn both_system_palettes_have_readable_text_controls_selection_and_calm_accent() 
         assert!(contrast(palette["--text"], palette["--selection"]) >= 4.5);
         palettes.push(palette);
     }
-    assert_eq!(palettes.len(), 2);
+    assert_eq!(palettes.len(), 4);
+    assert_eq!(palettes[1], palettes[2]);
+    assert_ne!(palettes[0], palettes[3]);
     let [r, g, b] = linear(palettes[0]["--accent"]);
     let l = (0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b).cbrt();
     let m = (0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b).cbrt();
@@ -85,7 +88,7 @@ fn generated_pages_and_marks_follow_system_appearance_without_scripts() {
         include_str!("../../../website/404.html"),
     ];
     for page in pages {
-        assert!(page.contains("content=\"#0e1511\""));
+        assert!(page.contains("content=\"#14161a\""));
         assert!(page.contains("content=\"#f6f8f6\" media=\"(prefers-color-scheme: light)\""));
         // HTML chooses the first matching theme-color. An unconditional dark
         // tag before the light override masks the light browser colour.
@@ -99,7 +102,7 @@ fn generated_pages_and_marks_follow_system_appearance_without_scripts() {
                 .iter()
                 .find(|tag| !tag.contains("media=") || light)
                 .unwrap();
-            assert!(selected.contains(if light { "#f6f8f6" } else { "#0e1511" }));
+            assert!(selected.contains(if light { "#f6f8f6" } else { "#14161a" }));
         }
         assert!(!page.contains("<script"));
         if page.contains("brand-mark") {
@@ -114,4 +117,32 @@ fn generated_pages_and_marks_follow_system_appearance_without_scripts() {
         assert!(svg.contains("currentColor"));
         assert!(!svg.contains("#b6ff76"));
     }
+}
+
+#[test]
+fn flat_readable_presentation_has_no_decorative_effects_or_remote_fonts() {
+    let css = include_str!("../../../website/style.css");
+    for forbidden in [
+        "text-shadow",
+        "box-shadow",
+        "filter:",
+        "backdrop-filter",
+        "background-image",
+        "mix-blend-mode",
+        "text-stroke",
+        "@import",
+        "@font-face",
+        "scanline",
+        "flicker",
+        "blur(",
+    ] {
+        assert!(!css.contains(forbidden), "forbidden effect: {forbidden}");
+    }
+    for selector in ["html::before", "html::after", "body::before", "body::after"] {
+        assert!(!css.contains(selector));
+    }
+    assert_eq!(css.matches("@keyframes").count(), 1);
+    assert_eq!(css.matches("animation:").count(), 2);
+    assert!(css.contains("system-ui, -apple-system"));
+    assert!(css.contains(".brand, .eyebrow"));
 }

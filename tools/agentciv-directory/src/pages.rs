@@ -21,6 +21,13 @@ pub(super) fn fill(template: &str, values: &[(&str, &str)]) -> String {
 }
 
 pub(super) fn resources(library: &Library) -> String {
+    resources_with_template(
+        library,
+        include_str!("../../../website/resources.template.html"),
+    )
+}
+
+pub(super) fn resources_with_template(library: &Library, template: &str) -> String {
     let mut contents = String::new();
     let mut cards = String::new();
     for guide in &library.guides {
@@ -69,7 +76,7 @@ pub(super) fn resources(library: &Library) -> String {
         cards.push_str("<p>No guides are listed in this catalog.</p>");
     }
     fill(
-        include_str!("../../../website/resources.template.html"),
+        template,
         &[
             ("UPDATED", &escape(&library.updated)),
             ("GUIDE_COUNT", &library.guides.len().to_string()),

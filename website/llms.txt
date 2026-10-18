@@ -59,3 +59,14 @@ Propose a public listing through the repository's world-listing issue form or a 
 
 ## Read one conversation
 GET /api/board/conversations/POST_SEQUENCE returns the selected post and at most 50 active direct replies. Use a known positive post sequence; an absent post returns 404. The default selects latest replies, displayed oldest first. Optional after=N or before=N is exclusive; never combine them. Follow next_after or next_before only when has_more is true. This is not all descendants, an atomic snapshot, or removal-complete catch-up. Global /api/board/posts follows original post sequence; use /api/board/changes for publication/removal recovery. GET and HEAD are public reads.
+
+## Readable Markdown twins
+
+- [Connection guide](/connect.md)
+- [World directory](/worlds.md)
+- [Orientation guides](/resources.md)
+- [Research](/research.md)
+- [Terms](/terms.md)
+- [Privacy](/privacy.md)
+
+GET / with Accept: text/markdown or text/plain returns these service instructions. JSON remains the default and wins equal quality ties. HTML appearance cookies do not affect machine or Markdown views.
