@@ -84,3 +84,7 @@ agentciv-reader sync PRIVATE_CONFIG PREVIOUS_READ_RESULT
 The optional `resume` object contains origin, world, opaque cursor, and digest, without credentials. Keep it with its private originals. The report adds `prefix_validated`, `cached_events`, and `cached_record_bytes`. `pages` and `response_bytes` describe only this invocation, including discovery bytes, while `events` counts the combined view. Cached bytes do not consume the new network allowance; the combined event count, input size, record size, cache validation and output bounds still apply. The default event budget remains 256; select a larger explicit budget, up to 4096, for a larger room. The archive bundle remains independently bounded to 256 entries.
 
 This is an observation of permitted history, not atomic authorization for a later action. See the [extension contract](../../docs/PREFIX_VIEW.md). `first_page` cannot produce a complete return view.
+
+Unknown commands and wrong argument counts return exit status 2 with JSON code `usage` and an `agentciv-reader --help` hint. Configuration validation keeps `invalid_configuration`; malformed JSON keeps `invalid_json`. `-h` and `--help` show the same uncoloured, sectioned help. Argument values and private paths are omitted from usage failures.
+
+Use `offers-page READ_RESULT QUERY [CONTINUATION]` for bounded activity navigation. The continuation binds exact input bytes and the query; mismatches report `invalid_offer_continuation`. See [fixed-observation offer pages](../../docs/BOUNDED_DISCOVERY.md#fixed-observation-offer-pages).

@@ -1,0 +1,1202 @@
+{
+  "format": "agentciv-offline-native-audit-review/0.1",
+  "source_commit": "0988a20bd17779430e4cec572406d46ef16bf561",
+  "version": "v0.1.3",
+  "audit_run": 39092645529,
+  "registry_packages_in_universal_lock": 251,
+  "source_input_sha256": {
+    "Cargo.lock": "812445f9f17fd97263f1abe14bf69c21b0a4ddc99569c145b941735980dba90a",
+    "rust-toolchain.toml": "64a88070e659a456538b3e05581cd8eb83c3647b1fc5ef82296604e5b1650186",
+    "release/NOTICE_INVENTORY.json": "8fcc1fb1029f7918de6eaf8def475db30efa46b39036e4e62a37bd38f081e26d",
+    "release/THIRD_PARTY_NOTICES.txt": "66f5469ca711e13defcc6b196b1807263ad15e9ce9db81c51fd1610a4245601f",
+    "release/native-license-sources/vs2026-enterprise-license.docx": "dd2ab92a7c2bb90dd509e16572707a34b13bc0bc09b9199d115f25594ac39053",
+    "release/native-license-sources/vs2026-runtime-license.docx": "08651651a7602fc7c0e2763de0fde1ff9f868df2780597cd1775ee9d6441c783"
+  },
+  "run_proof_sha256": {
+    "run.json": "040554a5a8676a42b1775bf156ba2af4ae748f92011e3d908b90286bf5971deb",
+    "run-api.json": "7e2e6c27db4de740aeb5ad462df85c43cf4bcc208314eaddcdf75f387ea30186",
+    "artifacts.json": "e6bb29062e3436cfe50c116940c7ea2538f367c1e40e6f5b9aa9767591fd67cd"
+  },
+  "original_provider_documents": {
+    "release/native-license-sources/vs2026-enterprise-license.docx": {
+      "bytes": 67523,
+      "sha256": "dd2ab92a7c2bb90dd509e16572707a34b13bc0bc09b9199d115f25594ac39053",
+      "derived_notice_bytes": 31994,
+      "derived_notice_sha256": "62e91979a488ae7092f600b76c6348292534e6c4690437637c786d06dc5a5898"
+    },
+    "release/native-license-sources/vs2026-runtime-license.docx": {
+      "bytes": 39553,
+      "sha256": "08651651a7602fc7c0e2763de0fde1ff9f868df2780597cd1775ee9d6441c783",
+      "derived_notice_bytes": 11945,
+      "derived_notice_sha256": "c15f0776c632b97bc3b01dbc3090ae347bb406235ae7132601bbaba91624e4fc"
+    }
+  },
+  "targets": [
+    {
+      "target": "aarch64-apple-darwin",
+      "job_id": 117572452791,
+      "artifact_id": 12124285051,
+      "artifact_api_digest": "sha256:34d726604a3dbb6ca0562b6bfc161e1411e0e3be78de753898bc208e29f93932",
+      "cargo_lock_sha256": "812445f9f17fd97263f1abe14bf69c21b0a4ddc99569c145b941735980dba90a",
+      "toolchain_raw_sha256": "64a88070e659a456538b3e05581cd8eb83c3647b1fc5ef82296604e5b1650186",
+      "toolchain_normalized_lf_sha256": "64a88070e659a456538b3e05581cd8eb83c3647b1fc5ef82296604e5b1650186",
+      "metadata_sha256": "8ed1c01623eb53443b40debd2b7d0eecc26082335e7b9393948627f6e7df6b13",
+      "inspected_original_file_sha256": {
+        "SOURCE_COMMIT": "1d04beb364ec7f66f1ce0db73c619c6c2645311d4416fb7eb115369acb71b505",
+        "VERSION": "5450e154dea2edecefdef8517b9cf508e9a4cc29ef9211600158c1568bdbbf6a",
+        "Cargo.lock": "812445f9f17fd97263f1abe14bf69c21b0a4ddc99569c145b941735980dba90a",
+        "rust-toolchain.toml": "64a88070e659a456538b3e05581cd8eb83c3647b1fc5ef82296604e5b1650186",
+        "rustc.txt": "e003fd3d385fcd0de16bc6b049124efb20207831dd810fd4ab39ff079bbb12a5",
+        "cargo.txt": "6b62f3cb98accd92794afcdc55bc0d15b6e8301d164494901329aac600d37b77",
+        "metadata.json": "8ed1c01623eb53443b40debd2b7d0eecc26082335e7b9393948627f6e7df6b13",
+        "toolchain-notices.tar.gz": "ae648bf65e4521980a726fa266c5f668546fcc8e6504d59f97e0dc49aa749eb1",
+        "toolchain-notice-paths.nul": "2e388d643e84a5630b709e6944628837af0674122c6f60c269ec7880c9ce84c0",
+        "agentciv-archive-runtime.txt": "0e25160705d67a9a64101637cee7bedd35d02fa2f981f8eaa9ac675c63e7d2d4",
+        "agentciv-archive-build-version.txt": "b12a3e513a513dcf934b0c45f30b7788af4901e640ea847ecc70b1ce2785e3cd",
+        "agentciv-reader-runtime.txt": "319423eb643742025ac17628146c24a3d9bd8dce56d7c19fb6fbdecb1cba342f",
+        "agentciv-reader-build-version.txt": "332ffa119096a1438898d67257f030f0ca2cc2236686a3d071606c2eec7a4106",
+        "agentciv-host-runtime.txt": "3ca34da3aa3b551236c63e58a4973ecd0d242aeffde10bf273065af4f6c8fea7",
+        "agentciv-host-build-version.txt": "f858675a76239537f6eb7b280fc05067cdb4b2593fcce36c25970296248149e7",
+        "agentciv-conformance-runtime.txt": "53c135b7f2815e6aaf24514d89ef674f4521a910fdd1ec4c07db946f64bc2999",
+        "agentciv-conformance-build-version.txt": "c11ee9cfb77769ae3b33a7b7b13d593cce5ca7c5476bba9e94199506547bf54a"
+      },
+      "applicable_registry_packages": 190,
+      "compiler": {
+        "version_line": "rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+        "binary": "rustc",
+        "commit-hash": "58cf8f9c35b355199727627d07ae34a4e2846d67",
+        "commit-date": "2026-10-13",
+        "host": "aarch64-apple-darwin",
+        "release": "1.99.1",
+        "LLVM version": "23.1.1"
+      },
+      "compiler_notice_members": {
+        "share/doc/cargo/LICENSE-THIRD-PARTY": {
+          "bytes": 68430,
+          "sha256": "cbc759b1f17a2ac38fe3eb9e9563b1a08ba0f900611c49faaf68b46907b6d898"
+        },
+        "share/doc/cargo/LICENSE-APACHE": {
+          "bytes": 10860,
+          "sha256": "8ada45cd9f843acf64e4722ae262c622a2b3b3007c7310ef36ac1061a30f6adb"
+        },
+        "share/doc/cargo/LICENSE-MIT": {
+          "bytes": 1023,
+          "sha256": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3"
+        },
+        "share/doc/rust/COPYRIGHT.html": {
+          "bytes": 14423589,
+          "sha256": "d518ae2d76bc7a1f0cbf0069b8deafb56efc39c2614cab74a859ef0b467f8373"
+        },
+        "share/doc/rust/licenses/GCC-exception-3.1.txt": {
+          "bytes": 3320,
+          "sha256": "a3966c9410ef94a1efbfa9ec04e9c1994026a70623fbf0885ce36737bfba3b54"
+        },
+        "share/doc/rust/licenses/OFL-1.1.txt": {
+          "bytes": 4016,
+          "sha256": "8eea8287e5876b539670cadb82e99f9a7afddec6f6730811be1daf25d2e9bcfd"
+        },
+        "share/doc/rust/licenses/GPL-3.0-or-later.txt": {
+          "bytes": 34795,
+          "sha256": "05315fce6c35f79b8a35454828995fa26336f235895ac64557abc028f4ffcea2"
+        },
+        "share/doc/rust/licenses/LLVM-exception.txt": {
+          "bytes": 919,
+          "sha256": "e34c58338bd89d43e709e226610d8f32b3e3c47f4ad9a99a8dc1d4ac7842488e"
+        },
+        "share/doc/rust/licenses/ISC.txt": {
+          "bytes": 730,
+          "sha256": "0ff61769b238634e042ab759dddfd104a8e69d091e3600ae3410e401a6164381"
+        },
+        "share/doc/rust/licenses/GPL-2.0-only.txt": {
+          "bytes": 17642,
+          "sha256": "54b212ba1f97f6948fa5486239ab505dd820b02e50cbfd296b4062c8609a70af"
+        },
+        "share/doc/rust/licenses/BSD-2-Clause.txt": {
+          "bytes": 1267,
+          "sha256": "f32fb3b417a194167cfad068223fc975ba96c5960513a10f66a3c28720aec1df"
+        },
+        "share/doc/rust/licenses/Unicode-3.0.txt": {
+          "bytes": 1995,
+          "sha256": "f5062c9a188d81dfe66b56db4182dcf9e4b17c0d9b0d311a8e20b3a1b075c443"
+        },
+        "share/doc/rust/licenses/MIT.txt": {
+          "bytes": 1078,
+          "sha256": "b85dcd3e453d05982552c52b5fc9e0bdd6d23c6f8e844b984a88af32570b0cc0"
+        },
+        "share/doc/rust/licenses/NCSA.txt": {
+          "bytes": 1676,
+          "sha256": "39cb0234065c92b9e6cee3830cbb52b1aa289aa8fe9ba2e66730fec5cf05c630"
+        },
+        "share/doc/rust/licenses/CC-BY-SA-4.0.txt": {
+          "bytes": 20137,
+          "sha256": "23ee78c8bae49cf08ea2f0c84945c66b987ebe4520881fb51b3dad4fb43d07c2"
+        },
+        "share/doc/rust/licenses/Apache-2.0.txt": {
+          "bytes": 10280,
+          "sha256": "074e6e32c86a4c0ef8b3ed25b721ca23aca83df277cd88106ef7177c354615ff"
+        },
+        "share/doc/rust/COPYRIGHT-library.html": {
+          "bytes": 1499465,
+          "sha256": "5647be074c8edf7339fd863055923a8fc80bc5610a8d4661ec3b767b9d392c27"
+        },
+        "share/doc/clippy/LICENSE-APACHE": {
+          "bytes": 10848,
+          "sha256": "d8b56cd45661bfc7ccf4ce5722388cab275f9dabb9e471c922cc80e36bbf9caa"
+        },
+        "share/doc/clippy/LICENSE-MIT": {
+          "bytes": 1081,
+          "sha256": "8d07f0c9c9966be0aaec4196d7863b56ade114e9714dbc31ebba576c0446d2fc"
+        },
+        "share/doc/rustfmt/LICENSE-APACHE": {
+          "bytes": 10852,
+          "sha256": "092c8e82c47fb859d7385253c1b04052dbd65a8bcf0bbd8b6f7dba58a9e8753d"
+        },
+        "share/doc/rustfmt/LICENSE-MIT": {
+          "bytes": 1076,
+          "sha256": "ae0f1f791e3b4faccf981c0b530199235a8b8a021c7ef0c3c85c6c676ea4d27f"
+        }
+      },
+      "linkage": {
+        "agentciv-archive": {
+          "libraries": [
+            "/usr/lib/libSystem.B.dylib",
+            "/usr/lib/libiconv.2.dylib"
+          ],
+          "minimum_os": [
+            "11.0"
+          ],
+          "sdk": [
+            "15.5"
+          ]
+        },
+        "agentciv-reader": {
+          "libraries": [
+            "/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation",
+            "/System/Library/Frameworks/Security.framework/Versions/A/Security",
+            "/usr/lib/libSystem.B.dylib",
+            "/usr/lib/libiconv.2.dylib"
+          ],
+          "minimum_os": [
+            "11.0"
+          ],
+          "sdk": [
+            "15.5"
+          ]
+        },
+        "agentciv-host": {
+          "libraries": [
+            "/usr/lib/libSystem.B.dylib",
+            "/usr/lib/libiconv.2.dylib"
+          ],
+          "minimum_os": [
+            "11.0"
+          ],
+          "sdk": [
+            "15.5"
+          ]
+        },
+        "agentciv-conformance": {
+          "libraries": [
+            "/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation",
+            "/System/Library/Frameworks/Security.framework/Versions/A/Security",
+            "/usr/lib/libSystem.B.dylib",
+            "/usr/lib/libiconv.2.dylib"
+          ],
+          "minimum_os": [
+            "11.0"
+          ],
+          "sdk": [
+            "15.5"
+          ]
+        }
+      },
+      "windows": null
+    },
+    {
+      "target": "aarch64-pc-windows-msvc",
+      "job_id": 117572452823,
+      "artifact_id": 12123740671,
+      "artifact_api_digest": "sha256:24e5d41ff5fbb20aef0706b576ef92106584ae6f3a2678f2b6e5a2928d5516d5",
+      "cargo_lock_sha256": "812445f9f17fd97263f1abe14bf69c21b0a4ddc99569c145b941735980dba90a",
+      "toolchain_raw_sha256": "2c9a6ca65e24bb0cdd7476a97e52f098ed251348264f3b43daf4e724c3386caa",
+      "toolchain_normalized_lf_sha256": "64a88070e659a456538b3e05581cd8eb83c3647b1fc5ef82296604e5b1650186",
+      "metadata_sha256": "4003b6a5f908d5e26763b625cec6134044fdde21b3b9b251f7c08c37a8e6cc36",
+      "inspected_original_file_sha256": {
+        "SOURCE_COMMIT": "1d04beb364ec7f66f1ce0db73c619c6c2645311d4416fb7eb115369acb71b505",
+        "VERSION": "5450e154dea2edecefdef8517b9cf508e9a4cc29ef9211600158c1568bdbbf6a",
+        "Cargo.lock": "812445f9f17fd97263f1abe14bf69c21b0a4ddc99569c145b941735980dba90a",
+        "rust-toolchain.toml": "2c9a6ca65e24bb0cdd7476a97e52f098ed251348264f3b43daf4e724c3386caa",
+        "rustc.txt": "0400e842b69023487d35975ececcd0edec4f13d84d2fc9a87a2de331b2df2d2f",
+        "cargo.txt": "53424a3cfea5ed6961577012e217feff63768b26a74c95e63b6e768ef3810246",
+        "metadata.json": "4003b6a5f908d5e26763b625cec6134044fdde21b3b9b251f7c08c37a8e6cc36",
+        "toolchain-notices.tar.gz": "1b7f436dbb13a41d1008f98adb70951003444412909880158ec124de0710b910",
+        "toolchain-notice-paths.nul": "cafa7e9c9c3ed22417a2c638b95226fcb73ca3737d580803e85aad1822860054",
+        "agentciv-archive-runtime.txt": "21db163278ca1fb2e354aaad3a85ac30df66c56cfef0e2bf51e6358e3b511c8d",
+        "agentciv-reader-runtime.txt": "273da39ed08a00965c43a2c99a85331ca13f61857b67ba0478f5cf32c5f4892e",
+        "agentciv-host-runtime.txt": "2a62bc9a95463900e903342daca0db0aa5fc799e13382601c4d25ad7d3df277e",
+        "agentciv-conformance-runtime.txt": "7f79990a34c6d262da5d8204aacbf6ef32ecb842b035293ecb302ad42af19e80",
+        "windows-build-products.json": "be424112d65513e047c4e93bfd6e1404fa689193a1af2f68dc28470b0b0afe59",
+        "windows-product-license-1.html": "f8240034f0d8150c764e82ffb966d935b46eef6218c85eb05f55b9197ca13af5"
+      },
+      "applicable_registry_packages": 189,
+      "compiler": {
+        "version_line": "rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+        "binary": "rustc",
+        "commit-hash": "58cf8f9c35b355199727627d07ae34a4e2846d67",
+        "commit-date": "2026-10-13",
+        "host": "aarch64-pc-windows-msvc",
+        "release": "1.99.1",
+        "LLVM version": "23.1.1"
+      },
+      "compiler_notice_members": {
+        "share/doc/cargo/LICENSE-APACHE": {
+          "bytes": 10860,
+          "sha256": "8ada45cd9f843acf64e4722ae262c622a2b3b3007c7310ef36ac1061a30f6adb"
+        },
+        "share/doc/cargo/LICENSE-MIT": {
+          "bytes": 1023,
+          "sha256": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3"
+        },
+        "share/doc/cargo/LICENSE-THIRD-PARTY": {
+          "bytes": 68430,
+          "sha256": "cbc759b1f17a2ac38fe3eb9e9563b1a08ba0f900611c49faaf68b46907b6d898"
+        },
+        "share/doc/clippy/LICENSE-APACHE": {
+          "bytes": 10848,
+          "sha256": "d8b56cd45661bfc7ccf4ce5722388cab275f9dabb9e471c922cc80e36bbf9caa"
+        },
+        "share/doc/clippy/LICENSE-MIT": {
+          "bytes": 1081,
+          "sha256": "8d07f0c9c9966be0aaec4196d7863b56ade114e9714dbc31ebba576c0446d2fc"
+        },
+        "share/doc/rust/COPYRIGHT-library.html": {
+          "bytes": 1499465,
+          "sha256": "5647be074c8edf7339fd863055923a8fc80bc5610a8d4661ec3b767b9d392c27"
+        },
+        "share/doc/rust/COPYRIGHT.html": {
+          "bytes": 14423589,
+          "sha256": "d518ae2d76bc7a1f0cbf0069b8deafb56efc39c2614cab74a859ef0b467f8373"
+        },
+        "share/doc/rust/licenses/Apache-2.0.txt": {
+          "bytes": 10280,
+          "sha256": "074e6e32c86a4c0ef8b3ed25b721ca23aca83df277cd88106ef7177c354615ff"
+        },
+        "share/doc/rust/licenses/BSD-2-Clause.txt": {
+          "bytes": 1267,
+          "sha256": "f32fb3b417a194167cfad068223fc975ba96c5960513a10f66a3c28720aec1df"
+        },
+        "share/doc/rust/licenses/CC-BY-SA-4.0.txt": {
+          "bytes": 20137,
+          "sha256": "23ee78c8bae49cf08ea2f0c84945c66b987ebe4520881fb51b3dad4fb43d07c2"
+        },
+        "share/doc/rust/licenses/GCC-exception-3.1.txt": {
+          "bytes": 3320,
+          "sha256": "a3966c9410ef94a1efbfa9ec04e9c1994026a70623fbf0885ce36737bfba3b54"
+        },
+        "share/doc/rust/licenses/GPL-2.0-only.txt": {
+          "bytes": 17642,
+          "sha256": "54b212ba1f97f6948fa5486239ab505dd820b02e50cbfd296b4062c8609a70af"
+        },
+        "share/doc/rust/licenses/GPL-3.0-or-later.txt": {
+          "bytes": 34795,
+          "sha256": "05315fce6c35f79b8a35454828995fa26336f235895ac64557abc028f4ffcea2"
+        },
+        "share/doc/rust/licenses/ISC.txt": {
+          "bytes": 730,
+          "sha256": "0ff61769b238634e042ab759dddfd104a8e69d091e3600ae3410e401a6164381"
+        },
+        "share/doc/rust/licenses/LLVM-exception.txt": {
+          "bytes": 919,
+          "sha256": "e34c58338bd89d43e709e226610d8f32b3e3c47f4ad9a99a8dc1d4ac7842488e"
+        },
+        "share/doc/rust/licenses/MIT.txt": {
+          "bytes": 1078,
+          "sha256": "b85dcd3e453d05982552c52b5fc9e0bdd6d23c6f8e844b984a88af32570b0cc0"
+        },
+        "share/doc/rust/licenses/NCSA.txt": {
+          "bytes": 1676,
+          "sha256": "39cb0234065c92b9e6cee3830cbb52b1aa289aa8fe9ba2e66730fec5cf05c630"
+        },
+        "share/doc/rust/licenses/OFL-1.1.txt": {
+          "bytes": 4016,
+          "sha256": "8eea8287e5876b539670cadb82e99f9a7afddec6f6730811be1daf25d2e9bcfd"
+        },
+        "share/doc/rust/licenses/Unicode-3.0.txt": {
+          "bytes": 1995,
+          "sha256": "f5062c9a188d81dfe66b56db4182dcf9e4b17c0d9b0d311a8e20b3a1b075c443"
+        },
+        "share/doc/rustfmt/LICENSE-APACHE": {
+          "bytes": 10852,
+          "sha256": "092c8e82c47fb859d7385253c1b04052dbd65a8bcf0bbd8b6f7dba58a9e8753d"
+        },
+        "share/doc/rustfmt/LICENSE-MIT": {
+          "bytes": 1076,
+          "sha256": "ae0f1f791e3b4faccf981c0b530199235a8b8a021c7ef0c3c85c6c676ea4d27f"
+        }
+      },
+      "linkage": {
+        "agentciv-archive": {
+          "libraries": [
+            "api-ms-win-core-synch-l1-2-0.dll",
+            "bcryptprimitives.dll",
+            "kernel32.dll",
+            "KERNEL32.dll",
+            "ntdll.dll"
+          ]
+        },
+        "agentciv-reader": {
+          "libraries": [
+            "api-ms-win-core-synch-l1-2-0.dll",
+            "bcryptprimitives.dll",
+            "crypt32.dll",
+            "kernel32.dll",
+            "KERNEL32.dll",
+            "ntdll.dll",
+            "WS2_32.dll",
+            "ws2_32.dll"
+          ]
+        },
+        "agentciv-host": {
+          "libraries": [
+            "api-ms-win-core-synch-l1-2-0.dll",
+            "bcryptprimitives.dll",
+            "kernel32.dll",
+            "KERNEL32.dll",
+            "ntdll.dll",
+            "WS2_32.dll",
+            "ws2_32.dll"
+          ]
+        },
+        "agentciv-conformance": {
+          "libraries": [
+            "api-ms-win-core-synch-l1-2-0.dll",
+            "bcryptprimitives.dll",
+            "crypt32.dll",
+            "kernel32.dll",
+            "KERNEL32.dll",
+            "ntdll.dll",
+            "WS2_32.dll",
+            "ws2_32.dll"
+          ]
+        }
+      },
+      "windows": {
+        "build_products": [
+          {
+            "product": "Microsoft.VisualStudio.Product.Enterprise",
+            "version": "18.10.12224.181",
+            "source": "https://go.microsoft.com/fwlink/?LinkId=2327713",
+            "filename": "windows-product-license-1.html",
+            "sha256": "f8240034f0d8150c764e82ffb966d935b46eef6218c85eb05f55b9197ca13af5"
+          },
+          {
+            "product": "Microsoft.VisualStudio.Product.Enterprise",
+            "version": "18.10.12224.181",
+            "displayName": "Visual Studio Enterprise 2026",
+            "toolsVersion": "14.51.36231"
+          }
+        ],
+        "previous_build_products": [
+          {
+            "product": "Microsoft.VisualStudio.Product.Enterprise",
+            "version": "18.10.12224.181",
+            "source": "https://go.microsoft.com/fwlink/?LinkId=2327713",
+            "filename": "windows-product-license-1.html",
+            "sha256": "13b1abc38f4760e2a68f4b2547aec4854354f896ffd41cc6167e668832b23f01"
+          },
+          {
+            "product": "Microsoft.VisualStudio.Product.Enterprise",
+            "version": "18.10.12224.181",
+            "displayName": "Visual Studio Enterprise 2026",
+            "toolsVersion": "14.51.36231"
+          }
+        ],
+        "license_source_pages": [
+          {
+            "filename": "windows-product-license-1.html",
+            "source": "https://go.microsoft.com/fwlink/?LinkId=2327713",
+            "sha256": "f8240034f0d8150c764e82ffb966d935b46eef6218c85eb05f55b9197ca13af5"
+          }
+        ],
+        "page_representation_review": {
+          "target": "aarch64-pc-windows-msvc",
+          "old_sha256": "13b1abc38f4760e2a68f4b2547aec4854354f896ffd41cc6167e668832b23f01",
+          "current_sha256": "f8240034f0d8150c764e82ffb966d935b46eef6218c85eb05f55b9197ca13af5",
+          "visible_text_equal": false,
+          "document_links_equal": true,
+          "document_links": [],
+          "embedded_frames_equal": true,
+          "embedded_frames": [
+            "//view.officeapps.live.com/op/embed.aspx?src=https%3A%2F%2Fvisualstudio.microsoft.com%2Fwp-content%2Fuploads%2F2025%2F10%2FVisual_Studio_2026-License-Enterprise_Professional_ENU.docx"
+          ],
+          "visible_differences": [
+            "--- \n",
+            "+++ \n",
+            "@@ -78,7 +78,7 @@\n",
+            " Returns",
+            " Order tracking",
+            " Certified Refurbished",
+            "-Microsoft Store Promise",
+            "+Why buy from Microsoft Store",
+            " Flexible Payments",
+            " Microsoft in education",
+            " Devices for education"
+          ],
+          "current_original_docx_sha256": "dd2ab92a7c2bb90dd509e16572707a34b13bc0bc09b9199d115f25594ac39053",
+          "current_original_docx_matches_retained": true
+        }
+      }
+    },
+    {
+      "target": "aarch64-unknown-linux-gnu",
+      "job_id": 117572452941,
+      "artifact_id": 12123372447,
+      "artifact_api_digest": "sha256:9d3e74cc5b561df7b2574e21173054dcd4040fce294ede79b651cf597a5df7aa",
+      "cargo_lock_sha256": "812445f9f17fd97263f1abe14bf69c21b0a4ddc99569c145b941735980dba90a",
+      "toolchain_raw_sha256": "64a88070e659a456538b3e05581cd8eb83c3647b1fc5ef82296604e5b1650186",
+      "toolchain_normalized_lf_sha256": "64a88070e659a456538b3e05581cd8eb83c3647b1fc5ef82296604e5b1650186",
+      "metadata_sha256": "623d49fba7651b06f963ebb10ba7631074d24a16bde70f38773f16827b06c8b8",
+      "inspected_original_file_sha256": {
+        "SOURCE_COMMIT": "1d04beb364ec7f66f1ce0db73c619c6c2645311d4416fb7eb115369acb71b505",
+        "VERSION": "5450e154dea2edecefdef8517b9cf508e9a4cc29ef9211600158c1568bdbbf6a",
+        "Cargo.lock": "812445f9f17fd97263f1abe14bf69c21b0a4ddc99569c145b941735980dba90a",
+        "rust-toolchain.toml": "64a88070e659a456538b3e05581cd8eb83c3647b1fc5ef82296604e5b1650186",
+        "rustc.txt": "ba203e33fe4a5b8e05147bb6e57fb1ddace26d9f799f357420b666887dd7e2f1",
+        "cargo.txt": "4abdb4a3c86c7a147ab8cf453d293d391e58dd5d4cff68868d1aa8316189ea6a",
+        "metadata.json": "623d49fba7651b06f963ebb10ba7631074d24a16bde70f38773f16827b06c8b8",
+        "toolchain-notices.tar.gz": "d5da5022baefa9a7e029559e08ce75e93ea8b791ced6502f5da4d818e8373bc3",
+        "toolchain-notice-paths.nul": "47c2d4f0c53692bd73c8b3c8bda56c52c5e872a64c4f480d7997495285ecf42f",
+        "agentciv-archive-runtime.txt": "6b77429ef6f0fcf30e4327eaca3e1da715bb6ef1f81d7eb863887a16d300162d",
+        "agentciv-archive-dynamic.txt": "e58bb9be60cb23eae8d6e3c4ccd1696a251067f2c0f859899b67b7200f1bec25",
+        "agentciv-archive-symbol-versions.txt": "4d86f56d17c1db455c4f76a4e6e3a01d7fea9e2bccc99432d65a407272a7e0f5",
+        "agentciv-reader-runtime.txt": "87a58562b9b09d51a68aa7231220269652638e0cb10111a93f6a37e5457da3e8",
+        "agentciv-reader-dynamic.txt": "281df2babcdbbf457520cf63bcd343621bda681d5952a1369b9f7d5f09218d12",
+        "agentciv-reader-symbol-versions.txt": "cf9dfaa2a0c5256826d20910292062982c0113e14c82073986684de5e2b1d1fc",
+        "agentciv-host-runtime.txt": "3f3545f251655b3fbbd39e19b50e89cc2a44cbdf8c38feea294e3e965bb93d07",
+        "agentciv-host-dynamic.txt": "5952aa063f2745ea6da96826382f19a58d770287824ed87208add4091981ed87",
+        "agentciv-host-symbol-versions.txt": "4542ec4e0232c1c521f549587f24f880415ffd2e39cd488c53d5b5747d2ae62b",
+        "agentciv-conformance-runtime.txt": "1835246b87e9d7b0322cf493ddcd04ad5bac8e31368920f47dd54413d99c1100",
+        "agentciv-conformance-dynamic.txt": "3e0561b33b16ffe5e8afb4ecd1b8798945233f43e66b8a4a170d10a9aa710b71",
+        "agentciv-conformance-symbol-versions.txt": "a08635a8cbe26ff6bcfec765d13642226008110b1fd1e02de2af16b2b70b4962"
+      },
+      "applicable_registry_packages": 189,
+      "compiler": {
+        "version_line": "rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+        "binary": "rustc",
+        "commit-hash": "58cf8f9c35b355199727627d07ae34a4e2846d67",
+        "commit-date": "2026-10-13",
+        "host": "aarch64-unknown-linux-gnu",
+        "release": "1.99.1",
+        "LLVM version": "23.1.1"
+      },
+      "compiler_notice_members": {
+        "share/doc/cargo/LICENSE-MIT": {
+          "bytes": 1023,
+          "sha256": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3"
+        },
+        "share/doc/cargo/LICENSE-THIRD-PARTY": {
+          "bytes": 68430,
+          "sha256": "cbc759b1f17a2ac38fe3eb9e9563b1a08ba0f900611c49faaf68b46907b6d898"
+        },
+        "share/doc/cargo/LICENSE-APACHE": {
+          "bytes": 10860,
+          "sha256": "8ada45cd9f843acf64e4722ae262c622a2b3b3007c7310ef36ac1061a30f6adb"
+        },
+        "share/doc/rust/COPYRIGHT-library.html": {
+          "bytes": 1499465,
+          "sha256": "5647be074c8edf7339fd863055923a8fc80bc5610a8d4661ec3b767b9d392c27"
+        },
+        "share/doc/rust/licenses/Unicode-3.0.txt": {
+          "bytes": 1995,
+          "sha256": "f5062c9a188d81dfe66b56db4182dcf9e4b17c0d9b0d311a8e20b3a1b075c443"
+        },
+        "share/doc/rust/licenses/GCC-exception-3.1.txt": {
+          "bytes": 3320,
+          "sha256": "a3966c9410ef94a1efbfa9ec04e9c1994026a70623fbf0885ce36737bfba3b54"
+        },
+        "share/doc/rust/licenses/ISC.txt": {
+          "bytes": 730,
+          "sha256": "0ff61769b238634e042ab759dddfd104a8e69d091e3600ae3410e401a6164381"
+        },
+        "share/doc/rust/licenses/Apache-2.0.txt": {
+          "bytes": 10280,
+          "sha256": "074e6e32c86a4c0ef8b3ed25b721ca23aca83df277cd88106ef7177c354615ff"
+        },
+        "share/doc/rust/licenses/OFL-1.1.txt": {
+          "bytes": 4016,
+          "sha256": "8eea8287e5876b539670cadb82e99f9a7afddec6f6730811be1daf25d2e9bcfd"
+        },
+        "share/doc/rust/licenses/LLVM-exception.txt": {
+          "bytes": 919,
+          "sha256": "e34c58338bd89d43e709e226610d8f32b3e3c47f4ad9a99a8dc1d4ac7842488e"
+        },
+        "share/doc/rust/licenses/GPL-3.0-or-later.txt": {
+          "bytes": 34795,
+          "sha256": "05315fce6c35f79b8a35454828995fa26336f235895ac64557abc028f4ffcea2"
+        },
+        "share/doc/rust/licenses/NCSA.txt": {
+          "bytes": 1676,
+          "sha256": "39cb0234065c92b9e6cee3830cbb52b1aa289aa8fe9ba2e66730fec5cf05c630"
+        },
+        "share/doc/rust/licenses/GPL-2.0-only.txt": {
+          "bytes": 17642,
+          "sha256": "54b212ba1f97f6948fa5486239ab505dd820b02e50cbfd296b4062c8609a70af"
+        },
+        "share/doc/rust/licenses/MIT.txt": {
+          "bytes": 1078,
+          "sha256": "b85dcd3e453d05982552c52b5fc9e0bdd6d23c6f8e844b984a88af32570b0cc0"
+        },
+        "share/doc/rust/licenses/CC-BY-SA-4.0.txt": {
+          "bytes": 20137,
+          "sha256": "23ee78c8bae49cf08ea2f0c84945c66b987ebe4520881fb51b3dad4fb43d07c2"
+        },
+        "share/doc/rust/licenses/BSD-2-Clause.txt": {
+          "bytes": 1267,
+          "sha256": "f32fb3b417a194167cfad068223fc975ba96c5960513a10f66a3c28720aec1df"
+        },
+        "share/doc/rust/COPYRIGHT.html": {
+          "bytes": 14423589,
+          "sha256": "d518ae2d76bc7a1f0cbf0069b8deafb56efc39c2614cab74a859ef0b467f8373"
+        },
+        "share/doc/rustfmt/LICENSE-MIT": {
+          "bytes": 1076,
+          "sha256": "ae0f1f791e3b4faccf981c0b530199235a8b8a021c7ef0c3c85c6c676ea4d27f"
+        },
+        "share/doc/rustfmt/LICENSE-APACHE": {
+          "bytes": 10852,
+          "sha256": "092c8e82c47fb859d7385253c1b04052dbd65a8bcf0bbd8b6f7dba58a9e8753d"
+        },
+        "share/doc/clippy/LICENSE-MIT": {
+          "bytes": 1081,
+          "sha256": "8d07f0c9c9966be0aaec4196d7863b56ade114e9714dbc31ebba576c0446d2fc"
+        },
+        "share/doc/clippy/LICENSE-APACHE": {
+          "bytes": 10848,
+          "sha256": "d8b56cd45661bfc7ccf4ce5722388cab275f9dabb9e471c922cc80e36bbf9caa"
+        }
+      },
+      "linkage": {
+        "agentciv-archive": {
+          "libraries": [
+            "libc.so.6",
+            "libgcc_s.so.1",
+            "libm.so.6"
+          ],
+          "highest_glibc": "2.34"
+        },
+        "agentciv-reader": {
+          "libraries": [
+            "ld-linux-aarch64.so.1",
+            "libc.so.6",
+            "libgcc_s.so.1",
+            "libm.so.6"
+          ],
+          "highest_glibc": "2.38"
+        },
+        "agentciv-host": {
+          "libraries": [
+            "ld-linux-aarch64.so.1",
+            "libc.so.6",
+            "libgcc_s.so.1",
+            "libm.so.6"
+          ],
+          "highest_glibc": "2.34"
+        },
+        "agentciv-conformance": {
+          "libraries": [
+            "ld-linux-aarch64.so.1",
+            "libc.so.6",
+            "libgcc_s.so.1",
+            "libm.so.6"
+          ],
+          "highest_glibc": "2.38"
+        }
+      },
+      "windows": null
+    },
+    {
+      "target": "x86_64-apple-darwin",
+      "job_id": 117572452777,
+      "artifact_id": 12123501525,
+      "artifact_api_digest": "sha256:96c69308b043f52fa45d6ad3cc653614d0d475c665a0f0cba11fff74e044aeee",
+      "cargo_lock_sha256": "812445f9f17fd97263f1abe14bf69c21b0a4ddc99569c145b941735980dba90a",
+      "toolchain_raw_sha256": "64a88070e659a456538b3e05581cd8eb83c3647b1fc5ef82296604e5b1650186",
+      "toolchain_normalized_lf_sha256": "64a88070e659a456538b3e05581cd8eb83c3647b1fc5ef82296604e5b1650186",
+      "metadata_sha256": "dba17eb7a8d66db215cbe2daea1f2df0a17ab9f133dfada2c18778a646382809",
+      "inspected_original_file_sha256": {
+        "SOURCE_COMMIT": "1d04beb364ec7f66f1ce0db73c619c6c2645311d4416fb7eb115369acb71b505",
+        "VERSION": "5450e154dea2edecefdef8517b9cf508e9a4cc29ef9211600158c1568bdbbf6a",
+        "Cargo.lock": "812445f9f17fd97263f1abe14bf69c21b0a4ddc99569c145b941735980dba90a",
+        "rust-toolchain.toml": "64a88070e659a456538b3e05581cd8eb83c3647b1fc5ef82296604e5b1650186",
+        "rustc.txt": "bf1658636877f9403ad0a32419fc3b0da3d3164f3585a184108063f8499d7434",
+        "cargo.txt": "0cea2daedff000d61c8dc542dc6b8ae9fca042a9570d4dbf0615d88f35e01d0b",
+        "metadata.json": "dba17eb7a8d66db215cbe2daea1f2df0a17ab9f133dfada2c18778a646382809",
+        "toolchain-notices.tar.gz": "ff3f44dbdc3c410e9be40d92d3cd9b79c1c2584862347c6155b95156922d1cb1",
+        "toolchain-notice-paths.nul": "2e388d643e84a5630b709e6944628837af0674122c6f60c269ec7880c9ce84c0",
+        "agentciv-archive-runtime.txt": "ddcde9392d8ebd6ea9b45fc0399ddf02021dd299410a1a7a58fe91b76841837a",
+        "agentciv-archive-build-version.txt": "c9c1edcb60f4737269af089a1833cd9d2df0f3fd2ec28db9667c6f9b3cb0e8e7",
+        "agentciv-reader-runtime.txt": "0f341d467788b39eee7c70cba30ced6f2f73fe03d339cb7129626230f6140de3",
+        "agentciv-reader-build-version.txt": "81f566c1d15fd886e525c874e0e8fb46040067529c69eab427b3bee2985ec041",
+        "agentciv-host-runtime.txt": "0c6a33ab8e928b1c36268981564ab45ef8a5e3450844f751797320cc61fff752",
+        "agentciv-host-build-version.txt": "30f2d6766231ead62765bc7ad4fd7d68f7556cfeb6550db27bf47cdfbbb9834f",
+        "agentciv-conformance-runtime.txt": "eada78cba95ed6697c2f9d07dceed111ebb0cd7ebdf792c8c0d1abf68a525719",
+        "agentciv-conformance-build-version.txt": "b0447078bdcaa260a0f4f1cfa68836e7a08f8b036a0f04f18c4371e7b198b131"
+      },
+      "applicable_registry_packages": 191,
+      "compiler": {
+        "version_line": "rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+        "binary": "rustc",
+        "commit-hash": "58cf8f9c35b355199727627d07ae34a4e2846d67",
+        "commit-date": "2026-10-13",
+        "host": "x86_64-apple-darwin",
+        "release": "1.99.1",
+        "LLVM version": "23.1.1"
+      },
+      "compiler_notice_members": {
+        "share/doc/cargo/LICENSE-THIRD-PARTY": {
+          "bytes": 68430,
+          "sha256": "cbc759b1f17a2ac38fe3eb9e9563b1a08ba0f900611c49faaf68b46907b6d898"
+        },
+        "share/doc/cargo/LICENSE-APACHE": {
+          "bytes": 10860,
+          "sha256": "8ada45cd9f843acf64e4722ae262c622a2b3b3007c7310ef36ac1061a30f6adb"
+        },
+        "share/doc/cargo/LICENSE-MIT": {
+          "bytes": 1023,
+          "sha256": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3"
+        },
+        "share/doc/rust/COPYRIGHT.html": {
+          "bytes": 14423589,
+          "sha256": "d518ae2d76bc7a1f0cbf0069b8deafb56efc39c2614cab74a859ef0b467f8373"
+        },
+        "share/doc/rust/licenses/GCC-exception-3.1.txt": {
+          "bytes": 3320,
+          "sha256": "a3966c9410ef94a1efbfa9ec04e9c1994026a70623fbf0885ce36737bfba3b54"
+        },
+        "share/doc/rust/licenses/OFL-1.1.txt": {
+          "bytes": 4016,
+          "sha256": "8eea8287e5876b539670cadb82e99f9a7afddec6f6730811be1daf25d2e9bcfd"
+        },
+        "share/doc/rust/licenses/GPL-3.0-or-later.txt": {
+          "bytes": 34795,
+          "sha256": "05315fce6c35f79b8a35454828995fa26336f235895ac64557abc028f4ffcea2"
+        },
+        "share/doc/rust/licenses/LLVM-exception.txt": {
+          "bytes": 919,
+          "sha256": "e34c58338bd89d43e709e226610d8f32b3e3c47f4ad9a99a8dc1d4ac7842488e"
+        },
+        "share/doc/rust/licenses/ISC.txt": {
+          "bytes": 730,
+          "sha256": "0ff61769b238634e042ab759dddfd104a8e69d091e3600ae3410e401a6164381"
+        },
+        "share/doc/rust/licenses/GPL-2.0-only.txt": {
+          "bytes": 17642,
+          "sha256": "54b212ba1f97f6948fa5486239ab505dd820b02e50cbfd296b4062c8609a70af"
+        },
+        "share/doc/rust/licenses/BSD-2-Clause.txt": {
+          "bytes": 1267,
+          "sha256": "f32fb3b417a194167cfad068223fc975ba96c5960513a10f66a3c28720aec1df"
+        },
+        "share/doc/rust/licenses/Unicode-3.0.txt": {
+          "bytes": 1995,
+          "sha256": "f5062c9a188d81dfe66b56db4182dcf9e4b17c0d9b0d311a8e20b3a1b075c443"
+        },
+        "share/doc/rust/licenses/MIT.txt": {
+          "bytes": 1078,
+          "sha256": "b85dcd3e453d05982552c52b5fc9e0bdd6d23c6f8e844b984a88af32570b0cc0"
+        },
+        "share/doc/rust/licenses/NCSA.txt": {
+          "bytes": 1676,
+          "sha256": "39cb0234065c92b9e6cee3830cbb52b1aa289aa8fe9ba2e66730fec5cf05c630"
+        },
+        "share/doc/rust/licenses/CC-BY-SA-4.0.txt": {
+          "bytes": 20137,
+          "sha256": "23ee78c8bae49cf08ea2f0c84945c66b987ebe4520881fb51b3dad4fb43d07c2"
+        },
+        "share/doc/rust/licenses/Apache-2.0.txt": {
+          "bytes": 10280,
+          "sha256": "074e6e32c86a4c0ef8b3ed25b721ca23aca83df277cd88106ef7177c354615ff"
+        },
+        "share/doc/rust/COPYRIGHT-library.html": {
+          "bytes": 1499465,
+          "sha256": "5647be074c8edf7339fd863055923a8fc80bc5610a8d4661ec3b767b9d392c27"
+        },
+        "share/doc/clippy/LICENSE-APACHE": {
+          "bytes": 10848,
+          "sha256": "d8b56cd45661bfc7ccf4ce5722388cab275f9dabb9e471c922cc80e36bbf9caa"
+        },
+        "share/doc/clippy/LICENSE-MIT": {
+          "bytes": 1081,
+          "sha256": "8d07f0c9c9966be0aaec4196d7863b56ade114e9714dbc31ebba576c0446d2fc"
+        },
+        "share/doc/rustfmt/LICENSE-APACHE": {
+          "bytes": 10852,
+          "sha256": "092c8e82c47fb859d7385253c1b04052dbd65a8bcf0bbd8b6f7dba58a9e8753d"
+        },
+        "share/doc/rustfmt/LICENSE-MIT": {
+          "bytes": 1076,
+          "sha256": "ae0f1f791e3b4faccf981c0b530199235a8b8a021c7ef0c3c85c6c676ea4d27f"
+        }
+      },
+      "linkage": {
+        "agentciv-archive": {
+          "libraries": [
+            "/usr/lib/libSystem.B.dylib",
+            "/usr/lib/libiconv.2.dylib"
+          ],
+          "minimum_os": [
+            "10.12"
+          ],
+          "sdk": [
+            "15.5"
+          ]
+        },
+        "agentciv-reader": {
+          "libraries": [
+            "/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation",
+            "/System/Library/Frameworks/Security.framework/Versions/A/Security",
+            "/usr/lib/libSystem.B.dylib",
+            "/usr/lib/libiconv.2.dylib"
+          ],
+          "minimum_os": [
+            "10.12"
+          ],
+          "sdk": [
+            "15.5"
+          ]
+        },
+        "agentciv-host": {
+          "libraries": [
+            "/usr/lib/libSystem.B.dylib",
+            "/usr/lib/libiconv.2.dylib"
+          ],
+          "minimum_os": [
+            "10.12"
+          ],
+          "sdk": [
+            "15.5"
+          ]
+        },
+        "agentciv-conformance": {
+          "libraries": [
+            "/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation",
+            "/System/Library/Frameworks/Security.framework/Versions/A/Security",
+            "/usr/lib/libSystem.B.dylib",
+            "/usr/lib/libiconv.2.dylib"
+          ],
+          "minimum_os": [
+            "10.12"
+          ],
+          "sdk": [
+            "15.5"
+          ]
+        }
+      },
+      "windows": null
+    },
+    {
+      "target": "x86_64-pc-windows-msvc",
+      "job_id": 117572452612,
+      "artifact_id": 12123536072,
+      "artifact_api_digest": "sha256:818ee7a729705db67cdbe8eb3f292b0f14fc11295b26100de228d340db3f6497",
+      "cargo_lock_sha256": "812445f9f17fd97263f1abe14bf69c21b0a4ddc99569c145b941735980dba90a",
+      "toolchain_raw_sha256": "2c9a6ca65e24bb0cdd7476a97e52f098ed251348264f3b43daf4e724c3386caa",
+      "toolchain_normalized_lf_sha256": "64a88070e659a456538b3e05581cd8eb83c3647b1fc5ef82296604e5b1650186",
+      "metadata_sha256": "86b289fa80c3630b1d262cb194116fa3a5e51227ecdd5f6575018815c90e7fa2",
+      "inspected_original_file_sha256": {
+        "SOURCE_COMMIT": "1d04beb364ec7f66f1ce0db73c619c6c2645311d4416fb7eb115369acb71b505",
+        "VERSION": "5450e154dea2edecefdef8517b9cf508e9a4cc29ef9211600158c1568bdbbf6a",
+        "Cargo.lock": "812445f9f17fd97263f1abe14bf69c21b0a4ddc99569c145b941735980dba90a",
+        "rust-toolchain.toml": "2c9a6ca65e24bb0cdd7476a97e52f098ed251348264f3b43daf4e724c3386caa",
+        "rustc.txt": "341fed434cf52bd9ba5ab2f3507dbd943a2062212028574e529fc3e7e5ecd7a8",
+        "cargo.txt": "e569e17e69d1abc27efd9ab072a32f4fbad521e3ae1d77a462226786d3d39972",
+        "metadata.json": "86b289fa80c3630b1d262cb194116fa3a5e51227ecdd5f6575018815c90e7fa2",
+        "toolchain-notices.tar.gz": "5a5a15e4655c31d171573e5939f2cd236b43be5d1515dfe41ffaed575a154b7d",
+        "toolchain-notice-paths.nul": "cafa7e9c9c3ed22417a2c638b95226fcb73ca3737d580803e85aad1822860054",
+        "agentciv-archive-runtime.txt": "a888511b65295314acc956ae28dee0236267c05e415b74891b6b1a3ca3506281",
+        "agentciv-reader-runtime.txt": "87c8a6ff51d5c6241871b77d48ece8ef4b8eb7d7a6a8214e4cc7e2a7eb9937d9",
+        "agentciv-host-runtime.txt": "a88a0c48600c7499328844679258bf72e068c7388c53b71893a6525d6b01e58a",
+        "agentciv-conformance-runtime.txt": "8b8c77be9edb559b6d4eaac33778782111776ad037ee79fc41268f1edf989613",
+        "windows-build-products.json": "8d26a5f463e4ebc16a706ee5a9a780e01b91aee46ce9604430412b78c7b7add3",
+        "windows-product-license-1.html": "d7c5a4269e063ea3c7c09985f0ad8b9f3671c48aca25cbe309cce8904e348dd4"
+      },
+      "applicable_registry_packages": 187,
+      "compiler": {
+        "version_line": "rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+        "binary": "rustc",
+        "commit-hash": "58cf8f9c35b355199727627d07ae34a4e2846d67",
+        "commit-date": "2026-10-13",
+        "host": "x86_64-pc-windows-msvc",
+        "release": "1.99.1",
+        "LLVM version": "23.1.1"
+      },
+      "compiler_notice_members": {
+        "share/doc/cargo/LICENSE-APACHE": {
+          "bytes": 10860,
+          "sha256": "8ada45cd9f843acf64e4722ae262c622a2b3b3007c7310ef36ac1061a30f6adb"
+        },
+        "share/doc/cargo/LICENSE-MIT": {
+          "bytes": 1023,
+          "sha256": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3"
+        },
+        "share/doc/cargo/LICENSE-THIRD-PARTY": {
+          "bytes": 68430,
+          "sha256": "cbc759b1f17a2ac38fe3eb9e9563b1a08ba0f900611c49faaf68b46907b6d898"
+        },
+        "share/doc/clippy/LICENSE-APACHE": {
+          "bytes": 10848,
+          "sha256": "d8b56cd45661bfc7ccf4ce5722388cab275f9dabb9e471c922cc80e36bbf9caa"
+        },
+        "share/doc/clippy/LICENSE-MIT": {
+          "bytes": 1081,
+          "sha256": "8d07f0c9c9966be0aaec4196d7863b56ade114e9714dbc31ebba576c0446d2fc"
+        },
+        "share/doc/rust/COPYRIGHT-library.html": {
+          "bytes": 1499465,
+          "sha256": "5647be074c8edf7339fd863055923a8fc80bc5610a8d4661ec3b767b9d392c27"
+        },
+        "share/doc/rust/COPYRIGHT.html": {
+          "bytes": 14423589,
+          "sha256": "d518ae2d76bc7a1f0cbf0069b8deafb56efc39c2614cab74a859ef0b467f8373"
+        },
+        "share/doc/rust/licenses/Apache-2.0.txt": {
+          "bytes": 10280,
+          "sha256": "074e6e32c86a4c0ef8b3ed25b721ca23aca83df277cd88106ef7177c354615ff"
+        },
+        "share/doc/rust/licenses/BSD-2-Clause.txt": {
+          "bytes": 1267,
+          "sha256": "f32fb3b417a194167cfad068223fc975ba96c5960513a10f66a3c28720aec1df"
+        },
+        "share/doc/rust/licenses/CC-BY-SA-4.0.txt": {
+          "bytes": 20137,
+          "sha256": "23ee78c8bae49cf08ea2f0c84945c66b987ebe4520881fb51b3dad4fb43d07c2"
+        },
+        "share/doc/rust/licenses/GCC-exception-3.1.txt": {
+          "bytes": 3320,
+          "sha256": "a3966c9410ef94a1efbfa9ec04e9c1994026a70623fbf0885ce36737bfba3b54"
+        },
+        "share/doc/rust/licenses/GPL-2.0-only.txt": {
+          "bytes": 17642,
+          "sha256": "54b212ba1f97f6948fa5486239ab505dd820b02e50cbfd296b4062c8609a70af"
+        },
+        "share/doc/rust/licenses/GPL-3.0-or-later.txt": {
+          "bytes": 34795,
+          "sha256": "05315fce6c35f79b8a35454828995fa26336f235895ac64557abc028f4ffcea2"
+        },
+        "share/doc/rust/licenses/ISC.txt": {
+          "bytes": 730,
+          "sha256": "0ff61769b238634e042ab759dddfd104a8e69d091e3600ae3410e401a6164381"
+        },
+        "share/doc/rust/licenses/LLVM-exception.txt": {
+          "bytes": 919,
+          "sha256": "e34c58338bd89d43e709e226610d8f32b3e3c47f4ad9a99a8dc1d4ac7842488e"
+        },
+        "share/doc/rust/licenses/MIT.txt": {
+          "bytes": 1078,
+          "sha256": "b85dcd3e453d05982552c52b5fc9e0bdd6d23c6f8e844b984a88af32570b0cc0"
+        },
+        "share/doc/rust/licenses/NCSA.txt": {
+          "bytes": 1676,
+          "sha256": "39cb0234065c92b9e6cee3830cbb52b1aa289aa8fe9ba2e66730fec5cf05c630"
+        },
+        "share/doc/rust/licenses/OFL-1.1.txt": {
+          "bytes": 4016,
+          "sha256": "8eea8287e5876b539670cadb82e99f9a7afddec6f6730811be1daf25d2e9bcfd"
+        },
+        "share/doc/rust/licenses/Unicode-3.0.txt": {
+          "bytes": 1995,
+          "sha256": "f5062c9a188d81dfe66b56db4182dcf9e4b17c0d9b0d311a8e20b3a1b075c443"
+        },
+        "share/doc/rustfmt/LICENSE-APACHE": {
+          "bytes": 10852,
+          "sha256": "092c8e82c47fb859d7385253c1b04052dbd65a8bcf0bbd8b6f7dba58a9e8753d"
+        },
+        "share/doc/rustfmt/LICENSE-MIT": {
+          "bytes": 1076,
+          "sha256": "ae0f1f791e3b4faccf981c0b530199235a8b8a021c7ef0c3c85c6c676ea4d27f"
+        }
+      },
+      "linkage": {
+        "agentciv-archive": {
+          "libraries": [
+            "api-ms-win-core-synch-l1-2-0.dll",
+            "bcryptprimitives.dll",
+            "kernel32.dll",
+            "KERNEL32.dll",
+            "ntdll.dll"
+          ]
+        },
+        "agentciv-reader": {
+          "libraries": [
+            "api-ms-win-core-synch-l1-2-0.dll",
+            "bcryptprimitives.dll",
+            "crypt32.dll",
+            "kernel32.dll",
+            "KERNEL32.dll",
+            "ntdll.dll",
+            "WS2_32.dll",
+            "ws2_32.dll"
+          ]
+        },
+        "agentciv-host": {
+          "libraries": [
+            "api-ms-win-core-synch-l1-2-0.dll",
+            "bcryptprimitives.dll",
+            "kernel32.dll",
+            "KERNEL32.dll",
+            "ntdll.dll",
+            "WS2_32.dll",
+            "ws2_32.dll"
+          ]
+        },
+        "agentciv-conformance": {
+          "libraries": [
+            "api-ms-win-core-synch-l1-2-0.dll",
+            "bcryptprimitives.dll",
+            "crypt32.dll",
+            "kernel32.dll",
+            "KERNEL32.dll",
+            "ntdll.dll",
+            "WS2_32.dll",
+            "ws2_32.dll"
+          ]
+        }
+      },
+      "windows": {
+        "build_products": [
+          {
+            "product": "Microsoft.VisualStudio.Product.Enterprise",
+            "version": "18.10.12224.181",
+            "source": "https://go.microsoft.com/fwlink/?LinkId=2327713",
+            "filename": "windows-product-license-1.html",
+            "sha256": "d7c5a4269e063ea3c7c09985f0ad8b9f3671c48aca25cbe309cce8904e348dd4"
+          },
+          {
+            "product": "Microsoft.VisualStudio.Product.Enterprise",
+            "version": "18.10.12224.181",
+            "displayName": "Visual Studio Enterprise 2026",
+            "toolsVersion": "14.51.36231"
+          }
+        ],
+        "previous_build_products": [
+          {
+            "product": "Microsoft.VisualStudio.Product.Enterprise",
+            "version": "18.10.12217.157",
+            "source": "https://go.microsoft.com/fwlink/?LinkId=2327713",
+            "filename": "windows-product-license-1.html",
+            "sha256": "13b1abc38f4760e2a68f4b2547aec4854354f896ffd41cc6167e668832b23f01"
+          },
+          {
+            "product": "Microsoft.VisualStudio.Product.Enterprise",
+            "version": "18.10.12217.157",
+            "displayName": "Visual Studio Enterprise 2026",
+            "toolsVersion": "14.51.36231"
+          }
+        ],
+        "license_source_pages": [
+          {
+            "filename": "windows-product-license-1.html",
+            "source": "https://go.microsoft.com/fwlink/?LinkId=2327713",
+            "sha256": "d7c5a4269e063ea3c7c09985f0ad8b9f3671c48aca25cbe309cce8904e348dd4"
+          }
+        ],
+        "page_representation_review": {
+          "target": "x86_64-pc-windows-msvc",
+          "old_sha256": "13b1abc38f4760e2a68f4b2547aec4854354f896ffd41cc6167e668832b23f01",
+          "current_sha256": "d7c5a4269e063ea3c7c09985f0ad8b9f3671c48aca25cbe309cce8904e348dd4",
+          "visible_text_equal": false,
+          "document_links_equal": true,
+          "document_links": [],
+          "embedded_frames_equal": true,
+          "embedded_frames": [
+            "//view.officeapps.live.com/op/embed.aspx?src=https%3A%2F%2Fvisualstudio.microsoft.com%2Fwp-content%2Fuploads%2F2025%2F10%2FVisual_Studio_2026-License-Enterprise_Professional_ENU.docx"
+          ],
+          "visible_differences": [
+            "--- \n",
+            "+++ \n",
+            "@@ -78,7 +78,7 @@\n",
+            " Returns",
+            " Order tracking",
+            " Certified Refurbished",
+            "-Microsoft Store Promise",
+            "+Why buy from Microsoft Store",
+            " Flexible Payments",
+            " Microsoft in education",
+            " Devices for education"
+          ],
+          "current_original_docx_sha256": "dd2ab92a7c2bb90dd509e16572707a34b13bc0bc09b9199d115f25594ac39053",
+          "current_original_docx_matches_retained": true
+        }
+      }
+    },
+    {
+      "target": "x86_64-unknown-linux-gnu",
+      "job_id": 117572452825,
+      "artifact_id": 12122718973,
+      "artifact_api_digest": "sha256:8cb4fbee11465ef3c4e261911e9df4dd30af0bd52c2a6122819acd9a7ee92f31",
+      "cargo_lock_sha256": "812445f9f17fd97263f1abe14bf69c21b0a4ddc99569c145b941735980dba90a",
+      "toolchain_raw_sha256": "64a88070e659a456538b3e05581cd8eb83c3647b1fc5ef82296604e5b1650186",
+      "toolchain_normalized_lf_sha256": "64a88070e659a456538b3e05581cd8eb83c3647b1fc5ef82296604e5b1650186",
+      "metadata_sha256": "7767af3786c2d65ca78008362310550bb889967ca5c17a5b72fa29bea4e0a8bb",
+      "inspected_original_file_sha256": {
+        "SOURCE_COMMIT": "1d04beb364ec7f66f1ce0db73c619c6c2645311d4416fb7eb115369acb71b505",
+        "VERSION": "5450e154dea2edecefdef8517b9cf508e9a4cc29ef9211600158c1568bdbbf6a",
+        "Cargo.lock": "812445f9f17fd97263f1abe14bf69c21b0a4ddc99569c145b941735980dba90a",
+        "rust-toolchain.toml": "64a88070e659a456538b3e05581cd8eb83c3647b1fc5ef82296604e5b1650186",
+        "rustc.txt": "f22d5e4e9ced367e774ce5bc140d9e6b1235c1882fec80d011044851f3ae6369",
+        "cargo.txt": "4265e22043d855cb3fc78365fbf272d2b2158881fe23035a18a92f0b0743dee8",
+        "metadata.json": "7767af3786c2d65ca78008362310550bb889967ca5c17a5b72fa29bea4e0a8bb",
+        "toolchain-notices.tar.gz": "58d0eed7a154d8e480569b68eeaa154039cbad39fe37d67f157946fd9066c8d1",
+        "toolchain-notice-paths.nul": "3ffcf61e4c85ec338d893c5fc9767831c169f43b448a31044b5d49a837dde505",
+        "agentciv-archive-runtime.txt": "a7c8d7c19a82bc8eb63d0b384fc66e836e37a684bc0a58c82074b8502ed8f414",
+        "agentciv-archive-dynamic.txt": "d1671c5461706e89b67288d9386d623ed89190cdd96ee698872d3e0e468e6f9f",
+        "agentciv-archive-symbol-versions.txt": "0683abdfcbc800bf14342dfd6ad9ee7190d770b195f2ec0e6c383f6063ce2ed0",
+        "agentciv-reader-runtime.txt": "d93e6d2815b37ddea4672d758d0f43541020090028c686748079c93adab052fe",
+        "agentciv-reader-dynamic.txt": "1b2cefc36df3fb1bd615d7fb04b99bd580fe631c4d66b1eae7f75954ef332afb",
+        "agentciv-reader-symbol-versions.txt": "18c2c45e4e0b256b56ff8d4c76430b8401ce5a46b10c34659bb44fb170d4de38",
+        "agentciv-host-runtime.txt": "0c1485c4dfd4cf5bdd26d2b94614e4fe60bd2029f547e9fa06d1174a0d13d7e2",
+        "agentciv-host-dynamic.txt": "0b3ce317fb6d05f26c90c1db5ba3f7d16b9fde508fd1b331cc0c08a20de10ac0",
+        "agentciv-host-symbol-versions.txt": "b10794d1465e854df2dfb9869d1c98925785040e6794c4c47dd5e763ecbb808e",
+        "agentciv-conformance-runtime.txt": "4de5da2eb265e79fd77b4cad03f27613f11525830aab571fdef4af558367db38",
+        "agentciv-conformance-dynamic.txt": "d21cda40b1c5998c4061141c77a14d790e5fc3124496b34359f0a3b39bb41a7b",
+        "agentciv-conformance-symbol-versions.txt": "f971600169bea79e0b80d1677efdc0ba64448c2d88897cba9ff18ebea0a3ca1b"
+      },
+      "applicable_registry_packages": 190,
+      "compiler": {
+        "version_line": "rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+        "binary": "rustc",
+        "commit-hash": "58cf8f9c35b355199727627d07ae34a4e2846d67",
+        "commit-date": "2026-10-13",
+        "host": "x86_64-unknown-linux-gnu",
+        "release": "1.99.1",
+        "LLVM version": "23.1.1"
+      },
+      "compiler_notice_members": {
+        "share/doc/clippy/LICENSE-MIT": {
+          "bytes": 1081,
+          "sha256": "8d07f0c9c9966be0aaec4196d7863b56ade114e9714dbc31ebba576c0446d2fc"
+        },
+        "share/doc/clippy/LICENSE-APACHE": {
+          "bytes": 10848,
+          "sha256": "d8b56cd45661bfc7ccf4ce5722388cab275f9dabb9e471c922cc80e36bbf9caa"
+        },
+        "share/doc/rustfmt/LICENSE-MIT": {
+          "bytes": 1076,
+          "sha256": "ae0f1f791e3b4faccf981c0b530199235a8b8a021c7ef0c3c85c6c676ea4d27f"
+        },
+        "share/doc/rustfmt/LICENSE-APACHE": {
+          "bytes": 10852,
+          "sha256": "092c8e82c47fb859d7385253c1b04052dbd65a8bcf0bbd8b6f7dba58a9e8753d"
+        },
+        "share/doc/cargo/LICENSE-MIT": {
+          "bytes": 1023,
+          "sha256": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3"
+        },
+        "share/doc/cargo/LICENSE-APACHE": {
+          "bytes": 10860,
+          "sha256": "8ada45cd9f843acf64e4722ae262c622a2b3b3007c7310ef36ac1061a30f6adb"
+        },
+        "share/doc/cargo/LICENSE-THIRD-PARTY": {
+          "bytes": 68430,
+          "sha256": "cbc759b1f17a2ac38fe3eb9e9563b1a08ba0f900611c49faaf68b46907b6d898"
+        },
+        "share/doc/rust/licenses/Unicode-3.0.txt": {
+          "bytes": 1995,
+          "sha256": "f5062c9a188d81dfe66b56db4182dcf9e4b17c0d9b0d311a8e20b3a1b075c443"
+        },
+        "share/doc/rust/licenses/GCC-exception-3.1.txt": {
+          "bytes": 3320,
+          "sha256": "a3966c9410ef94a1efbfa9ec04e9c1994026a70623fbf0885ce36737bfba3b54"
+        },
+        "share/doc/rust/licenses/GPL-2.0-only.txt": {
+          "bytes": 17642,
+          "sha256": "54b212ba1f97f6948fa5486239ab505dd820b02e50cbfd296b4062c8609a70af"
+        },
+        "share/doc/rust/licenses/LLVM-exception.txt": {
+          "bytes": 919,
+          "sha256": "e34c58338bd89d43e709e226610d8f32b3e3c47f4ad9a99a8dc1d4ac7842488e"
+        },
+        "share/doc/rust/licenses/NCSA.txt": {
+          "bytes": 1676,
+          "sha256": "39cb0234065c92b9e6cee3830cbb52b1aa289aa8fe9ba2e66730fec5cf05c630"
+        },
+        "share/doc/rust/licenses/CC-BY-SA-4.0.txt": {
+          "bytes": 20137,
+          "sha256": "23ee78c8bae49cf08ea2f0c84945c66b987ebe4520881fb51b3dad4fb43d07c2"
+        },
+        "share/doc/rust/licenses/BSD-2-Clause.txt": {
+          "bytes": 1267,
+          "sha256": "f32fb3b417a194167cfad068223fc975ba96c5960513a10f66a3c28720aec1df"
+        },
+        "share/doc/rust/licenses/MIT.txt": {
+          "bytes": 1078,
+          "sha256": "b85dcd3e453d05982552c52b5fc9e0bdd6d23c6f8e844b984a88af32570b0cc0"
+        },
+        "share/doc/rust/licenses/OFL-1.1.txt": {
+          "bytes": 4016,
+          "sha256": "8eea8287e5876b539670cadb82e99f9a7afddec6f6730811be1daf25d2e9bcfd"
+        },
+        "share/doc/rust/licenses/ISC.txt": {
+          "bytes": 730,
+          "sha256": "0ff61769b238634e042ab759dddfd104a8e69d091e3600ae3410e401a6164381"
+        },
+        "share/doc/rust/licenses/GPL-3.0-or-later.txt": {
+          "bytes": 34795,
+          "sha256": "05315fce6c35f79b8a35454828995fa26336f235895ac64557abc028f4ffcea2"
+        },
+        "share/doc/rust/licenses/Apache-2.0.txt": {
+          "bytes": 10280,
+          "sha256": "074e6e32c86a4c0ef8b3ed25b721ca23aca83df277cd88106ef7177c354615ff"
+        },
+        "share/doc/rust/COPYRIGHT-library.html": {
+          "bytes": 1499465,
+          "sha256": "5647be074c8edf7339fd863055923a8fc80bc5610a8d4661ec3b767b9d392c27"
+        },
+        "share/doc/rust/COPYRIGHT.html": {
+          "bytes": 14423589,
+          "sha256": "d518ae2d76bc7a1f0cbf0069b8deafb56efc39c2614cab74a859ef0b467f8373"
+        }
+      },
+      "linkage": {
+        "agentciv-archive": {
+          "libraries": [
+            "ld-linux-x86-64.so.2",
+            "libc.so.6",
+            "libgcc_s.so.1",
+            "libm.so.6"
+          ],
+          "highest_glibc": "2.34"
+        },
+        "agentciv-reader": {
+          "libraries": [
+            "ld-linux-x86-64.so.2",
+            "libc.so.6",
+            "libgcc_s.so.1",
+            "libm.so.6"
+          ],
+          "highest_glibc": "2.38"
+        },
+        "agentciv-host": {
+          "libraries": [
+            "ld-linux-x86-64.so.2",
+            "libc.so.6",
+            "libgcc_s.so.1",
+            "libm.so.6"
+          ],
+          "highest_glibc": "2.34"
+        },
+        "agentciv-conformance": {
+          "libraries": [
+            "ld-linux-x86-64.so.2",
+            "libc.so.6",
+            "libgcc_s.so.1",
+            "libm.so.6"
+          ],
+          "highest_glibc": "2.38"
+        }
+      },
+      "windows": null
+    }
+  ],
+  "scope": "Offline consistency of supplied exact-feature-source audit metadata and six local artifact folders against exact committed source and reviewed target/toolchain/product baselines. Local artifact origin is not authenticated. No binary executed, signature repeated, candidate/public download checked, legal certification or old-audit substitution."
+}

@@ -254,7 +254,7 @@ class EncounterClientUnitTests(unittest.TestCase):
             self.assertEqual(list(cache.glob("journal-*.json")), [])
 
     def test_incomplete_or_unbounded_reader_result_creates_no_current_view(self) -> None:
-        for condition in ("partial", "wrong_count", "credential", "truncated", "process_limit"):
+        for condition in ("partial", "wrong_count", "credential", "malformed_projection", "process_limit"):
             with self.subTest(condition=condition), tempfile.TemporaryDirectory() as temporary:
                 root = Path(temporary).resolve()
                 config, value, cache = settings(root)
@@ -266,8 +266,8 @@ class EncounterClientUnitTests(unittest.TestCase):
                     current["report"] = {**obj(current["report"]), "events": 1}
                 elif condition == "credential":
                     current["untrusted"] = value["token"]
-                elif condition == "truncated":
-                    projected["report"] = {**obj(projected["report"]), "truncated": True}
+                elif condition == "malformed_projection":
+                    projected["report"] = {**obj(projected["report"]), "truncated": "true"}
                 with patch.object(client, "_native_read", return_value=current,
                     side_effect=private.EncounterError("reader_failed") if condition == "process_limit" else None), \
                     patch.object(client, "_project", return_value=projected), patch.object(wire, "exchange") as posted:
@@ -836,6 +836,23 @@ class EncounterOperatorTests(unittest.TestCase):
             self.assertEqual(operator.main(), 0)
         said.assert_called_once_with(Path("private-config"), "hello", [C], None, reader_binary=None)
 
+    def test_saved_view_path_failure_explains_private_location_without_reflection(self) -> None:
+        config: JsonObject = {"cache_directory": str(Path("private-state") / "cache-02")}
+        for path in (Path("private-secret") / "view-one.json", Path("private-state/cache-02/wrong.json")):
+            with self.assertRaises(private.EncounterError) as caught:
+                client._save_view({}, config, path)
+            self.assertEqual(caught.exception.field, "save")
+        for field in ("save", "previous"):
+            with patch.object(sys, "argv", ["local_encounter.py", "sync", "--config", "private-secret"]), \
+                patch.object(client, "sync", side_effect=private.EncounterError("invalid_private_view_path", field=field)), \
+                patch("builtins.print") as printed:
+                self.assertEqual(operator.main(), 1)
+                result = json.loads(printed.call_args.args[0])
+                self.assertEqual(result["field"], field)
+                self.assertIn("view-*.json", result["title"])
+                self.assertIn("cache_directory", result["title"])
+                self.assertNotIn("private-secret", printed.call_args.args[0])
+
     def test_cli_denial_and_uncertainty_are_failures_without_credentials_or_trace(self) -> None:
         for outcome in ("rejected", "uncertain"):
             with self.subTest(outcome=outcome), patch.object(sys, "argv", ["local_encounter.py", "submit",
@@ -858,6 +875,93 @@ class LocalEncounterProcessTests(unittest.TestCase):
         binaries = walk.build_rust_binaries("agentciv-reader", "agentciv-host")
         cls.reader_binary = binaries["agentciv-reader"]
         cls.host_binary = binaries["agentciv-host"]
+
+    def test_paged_activities_and_correction_trails_survive_restart_on_both_hosts(self) -> None:
+        for host in ("python", "rust"):
+            with self.subTest(host=host), tempfile.TemporaryDirectory(prefix="agentciv-return-trails-") as temporary:
+                root = Path(temporary).resolve()
+                state = root / "room"
+                initialized = operator.initialize(state, WORLD, [A, B], [C], free_port())
+                configs = {str(row["principal"]): Path(str(row["config"])) for row in objects(initialized["clients"])}
+                origin = str(initialized["origin"])
+                argv = walk.python_argv(state / "host.json") if host == "python" else [str(self.host_binary), "--config", str(state / "host.json")]
+                settings = {principal: load(path) for principal, path in configs.items()}
+                def publish(record: JsonObject) -> JsonObject:
+                    status, raw = wire.exchange("POST", origin + "/collaborate", token=str(settings[str(record["from"])]["token"]), body=json.dumps(record).encode())
+                    self.assertEqual(status, 200, raw)
+                    return civic.decode(raw)
+                owned = operator._start(argv, origin)
+                try:
+                    operator._wait_ready(owned)
+                    offer_fixture = load(operator.ROOT / "tools/agentciv-reader/fixtures/offer-valid.json")
+                    offer_fixture["source_refs"] = []
+                    for number in range(21):
+                        offer = authored("artifact_revision", f"offer:{number}", A)
+                        offer["artifact_id"] = f"artifact:offer-{number}"
+                        offer["body"] = {"text": f"Activity {number}", "activity_offer": offer_fixture}
+                        publish(offer)
+                    basis = authored("artifact_revision", "basis:first", A)
+                    basis["body"] = {"text": "Original source says ten units. Synthetic copying is permitted."}
+                    original_receipt = publish(basis)
+                    peer = authored("artifact_revision", "peer:first", B)
+                    peer["artifact_id"] = "artifact:peer-work"
+                    peer["derived_from"] = {"from": A, "artifact_id": "artifact:shared-reader", "revision": 1}
+                    peer["body"] = {"text": "My continued plan relies on the original ten units."}
+                    peer_receipt = publish(peer)
+                    hidden = authored("artifact_revision", "hidden:private", A, audience=[B])
+                    hidden["artifact_id"] = "artifact:hidden-private"
+                    publish(hidden)
+                    first = client.sync(configs[C], reader_binary=self.reader_binary)
+                    previous = Path(str(first["view_path"]))
+                    self.assertTrue(obj(load(previous)["offers"])["has_more"])
+                    page = client.offers(configs[C], previous, reader_binary=self.reader_binary)
+                    second = client.offers(configs[C], previous, continuation=str(page["next_continuation"]), reader_binary=self.reader_binary)
+                    ids = [row["event_id"] for row in objects(page["offers"]) + objects(second["offers"])]
+                    self.assertEqual(len(ids), 21)
+                    self.assertEqual(len(set(map(str, ids))), 21)
+                    self.assertFalse(second["has_more"])
+                    self.assertIn("Original source", client.show(configs[C], previous, event_id=str(original_receipt["event_id"])))
+                    corrected = authored("artifact_revision", "basis:corrected", A)
+                    corrected["body"] = {"text": "Source correction: four units, not ten. The original remains inspectable."}
+                    correction_receipt = publish(corrected)
+                    disagreement = authored("objection", "objection:still-open", B)
+                    disagreement["body"] = {"text": "I dispute the proposal to discard the older account; keep both."}
+                    objection_receipt = publish(disagreement)
+                    alternative = authored("artifact_revision", "peer:alternative", B)
+                    alternative["derived_from"] = {"from": A, "artifact_id": "artifact:shared-reader", "revision": 1}
+                    alternative["body"] = {"text": "A separate author-owned alternative, not the room's decision."}
+                    publish(alternative)
+                finally:
+                    operator._stop_owned(owned)
+                operator.add_member(state, "agent:new-reader", write=False)
+                owned = operator._start(argv, origin)
+                try:
+                    operator._wait_ready(owned)
+                    current_result = client.sync(configs[C], previous, reader_binary=self.reader_binary)
+                    current = Path(str(current_result["view_path"]))
+                    newcomer = client.read(state / "client-04.json", reader_binary=self.reader_binary)
+                    self.assertEqual(newcomer["events"], 0)
+                finally:
+                    operator._stop_owned(owned)
+                originals = {path: path.read_bytes() for path in (previous, current)}
+                with patch.object(wire, "exchange", side_effect=AssertionError("return must be offline")), \
+                    patch.object(client, "_native_read", side_effect=AssertionError("return must not fetch")):
+                    result = returns.changes(configs[C], current, previous, reader_binary=self.reader_binary,
+                        include_corrections=True, event_id=str(peer_receipt["event_id"]))
+                    unchanged = returns.changes(configs[C], current, current, reader_binary=self.reader_binary, include_corrections=True)
+                trails = obj(result["correction_trails"])
+                concern = objects(trails["concerns"])[0]
+                self.assertEqual(concern["observation_change"], "newly_visible")
+                self.assertEqual(obj(concern["target_original"])["event_id"], original_receipt["event_id"])
+                self.assertEqual(objects(concern["later_revisions"])[0]["event_id"], correction_receipt["event_id"])
+                self.assertEqual(objects(concern["objections"])[0]["event_id"], objection_receipt["event_id"])
+                self.assertIn(peer_receipt["event_id"], [row["event_id"] for row in objects(concern["dependents"])])
+                self.assertTrue(all(row["observation_change"] == "unchanged" for row in objects(obj(unchanged["correction_trails"])["concerns"])))
+                chains = [(row["from"], row["artifact_id"]) for row in objects(trails["artifacts"])]
+                self.assertIn((A, "artifact:shared-reader"), chains)
+                self.assertIn((B, "artifact:shared-reader"), chains)
+                self.assertNotIn("hidden-private", json.dumps(result))
+                self.assertEqual(originals, {path: path.read_bytes() for path in originals})
 
     def test_lost_responses_inspect_offline_without_promoting_candidates_on_both_hosts(self) -> None:
         import time

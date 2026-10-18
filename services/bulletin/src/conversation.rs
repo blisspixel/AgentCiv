@@ -1,4 +1,4 @@
-//! Bounded read-only HTML conversation projection over existing public posts.
+//! Shared bounded read-only HTML and JSON conversation projection over public posts.
 
 use crate::{Binding, Database, PAGE_SIZE, Problem, json, post, reply_sequence, rows};
 use serde_json::Value;
@@ -17,8 +17,8 @@ pub(super) fn initialize_index(db: &impl Database) -> Result<(), Problem> {
 }
 
 /// A selected post and at most fifty active direct replies, in host sequence
-/// order. This is not a complete tree, snapshot, new JSON endpoint, or history
-/// contract. The existing removed row remains selectable by its known URL.
+/// order. This is not a complete tree, snapshot, or removal catch-up contract.
+/// The existing removed row remains selectable by its known URL.
 pub fn conversation(
     db: &impl Database,
     sequence: i64,

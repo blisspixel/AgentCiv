@@ -5,6 +5,7 @@ use crate::{Budgets, Error, MAX_READ_EVENTS, Result, Traversal, collect};
 use agentciv_archive::{MAX_INPUT_BYTES, MAX_RECORD_BYTES, parse_unique};
 use serde::Deserialize;
 use serde_json::{Value, json};
+use sha2::{Digest, Sha256};
 use std::collections::{BTreeMap, BTreeSet};
 
 pub const FORMAT: &str = "agentciv-activity-offer/0.1-example";
@@ -289,6 +290,11 @@ pub(crate) fn validated(raw: &str) -> Result<Validated> {
 /// Revalidate all originals before selecting. Failure returns no usable projection.
 /// Only records already in this input can affect output, including omission counts.
 pub fn project(raw: &str, query: &str) -> Result<Value> {
+    project_page(raw, query, None)
+}
+
+/// Page one fixed observation. Continuations bind exact input bytes and query.
+pub fn project_page(raw: &str, query: &str, continuation: Option<&str>) -> Result<Value> {
     if !bounded_text(query, 128, 512, true) {
         return Err(Error::InvalidQuery);
     }
@@ -298,6 +304,27 @@ pub fn project(raw: &str, query: &str) -> Result<Value> {
         records,
         events,
     } = validated(raw)?;
+    let mut digest = Sha256::new();
+    digest.update(b"agentciv-offers-page/1\0");
+    digest.update((raw.len() as u64).to_be_bytes());
+    digest.update(raw.as_bytes());
+    digest.update(query.as_bytes());
+    let observation = format!("{:x}", digest.finalize());
+    let offset = if let Some(token) = continuation {
+        let prefix = format!("v1:{observation}:");
+        let number = token
+            .strip_prefix(&prefix)
+            .ok_or(Error::InvalidContinuation)?;
+        let offset = number
+            .parse::<usize>()
+            .map_err(|_| Error::InvalidContinuation)?;
+        if offset == 0 || offset % RESULT_LIMIT != 0 || number != offset.to_string() {
+            return Err(Error::InvalidContinuation);
+        }
+        offset
+    } else {
+        0
+    };
     let records = &records;
     let mut latest = BTreeMap::new();
     let mut tombstones = Vec::new();
@@ -354,9 +381,15 @@ pub fn project(raw: &str, query: &str) -> Result<Value> {
         }
     }
     matches.sort_by_key(|(index, _)| std::cmp::Reverse(*index));
-    let truncated = matches.len() > RESULT_LIMIT;
+    if offset > 0 && offset >= matches.len() {
+        return Err(Error::InvalidContinuation);
+    }
+    let has_more = matches.len().saturating_sub(offset) > RESULT_LIMIT;
+    let truncated = offset > 0 || has_more;
+    let next = has_more.then(|| format!("v1:{observation}:{}", offset + RESULT_LIMIT));
     let offers: Vec<Value> = matches
         .iter()
+        .skip(offset)
         .take(RESULT_LIMIT)
         .map(|(index, offer)| project_offer(*index, offer, &events, records))
         .collect();
@@ -365,6 +398,7 @@ pub fn project(raw: &str, query: &str) -> Result<Value> {
         .map(|&index| original(index, &events, records))
         .collect();
     let view = json!({"format":"agentciv-offer-view/0.1-example","world":world,"query":query,"offers":offers,"tombstones":tombstones,
+        "observation_sha256":observation,"has_more":has_more,"next_continuation":next,
         "report":{"scope":"current_caller_view","copying_permission":"not_granted","reached_end":true,"pages":report.pages,"events":report.events,"response_bytes":report.response_bytes,
             "displayed":offers.len(),"result_limit":RESULT_LIMIT,"truncated":truncated,"shortened_fields":[],
             "omissions":{"superseded_offer_revisions":superseded,"malformed_latest_offers":malformed,"uncertain_chain_offers":uncertain},

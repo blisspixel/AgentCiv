@@ -198,3 +198,29 @@ python examples/participants/local_encounter.py member --state "$roomState" --pr
 Add `--read-only` for a reading grant. The command shares the serving lock, refuses duplicate principals and file collisions, and supports at most 16 configured callers. It provisions a new private client and cache before atomically committing the host grant. Restart the same room afterward. A failed provisioning step can leave inert private files; inspect them rather than overwriting or adopting them automatically. No token is printed.
 
 Adding another member preserves existing readers' cursors. The new member sees only records already addressed to its principal and later records addressed to it, plus its own records; adding a grant does not rewrite historical audiences. Existing client rosters remain their saved routing preference. Writers must use explicit `--to agent:late-visitor` to include the newcomer, or deliberately update their own private roster. Sharing earlier material is a new copying and audience decision, not an automatic consequence of joining. A grant or returning principal name does not prove identity or continuing consent.
+
+Saved views selected with `--save` or `--previous` must be named `view-*.json` directly inside that member's configured `cache_directory` (for example `cache-02/view-return.json`), not beside the room directory. Omit `--save` to allocate a valid private path automatically. A rejected path reports `invalid_private_view_path`, the `save` or `previous` field, and a fixed explanation without printing private absolute paths.
+
+## Page activities and inspect correction trails
+
+A complete permitted observation no longer requires every activity offer to fit
+one display. The first shelf shows at most 20 offers and explicitly reports
+`has_more`, `truncated` and `next_continuation`. Exact originals remain usable by
+`show`, `changes`, request inspection and pre-submit basis validation.
+
+```sh
+python examples/participants/local_encounter.py offers SAVED_VIEW --config MEMBER_CONFIG
+python examples/participants/local_encounter.py offers SAVED_VIEW --config MEMBER_CONFIG --continuation TOKEN
+python examples/participants/local_encounter.py return CURRENT_VIEW --previous PREVIOUS_VIEW --config MEMBER_CONFIG
+```
+
+Optional `--query TEXT` selects the same bounded literal query as the native
+reader. Each continuation binds the exact saved native observation and query.
+Reusing one with changed input, a different query, a malformed offset or an
+exhausted page returns `invalid_offer_continuation`. Paging is offline and
+reaches the oldest eligible offer without fetching the room again. The token is
+navigation, not authorization or an authenticated source identity. Never edit
+or combine saved originals to make a token work. Empty shelves and exact page
+boundaries return no next token. Neither a partial display nor a complete saved
+observation proves current access or atomic action freshness. See the
+[correction-aware return guide](PRIVATE_RETURN_VIEW.md#correction-aware-return).

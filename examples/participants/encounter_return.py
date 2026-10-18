@@ -24,6 +24,7 @@ class Observation:
     records: dict[str, tuple[str, JsonObject]]
     started: datetime
     finished: datetime
+    native: JsonObject
 
 
 def _time(value: object) -> datetime:
@@ -75,7 +76,7 @@ def _load(path: Path, settings: JsonObject, binary: Path, *, raw: bytes | None =
     metadata: JsonObject = {"view_path": str(path), "retrieval_started": view["retrieval_started"],
         "retrieval_finished": view["retrieval_finished"], "configured_budgets": budgets,
         "events": len(originals), "pages": report["pages"], "response_bytes": report["response_bytes"]}
-    return Observation(metadata, records, started, finished)
+    return Observation(metadata, records, started, finished, native)
 
 
 def _reference(identifier: str, event: JsonObject) -> JsonObject:
@@ -83,13 +84,17 @@ def _reference(identifier: str, event: JsonObject) -> JsonObject:
     return {"event_id": identifier, "sequence": client._integer(event["sequence"]), "kind": event["kind"]}
 
 
-def changes(config: Path, current: Path, previous: Path, *, reader_binary: Path | None = None) -> JsonObject:
+def changes(config: Path, current: Path, previous: Path, *, reader_binary: Path | None = None,
+            include_corrections: bool = False, event_id: str | None = None) -> JsonObject:
     """No HTTP, writes to originals, read marker, publication, or journal retry."""
     try:
         settings = client._configuration(config)
         with private.lock(Path(str(settings["cache_directory"]))):
             binary = client._binary(reader_binary)
             before, after = _load(previous, settings, binary), _load(current, settings, binary)
+            corrections: JsonObject = {}
+            if include_corrections:
+                corrections = _corrections(before, after, settings, binary, event_id)
         if after.started < before.started or after.finished < before.finished:
             raise private.EncounterError("reversed_observations")
         sequences: dict[int, str] = {}
@@ -124,6 +129,8 @@ def changes(config: Path, current: Path, previous: Path, *, reader_binary: Path 
             "interpretation": "Newly visible is not newly created. Absence has no diagnosed cause. Changed means different original bytes.",
             "unchanged_events": unchanged, "newly_visible": newly_visible,
             "representation_changed": changed, "not_in_current_observation": absent}
+        if include_corrections:
+            result["correction_trails"] = corrections
         if client._contains_secret(result, str(settings["token"])):
             raise private.EncounterError("credential_reflected")
         if len(json.dumps(result, ensure_ascii=True).encode("utf-8")) > MAX_RESULT_BYTES:
@@ -133,3 +140,50 @@ def changes(config: Path, current: Path, previous: Path, *, reader_binary: Path 
         raise
     except (ValueError, OSError, KeyError, TypeError, RuntimeError):
         raise private.EncounterError("invalid_private_view") from None
+
+
+def _corrections(before: Observation, after: Observation, settings: JsonObject,
+                 binary: Path, event_id: str | None) -> JsonObject:
+    """Reuse native declared lineage. Prior copies never fill current missing sources."""
+    directory = Path(str(settings["cache_directory"]))
+    projections = [client._offline(item.native, binary, directory, "corrections") for item in (before, after)]
+    for projection in projections:
+        report = client._object(projection.get("report"))
+        if (projection.get("format") != "agentciv-correction-view/0.1-example"
+            or projection.get("world") != settings["world"] or report.get("reached_end") is not True
+            or report.get("truncated") is not False):
+            raise private.EncounterError("correction_view_incomplete")
+    old_concerns = projections[0].get("concerns")
+    new_concerns = projections[1].get("concerns")
+    if not isinstance(old_concerns, list) or not isinstance(new_concerns, list):
+        raise private.EncounterError("invalid_correction_view")
+    # Retain only digests from earlier concerns for comparison, never historical
+    # source bytes or erased selectors as a reconstruction of the current view.
+    def key(value: object) -> str:
+        return json.dumps(value, ensure_ascii=True, sort_keys=True)
+    old = {key(client._object(item).get("target")): key(item) for item in old_concerns}
+    concerns = []
+    for item in new_concerns:
+        concern = client._object(item)
+        prior = old.get(key(concern.get("target")))
+        state = "newly_visible" if prior is None else "unchanged" if prior == key(item) else "changed"
+        concerns.append({**concern, "observation_change": state})
+    artifacts: list[JsonObject] = []
+    for identifier, (_, event) in after.records.items():
+        if event.get("kind") != "artifact.recorded":
+            continue
+        record = client._object(client._object(event["body"])["artifact_revision"])
+        artifacts.append({"event_id": identifier, "from": record["from"], "artifact_id": record["artifact_id"],
+            "revision": client._integer(record["revision"]),
+            **({"derived_from": {**client._object(record["derived_from"]),
+                "revision": client._integer(client._object(record["derived_from"])["revision"])}} if "derived_from" in record else {})})
+    selected: JsonObject = {}
+    if event_id is not None:
+        if event_id not in after.records:
+            raise private.EncounterError("event_not_in_saved_view")
+        selected = {"event_id": event_id, "record_utf8": after.records[event_id][0],
+            "scope": "current_saved_observation_only"}
+    return {"concerns": concerns, "unresolved_citations": projections[1].get("unresolved_citations"),
+        "artifacts": artifacts, "selected": selected, "report": projections[1]["report"],
+        "interpretation": "Declared derivation is not inferred reliance. An objection is not proof of error. Later revisions do not resolve disagreement. Claimed repair is not verified repair.",
+        "prior_observation": "Used only to label concern changes; absent or erased originals are never restored from it."}

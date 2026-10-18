@@ -1,9 +1,9 @@
 {
   "inventory_version": "1",
   "status": "reviewed_complete",
-  "source_lock_sha256": "bd6ffd178b05c65e1742f2fa2895a88d19a8cf4cffb71e6ac497420c85087333",
-  "toolchain_file_sha256": "dae18a8743f89707783c1d873595570f29618d0c20f022f8dced263982bba74e",
-  "notices_sha256": "1bcf14c8995a3ef4b539a5966d1b53f5ebf2fa62828b87b45d9cd48310b51a91",
+  "source_lock_sha256": "812445f9f17fd97263f1abe14bf69c21b0a4ddc99569c145b941735980dba90a",
+  "toolchain_file_sha256": "64a88070e659a456538b3e05581cd8eb83c3647b1fc5ef82296604e5b1650186",
+  "notices_sha256": "66f5469ca711e13defcc6b196b1807263ad15e9ce9db81c51fd1610a4245601f",
   "scope": "All 251 exact-lock registry packages, including build-only and target-specific dependencies; original source notices and selected copyright/license comment blocks; pinned Rust toolchain notices compared across six actual native audits; separately preserved Microsoft build-product/runtime license sources and actual native linkage review. Project MIT does not relicense third-party components.",
   "source_method": {
     "full_metadata_command": "cargo metadata --offline --locked --format-version 1",
@@ -28,7 +28,7 @@
   "workspace_packages_excluded_from_third_party_inventory": [
     {
       "name": "agentciv-archive",
-      "version": "0.1.2"
+      "version": "0.1.3"
     },
     {
       "name": "agentciv-bulletin",
@@ -40,7 +40,7 @@
     },
     {
       "name": "agentciv-conformance",
-      "version": "0.1.2"
+      "version": "0.1.3"
     },
     {
       "name": "agentciv-directory",
@@ -48,11 +48,11 @@
     },
     {
       "name": "agentciv-host",
-      "version": "0.1.2"
+      "version": "0.1.3"
     },
     {
       "name": "agentciv-reader",
-      "version": "0.1.2"
+      "version": "0.1.3"
     }
   ],
   "entries": [
@@ -16425,16 +16425,16 @@
   ],
   "compiler": {
     "metadata": {
-      "version_line": "rustc 1.98.1 (48a229cea 2026-09-01)",
+      "version_line": "rustc 1.99.1 (58cf8f9c3 2026-10-13)",
       "binary": "rustc",
-      "commit-hash": "48a229ceaefd4985c50990b14116b6d856af0985",
-      "commit-date": "2026-09-01",
+      "commit-hash": "58cf8f9c35b355199727627d07ae34a4e2846d67",
+      "commit-date": "2026-10-13",
       "host": "x86_64-pc-windows-msvc",
-      "release": "1.98.1",
-      "LLVM version": "22.1.8",
-      "cargo_version": "cargo 1.98.1 (797e8a9bc 2026-08-05)"
+      "release": "1.99.1",
+      "LLVM version": "23.1.1",
+      "cargo_version": "cargo 1.99.1 (5f94df478 2026-08-27)"
     },
-    "notice_scope": "Cached host toolchain only. Full original toolchain and standard-library copyright documents included, alongside cached build-tool notices.",
+    "notice_scope": "Original current Rust 1.99.1 host toolchain notice bytes and preserved Microsoft provider documents. Six-target actual audit remains a release blocker.",
     "source_notices": [
       {
         "filename": "share/doc/cargo/LICENSE-APACHE",
@@ -16468,15 +16468,15 @@
       },
       {
         "filename": "share/doc/rust/COPYRIGHT-library.html",
-        "sha256": "68129500b616d5838629e68f55ff3aed5e096dacf60ce9eb41bbe599a563afa6",
-        "byte_offset": 2228530,
-        "byte_length": 1512520
+        "sha256": "5647be074c8edf7339fd863055923a8fc80bc5610a8d4661ec3b767b9d392c27",
+        "byte_offset": 20262499,
+        "byte_length": 1499465
       },
       {
         "filename": "share/doc/rust/COPYRIGHT.html",
-        "sha256": "5b0c93fc4e6d4b072eaa521b1762d1e746f4c368f65e81a0e5308e2772dac85e",
-        "byte_offset": 3741172,
-        "byte_length": 15380909
+        "sha256": "d518ae2d76bc7a1f0cbf0069b8deafb56efc39c2614cab74a859ef0b467f8373",
+        "byte_offset": 21762045,
+        "byte_length": 14423589
       },
       {
         "filename": "share/doc/rust/licenses/Apache-2.0.txt",
@@ -16648,5 +16648,35 @@
     "previous_lock_sha256": "9809a731519af5db1b11958efb37eef0e9eaf8fa165ea29fd8ec1aede49ae5fa",
     "current_lock_sha256": "bd6ffd178b05c65e1742f2fa2895a88d19a8cf4cffb71e6ac497420c85087333",
     "decision": "Only four local utility package versions changed. All other locked packages, registry sources, checksums and dependency edges remain unchanged; original notice bytes, slice hashes and pinned toolchain configuration are preserved. Actual candidate build products, linkage and publication require separate verification."
+  },
+  "maintenance_v0_1_3": {
+    "reviewed": "2026-10-17",
+    "registry_graph_unchanged": true,
+    "compiler_upgrade": "1.98.1 to 1.99.1",
+    "changed_compiler_notices": [
+      {
+        "file": "share/doc/rust/COPYRIGHT-library.html",
+        "previous_sha256": "68129500b616d5838629e68f55ff3aed5e096dacf60ce9eb41bbe599a563afa6",
+        "current_sha256": "5647be074c8edf7339fd863055923a8fc80bc5610a8d4661ec3b767b9d392c27"
+      },
+      {
+        "file": "share/doc/rust/COPYRIGHT.html",
+        "previous_sha256": "5b0c93fc4e6d4b072eaa521b1762d1e746f4c368f65e81a0e5308e2772dac85e",
+        "current_sha256": "d518ae2d76bc7a1f0cbf0069b8deafb56efc39c2614cab74a859ef0b467f8373"
+      }
+    ],
+    "original_crate_and_provider_notice_slices_preserved": true,
+    "historical_native_review": "release/NATIVE_REVIEW_2026_10_11.md",
+    "current_native_review": "release/NATIVE_REVIEW_2026_10_18.md",
+    "preserved_previous_aggregate_prefix": {
+      "bytes": 20262410,
+      "sha256": "1bcf14c8995a3ef4b539a5966d1b53f5ebf2fa62828b87b45d9cd48310b51a91"
+    },
+    "audit_run": 39092645529,
+    "review_evidence": "conformance/evidence/native-audit-v0.1.3/review.json",
+    "windows_product_version": "18.10.12224.181",
+    "windows_tools_version": "14.51.36231",
+    "linkage_unchanged_from_reviewed_baseline": true,
+    "release_scope": "Reviewed native inventory; final exact-green-main candidate and immutable publication remain separate gates."
   }
 }

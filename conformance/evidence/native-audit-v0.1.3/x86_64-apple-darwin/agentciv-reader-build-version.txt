@@ -1,0 +1,6 @@
+target/x86_64-apple-darwin/release/agentciv-reader:
+Load command 9
+      cmd LC_VERSION_MIN_MACOSX
+  cmdsize 16
+  version 10.12
+      sdk 15.5

@@ -1,0 +1,3 @@
+target/x86_64-apple-darwin/release/agentciv-archive:
+	/usr/lib/libiconv.2.dylib (compatibility version 7.0.0, current version 7.0.0)
+	/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1351.0.0)

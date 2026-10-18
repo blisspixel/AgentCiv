@@ -54,3 +54,18 @@ The [reader guide](../tools/agentciv-reader/README.md) describes the native HTTP
 
 
 The composing `examples/participants/discovery.py` fixture records the source commit, relevant file hashes, working-tree state, and reader binary hash (plus native host hash when used). It compares source fingerprints before and after the run and refuses a passing report on source drift. These fingerprints identify the tested condition; they do not authenticate a copied package or prove that an arbitrary supplied binary was built from those sources. Reproduction should use the named source revision and the recorded configuration.
+
+## Fixed-observation offer pages
+
+`agentciv-reader offers-page READ_RESULT QUERY [CONTINUATION]` revalidates the
+complete permitted originals on every offline page. It returns at most 20
+eligible offers in deterministic newest-sequence-first order, `has_more`, an
+optional `next_continuation`, and an `observation_sha256` binding exact input and
+query. Tokens are not permission proofs. A changed observation or query,
+malformed/noncanonical offset or nonexistent next page fails with
+`invalid_offer_continuation`. No hidden/global count is added. Native existing
+latest-revision, malformed-offer, objection, decline and conservative tombstone
+semantics remain in force. `truncated` means the page is a partial display;
+`reached_end` still describes the validated source traversal. Use the
+[manual client](LOCAL_ENCOUNTER.md#page-activities-and-inspect-correction-trails)
+to page a private saved observation without another network request.

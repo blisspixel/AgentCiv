@@ -94,12 +94,12 @@ def _binary(selected: Path | None) -> Path:
     return Path(found).resolve()
 
 
-def _process(binary: Path, command: str, path: Path, previous: Path | None = None) -> JsonObject:
+def _process(binary: Path, command: str, path: Path, previous: Path | None = None, *, arguments: tuple[str, ...] = ()) -> JsonObject:
     try:
-        arguments = [str(binary), command, str(path)] + ([""] if command == "offers" else [])
+        argv = [str(binary), command, str(path)] + ([""] if command == "offers" else []) + list(arguments)
         if previous is not None:
-            arguments.append(str(previous))
-        result = subprocess.run(arguments, capture_output=True, timeout=40, check=False)
+            argv.append(str(previous))
+        result = subprocess.run(argv, capture_output=True, timeout=40, check=False)
     except (OSError, subprocess.SubprocessError):
         raise private.EncounterError("reader_process_failed") from None
     if result.returncode != 0 and command in ("read", "sync") and len(result.stderr) <= 1024:
@@ -115,6 +115,14 @@ def _process(binary: Path, command: str, path: Path, previous: Path | None = Non
             if diagnostic == {"outcome": "failed", "code": code}:
                 raise private.EncounterError(code)
     if result.returncode != 0 or len(result.stdout) > MAX_OUTPUT:
+        if command == "offers-page" and len(result.stderr) <= 1024:
+            try:
+                diagnostic = civic.decode(result.stderr)
+            except civic.DecisionError:
+                diagnostic = {}
+            if diagnostic in ({"outcome": "failed", "code": "invalid_offer_continuation"},
+                              {"outcome": "failed", "code": "invalid_offer_query"}):
+                raise private.EncounterError(str(diagnostic["code"]))
         raise private.EncounterError("reader_failed")
     try:
         return civic.decode(result.stdout)
@@ -153,6 +161,37 @@ def _project(native: JsonObject, binary: Path, directory: Path) -> JsonObject:
         return _process(binary, "offers", path)
 
 
+def _offline(native: JsonObject, binary: Path, directory: Path, command: str, *arguments: str) -> JsonObject:
+    with _temporary(directory, "inspection") as path:
+        private.write_new(path, _json(native))
+        return _process(binary, command, path, arguments=arguments)
+
+
+def _native_view(view: JsonObject) -> JsonObject:
+    result: JsonObject = {"snapshot": view["snapshot"], "report": view["transport"]}
+    if "resume" in view:
+        result["resume"] = view["resume"]
+    return result
+
+
+def offers(config: Path, path: Path, *, query: str = "", continuation: str | None = None,
+           reader_binary: Path | None = None) -> JsonObject:
+    """Bounded offline display over one validated private observation."""
+    import encounter_return
+    settings = _configuration(config)
+    directory = Path(str(settings["cache_directory"]))
+    with private.lock(directory):
+        binary = _binary(reader_binary)
+        raw = private.read_bounded(path, MAX_OUTPUT)
+        encounter_return._load(path, settings, binary, raw=raw)
+        view = _decode(raw)
+        arguments = (query,) if continuation is None else (query, continuation)
+        result = _offline(_native_view(view), binary, directory, "offers-page", *arguments)
+        if _contains_secret(result, str(settings["token"])):
+            raise private.EncounterError("credential_reflected")
+        return {"outcome": "offers", **result}
+
+
 def _originals(view: JsonObject) -> list[str]:
     snapshot = _object(view.get("snapshot"))
     rows = snapshot.get("records")
@@ -183,7 +222,7 @@ def _validate_view(view: JsonObject, config: JsonObject) -> None:
         or type(transport.get("events")) is not int or transport.get("events") != len(originals)
         or view.get("copying_permission") != "not_granted" or view.get("private_cache_permission") != CACHE_PERMISSION
         or projection.get("format") != "agentciv-offer-view/0.1-example" or projection.get("world") != config["world"]
-        or projection_report.get("truncated") is not False or projection_report.get("reached_end") is not True):
+        or type(projection_report.get("truncated")) is not bool or projection_report.get("reached_end") is not True):
         raise private.EncounterError("invalid_private_view")
     if _contains_secret(view, str(config["token"])):
         raise private.EncounterError("credential_reflected")
@@ -197,7 +236,7 @@ def _capture(config: JsonObject, binary: Path, *, incremental: bool = False, pre
     projection = _project(native, binary, Path(str(config["cache_directory"])))
     report = _object(projection.get("report"))
     if (projection.get("format") != "agentciv-offer-view/0.1-example" or projection.get("world") != config["world"]
-        or report.get("truncated") is not False or report.get("reached_end") is not True
+        or type(report.get("truncated")) is not bool or report.get("reached_end") is not True
         or report.get("scope") != "current_caller_view" or report.get("copying_permission") != "not_granted"):
         raise private.EncounterError("invalid_offer_projection")
     view: JsonObject = {"format": VIEW_FORMAT, "world": config["world"], "principal": config["principal"],
@@ -237,7 +276,7 @@ def _save_view(view: JsonObject, config: JsonObject, path: Path | None = None) -
     directory = Path(str(config["cache_directory"]))
     selected = path or directory / f"view-{uuid.uuid4().hex}.json"
     if selected.parent != directory or not selected.name.startswith("view-") or selected.suffix != ".json":
-        raise private.EncounterError("invalid_private_view_path")
+        raise private.EncounterError("invalid_private_view_path", field="save")
     raw = _json(view)
     _capacity(directory, "view-", len(raw))
     private.write_new(selected, raw)
@@ -269,7 +308,7 @@ def sync(config: Path, previous: Path | None = None, save: Path | None = None, *
         prior = None
         if previous is not None:
             if previous.parent != directory or not previous.name.startswith("view-") or previous.suffix != ".json":
-                raise private.EncounterError("invalid_private_view_path")
+                raise private.EncounterError("invalid_private_view_path", field="previous")
             prior = _decode(private.read_bounded(previous, MAX_OUTPUT))
             _validate_view(prior, settings)
         binary = _binary(reader_binary)
