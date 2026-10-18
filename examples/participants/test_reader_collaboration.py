@@ -64,7 +64,7 @@ class ReaderPlanTests(unittest.TestCase):
         claims = obj(obj(obj(obj(plans[0])["properties"])["claims"])["items"])
         properties = obj(claims["properties"])
         values = obj(properties["value"])["enum"]
-        self.assertIsInstance(values, list)
+        assert isinstance(values, list)
         self.assertIn("all", values)
         self.assertIn("first", values)
         self.assertIn("none", values)
@@ -485,10 +485,10 @@ class ReaderProcessTests(unittest.TestCase):
         return reader.run(output, host=host, reader_binary=self.reader_binary, host_binary=self.host_binary)
 
     def test_disclosed_handoff_condition_retains_source_disagreement_without_changing_oracle(self) -> None:
-        with tempfile.TemporaryDirectory() as temporary:
+        with tempfile.TemporaryDirectory() as temporary, patch.object(reader, "source_identity", return_value={"fixture_identity": True}):
             output = Path(temporary) / "handoff"
             report = reader.run(output, handoff=True, reader_binary=self.reader_binary, host_binary=self.host_binary)
-            self.assertEqual(report["outcome"], "completed", report)
+            self.assertEqual(report["outcome"], "completed", {key: report.get(key) for key in ("failure_stage", "failure_code")})
             self.assertTrue(report["useful_result"])
             self.assertTrue(report["exact_peer_artifact_derivation"])
             self.assertFalse(report["qualified_improvement"])
