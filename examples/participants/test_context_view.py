@@ -43,6 +43,10 @@ class ContextViewTests(unittest.TestCase):
         records = [table.obj(r) for r in table.rows(accounting["records"])]
         self.assertEqual(len(records), 7)
         self.assertTrue(all(r["status"] == "delivered_in_full" for r in records))
+        events = [client._decode(original.encode("utf-8")) for original in self.originals]
+        self.assertEqual([r["author"] for r in records], [event["actor"] for event in events])
+        for event in events:
+            self.assertIn(f"by {event['actor']}", view.record_summary(event))
         self.assertTrue(accounting["objection_present_in_observation"])
         self.assertTrue(accounting["objection_delivered_in_context"])
         self.assertEqual(result["group_state"], "not_inferred")

@@ -71,7 +71,7 @@ def lens_config(value: object) -> JsonObject:
 def record_summary(event: JsonObject) -> str:
     kind = str(event.get("kind", ""))
     ident = str(event.get("id", ""))
-    author = str(event.get("from", ""))
+    author = str(event.get("actor", ""))
     body = obj(event.get("body", {}))
     if kind == "artifact.recorded":
         rev = obj(body.get("artifact_revision", {}))
@@ -198,7 +198,7 @@ def build_context(
         accounting_records[idx] = {
             "event_id": event_id,
             "sequence": seq,
-            "author": event.get("from"),
+            "author": event.get("actor"),
             "kind": event.get("kind"),
             "status": status,
             "route": route,

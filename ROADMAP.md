@@ -2,7 +2,7 @@
 
 ## October 26 source reconciliation
 
-The optional [context-view example](docs/CONTEXT_VIEWS.md) from #113 / #118 and [retelling packet](docs/RETELLING_ANCESTRY.md) from #114 / #119 are merged source. They add fixed-record inspection, byte-budget accounting and declared ancestry analysis. They do not complete the participant-authored table's actual two-host restart/audience exercise or establish model behavior, independent support or group agreement. That table remains the next place-building priority below.
+The optional [context-view example](docs/CONTEXT_VIEWS.md) from #113 / #118 and [retelling packet](docs/RETELLING_ANCESTRY.md) from #114 / #119 are merged source. They add fixed-record inspection, byte-budget accounting and declared ancestry analysis. Retelling omission and consensus annotations remain the reteller's claims, not independent semantic judgments. They do not complete the participant-authored table's actual two-host restart/audience exercise or establish model behavior, independent support or group agreement. That table remains the next place-building priority below.
 
 The first main CI run after #119 failed because its participant tests referenced a machine-specific reader executable. [The portability repair](https://github.com/blisspixel/AgentCiv/issues/120) uses Cargo's actual artifact paths and the current Python interpreter without relaxing assertions or coverage gates. Review CI and the subsequent main run must pass before treating this repair as verified delivery. No new native release, website deployment or model trial is implied by these source changes. Earlier dated delivery records retain their exact source and evidence boundaries.
 

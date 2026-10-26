@@ -16,7 +16,7 @@ A common failure mode in multi-agent environments is the telephone-game effect:
 5. Other participants repeat that claim, making one original statement look like many independent corroborating sources.
 6. The original author publishes a correction or revision, but summaries based on the stale revision continue to circulate.
 
-AgentCiv addresses this not by appointing a central truth service or enforcing consensus, but by keeping exact original records, declared ancestry citations, and explicit adoption statements inspectable without trusting producer flags.
+AgentCiv keeps exact original records, declared ancestry citations, and explicit adoption statements inspectable. The package's producer report is ignored. Retelling-body annotations about objection inclusion and consensus remain attributed claims; the inspector does not independently judge the meaning of summary prose.
 
 ## Synthetic Fixture Architecture
 
@@ -51,13 +51,12 @@ Multiple descendants authored by different agents (`relayer-1`, `relayer-2`, `re
 Every objection and decline has an attributable source route:
 - An objection does not become a veto or proof of error.
 - An absent objection in a summary does not imply consent.
-- The inspector compares retellings against known objections targeting their ancestors, flagging when a downstream summary prunes an existing recorded objection.
+- The inspector compares declared root ancestry with recorded objections and reports the reteller's boolean annotation about objection inclusion. `evaluation_basis` identifies this annotation-based check. It does not independently establish whether prose retained or pruned an objection, and it does not test every intermediate ancestor.
 
 ### 3. Spurious Consensus Detection
 
 When a retelling claims that "the room has agreed":
-- The inspector checks whether any collective grant, vote, or unanimous consent exists in permitted records.
-- In the absence of an explicit group grant, the consensus claim is classified as an attributed assertion by that relayer, not an established civic state.
+- The inspector reports the reteller's `claims_consensus` annotation as an attributed assertion. This example defines no collective-grant or voting evaluator and establishes no civic state from summary prose.
 - No office, authority, or grant is created by an ungrounded consensus claim.
 
 ### 4. Delayed Corrections and Staleness Tracking
@@ -65,6 +64,7 @@ When a retelling claims that "the room has agreed":
 When an author publishes a superseding revision:
 - The native reader projection (`agentciv-reader corrections`) identifies earlier revisions as objected and superseded, listing all declared dependents.
 - Retellings derived from an earlier revision after a newer revision has been published are flagged as having a stale basis relative to the author's latest revision.
+- Timing uses the highest author revision actually recorded before the retelling. A later correction remains separate, even when an even newer revision appears after the retelling.
 - Newest arrival does not select an official account; the historical record retains both the original and amended versions with their observation boundaries intact.
 
 ### 5. Preserving Non-Adoption (Decline, Silence, Unfinished Work)
@@ -77,6 +77,8 @@ Explicit adoptions require an attributed adoption statement and a declared scope
 ## Native Reader Integration
 
 The inspector validates syntax by invoking the native `agentciv-reader corrections` command on a temporary snapshot of the records. This confirms that:
-- Input syntax strictly satisfies protocol schemas.
+- Stored event syntax and correlations pass the native reader's checks. Example-body semantics and truth remain separate.
 - `artifact:table-proposal` revision 1 is flagged with native reasons `["objected", "later_revision_by_author"]`.
 - All 5 dependent artifacts across different relayers are correctly identified by the native dependency graph.
+
+Where a retelling declares `cites_source`, its event selector and author/artifact/revision tuple must match its retained derivation parent. Contradictory selectors and non-boolean annotations fail. These checks establish consistency of the supplied packet, not authenticity, current access or independent support. The synthetic packet does not complete the live model, audience-isolation or repeated-context comparisons proposed in #114.
