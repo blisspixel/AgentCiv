@@ -241,6 +241,17 @@ def reconstruct_retellings(originals: list[str]) -> JsonObject:
                 retell = obj(body["retelling_record"])
                 if retell.get("format") != RECORD_FORMAT:
                     raise RetellingError("invalid_retelling")
+                if any(type(retell.get(key)) is not bool for key in ("recorded_objections_noted", "claims_consensus")):
+                    raise RetellingError("invalid_retelling")
+                if "cites_source" in retell:
+                    citation = obj(retell["cites_source"])
+                    cited = by_id.get(text(citation.get("event_id")))
+                    parent = derivation_parent.get(ident)
+                    if cited is None or parent is None:
+                        raise RetellingError("invalid_source_selector")
+                    cited_record = artifact(cited[0])
+                    if cited_record is None or tuple_of(citation) != parent or tuple_of(cited_record) != parent:
+                        raise RetellingError("invalid_source_selector")
                 retellings.append(
                     {
                         "selector": selector_of(event, original),
@@ -382,10 +393,11 @@ def reconstruct_retellings(originals: list[str]) -> JsonObject:
             "summary": r["summary"],
             "notes_recorded_objection": r["recorded_objections_noted"],
             "claims_consensus": r["claims_consensus"],
+            "evaluation_basis": "attributed_example_annotations_not_summary_semantics",
         }
         if root_has_objection and not r["recorded_objections_noted"]:
             r_eval["pruned_recorded_objections"] = True
-            r_eval["omission_note"] = "Retelling omits prior recorded objection against root proposal."
+            r_eval["omission_note"] = "The reteller's annotation reports omission of a recorded objection; summary semantics are not independently checked."
         else:
             r_eval["pruned_recorded_objections"] = False
 
@@ -410,17 +422,26 @@ def reconstruct_retellings(originals: list[str]) -> JsonObject:
             all_known_revs = revisions_by_author_artifact.get((p_from, p_art), [])
             max_rev = max(all_known_revs) if all_known_revs else p_rev
             if max_rev > p_rev:
-                # Find sequence of newer revision vs retelling sequence
-                newer_ident = (p_from, p_art, max_rev)
-                newer_seq = client._integer(artifact_map[newer_ident][0]["sequence"])
                 r_seq = client._integer(r["selector"]["sequence"])
+                earlier_revisions = [
+                    rev for rev in all_known_revs
+                    if rev > p_rev
+                    and (seq := client._integer(artifact_map[(p_from, p_art, rev)][0]["sequence"])) is not None
+                    and r_seq is not None and seq < r_seq
+                ]
+                earlier_revision = max(earlier_revisions) if earlier_revisions else None
                 stale_basis_evaluations.append(
                     {
                         "retelling": r["ident"],
                         "cited_parent": r["parent"],
                         "latest_author_revision": max_rev,
-                        "newer_revision_preceded_retelling": bool(newer_seq is not None and r_seq is not None and newer_seq < r_seq),
-                        "staleness_finding": f"Derived from revision {p_rev} after author published revision {max_rev}.",
+                        "newer_revision_preceded_retelling": earlier_revision is not None,
+                        "latest_author_revision_before_retelling": earlier_revision,
+                        "staleness_finding": (
+                            f"Derived from revision {p_rev} after author published revision {earlier_revision}."
+                            if earlier_revision is not None else
+                            f"Derived from revision {p_rev} before the retained newer author revisions."
+                        ),
                     }
                 )
 

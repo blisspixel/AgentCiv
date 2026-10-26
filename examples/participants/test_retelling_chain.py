@@ -11,14 +11,20 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "http-commons"))
 import retelling_chain as rc
+import walk
 
 FIXTURE_PATH = Path(__file__).resolve().parent / "fixtures" / "retelling-table.json"
-READER_BIN = Path("D:/cargo-targets/debug/agentciv-reader.exe")
 
 
 class RetellingChainTests(unittest.TestCase):
+    reader: Path
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.reader = walk.build_rust_binaries("agentciv-reader")["agentciv-reader"]
+
     def test_retelling_chain_inspection(self) -> None:
-        res = rc.inspect(FIXTURE_PATH, READER_BIN)
+        res = rc.inspect(FIXTURE_PATH, self.reader)
         self.assertEqual(res["outcome"], "inspected")
         self.assertEqual(res["format"], rc.FORMAT)
         self.assertEqual(res["world"], "civ:frozen-retelling-table")
@@ -78,7 +84,7 @@ class RetellingChainTests(unittest.TestCase):
         self.assertIn("agent:silent-observer", non_adopting["silent_or_general_notes"])
 
     def test_retelling_pruned_objections_and_consensus_detection(self) -> None:
-        res = rc.inspect(FIXTURE_PATH, READER_BIN)
+        res = rc.inspect(FIXTURE_PATH, self.reader)
         evals = res["retelling_evaluations"]
 
         # Faithful retelling noted the objection
@@ -100,27 +106,76 @@ class RetellingChainTests(unittest.TestCase):
         self.assertFalse(claim_eval["supported_by_records"])
 
     def test_stale_basis_evaluation(self) -> None:
-        res = rc.inspect(FIXTURE_PATH, READER_BIN)
+        res = rc.inspect(FIXTURE_PATH, self.reader)
         stale_evals = res["stale_basis_evaluations"]
 
         # relayer-1 derived from r1 before r2 existed
         relayer_1 = next(s for s in stale_evals if s["retelling"]["from"] == "agent:relayer-1")
         self.assertFalse(relayer_1["newer_revision_preceded_retelling"])
+        self.assertIn("before the retained newer author revisions", relayer_1["staleness_finding"])
+        self.assertIsNone(relayer_1["latest_author_revision_before_retelling"])
 
         # late-relayer derived from r1 AFTER r2 was already recorded
         late = next(s for s in stale_evals if s["retelling"]["from"] == "agent:late-relayer")
         self.assertTrue(late["newer_revision_preceded_retelling"])
         self.assertIn("Derived from revision 1 after author published revision 2", late["staleness_finding"])
 
+    def test_intermediate_correction_precedes_retelling(self) -> None:
+        _, _, originals = rc.load(FIXTURE_PATH)
+        correction = json.loads(originals[7])
+        correction["id"] = "event:revision-3"
+        correction["sequence"] = 13
+        record = correction["body"]["artifact_revision"]
+        record["revision"] = 3
+        record["id"] = "submission:proposal-v3"
+        findings = rc.reconstruct_retellings([*originals, json.dumps(correction)])
+        late = next(row for row in findings["stale_basis_evaluations"] if row["retelling"]["from"] == "agent:late-relayer")
+        self.assertEqual(late["latest_author_revision"], 3)
+        self.assertEqual(late["latest_author_revision_before_retelling"], 2)
+        self.assertTrue(late["newer_revision_preceded_retelling"])
+        self.assertIn("published revision 2", late["staleness_finding"])
+
+    def test_source_selector_and_annotation_mutations(self) -> None:
+        _, _, originals = rc.load(FIXTURE_PATH)
+        for key, changed in (("event_id", "event:retell-2"), ("event_id", "event:missing"),
+                             ("from", "agent:other"), ("revision", 2)):
+            with self.subTest(selector=key, value=changed):
+                event = json.loads(originals[3])
+                event["body"]["artifact_revision"]["body"]["retelling_record"]["cites_source"][key] = changed
+                altered = [*originals[:3], json.dumps(event), *originals[4:]]
+                with self.assertRaisesRegex(rc.RetellingError, "invalid_source_selector"):
+                    rc.reconstruct_retellings(altered)
+        for key in ("recorded_objections_noted", "claims_consensus"):
+            with self.subTest(annotation=key):
+                event = json.loads(originals[3])
+                event["body"]["artifact_revision"]["body"]["retelling_record"][key] = "false"
+                altered = [*originals[:3], json.dumps(event), *originals[4:]]
+                with self.assertRaisesRegex(rc.RetellingError, "invalid_retelling"):
+                    rc.reconstruct_retellings(altered)
+
+    def test_annotation_findings_are_attributed_and_producer_flags_ignored(self) -> None:
+        _, package, originals = rc.load(FIXTURE_PATH)
+        findings = rc.reconstruct_retellings(originals)
+        self.assertTrue(all(row["evaluation_basis"] == "attributed_example_annotations_not_summary_semantics"
+                            for row in findings["retelling_evaluations"]))
+        with tempfile.TemporaryDirectory() as temporary:
+            package["producer_report"] = {"consensus": True, "passed": False}
+            path = Path(temporary) / "fixture.json"
+            path.write_bytes(rc.encoded(package))
+            result = rc.inspect(path, self.reader)
+        self.assertEqual(result["outcome"], "inspected")
+        self.assertFalse(result["producer_report_used"])
+        self.assertEqual(result["retelling_evaluations"], findings["retelling_evaluations"])
+
     def test_event_opening(self) -> None:
-        res = rc.inspect(FIXTURE_PATH, READER_BIN, event_id="event:retell-1")
+        res = rc.inspect(FIXTURE_PATH, self.reader, event_id="event:retell-1")
         self.assertEqual(res["outcome"], "opened")
         self.assertEqual(res["format"], rc.FORMAT)
         self.assertIn("artifact:table-proposal", res["original_utf8"])
         self.assertFalse(res["origin_authenticated"])
 
         # Non-existent event returns failed
-        missing = rc.inspect(FIXTURE_PATH, READER_BIN, event_id="event:does-not-exist")
+        missing = rc.inspect(FIXTURE_PATH, self.reader, event_id="event:does-not-exist")
         self.assertEqual(missing["outcome"], "failed")
         self.assertEqual(missing["code"], "event_unavailable")
 
@@ -134,7 +189,7 @@ class RetellingChainTests(unittest.TestCase):
             with corrupt_file.open("w", encoding="utf-8") as f:
                 json.dump(data, f)
 
-            res = rc.inspect(corrupt_file, READER_BIN)
+            res = rc.inspect(corrupt_file, self.reader)
             self.assertEqual(res["outcome"], "failed")
             self.assertEqual(res["code"], "original_hash_mismatch")
 
@@ -142,14 +197,14 @@ class RetellingChainTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp_dir:
             tmp_path = Path(tmp_dir)
             # Missing file
-            res = rc.inspect(tmp_path / "nonexistent.json", READER_BIN)
+            res = rc.inspect(tmp_path / "nonexistent.json", self.reader)
             self.assertEqual(res["outcome"], "failed")
             self.assertEqual(res["code"], "input_unavailable")
 
             # Invalid format header
             bad_file = tmp_path / "bad_format.json"
             bad_file.write_text(json.dumps({"format": "bad-format"}), encoding="utf-8")
-            bad_res = rc.inspect(bad_file, READER_BIN)
+            bad_res = rc.inspect(bad_file, self.reader)
             self.assertEqual(bad_res["outcome"], "failed")
             self.assertEqual(bad_res["code"], "invalid_fixture")
 
@@ -226,14 +281,15 @@ class RetellingChainTests(unittest.TestCase):
 
     def test_cli_invocation(self) -> None:
         cmd = [
-            "python",
-            "examples/participants/retelling_chain.py",
+            sys.executable,
+            str(Path(__file__).resolve().parent / "retelling_chain.py"),
             "--fixture",
             str(FIXTURE_PATH),
             "--reader-binary",
-            str(READER_BIN),
+            str(self.reader),
         ]
-        res = subprocess.run(cmd, capture_output=True, text=True, check=False)
+        with tempfile.TemporaryDirectory() as temporary:
+            res = subprocess.run(cmd, cwd=temporary, capture_output=True, text=True, check=False)
         self.assertEqual(res.returncode, 0)
         parsed = json.loads(res.stdout)
         self.assertEqual(parsed["outcome"], "inspected")
