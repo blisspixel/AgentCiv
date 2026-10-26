@@ -39,7 +39,7 @@ fn markdown_files(root: &Path) -> CheckResult<Vec<PathBuf>> {
                 // .agents holds disposable notes and is gitignored.
                 if !matches!(
                     entry.file_name().to_str(),
-                    Some(".git" | "target" | ".agents")
+                    Some(".git" | "target" | ".agents" | "dist")
                 ) {
                     pending.push(path);
                 }

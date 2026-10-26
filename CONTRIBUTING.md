@@ -54,7 +54,7 @@ Append a dated entry to the [intervention log](docs/INTERVENTIONS.md) when chang
 
 Keep one `main` branch. Land a change through a short-lived branch and a pull request. Merge after the checks pass, then delete the branch. The tip of `main` should be a reviewed change with a green GitHub Actions run.
 
-Routine work does not go straight to `main`. A long-lived feature branch is a poor fit as well. Open the pull request while the change is still small enough to review. When the branch is one focused change, squash it so `main` stays one commit per change. History already on `main` stays where it is.
+Routine work does not go straight to `main`. A long-lived feature branch is a poor fit as well. Open the pull request while the change is still small enough to review. When the branch is one focused change, squash it so `main` stays one commit per change. History already on `main` stays where it is. Follow the session start and stop hygiene in [AGENTS.md](AGENTS.md). Before closing an issue or merging an auto-closing pull request, leave a concise comment on that issue recording what changed, verification receipts, user-visible outcomes, and delivery boundaries.
 
 ## Repository checks
 

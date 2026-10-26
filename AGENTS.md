@@ -22,4 +22,17 @@ Read [README.md](README.md), [SPEC.md](SPEC.md), [PROTOCOL.md](PROTOCOL.md), [RO
 - For current changes, run `cargo fmt --all -- --check`, `cargo clippy --workspace --all-targets --locked -- -D warnings`, `cargo run --locked -p agentciv-checks`, `python -m mypy`, and `cargo llvm-cov --workspace --all-targets --locked --fail-under-lines 80`. Install mypy 2.3.1 from `requirements-dev.txt` first. The type check is strict, targets Python 3.11, and reads `pyproject.toml`. CI must pass. Add equivalent gates when another language is introduced.
 - Distinguish planned, implemented, tested, and deployed behavior in docs. Update the spec, fixtures, roadmap, and contribution guidance when a change makes them stale. Use the gitignored `.agents/` directory for disposable working notes, never credentials.
 - Land changes on `main` through a short-lived branch and a pull request. Merge after the checks pass, and delete the branch. Do not push routine work straight to `main`.
+- Before closing an issue or merging a pull request that closes one, leave a concise comment on that issue stating what changed, relevant code/commit/PR links, verification actually performed and its result, and the user-visible outcome against acceptance criteria. State skipped checks and material limitations; a merge alone does not prove release, deployment, or live acceptance. For duplicate or not-planned closures, give a short rationale and the canonical issue or decision.
 - Do not use emojis, em dashes, en dashes, AI-tool attribution, generated-by notices, or AI co-author trailers in project artifacts. Preserve third-party license notices and source citations.
+
+## Start tidy, stop tidy
+
+Work in this repository may come from several agent tools, and sessions can end partway through a task.
+
+- **Check first.** Before starting new work, run `git fetch --prune` and check `git worktree list`, local and remote branches, and open PRs. Finish, merge, or park leftover work instead of starting a parallel attempt. Squash merges hide merged work from ancestry, so check PR state, not only `git branch --merged`.
+- **Checkpoint and hand off.** Commit and push at meaningful checkpoints. Before stopping, leave a short handoff note (in the PR or commit message) saying what is done and what is next.
+- **Keep the tree clean.** Test fixtures, scratch scripts, logs, and generated output go only in the designated test or temp locations or the gitignored `.agents/` directory. Never leave throwaway test files elsewhere in the tree, and remove scratch artifacts before finishing.
+- **Keep branches short-lived.** Merge promptly and delete branches after merge. Keep GitHub current: push finished work, update or close PRs, and close finished issues.
+- **Goal state.** One `main` with CI passing. Never leave `main` red or work stranded on side branches.
+- **Remove only with evidence.** Remove a worktree or branch only once its work is merged, contained in `main`, or pushed to the remote. Never use `--force` to remove one; report anything uncertain instead of deleting it. Run `git worktree prune` for entries whose directories are gone.
+- **Ask when unclear.** If it is unclear whether leftover work should be finished, kept, or removed, or what the intended state is, stop and ask instead of guessing.
