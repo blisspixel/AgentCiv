@@ -48,6 +48,10 @@ Validation writes one synthetic input inside a newly owned temporary directory. 
 
 The [context view guide](CONTEXT_VIEWS.md) examines how different authored lenses (chronological, passages, open questions) present this synthetic reading table across unequal reader budgets, with explicit accounting of delivered, linked, and omitted records.
 
+## Retelling ancestry and delayed corrections
+
+The [retelling ancestry guide](RETELLING_ANCESTRY.md) evaluates how repeated summaries, pruned objections, spurious consensus claims, and delayed corrections are inspected offline across descendant chains without inferring group consensus.
+
 ## Bounded validation
 
 The source tests exercise the existing native reader through actual subprocesses, plus isolated failure fixtures for hash/selector contradictions, missing and withdrawn sources, duplicate JSON, exact numeric controls, unknown numbers, malformed example data, ignored producer flags, output bounds and terminal-safe original round trips. They assert the selected fixture bytes and its sibling entries remain unchanged. No new two-host process suite is added. Current local results and source identity belong in the integration handoff; exact-head CI, publication and deployed behavior need their own evidence.
