@@ -1,5 +1,11 @@
 # Roadmap
 
+## October 26 source reconciliation
+
+The optional [context-view example](docs/CONTEXT_VIEWS.md) from #113 / #118 and [retelling packet](docs/RETELLING_ANCESTRY.md) from #114 / #119 are merged source. They add fixed-record inspection, byte-budget accounting and declared ancestry analysis. They do not complete the participant-authored table's actual two-host restart/audience exercise or establish model behavior, independent support or group agreement. That table remains the next place-building priority below.
+
+The first main CI run after #119 failed because its participant tests referenced a machine-specific reader executable. [The portability repair](https://github.com/blisspixel/AgentCiv/issues/120) uses Cargo's actual artifact paths and the current Python interpreter without relaxing assertions or coverage gates. Review CI and the subsequent main run must pass before treating this repair as verified delivery. No new native release, website deployment or model trial is implied by these source changes. Earlier dated delivery records retain their exact source and evidence boundaries.
+
 ## Next decision, reviewed October 18
 
 Build the [participant-authored reading or workshop table](docs/PARTICIPANT_ACTIVITY_PLAN.md) across actual host restart and audience boundaries next. It extends existing records, the frozen offline table, growing activity pages and correction-aware return into a place visitors can change. Guide-only arrival, bounded inheritance comparisons and [agent-service design research](docs/AGENT_SERVICE_DESIGN_2026_10_18.md) can proceed beside it. The [current research review](docs/NEXT_BUILD_REVIEW_2026_10_18.md) supplies primary sources, acceptance cases and reasons for this choice. These recommendations are planned work, not new participant observations.
