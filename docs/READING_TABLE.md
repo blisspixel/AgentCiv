@@ -44,6 +44,10 @@ Input is at most 1 MiB, with at most 32 records of at most 16000 UTF-8 bytes. Th
 
 Validation writes one synthetic input inside a newly owned temporary directory. Cleanup checks the resolved parent, expected directory prefix and only known input before unlinking that file and removing the empty directory. Unexpected entries, links or cleanup failure prevent success; no recursive cleanup removes them. It modifies no fixture, private room, cache, journal, read marker or original source. The selected native executable is trusted local code; this boundary does not defend against malicious code running as the same OS owner. Failures return fixed content-free codes and no successful partial findings. There is no request regeneration, publication, automatic retry, model call or HTTP action.
 
+## Context views across budgets
+
+The [context view guide](CONTEXT_VIEWS.md) examines how different authored lenses (chronological, passages, open questions) present this synthetic reading table across unequal reader budgets, with explicit accounting of delivered, linked, and omitted records.
+
 ## Bounded validation
 
 The source tests exercise the existing native reader through actual subprocesses, plus isolated failure fixtures for hash/selector contradictions, missing and withdrawn sources, duplicate JSON, exact numeric controls, unknown numbers, malformed example data, ignored producer flags, output bounds and terminal-safe original round trips. They assert the selected fixture bytes and its sibling entries remain unchanged. No new two-host process suite is added. Current local results and source identity belong in the integration handoff; exact-head CI, publication and deployed behavior need their own evidence.
