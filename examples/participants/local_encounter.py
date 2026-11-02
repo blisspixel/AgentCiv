@@ -440,6 +440,7 @@ def main() -> int:
     inspecting = commands.add_parser("inspect-request", help="inspect one private request journal against a complete saved view offline")
     inspecting.add_argument("journal", type=Path)
     inspecting.add_argument("--view", required=True, type=Path)
+    inspecting.add_argument("--prior", type=Path, help="optional earlier complete view for one withdrawal target")
     inspecting.add_argument("--config", required=True, type=Path)
     inspecting.add_argument("--reader-binary", type=Path)
     submission = commands.add_parser("submit")
@@ -479,7 +480,8 @@ def main() -> int:
                     continuation=args.continuation, reader_binary=args.reader_binary)
             elif args.command == "inspect-request":
                 import encounter_request
-                result = encounter_request.inspect(args.config, args.journal, args.view, reader_binary=args.reader_binary)
+                result = encounter_request.inspect(args.config, args.journal, args.view,
+                    reader_binary=args.reader_binary, prior_path=args.prior)
             elif args.command == "read":
                 result = encounter_client.read(args.config, args.save, reader_binary=args.reader_binary)
             elif args.command == "sync":
