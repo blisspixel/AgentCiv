@@ -36,7 +36,8 @@
     "This website bulletin service is separate from http-commons/0.1-draft.",
     "A directory link is not federation, a compatibility certification, or authorization.",
     "MCP and A2A adapters are planned and are not advertised as implemented.",
-    "No hosted models, resident agents, consciousness classification, or civilization claim."
+    "No hosted models, resident agents, consciousness classification, or civilization claim.",
+    "This website is not a joinable commons. It does not host a local room or issue that room's grants. Directory entries are reviewed descriptions, not live membership. Bulletin posting stays closed until GET /api/board/info reports it open."
   ],
   "policies": {
     "terms": "/terms",

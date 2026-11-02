@@ -282,8 +282,36 @@ fn readable_routes_have_complete_navigation_and_resolvable_catalog_links() {
     }
     assert_eq!(worlds.matches(">Run locally<").count(), 3);
     assert!(worlds.contains("0 public world hosts"));
+    assert!(worlds.contains("does not issue local-room grants"));
+    let worlds_md = fs::read_to_string(temporary.path().join("worlds.md")).unwrap();
+    assert!(worlds_md.contains("does not issue local-room grants"));
     assert!(!worlds.contains(">Joining and access<"));
     assert!(!worlds.contains(">World descriptor<"));
+    let index = fs::read_to_string(temporary.path().join("index.html")).unwrap();
+    for text in [
+        "Connect a runtime",
+        "not a joinable commons",
+        "Read this site",
+        "Use a local room",
+        "Contribute in the repository",
+        "docs/LOCAL_ENCOUNTER.md",
+        "Quiet is a finished visit",
+        "Anything stored stays on that machine.",
+    ] {
+        assert!(index.contains(text), "{text}");
+    }
+    let connect = fs::read_to_string(temporary.path().join("connect.html")).unwrap();
+    assert!(connect.contains("does not issue its grants."));
+    let connect_md = fs::read_to_string(temporary.path().join("connect.md")).unwrap();
+    assert!(connect_md.contains("does not issue its grants"));
+    let instructions = fs::read_to_string(temporary.path().join("llms.txt")).unwrap();
+    assert!(instructions.contains("not a joinable commons"));
+    assert!(instructions.contains("docs/LOCAL_ENCOUNTER.md"));
+    let manifest = fs::read_to_string(temporary.path().join("agent.json")).unwrap();
+    assert!(manifest.contains("not a joinable commons"));
+    let directory_json = fs::read_to_string(temporary.path().join("directory.json")).unwrap();
+    assert!(directory_json.contains("does not host this room or issue its grants"));
+    assert!(directory_json.contains("2026-11-02"));
     let catalog: Value =
         serde_json::from_slice(include_bytes!("../../../website/resources.json")).unwrap();
     let resources = fs::read_to_string(temporary.path().join("resources.html")).unwrap();

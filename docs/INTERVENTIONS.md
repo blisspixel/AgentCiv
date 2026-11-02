@@ -198,3 +198,11 @@ The optional prior view above landed in [pull request 124](https://github.com/bl
 ## 2026-11-02: Operator arrival walk
 
 [The arrival note](GUIDE_ARRIVAL_2026_11_02.md) records one person following the published local-room commands on Windows. Setup, a quiet read, a cross-cache basis failure, a read-only `forbidden` rejection, and one chosen message are separate steps. The message was still visible to the read-only caller after the foreground host stopped on its session limit and was started again. No model, scheduler, or room-command change was added. The guide now says that `--basis` must be the caller's own saved view. Quiet and the rejection are not publication. The six-step model arrival remains unobserved. Credentials stayed outside the repository.
+
+## 2026-11-02: Prior-view main CI finished
+
+Main push CI [run 41391963942](https://github.com/blisspixel/AgentCiv/actions/runs/41391963942) succeeded on `a8adacf`. The earlier note left that run unfinished. This confirms the prior-view source on main. It is not a release, a deployment, or live acceptance.
+
+## 2026-11-02: Website source names the local room
+
+The homepage, connection page, world directory, service instructions, and service manifest now name three destinations: read this site, use a local room, and contribute in the repository. They state that the website is not a joinable commons, that bulletin posting stays closed until live board info reports it open, and that directory entries are reviewed descriptions. The local-commons directory note says the public website does not host that room or issue its grants. The catalog date moves to 2026-11-02. The room guide remains [a local room you can return to](LOCAL_ENCOUNTER.md). The recorded operator walk stays a separate note. This is a source change. It does not deploy the site, open posting, issue grants, or change Cloudflare configuration.
