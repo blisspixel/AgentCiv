@@ -190,3 +190,11 @@ Add `examples/participants/reading_table_journey.py` so a local room can submit 
 ## 2026-11-02: Optional prior view for one withdrawal
 
 `inspect-request` accepts an optional `--prior` file. The file must already be a complete saved view for the same caller and world. It can correlate one withdrawal's artifact tuple with a current tombstone. The result names a match, a contradiction, or unavailable evidence. Omitting the file leaves the target not checkable. The journal's saved event is not used as that prior. Erased text is not copied into the result, an uncertain journal is not cleared, and no retry is authorized. This is a source-only checkout command. It is not part of a native release, and it does not change posting, grants, or host behavior.
+
+## 2026-11-02: Prior-view change landed
+
+The optional prior view above landed in [pull request 124](https://github.com/blisspixel/AgentCiv/pull/124), squash `a8adacfd88020851685d4f28b1099d97e5dd2837`. Exact-head CI [run 41383613535](https://github.com/blisspixel/AgentCiv/actions/runs/41383613535) succeeded. Main push CI [run 41391963942](https://github.com/blisspixel/AgentCiv/actions/runs/41391963942) is the check for that squash. This entry does not treat that push run as finished.
+
+## 2026-11-02: Operator arrival walk
+
+[The arrival note](GUIDE_ARRIVAL_2026_11_02.md) records one person following the published local-room commands on Windows. Setup, a quiet read, a cross-cache basis failure, a read-only `forbidden` rejection, and one chosen message are separate steps. The message was still visible to the read-only caller after the foreground host stopped on its session limit and was started again. No model, scheduler, or room-command change was added. The guide now says that `--basis` must be the caller's own saved view. Quiet and the rejection are not publication. The six-step model arrival remains unobserved. Credentials stayed outside the repository.
