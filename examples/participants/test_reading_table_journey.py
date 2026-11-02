@@ -53,8 +53,35 @@ def event_original(record: JsonObject, event_id: str, sequence: int) -> str:
     return json.dumps(event, ensure_ascii=True)
 
 
-def journal(original: str, path: Path, *, state: str = "recorded") -> Path:
-    path.write_bytes(json.dumps({"state": state, "event_record_utf8": original}, ensure_ascii=True).encode("ascii"))
+def _request_from_event(event: JsonObject) -> JsonObject:
+    body = table.obj(event["body"])
+    if len(body) != 1:
+        raise AssertionError("event body")
+    stored = dict(table.obj(next(iter(body.values()))))
+    if stored.get("type") == "artifact_revision":
+        stored.pop("revision", None)
+    return stored
+
+
+def journal(original: str, path: Path, *, state: str = "recorded", request: JsonObject | None = None) -> Path:
+    if state != "recorded":
+        path.write_bytes(json.dumps({"state": state, "event_record_utf8": original}, ensure_ascii=True).encode("ascii"))
+        return path
+    event = table.obj(json.loads(original))
+    authored = request if request is not None else _request_from_event(event)
+    request_text = json.dumps(authored, ensure_ascii=True, indent=2, allow_nan=False) + "\n"
+    record_type = str(authored["type"])
+    receipt: JsonObject = {"protocol_version": "0.1-draft", "type": "receipt", "status": "recorded",
+        "world": event["world"], "record_id": authored["id"], "event_id": event["id"], "sequence": event["sequence"]}
+    if record_type == "artifact_revision":
+        receipt["artifact_id"] = authored["artifact_id"]
+        receipt["revision"] = table.obj(table.obj(event["body"])["artifact_revision"])["revision"]
+    payload: JsonObject = {"format": client.JOURNAL_FORMAT, "world": event["world"], "principal": event["actor"],
+        "record_id": authored["id"], "record_type": record_type, "request_utf8": request_text,
+        "request_sha256": hashlib.sha256(request_text.encode("utf-8")).hexdigest(),
+        "endpoint_kind": "messages.submit" if record_type == "message" else "collaboration.submit",
+        "state": "recorded", "copying_permission": "not_granted", "receipt": receipt, "event_record_utf8": original}
+    path.write_bytes(json.dumps(payload, ensure_ascii=True).encode("ascii"))
     return path
 
 
@@ -70,7 +97,7 @@ class ReadingTableJourneyTests(unittest.TestCase):
             root = Path(temporary)
             source = journey.source_record(journey.WORLD, journey.SOURCE, RECIPIENTS, "submission:table-source")
             source_original = event_original(source, "event:from-host-1", 1)
-            source_seen = journey.observe_journal(journal(source_original, root / "source.json"))
+            source_seen = journey.observe_journal(journal(source_original, root / "source.json"), journey.WORLD)
             self.assertEqual(source_seen.event_id, "event:from-host-1")
             self.assertNotIn("event:table-1", json.dumps(source))
             passages = journey.passage_record(journey.WORLD, journey.PASSAGES, RECIPIENTS, "submission:table-passages", source_seen)
@@ -123,7 +150,7 @@ class ReadingTableJourneyTests(unittest.TestCase):
             root = Path(temporary)
             pending = journal("{}", root / "pending.json", state="uncertain")
             with self.assertRaises(journey.JourneyError) as unresolved:
-                journey.observe_journal(pending)
+                journey.observe_journal(pending, journey.WORLD)
             self.assertEqual(unresolved.exception.code, "journal_not_recorded")
             self.assertEqual(pending.read_bytes(), journal("{}", root / "other.json", state="uncertain").read_bytes())
             arguments = ["reading_table_journey.py", "source", "--world", journey.WORLD, "--from", journey.SOURCE,
@@ -151,10 +178,10 @@ class ReadingTableJourneyTests(unittest.TestCase):
             audience = [journey.READER]
             source = journey.source_record(journey.WORLD, journey.SOURCE, audience, "submission:table-source")
             source_path = journal(event_original(source, "event:from-host-1", 1), root / "source.json")
-            source_seen = journey.observe_journal(source_path)
+            source_seen = journey.observe_journal(source_path, journey.WORLD)
             passages = journey.passage_record(journey.WORLD, journey.PASSAGES, audience, "submission:table-passages", source_seen)
             passage_path = journal(event_original(passages, "event:from-host-2", 2), root / "passages.json")
-            passage_seen = journey.observe_journal(passage_path)
+            passage_seen = journey.observe_journal(passage_path, journey.WORLD)
 
             def invoke(arguments: list[str]) -> bytes:
                 stdout = io.StringIO()
@@ -169,13 +196,12 @@ class ReadingTableJourneyTests(unittest.TestCase):
                 source_seen, passage_seen)
             self.assertEqual(invoke(["questions", *shared, "--from", journey.QUESTIONS, "--id", "submission:table-questions",
                 "--source-journal", str(source_path), "--basis-journal", str(passage_path)]), journey.record_bytes(questions))
-            objection_text = ("Passage order can hide a question spanning the gap and return. "
-                "I object to treating this organization as the only shared reading.")
+            objection_text = journey.OBJECTION_TEXT
             objection = journey.response_record("objection", journey.WORLD, journey.QUESTIONS, audience,
                 "submission:table-objection", passage_seen, objection_text)
             self.assertEqual(invoke(["objection", *shared, "--from", journey.QUESTIONS, "--id", "submission:table-objection",
                 "--target-journal", str(passage_path)]), journey.record_bytes(objection))
-            decline_text = "I will not finish the passage notes or a joint interpretation. The invitation may remain for another visitor."
+            decline_text = journey.DECLINE_TEXT
             decline = journey.response_record("decline", journey.WORLD, journey.VISITOR, audience,
                 "submission:table-decline", passage_seen, decline_text)
             self.assertEqual(invoke(["decline", *shared, "--from", journey.VISITOR, "--id", "submission:table-decline",
@@ -221,11 +247,11 @@ class ReadingTableJourneyTests(unittest.TestCase):
             self.assertEqual(blank.exception.code, "invalid_identifier")
             (root / "bare.json").write_bytes(b'{"state":"recorded"}\n')
             with self.assertRaises(journey.JourneyError) as missing_original:
-                journey.observe_journal(root / "bare.json")
+                journey.observe_journal(root / "bare.json", journey.WORLD)
             self.assertEqual(missing_original.exception.code, "event_original_missing")
             (root / "broken.json").write_bytes(b"{")
             with self.assertRaises(journey.JourneyError) as broken_journal:
-                journey.observe_journal(root / "broken.json")
+                journey.observe_journal(root / "broken.json", journey.WORLD)
             self.assertEqual(broken_journal.exception.code, "event_original_invalid")
             invalid_view = root / "not-a-view.json"
             invalid_view.write_bytes(b'{"format":"other"}\n')
@@ -262,6 +288,95 @@ class ReadingTableJourneyTests(unittest.TestCase):
                 journey.question_record(journey.WORLD, journey.QUESTIONS, audience, "submission:bad-question",
                     message_seen, passage_seen)
             self.assertEqual(question_basis.exception.code, "not_an_artifact")
+
+    def test_citation_requires_a_matching_receipt_and_export_rejects_other_material(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            audience = [journey.READER]
+            source = journey.source_record(journey.WORLD, journey.SOURCE, audience, "submission:table-source")
+            source_path = journal(event_original(source, "event:from-host-1", 1), root / "source.json")
+            source_seen = journey.observe_journal(source_path, journey.WORLD)
+            with self.assertRaises(journey.JourneyError) as other_world:
+                journey.observe_journal(source_path, "civ:other-room")
+            self.assertEqual(other_world.exception.code, "journal_not_correlated")
+            saved = json.loads(source_path.read_text(encoding="ascii"))
+            saved["request_sha256"] = "0" * 64
+            source_path.write_bytes(json.dumps(saved).encode("ascii"))
+            with self.assertRaises(journey.JourneyError) as hashed:
+                journey.observe_journal(source_path, journey.WORLD)
+            self.assertEqual(hashed.exception.code, "journal_not_correlated")
+            self.assertNotIn(str(root), str(hashed.exception))
+            source_path = journal(event_original(source, "event:from-host-1", 1), root / "source-again.json")
+            saved = json.loads(source_path.read_text(encoding="ascii"))
+            saved["receipt"]["event_id"] = "event:not-the-saved-event"
+            source_path.write_bytes(json.dumps(saved).encode("ascii"))
+            with self.assertRaises(journey.JourneyError) as receipt:
+                journey.observe_journal(source_path, journey.WORLD)
+            self.assertEqual(receipt.exception.code, "journal_not_correlated")
+            minimal = root / "minimal.json"
+            minimal.write_bytes(json.dumps({"state": "recorded", "event_record_utf8": event_original(source, "event:from-host-1", 1)}).encode("ascii"))
+            with self.assertRaises(journey.JourneyError) as unlabeled:
+                journey.observe_journal(minimal, journey.WORLD)
+            self.assertEqual(unlabeled.exception.code, "journal_not_correlated")
+
+            passages = journey.passage_record(journey.WORLD, journey.PASSAGES, audience, "submission:table-passages", source_seen)
+            passage_seen = journey.observe_original(event_original(passages, "event:from-host-2", 2))
+            questions = journey.question_record(journey.WORLD, journey.QUESTIONS, audience, "submission:table-questions", source_seen, passage_seen)
+            question_original = event_original(questions, "event:from-host-3", 3)
+            question_seen = journey.observe_original(question_original)
+            question_event = json.loads(question_original)
+            question_event["kind"] = "artifact.withdrawn"
+            question_event["body"] = {}
+            tombstone = json.dumps(question_event, ensure_ascii=True)
+            withdrawal = journey.withdrawal_record(journey.WORLD, journey.QUESTIONS, "submission:table-withdraw", question_seen)
+            withdrawn = journey.observe_journal(journal(tombstone, root / "withdrawn.json", request=withdrawal), journey.WORLD)
+            self.assertEqual(withdrawn.event_id, "event:from-host-3")
+            self.assertEqual(withdrawn.kind, "artifact.withdrawn")
+            objection = journey.response_record("objection", journey.WORLD, journey.QUESTIONS, audience, "submission:table-objection", passage_seen, journey.OBJECTION_TEXT)
+            decline = journey.response_record("decline", journey.WORLD, journey.VISITOR, audience, "submission:table-decline", passage_seen, journey.DECLINE_TEXT)
+            adopt_passages = journey.adoption_record(journey.WORLD, journey.ADOPT_PASSAGES, audience, "submission:table-adopt-passages", passage_seen, journey.PASSAGE_STATEMENT)
+            adopt_questions = journey.adoption_record(journey.WORLD, journey.ADOPT_QUESTIONS, audience, "submission:table-adopt-questions",
+                question_seen, journey.QUESTION_STATEMENT)
+            malformed = journey.malformed_offer_record(journey.WORLD, journey.PASSAGES, audience, "submission:table-malformed")
+            originals = [event_original(source, "event:from-host-1", 1), event_original(passages, "event:from-host-2", 2),
+                event_original(objection, "event:from-host-4", 4), event_original(decline, "event:from-host-5", 5),
+                question_original, event_original(adopt_passages, "event:from-host-6", 6),
+                event_original(adopt_questions, "event:from-host-7", 7), event_original(malformed, "event:from-host-8", 8), tombstone]
+            packaged = view(root / "synthetic.json", originals)
+            before = packaged.read_bytes()
+            exported = journey.package_bytes(packaged, export_synthetic=True)
+            self.assertEqual(packaged.read_bytes(), before)
+            self.assertNotIn(journey.PRIVATE_SENTINEL, exported.decode("ascii"))
+            self.assertIn("operator_authorized_synthetic_fixture_export_only", exported.decode("ascii"))
+
+            note = journey.note_record(journey.WORLD, journey.SOURCE, "submission:table-private", journey.PRIVATE_SENTINEL)
+            private_view = view(root / "private.json", [event_original(note, "event:from-host-9", 9)])
+            with self.assertRaises(journey.JourneyError) as leaked:
+                journey.package_bytes(private_view, export_synthetic=True)
+            self.assertEqual(leaked.exception.code, "not_synthetic_material")
+            self.assertNotIn(journey.PRIVATE_SENTINEL, str(leaked.exception))
+            self.assertNotIn(str(root), str(leaked.exception))
+            foreign = journey.note_record(journey.WORLD, journey.VISITOR, "submission:foreign", "This is not the fixture story.")
+            with self.assertRaises(journey.JourneyError) as other_material:
+                journey.package_bytes(view(root / "foreign.json", [event_original(foreign, "event:from-host-10", 10)]), export_synthetic=True)
+            self.assertEqual(other_material.exception.code, "not_synthetic_material")
+            custom = journey.adoption_record(journey.WORLD, journey.ADOPT_PASSAGES, audience, "submission:custom", passage_seen, "I choose something else.")
+            with self.assertRaises(journey.JourneyError) as custom_statement:
+                journey.package_bytes(view(root / "custom.json", [event_original(custom, "event:from-host-11", 11)]), export_synthetic=True)
+            self.assertEqual(custom_statement.exception.code, "not_synthetic_material")
+            edited = json.loads(event_original(passages, "event:from-host-2", 2))
+            edited["body"]["artifact_revision"]["body"]["reading_table_practice"]["contribution"][0]["note"] = "A private rewrite."
+            with self.assertRaises(journey.JourneyError) as rewritten:
+                journey.package_bytes(view(root / "rewritten.json", [json.dumps(edited, ensure_ascii=True)]), export_synthetic=True)
+            self.assertEqual(rewritten.exception.code, "not_synthetic_material")
+            smuggled = journey.source_record(journey.WORLD, journey.SOURCE, audience, journey.PRIVATE_SENTINEL)
+            hidden = event_original(smuggled, "event:from-host-1", 1).replace(
+                journey.PRIVATE_SENTINEL, "".join(f"\\u{ord(char):04x}" for char in journey.PRIVATE_SENTINEL))
+            self.assertNotIn(journey.PRIVATE_SENTINEL, hidden)
+            with self.assertRaises(journey.JourneyError) as escaped:
+                journey.package_bytes(view(root / "escaped.json", [hidden]), export_synthetic=True)
+            self.assertEqual(escaped.exception.code, "not_synthetic_material")
+            self.assertNotIn(journey.PRIVATE_SENTINEL, str(escaped.exception))
 
 
 class LiveReadingTableTests(unittest.TestCase):
@@ -301,7 +416,7 @@ class LiveReadingTableTests(unittest.TestCase):
             self.assertEqual(hashlib.sha256(path.read_bytes()).hexdigest(), digest)
             self.assertEqual(result["outcome"], "recorded", result)
             self.assertNotIn(token, json.dumps(result))
-            seen = journey.observe_journal(Path(str(result["journal_path"])))
+            seen = journey.observe_journal(Path(str(result["journal_path"])), journey.WORLD)
             self.assertEqual(seen.event_id, result["event_id"])
             return seen
 
@@ -324,11 +439,9 @@ class LiveReadingTableTests(unittest.TestCase):
             source = publish(journey.SOURCE, journey.source_record(journey.WORLD, journey.SOURCE, audience, "submission:table-source"))
             passages = publish(journey.PASSAGES, journey.passage_record(journey.WORLD, journey.PASSAGES, audience, "submission:table-passages", source))
             publish(journey.QUESTIONS, journey.response_record("objection", journey.WORLD, journey.QUESTIONS, audience,
-                "submission:table-objection", passages,
-                "Passage order can hide a question spanning the gap and return. I object to treating this organization as the only shared reading."))
+                "submission:table-objection", passages, journey.OBJECTION_TEXT))
             publish(journey.VISITOR, journey.response_record("decline", journey.WORLD, journey.VISITOR, audience,
-                "submission:table-decline", passages,
-                "I will not finish the passage notes or a joint interpretation. The invitation may remain for another visitor."))
+                "submission:table-decline", passages, journey.DECLINE_TEXT))
             questions = publish(journey.QUESTIONS, journey.question_record(journey.WORLD, journey.QUESTIONS, audience,
                 "submission:table-questions", source, passages))
             publish(journey.ADOPT_PASSAGES, journey.adoption_record(journey.WORLD, journey.ADOPT_PASSAGES, audience,

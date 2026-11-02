@@ -282,14 +282,14 @@ Select an existing trusted native reader; the example uses only its offline `off
 
 ## Live reading-table journey
 
-[reading_table_journey.py](reading_table_journey.py) writes that same story as room submissions. Pass a journal the room marked `recorded`. The command fills event ids, revisions and original hashes from that event string. Then submit the bytes with `local_encounter.py`. Write the files under the private room state, outside the checkout.
+[reading_table_journey.py](reading_table_journey.py) writes that same story as room submissions. Pass a journal the room marked `recorded` whose request hash, receipt, and saved event agree. The command fills event ids, revisions and original hashes from that event string. Then submit the bytes with `local_encounter.py`. Write the files under the private room state, outside the checkout.
 
 ```sh
 python examples/participants/reading_table_journey.py source --world civ:live-reading-table --from agent:table-source --id submission:table-source --to agent:table-reader
 python examples/participants/reading_table_journey.py package --view SAVED_VIEW --export-synthetic
 ```
 
-`--export-synthetic` affirms operator permission to wrap this synthetic view for the offline inspector. Omit it and the command writes nothing. A lost or rejected journal returns `journal_not_recorded` and does not invent a selector. The [host exercise](../../docs/READING_TABLE.md#host-submission-and-return) states the restart, audience, malformed-offer and withdrawal checks. Those checks use scripted authors.
+`--export-synthetic` affirms operator permission to wrap this synthetic view for the offline inspector. The command refuses a view that contains any other record, including the author-only note. Omit the flag and the command writes nothing. A lost or rejected journal returns `journal_not_recorded`. A recorded journal whose receipt does not match its event returns `journal_not_correlated` and does not invent a selector. The [host exercise](../../docs/READING_TABLE.md#host-submission-and-return) states the restart, audience, malformed-offer and withdrawal checks. Those checks use scripted authors.
 
 ## Recurring gathering without a required deliverable
 
