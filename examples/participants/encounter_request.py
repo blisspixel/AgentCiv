@@ -2,6 +2,8 @@
 
 Copied files do not authenticate origin or correlate an attempt without a receipt.
 Even receipt correlation does not establish retry permission or current history.
+An optional prior view can correlate one withdrawal tuple. It is not inferred from
+the journal, and it does not restore erased text or authorize a retry.
 """
 from __future__ import annotations
 
@@ -149,6 +151,92 @@ def _syntax(request: bytes, settings: JsonObject, binary: Path) -> None:
     raise private.EncounterError("request_validator_unavailable")
 
 
+def _selector(original: str, event: JsonObject) -> JsonObject:
+    return {**returns._reference(str(event["id"]), event),
+        "original_sha256": hashlib.sha256(original.encode("utf-8")).hexdigest()}
+
+
+def _tuple_equal(stored: JsonObject, record: JsonObject) -> bool:
+    return all(client._json_equal(stored.get(key), record.get(field)) for key, field in (
+        ("from", "target_from"), ("artifact_id", "artifact_id"), ("revision", "revision")))
+
+
+def _target_original(record: JsonObject, event: JsonObject) -> bool:
+    """The withdrawal names an artifact tuple, not the erased prose."""
+    body = event.get("body")
+    stored = body.get("artifact_revision") if isinstance(body, dict) else None
+    return (event.get("kind") == "artifact.recorded" and isinstance(stored, dict)
+        and event.get("world") == record.get("world") and event.get("actor") == record.get("from")
+        and _tuple_equal(stored, record))
+
+
+def _stable_tombstone(prior_event: JsonObject, current_event: JsonObject) -> bool:
+    return (_tombstone(current_event) and prior_event.get("sequence") == current_event.get("sequence")
+        and prior_event.get("timestamp") == current_event.get("timestamp")
+        and prior_event.get("world") == current_event.get("world")
+        and prior_event.get("actor") == current_event.get("actor"))
+
+
+def _compatible_histories(prior: returns.Observation, current: returns.Observation) -> None:
+    sequences: dict[int, str] = {}
+    for identifier, (_, event) in list(prior.records.items()) + list(current.records.items()):
+        sequence = client._integer(event.get("sequence"))
+        if sequence is None or sequences.get(sequence, identifier) != identifier:
+            raise private.EncounterError("conflicting_observations")
+        sequences[sequence] = identifier
+        if identifier in prior.records and identifier in current.records:
+            if prior.records[identifier][1].get("sequence") != current.records[identifier][1].get("sequence"):
+                raise private.EncounterError("conflicting_observations")
+
+
+def _named_prior(record: JsonObject, prior: returns.Observation, event_id: str,
+                 current_event: JsonObject | None) -> tuple[str, str, JsonObject | None, list[JsonObject]]:
+    """A receipt names one event. Another visible tuple is not a substitute."""
+    found = prior.records.get(event_id)
+    if found is None:
+        return ("withdrawal_prior_unavailable", "prior_target_unavailable", None, [])
+    original, event = found
+    selector = _selector(original, event)
+    if current_event is not None and _target_original(record, event) and _stable_tombstone(event, current_event):
+        return ("withdrawal_prior_match", "matching_prior_original", selector, [selector])
+    # The original can be in the prior while the current receipt event is absent.
+    # That is missing evidence, not a contradiction and not a completed withdrawal.
+    if current_event is None and _target_original(record, event):
+        return ("withdrawal_prior_unavailable", "prior_target_unavailable", selector, [selector])
+    return ("withdrawal_prior_contradiction", "contradictory_prior_original", selector, [selector])
+
+
+def _open_prior(record: JsonObject, current: returns.Observation, prior: returns.Observation) -> tuple[str, str, JsonObject | None, list[JsonObject], JsonObject | None]:
+    """No receipt: require one stable tombstone of one prior original."""
+    matches: list[tuple[JsonObject, JsonObject]] = []
+    contradictions: list[JsonObject] = []
+    selectors: list[JsonObject] = []
+    for identifier, (original, event) in prior.records.items():
+        body = event.get("body")
+        stored = body.get("artifact_revision") if isinstance(body, dict) else None
+        if not isinstance(stored, dict) or not _tuple_equal(stored, record):
+            continue
+        selector = _selector(original, event)
+        selectors.append(selector)
+        found = current.records.get(identifier)
+        if not _target_original(record, event):
+            contradictions.append(selector)
+            continue
+        if found is None:
+            continue
+        current_original, current_event = found
+        if _stable_tombstone(event, current_event):
+            matches.append((_selector(current_original, current_event), selector))
+        else:
+            contradictions.append(selector)
+    if len(selectors) == 1 and len(matches) == 1 and not contradictions:
+        current_selector, prior_selector = matches[0]
+        return ("withdrawal_prior_match", "matching_prior_original", prior_selector, selectors, current_selector)
+    if contradictions or len(matches) > 1 or (len(selectors) > 1 and bool(matches)):
+        return ("withdrawal_prior_contradiction", "contradictory_prior_original", None, selectors, None)
+    return ("withdrawal_prior_unavailable", "prior_target_unavailable", None, selectors, None)
+
+
 @contextmanager
 def _staging(settings: JsonObject) -> Iterator[JsonObject]:
     """No persistent cache lock or inputs: all staging is newly owned and private."""
@@ -174,56 +262,96 @@ def _staging(settings: JsonObject) -> Iterator[JsonObject]:
         directory.rmdir()
 
 
-def inspect(config: Path, journal_path: Path, view_path: Path, *, reader_binary: Path | None = None) -> JsonObject:
+def inspect(config: Path, journal_path: Path, view_path: Path, *, reader_binary: Path | None = None,
+            prior_path: Path | None = None) -> JsonObject:
     """No HTTP, dispatch, request regeneration, retained state updates, or retries."""
     try:
         config_raw = private.read_bounded(config, client.MAX_CONFIG)
         settings = client._configuration(config, raw=config_raw)
         journal_raw = private.read_bounded(journal_path, client.MAX_OUTPUT)
         view_raw = private.read_bounded(view_path, client.MAX_OUTPUT)
+        prior_raw = private.read_bounded(prior_path, client.MAX_OUTPUT) if prior_path is not None else None
         journal, request, record, receipt = _journal(journal_raw, settings)
+        prior_observation: returns.Observation | None = None
         with _staging(settings) as validation_settings:
             binary = client._binary(reader_binary)
             _syntax(request, validation_settings, binary)
             observation = returns._load(view_path, validation_settings, binary, raw=view_raw)
+            if prior_path is not None and prior_raw is not None:
+                prior_observation = returns._load(prior_path, validation_settings, binary, raw=prior_raw)
+        if prior_observation is not None and record["type"] != "withdrawal":
+            raise private.EncounterError("prior_observation_not_applicable")
+        if prior_observation is not None:
+            _compatible_histories(prior_observation, observation)
         candidates: list[JsonObject] = []
         selected: JsonObject | None = None
+        prior_event: JsonObject | None = None
+        prior_selectors: list[JsonObject] = []
+        withdrawal_target = "not_checkable_without_prior_view" if record["type"] == "withdrawal" else "not_applicable"
         if receipt is not None:
             found = observation.records.get(str(receipt["event_id"]))
             if found is None:
                 status = "receipt_event_unavailable"
+                if prior_observation is not None and record["type"] == "withdrawal":
+                    _, withdrawal_target, prior_event, prior_selectors = _named_prior(
+                        record, prior_observation, str(receipt["event_id"]), None)
             else:
                 original, event = found
-                selected = {**returns._reference(str(event["id"]), event), "original_sha256": hashlib.sha256(original.encode("utf-8")).hexdigest()}
+                selected = _selector(original, event)
                 if not _selected_matches(event, receipt, record):
                     status = "receipt_event_changed"
+                    if prior_observation is not None and record["type"] == "withdrawal":
+                        _, withdrawal_target, prior_event, prior_selectors = _named_prior(
+                            record, prior_observation, str(receipt["event_id"]), event)
                 elif record["type"] == "withdrawal":
-                    status = "withdrawal_target_not_checkable" if _tombstone(event) else "receipt_event_changed"
+                    if not _tombstone(event) or prior_observation is None:
+                        status = "receipt_event_changed" if not _tombstone(event) else "withdrawal_target_not_checkable"
+                        if prior_observation is not None:
+                            _, withdrawal_target, prior_event, prior_selectors = _named_prior(
+                                record, prior_observation, str(receipt["event_id"]), event)
+                    else:
+                        status, withdrawal_target, prior_event, prior_selectors = _named_prior(
+                            record, prior_observation, str(receipt["event_id"]), event)
                 elif client._matches_authored(record, event, receipt.get("revision")):
                     status = "receipt_correlated_match"
                 else:
                     status = "receipt_event_changed"
         elif record["type"] == "withdrawal":
-            status = "withdrawal_target_not_checkable"
+            if prior_observation is None:
+                status = "withdrawal_target_not_checkable"
+            else:
+                status, withdrawal_target, prior_event, prior_selectors, paired = _open_prior(
+                    record, observation, prior_observation)
+                selected = paired
         else:
-            for identifier, (original, event) in observation.records.items():
+            for _, (original, event) in observation.records.items():
                 body = event.get("body")
                 stored = body.get(str(record["type"])) if isinstance(body, dict) else None
                 revision = stored.get("revision") if isinstance(stored, dict) else None
                 if client._matches_authored(record, event, revision):
-                    candidates.append({**returns._reference(identifier, event), "original_sha256": hashlib.sha256(original.encode("utf-8")).hexdigest()})
+                    candidates.append(_selector(original, event))
             status = "compatible_candidates" if candidates else "no_match_in_observation"
+        inputs = {"config": hashlib.sha256(config_raw).hexdigest(), "journal": hashlib.sha256(journal_raw).hexdigest(),
+            "view": hashlib.sha256(view_raw).hexdigest()}
+        if prior_raw is not None:
+            inputs["prior"] = hashlib.sha256(prior_raw).hexdigest()
+        scope = "supplied_private_files_and_one_saved_caller_observation_not_live_history"
+        interpretation = "A candidate does not identify this attempt. Absence has no diagnosed cause. A copied receipt does not authenticate its origin. No retry is authorized."
+        if prior_observation is not None:
+            scope = "supplied_private_files_current_observation_and_explicit_prior_not_live_history"
+            interpretation += " A supplied prior can correlate one erased artifact tuple. It does not restore erased text as current evidence. Unavailable prior evidence is not a contradiction or proof of nonpublication."
         result: JsonObject = {"outcome": "inspected", "format": FORMAT, "evidence_status": status,
             "world": settings["world"], "principal": settings["principal"], "journal_state": journal["state"],
-            "request_sha256": hashlib.sha256(request).hexdigest(), "input_sha256": {
-                "config": hashlib.sha256(config_raw).hexdigest(), "journal": hashlib.sha256(journal_raw).hexdigest(),
-                "view": hashlib.sha256(view_raw).hexdigest()}, "observation": observation.metadata,
-            "receipt_retained": receipt is not None, "selected_event": selected, "compatible_candidates": candidates,
+            "request_sha256": hashlib.sha256(request).hexdigest(), "input_sha256": inputs,
+            "observation": observation.metadata, "receipt_retained": receipt is not None,
+            "selected_event": selected, "compatible_candidates": candidates,
             "origin_authenticated": False, "copying_permission": "not_granted", "journal_state_changed": False,
             "read_boundary_advanced": False, "retry_permission": "not_established",
-            "withdrawal_target": "not_checkable_without_prior_view" if record["type"] == "withdrawal" else "not_applicable",
-            "scope": "supplied_private_files_and_one_saved_caller_observation_not_live_history",
-            "interpretation": "A candidate does not identify this attempt. Absence has no diagnosed cause. A copied receipt does not authenticate its origin. No retry is authorized."}
+            "withdrawal_target": withdrawal_target, "scope": scope, "interpretation": interpretation}
+        if prior_observation is not None:
+            result["prior_observation"] = prior_observation.metadata
+            result["prior_selected_event"] = prior_event
+            result["prior_target_selectors"] = prior_selectors
         if journal["state"] == "rejected":
             rejection: JsonObject = {"code": journal["failure_code"], "original_response_retained": False}
             if "failure_title" in journal:

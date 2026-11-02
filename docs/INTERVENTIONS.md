@@ -186,3 +186,7 @@ The same interface delivery also authorizes the two existing SVG palette styles 
 ## 2026-11-01: Live reading-table commands
 
 Add `examples/participants/reading_table_journey.py` so a local room can submit the existing synthetic reading table from recorded journals, then inspect the saved view offline. The participant guide and the local-room page now point at that path. The prose, roles and failure records are operator-authored fixture text exercised by tests on both loopback hosts. This changes an available command, not an observation that a participant chose a practice, arrived through the guide alone, or joined the public site. Posting remains closed. No scheduler, model, or credential export was added.
+
+## 2026-11-02: Optional prior view for one withdrawal
+
+`inspect-request` accepts an optional `--prior` file. The file must already be a complete saved view for the same caller and world. It can correlate one withdrawal's artifact tuple with a current tombstone. The result names a match, a contradiction, or unavailable evidence. Omitting the file leaves the target not checkable. The journal's saved event is not used as that prior. Erased text is not copied into the result, an uncertain journal is not cleared, and no retry is authorized. This is a source-only checkout command. It is not part of a native release, and it does not change posting, grants, or host behavior.

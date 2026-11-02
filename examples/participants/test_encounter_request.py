@@ -74,8 +74,10 @@ class RequestInspectionTests(unittest.TestCase):
                 path.unlink()
             private.write_new(path, raw)
 
-    def inspect(self) -> JsonObject:
-        before = {path: path.read_bytes() for path in (self.config, self.journal_path, self.view_path)}
+    def inspect(self, prior: Path | None = None) -> JsonObject:
+        watched = [self.config, self.journal_path, self.view_path] if prior is None else [
+            self.config, self.journal_path, self.view_path, prior]
+        before = {path: path.read_bytes() for path in watched}
         entries = set(self.cache.iterdir())
         parents = set(self.cache.parent.iterdir())
         try:
@@ -85,7 +87,7 @@ class RequestInspectionTests(unittest.TestCase):
                 patch.object(wire, "discover", side_effect=AssertionError("offline must not discover")), \
                 patch.object(client, "_capture", side_effect=AssertionError("offline must not capture")), \
                 patch.object(client, "_publish", side_effect=AssertionError("offline must not publish")):
-                return requests.inspect(self.config, self.journal_path, self.view_path)
+                return requests.inspect(self.config, self.journal_path, self.view_path, prior_path=prior)
         finally:
             self.assertEqual(before, {path: path.read_bytes() for path in before})
             self.assertEqual(entries, set(self.cache.iterdir()))
@@ -208,6 +210,134 @@ class RequestInspectionTests(unittest.TestCase):
             self.assertEqual(result["evidence_status"], "withdrawal_target_not_checkable")
             self.assertEqual(result["compatible_candidates"], [])
             self.assertEqual(result["withdrawal_target"], "not_checkable_without_prior_view")
+            self.assertNotIn("prior_observation", result)
+            self.assertNotIn("unfinished question", json.dumps(result))
+
+    def write_view(self, name: str, events: list[JsonObject]) -> Path:
+        path = self.cache / name
+        if path.exists():
+            path.unlink()
+        private.write_new(path, client._json(views.view(events)))
+        return path
+
+    def test_explicit_prior_distinguishes_match_contradiction_and_absence(self) -> None:
+        artifact = fixtures.authored("artifact_revision", "submission:target", fixtures.A)
+        original = fixtures.event(artifact, 1)
+        withdrawal = fixtures.authored("withdrawal", "submission:withdrawal", fixtures.A)
+        tombstone = {**original, "kind": "artifact.withdrawn", "body": {}}
+        prose = "rewritten prior prose that must stay out of the result"
+        for retained, state in ((True, "uncertain"), (False, "uncertain"), (True, "recorded")):
+            value = journal(withdrawal, state=state)
+            if retained:
+                value["receipt"] = receipt(withdrawal, tombstone)
+            if state == "recorded":
+                value["event_record_utf8"] = client._json(tombstone).decode()
+            self.save(value, [tombstone])
+            prior = self.write_view("prior.json", [original])
+            result = self.inspect(prior)
+            self.assertEqual(result["evidence_status"], "withdrawal_prior_match")
+            self.assertEqual(result["withdrawal_target"], "matching_prior_original")
+            self.assertEqual(result["retry_permission"], "not_established")
+            self.assertFalse(result["journal_state_changed"])
+            self.assertEqual(result["receipt_retained"], retained)
+            self.assertEqual(result["journal_state"], state)
+            self.assertEqual(result["compatible_candidates"], [])
+            self.assertEqual(fixtures.obj(result["selected_event"])["kind"], "artifact.withdrawn")
+            self.assertEqual(fixtures.obj(result["prior_selected_event"])["kind"], "artifact.recorded")
+            self.assertEqual(fixtures.obj(result["selected_event"])["event_id"], fixtures.obj(result["prior_selected_event"])["event_id"])
+            self.assertEqual(fixtures.obj(result["input_sha256"])["prior"], hashlib.sha256(prior.read_bytes()).hexdigest())
+            rendered = json.dumps(result)
+            self.assertNotIn("unfinished question", rendered)
+            self.assertNotIn(prose, rendered)
+        # Prose is not the tuple. A boolean revision is not revision 1.
+        edited = copy.deepcopy(original)
+        mutable(mutable(mutable(edited["body"])["artifact_revision"])["body"])["text"] = prose
+        self.save(journal(withdrawal), [tombstone])
+        prose_result = self.inspect(self.write_view("prior.json", [edited]))
+        self.assertEqual(prose_result["evidence_status"], "withdrawal_prior_match")
+        self.assertNotIn(prose, json.dumps(prose_result))
+        boolean = copy.deepcopy(original)
+        mutable(mutable(boolean["body"])["artifact_revision"])["revision"] = True
+        self.save(value, [tombstone])
+        self.assertEqual(self.inspect(self.write_view("prior.json", [boolean]))["withdrawal_target"], "contradictory_prior_original")
+        self.save(journal(withdrawal), [tombstone])
+        self.assertEqual(self.inspect(self.write_view("prior.json", [boolean]))["evidence_status"], "withdrawal_prior_unavailable")
+        # The current representation disagrees, the receipt event is absent, or the histories collide.
+        self.save(journal(withdrawal), [original])
+        prior = self.write_view("prior.json", [original])
+        still_recorded = self.inspect(prior)
+        self.assertEqual(still_recorded["evidence_status"], "withdrawal_prior_contradiction")
+        self.assertNotIn("unfinished question", json.dumps(still_recorded))
+        missing = journal(withdrawal)
+        missing["receipt"] = receipt(withdrawal, tombstone)
+        self.save(missing, [])
+        absent = self.inspect(prior)
+        self.assertEqual(absent["evidence_status"], "receipt_event_unavailable")
+        self.assertEqual(absent["withdrawal_target"], "prior_target_unavailable")
+        self.save(missing, [original])
+        changed = self.inspect(prior)
+        self.assertEqual(changed["evidence_status"], "receipt_event_changed")
+        self.assertEqual(changed["withdrawal_target"], "contradictory_prior_original")
+        wrong_actor = copy.deepcopy(original)
+        wrong_actor["actor"] = fixtures.B
+        self.save(journal(withdrawal), [{**tombstone, "actor": fixtures.B}])
+        self.assertEqual(self.inspect(self.write_view("prior.json", [wrong_actor]))["evidence_status"], "withdrawal_prior_contradiction")
+        moved = copy.deepcopy(tombstone)
+        moved["actor"] = fixtures.B
+        envelope = journal(withdrawal)
+        envelope["receipt"] = receipt(withdrawal, tombstone)
+        self.save(envelope, [moved])
+        envelope_result = self.inspect(self.write_view("prior.json", [original]))
+        self.assertEqual(envelope_result["evidence_status"], "receipt_event_changed")
+        self.assertEqual(envelope_result["withdrawal_target"], "contradictory_prior_original")
+        shifted = copy.deepcopy(original)
+        shifted["timestamp"] = "2026-10-08T12:00:01Z"
+        self.save(journal(withdrawal), [tombstone])
+        self.assertEqual(self.inspect(self.write_view("prior.json", [shifted]))["evidence_status"], "withdrawal_prior_contradiction")
+        collided = copy.deepcopy(original)
+        collided["sequence"] = 7
+        self.save(journal(withdrawal), [tombstone, fixtures.event(self.record, 7)])
+        with self.assertRaises(private.EncounterError) as conflict:
+            self.inspect(self.write_view("prior.json", [collided]))
+        self.assertEqual(conflict.exception.code, "conflicting_observations")
+        # Finite history, changed access, and an ambiguous reused tuple are not success.
+        self.save(journal(withdrawal, state="uncertain"), [tombstone])
+        self.assertEqual(self.inspect(self.write_view("prior.json", [self.event]))["evidence_status"], "withdrawal_prior_unavailable")
+        self.save(journal(withdrawal, state="uncertain"), [])
+        self.assertEqual(self.inspect(self.write_view("prior.json", [original]))["evidence_status"], "withdrawal_prior_unavailable")
+        extra = fixtures.event(artifact, 2)
+        self.save(journal(withdrawal, state="uncertain"), [tombstone, {**extra, "kind": "artifact.withdrawn", "body": {}}])
+        ambiguous = self.inspect(self.write_view("prior.json", [original, extra]))
+        self.assertEqual(ambiguous["evidence_status"], "withdrawal_prior_contradiction")
+        self.assertEqual(ambiguous["selected_event"], None)
+        self.assertEqual(len(fixtures.objects(ambiguous["prior_target_selectors"])), 2)
+        # A supplied receipt is not discarded when a different event carries the tuple.
+        other = fixtures.event(artifact, 4)
+        other_tombstone = {**other, "kind": "artifact.withdrawn", "body": {}}
+        retained_value = journal(withdrawal)
+        retained_value["receipt"] = receipt(withdrawal, tombstone)
+        self.save(retained_value, [tombstone, other_tombstone])
+        decoy = self.inspect(self.write_view("prior.json", [other]))
+        self.assertEqual(decoy["evidence_status"], "withdrawal_prior_unavailable")
+        self.assertEqual(decoy["compatible_candidates"], [])
+        self.save(retained_value, [tombstone, other_tombstone])
+        kept = self.inspect(self.write_view("prior.json", [original, other]))
+        self.assertEqual(kept["evidence_status"], "withdrawal_prior_match")
+        self.assertEqual(len(fixtures.objects(kept["prior_target_selectors"])), 1)
+        # The prior applies only to withdrawal, and a bad prior fails closed.
+        self.save(journal(self.record), [self.event])
+        with self.assertRaises(private.EncounterError) as refused:
+            self.inspect(self.write_view("prior.json", [original]))
+        self.assertEqual(refused.exception.code, "prior_observation_not_applicable")
+        foreign = views.view([original])
+        foreign["principal"] = fixtures.B
+        path = self.write_view("prior.json", [original])
+        path.unlink()
+        private.write_new(path, client._json(foreign))
+        self.save(journal(withdrawal), [tombstone])
+        with self.assertRaises(private.EncounterError) as invalid:
+            self.inspect(path)
+        self.assertEqual(invalid.exception.code, "invalid_private_view")
 
     def test_edited_journal_bindings_states_hashes_and_receipts_are_invalid(self) -> None:
         original = journal(self.record)
@@ -325,6 +455,12 @@ class RequestInspectionTests(unittest.TestCase):
             self.assertEqual(operator.main(), 0)
         self.assertNotIn("\x1b", str(printed.call_args.args[0]))
         self.assertIn("\\u001b", str(printed.call_args.args[0]))
+        prior = self.write_view("prior.json", [self.event])
+        with patch.object(sys, "argv", ["local_encounter.py", "inspect-request", str(self.journal_path), "--view",
+            str(self.view_path), "--prior", str(prior), "--config", str(self.config)]), \
+            patch.object(requests, "inspect", return_value={"outcome": "inspected"}) as inspected:
+            self.assertEqual(operator.main(), 0)
+        self.assertEqual(inspected.call_args.kwargs["prior_path"], prior)
 
 
 class NativeRequestInspectionTests(unittest.TestCase):

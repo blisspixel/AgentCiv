@@ -979,9 +979,10 @@ class LocalEncounterProcessTests(unittest.TestCase):
                 results: dict[str, JsonObject] = {}
 
                 def send(name: str, *, apply_before_loss: bool = False, fail_before_post: bool = False,
-                         lose_readback: bool = False, kind: str = "message") -> JsonObject:
+                         lose_readback: bool = False, kind: str = "message",
+                         record: JsonObject | None = None) -> JsonObject:
                     source = root / (name + ".json")
-                    raw = client._json(authored(kind, "submission:" + name, A))
+                    raw = client._json(record if record is not None else authored(kind, "submission:" + name, A))
                     source.write_bytes(raw)
 
                     def exchange(method: str, url: str, *, token: str | None = None,
@@ -1010,13 +1011,26 @@ class LocalEncounterProcessTests(unittest.TestCase):
 
                 try:
                     operator._wait_ready(owned)
+                    empty = client.read(config, reader_binary=self.reader_binary)
+                    empty_path = Path(str(empty["view_path"]))
                     applied = send("lost-applied", apply_before_loss=True)
                     absent = send("not-dispatched", fail_before_post=True)
                     readback = send("readback-lost", lose_readback=True)
                     parent = send("parent", kind="artifact_revision")
+                    prior_parent_read = client.read(config, reader_binary=self.reader_binary)
+                    prior_parent = Path(str(prior_parent_read["view_path"]))
                     withdrawn = send("withdraw-parent", kind="withdrawal")
-                    self.assertEqual([applied["outcome"], absent["outcome"], readback["outcome"]], ["uncertain"] * 3)
-                    self.assertEqual([parent["outcome"], withdrawn["outcome"]], ["recorded"] * 2)
+                    second_record = authored("artifact_revision", "submission:second-parent", A)
+                    second_record["artifact_id"] = "artifact:second-reader"
+                    second = send("second-parent", record=second_record)
+                    prior_second_read = client.read(config, reader_binary=self.reader_binary)
+                    prior_second = Path(str(prior_second_read["view_path"]))
+                    lost_record = authored("withdrawal", "submission:lost-withdrawal", A)
+                    lost_record["artifact_id"] = "artifact:second-reader"
+                    lost_withdrawal = send("lost-withdrawal", apply_before_loss=True, record=lost_record)
+                    self.assertEqual([applied["outcome"], absent["outcome"], readback["outcome"], lost_withdrawal["outcome"]], ["uncertain"] * 4)
+                    self.assertEqual([parent["outcome"], withdrawn["outcome"], second["outcome"]], ["recorded"] * 3)
+                    self.assertNotIn("receipt", load(Path(str(lost_withdrawal["journal_path"]))))
                     lost_journal = load(Path(str(applied["journal_path"])))
                     self.assertNotIn("receipt", lost_journal)
                     self.assertIn("receipt", load(Path(str(readback["journal_path"]))))
@@ -1038,22 +1052,68 @@ class LocalEncounterProcessTests(unittest.TestCase):
                     operator._stop_owned(owned)
                 # The host is stopped before inspection. Every HTTP/dispatch path
                 # would fail this test, regardless of the known fixture outcome.
-                originals = {path: path.read_bytes() for path in [config, view_path,
-                    *(Path(str(result["journal_path"])) for result in results.values())]}
                 cache = Path(str(settings_a["cache_directory"]))
+                edited_parent = cache / "view-edited-prior.json"
+                edited = load(prior_parent)
+                edited_rows = strings(obj(edited["snapshot"])["records"])
+                edited_index = -1
+                for index, raw in enumerate(edited_rows):
+                    event = client._decode(raw.encode())
+                    body = event.get("body")
+                    stored = body.get("artifact_revision") if isinstance(body, dict) else None
+                    if (event.get("kind") != "artifact.recorded" or not isinstance(stored, dict)
+                        or stored.get("artifact_id") != "artifact:shared-reader"):
+                        continue
+                    stored["revision"] = 2
+                    edited_rows[index] = client._json(event).decode()
+                    edited_index = index
+                self.assertNotEqual(edited_index, -1)
+                self.assertEqual(obj(obj(client._decode(edited_rows[edited_index].encode())["body"])["artifact_revision"])["revision"], 2)
+                snapshot = edited["snapshot"]
+                if not isinstance(snapshot, dict):
+                    raise AssertionError("expected snapshot object")
+                snapshot["records"] = edited_rows
+                private.write_new(edited_parent, client._json(edited))
+                written_rows = strings(obj(load(edited_parent)["snapshot"])["records"])
+                self.assertEqual(obj(obj(client._decode(written_rows[edited_index].encode())["body"])["artifact_revision"])["revision"], 2)
+                originals = {path: path.read_bytes() for path in [config, view_path, empty_path, prior_parent,
+                    prior_second, edited_parent, *(Path(str(result["journal_path"])) for result in results.values())]}
                 entries = set(cache.iterdir())
                 expected = {"lost-applied": "compatible_candidates", "not-dispatched": "no_match_in_observation",
                     "readback-lost": "receipt_correlated_match", "parent": "receipt_event_changed",
-                    "withdraw-parent": "withdrawal_target_not_checkable"}
+                    "withdraw-parent": "withdrawal_target_not_checkable", "second-parent": "receipt_event_changed",
+                    "lost-withdrawal": "withdrawal_target_not_checkable"}
                 with patch.object(wire, "exchange", side_effect=AssertionError("offline inspector attempted HTTP")), \
                     patch.object(wire, "discover", side_effect=AssertionError("offline inspector attempted discovery")), \
                     patch.object(client, "_publish", side_effect=AssertionError("offline inspector attempted publication")):
                     for name, result in results.items():
                         inspected = requests.inspect(config, Path(str(result["journal_path"])), view_path, reader_binary=self.reader_binary)
-                        self.assertEqual(inspected["evidence_status"], expected[name])
+                        self.assertEqual(inspected["evidence_status"], expected[name], name)
                         self.assertFalse(inspected["journal_state_changed"])
                         if name == "lost-applied":
                             self.assertEqual(len(objects(inspected["compatible_candidates"])), 2)
+                    parent_journal = Path(str(results["withdraw-parent"]["journal_path"]))
+                    lost_path = Path(str(results["lost-withdrawal"]["journal_path"]))
+                    matched = requests.inspect(config, parent_journal, view_path, reader_binary=self.reader_binary, prior_path=prior_parent)
+                    lost = requests.inspect(config, lost_path, view_path, reader_binary=self.reader_binary, prior_path=prior_second)
+                    finite = requests.inspect(config, lost_path, view_path, reader_binary=self.reader_binary, prior_path=prior_parent)
+                    hidden = requests.inspect(config, lost_path, empty_path, reader_binary=self.reader_binary, prior_path=prior_second)
+                    contradictory = requests.inspect(config, parent_journal, view_path, reader_binary=self.reader_binary, prior_path=edited_parent)
+                self.assertEqual(matched["evidence_status"], "withdrawal_prior_match")
+                self.assertEqual(matched["withdrawal_target"], "matching_prior_original")
+                self.assertEqual(matched["retry_permission"], "not_established")
+                self.assertFalse(matched["journal_state_changed"])
+                self.assertEqual(lost["evidence_status"], "withdrawal_prior_match")
+                self.assertFalse(lost["receipt_retained"])
+                self.assertEqual(lost["journal_state"], "uncertain")
+                self.assertEqual(lost["retry_permission"], "not_established")
+                self.assertEqual(finite["evidence_status"], "withdrawal_prior_unavailable")
+                self.assertEqual(finite["withdrawal_target"], "prior_target_unavailable")
+                self.assertEqual(hidden["evidence_status"], "withdrawal_prior_unavailable")
+                self.assertEqual(contradictory["evidence_status"], "withdrawal_prior_contradiction")
+                for reported in (matched, lost, finite, hidden, contradictory):
+                    self.assertNotIn("unfinished question", json.dumps(reported))
+                    self.assertEqual(reported["read_boundary_advanced"], False)
                 self.assertEqual(originals, {path: path.read_bytes() for path in originals})
                 self.assertEqual(entries, set(cache.iterdir()))
 
