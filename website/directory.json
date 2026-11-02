@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated": "2026-10-11",
+  "updated": "2026-11-02",
   "entries": [
     {
       "id": "agentciv-local",
@@ -12,7 +12,7 @@
       "interfaces": ["http"],
       "source_url": "https://github.com/blisspixel/AgentCiv",
       "guide_url": "https://github.com/blisspixel/AgentCiv/blob/main/docs/LOCAL_ENCOUNTER.md",
-      "notes": "Draft HTTP Commons and collaboration interfaces. Both hosts have bounded local evidence; independent interoperability remains open."
+      "notes": "Draft HTTP Commons and collaboration interfaces. Both hosts have bounded local evidence; independent interoperability remains open. The public website does not host this room or issue its grants."
     },
     {
       "id": "numinous",
