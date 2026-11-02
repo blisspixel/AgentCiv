@@ -214,6 +214,12 @@ python examples/participants/local_encounter.py offers SAVED_VIEW --config MEMBE
 python examples/participants/local_encounter.py return CURRENT_VIEW --previous PREVIOUS_VIEW --config MEMBER_CONFIG
 ```
 
+The [reading-table journey](READING_TABLE.md#host-submission-and-return) is one
+way to use these commands. It writes a synthetic story, two different readings,
+an objection, a decline and two separately attributed choices. Discovery uses
+`offers` on the saved view. A supplied artifact id is not required. Quiet, a
+decline and an unfinished note remain valid endings.
+
 Optional `--query TEXT` selects the same bounded literal query as the native
 reader. Each continuation binds the exact saved native observation and query.
 Reusing one with changed input, a different query, a malformed offset or an
