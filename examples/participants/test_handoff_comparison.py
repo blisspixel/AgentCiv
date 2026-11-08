@@ -35,7 +35,9 @@ class Clock:
 def private_state(test: unittest.TestCase) -> Path:
     temporary = tempfile.TemporaryDirectory()
     test.addCleanup(temporary.cleanup)
-    path = Path(temporary.name) / "comparison"
+    # Resolve first. macOS temp roots include /var, which is a symlink, and the
+    # private-path check rejects every link on the ancestor chain.
+    path = Path(temporary.name).resolve() / "comparison"
     private.create_directory(path)
     return path
 
@@ -457,7 +459,7 @@ class HandoffComparisonTests(unittest.TestCase):
         self.assertEqual(body["code"], "invalid_journal")
         root = tempfile.TemporaryDirectory()
         self.addCleanup(root.cleanup)
-        ordinary = Path(root.name) / "not-a-directory"
+        ordinary = Path(root.name).resolve() / "not-a-directory"
         ordinary.write_bytes(b"x")
         code, body = capture(["report", "--state", str(ordinary)])
         self.assertEqual(code, 1)
