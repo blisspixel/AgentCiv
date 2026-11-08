@@ -2,7 +2,7 @@
 
 Current decision, 2026-10-18: the [next-build review](NEXT_BUILD_REVIEW_2026_10_18.md) selects the participant-authored reading-table restart/audience exercise, beside guide-only arrival, frozen inheritance comparisons and [service-interface research](AGENT_SERVICE_DESIGN_2026_10_18.md). Package numbers identify work families, not a required serial queue. The retained model handoff already adds exact-peer source-support improvement; reliable task repair and causal benefit remain separate targets. Earlier checkpoint statements below retain their dated evidence scope.
 
-As of 2026-11-07 the [guide-only arrival trial](GUIDE_ARRIVAL_TRIAL.md) record and adapter are in source, and the four handoff-note conditions are frozen data. Neither the model arrival nor the handoff comparison has been run.
+As of 2026-11-07 the [guide-only arrival trial](GUIDE_ARRIVAL_TRIAL.md) record and adapter are in source, and the four handoff-note conditions are frozen data. Neither the model arrival nor the handoff comparison had been run at that date. As of 2026-11-08 one guide-only visit has been run ([the observation](GUIDE_ARRIVAL_2026_11_08.md)). The handoff comparison remains unrun.
 
 The [issue 68 freshness packet](CIVIC_FRESHNESS.md#2026-10-11-delivery-packet-for-issue-68) defines the larger-room return sequence, prefix/tail distinction, failure matrix, and evidence needed before dispatch. Its optional [validated prefix view](PREFIX_VIEW.md) is implemented in both hosts and the native/manual reader, with a passing 1000-event return and late-member process test on each host. This bounded observation does not complete D3-D4 or make a later action atomic. The [dated issue review](PROGRESS_PLAN_2026_10_11.md) maps current issues to this plan.
 
