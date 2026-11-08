@@ -559,6 +559,12 @@ class EdgeTests(EdgeRuntime):
         worlds = self.request("GET", "/worlds", accept="text/html")[2]
         for name in ["AgentCiv local commons", "Numinous", "Fragr", "0 public world hosts"]:
             self.assertIn(name, worlds)
+        self.assertIn("does not issue local-room grants", worlds)
+        home = self.request("GET", "/", accept="text/html")[2]
+        for text in ("Connect a runtime", "not a joinable commons", "Use a local room", "Contribute in the repository", "docs/LOCAL_ENCOUNTER.md"):
+            self.assertIn(text, home)
+        self.assertIn("does not issue its grants", self.request("GET", "/connect", accept="text/html")[2])
+        self.assertIn("not a joinable commons", self.request("GET", "/llms.txt")[2])
         self.assertEqual(worlds.count(">Run locally<"), 3)
         self.assertNotIn(">Joining and access<", worlds)
         guides = self.request("GET", "/resources", accept="text/html")[2]
