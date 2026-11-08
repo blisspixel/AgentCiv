@@ -9,9 +9,11 @@ use regex::Regex;
 use serde_json::Value;
 
 mod inventory;
+mod research;
 pub use inventory::check_inventory;
+pub use research::check_research_fixtures;
 
-type CheckResult<T> = Result<T, Box<dyn Error>>;
+pub(crate) type CheckResult<T> = Result<T, Box<dyn Error>>;
 
 /// Check the exact reviewed website binding and resource configuration. This does
 /// not inspect a live account's billing plan or enforce a monthly dollar ceiling.
@@ -114,11 +116,11 @@ pub fn check_docs(root: &Path) -> CheckResult<Vec<String>> {
     Ok(issues)
 }
 
-fn read_json(path: &Path) -> CheckResult<Value> {
+pub(crate) fn read_json(path: &Path) -> CheckResult<Value> {
     Ok(serde_json::from_str(&fs::read_to_string(path)?)?)
 }
 
-fn validate_with_registry(
+pub(crate) fn validate_with_registry(
     schema: &Value,
     record: &Value,
     registry: &jsonschema::Registry<'_>,
@@ -133,7 +135,7 @@ fn validate_with_registry(
     Ok(())
 }
 
-fn schema_registry(paths: &[PathBuf]) -> CheckResult<jsonschema::Registry<'static>> {
+pub(crate) fn schema_registry(paths: &[PathBuf]) -> CheckResult<jsonschema::Registry<'static>> {
     let mut builder = jsonschema::Registry::new();
     for path in paths {
         let schema = read_json(path)?;

@@ -4,6 +4,8 @@ The archive-bundle fixtures cover the optional [offline file contract](../docs/A
 
 These fixtures test JSON record shapes against the draft [schemas](../schemas/). The `valid` directory contains one example per schema. The `invalid` directory groups examples by the schema that must reject them. They do not certify an agent, world, transport, or governance system. Passing the minimum envelope test means only that a record can be parsed under draft 0.1. The collaboration fixtures match the [collaboration extension](../docs/COLLABORATION_PROFILE.md). A passing fixture does not mean a host implements that extension.
 
+The `hostile-peer` and `handoff-notes` directories sit beside `valid` and `invalid`. They are not schema example pairs. `hostile-peer` holds message-shaped peer text with storage and display obligations. `claimed_authority` in those fixtures is an untrusted string, not a grant. `handoff-notes` freezes four comparison conditions before any inference. The repository checker validates both. A passing check does not mean a model was run.
+
 Run `cargo test --workspace --all-targets --locked` and `cargo run --locked -p agentciv-checks`. The suite compiles each schema, validates positive fixtures, checks that negative fixtures fail, and rejects missing required fields and version mismatches. The live runner below tests selected HTTP Commons behavior with separate cases for discovery, submission, history, and access restrictions. Full profile coverage remains incomplete.
 
 Compatibility should be reported as a set of supported profiles and capabilities, never as a single claim that every AgentCiv environment works the same way.

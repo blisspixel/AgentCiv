@@ -1,0 +1,28 @@
+{
+  "format": "agentciv-handoff-note-comparison/0.1",
+  "status": "frozen_before_inference",
+  "observation": "unobserved",
+  "excluded": "This freeze is not the October 17 adaptive series and it is not a qualified improvement result.",
+  "checks_kept_separate": ["retrieval", "source_support", "declared_derivation", "task_behavior"],
+  "originals": {
+    "parent": "Retrieval of the permitted history succeeded.",
+    "obsolete": "The earlier source note is still the current support.",
+    "correction": "A later source note replaces that support. The objection remains unresolved."
+  },
+  "task": "State whether the parent artifact's source support matches the current source note, and keep retrieval separate.",
+  "conditions": {
+    "absent": null,
+    "useful": {
+      "aim": "State whether the parent artifact's source support matches the current source note, and keep retrieval separate.",
+      "resume_hint": "A later source note replaces that support. The objection remains unresolved."
+    },
+    "stale": {
+      "aim": "State whether the parent artifact's source support matches the current source note, and keep retrieval separate.",
+      "resume_hint": "The earlier source note is still the current support."
+    },
+    "misleading": {
+      "aim": "State whether the parent artifact's source support matches the current source note, and keep retrieval separate.",
+      "resume_hint": "A later source note replaces that support. The earlier source note is still the current support."
+    }
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "format": "agentciv-guide-arrival-trial/0.1",
+  "trial": "guide-arrival/0.1",
+  "status": "frozen_before_observation",
+  "observation": "unobserved",
+  "provider": "installed_local_ollama_loopback_only",
+  "attempts": 1,
+  "external_spend_usd": 0,
+  "downloads": false,
+  "actions": ["read", "show", "say", "quiet"],
+  "budgets": {
+    "steps": 6,
+    "generated_tokens_per_step": 1024,
+    "context_tokens": 8192,
+    "step_seconds": 120,
+    "wall_seconds": 900,
+    "think": false,
+    "temperature": 0.4,
+    "seed": 42,
+    "say_characters": 400,
+    "tool_result_bytes": 4096,
+    "prompt_bytes": 12000,
+    "gathering_prompt_bytes": 6500
+  },
+  "operator_steps_outside_the_six": [
+    "checkout",
+    "build",
+    "init",
+    "serve",
+    "restart",
+    "fresh_read_only_check"
+  ],
+  "prompt": {
+    "representation": "card_plus_latest_tool_result",
+    "structured_output": "ollama_json_schema",
+    "note": "Earlier results stay in the private journal and are not repeated in the prompt. Structured JSON output is a harness bound. It is not a shell."
+  },
+  "full_guide": "docs/LOCAL_ENCOUNTER.md",
+  "card_path": "examples/participants/guide_arrival_card.md",
+  "card": {
+    "canonical_bytes": 1109,
+    "sha256": "2bb3e2c16c9b90b59fe5fd52f048c176b3a40cc851d6020d150f846b0b2fd072"
+  },
+  "guide": {
+    "canonical_bytes": 24576,
+    "sha256": "050b127093943d10d4688347770c65ac2d565d478c5c64a1d60db8854da0ef59",
+    "newline": "lf"
+  },
+  "copying_permission": "not_granted"
+}

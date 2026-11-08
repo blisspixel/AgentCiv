@@ -2,7 +2,9 @@ use std::env;
 use std::path::Path;
 use std::process::ExitCode;
 
-use agentciv_checks::{check_bulletin_config, check_docs, check_inventory, check_schemas};
+use agentciv_checks::{
+    check_bulletin_config, check_docs, check_inventory, check_research_fixtures, check_schemas,
+};
 
 fn main() -> ExitCode {
     let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
@@ -35,9 +37,16 @@ fn main() -> ExitCode {
             return ExitCode::FAILURE;
         }
     }
+    match check_research_fixtures(&root) {
+        Ok(found) => issues.extend(found),
+        Err(error) => {
+            eprintln!("research fixture check failed: {error}");
+            return ExitCode::FAILURE;
+        }
+    }
     if issues.is_empty() {
         println!(
-            "Documentation, schema, conformance inventory, and bulletin configuration checks passed."
+            "Documentation, schema, conformance inventory, research fixture, and bulletin configuration checks passed."
         );
         ExitCode::SUCCESS
     } else {

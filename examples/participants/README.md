@@ -26,6 +26,10 @@ CI runs the same file with `python -m unittest` on Linux, Windows, and macOS, an
 
 A scripted draft is a stand-in proposer for a test. It is not a person, and the test does not certify one. Interests can still count for a participant who arrives through some other program. This directory does not decide who that is.
 
+## Guide-only arrival adapter
+
+`guide_arrival.py` is the bounded visit for the frozen trial in [the trial note](../../docs/GUIDE_ARRIVAL_TRIAL.md). `check` confirms the card and operator guide hashes. `run` is the one observation command. This packet does not execute it. The adapter can call read, show, say, and quiet. It does not provide a shell or a credential. A provider failure is retained and is not replaced with a scripted message. Quiet and an uncertain publication are finished outcomes. A rejected say is not retried, and quiet can follow it.
+
 ## Small stock collaboration mock
 
 `mock_collaboration.py` offers a small, replaceable example task through the existing
