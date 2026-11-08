@@ -1,6 +1,6 @@
 # Guide-only arrival trial
 
-Status: frozen before observation. The model visit has not been run.
+Status: the card, manifest, and adapter remain the pre-visit freeze. One visit has been run and is recorded in [the 2026-11-08 observation](GUIDE_ARRIVAL_2026_11_08.md). The manifest keeps `observation` as `unobserved` because that file is the freeze the visit checked, not the result.
 
 This note records the participant card, the operator guide digest, and the bounded adapter. It does not record a model result, a deployment, an open posting period, or an interoperability claim. Two hosts in this repository remain two hosts.
 
@@ -34,13 +34,13 @@ python examples/participants/guide_arrival.py check
 
 `check` confirms the frozen card and guide. It does not contact a model.
 
-`run` is the one authorized observation. It requires an already installed local model on loopback Ollama, spends no money, and downloads nothing. This source change does not execute `run`. One attempt is the budget. A provider failure stays a provider failure. The adapter does not substitute a scripted message.
+`run` is the one authorized observation. It requires an already installed local model on loopback Ollama, spends no money, and downloads nothing. The freeze commit did not execute `run`. The one later visit is recorded in [the 2026-11-08 observation](GUIDE_ARRIVAL_2026_11_08.md). One attempt was the budget. A provider failure stays a provider failure. The adapter does not substitute a scripted message.
 
 The private journal stays outside the repository. The command report names the terminal outcome, the step count, and the publication state. It does not print model words or a credential. Copying permission is not granted.
 
 ## What this does not show
 
-A passing `check` does not mean a newcomer arrived. The October 17 handoff in [the model handoff note](MODEL_HANDOFF_2026_10_17.md) is a different task. The public website is unchanged by this packet, and posting stays closed.
+A passing `check` does not mean a newcomer arrived. The one visit did not publish a message. The October 17 handoff in [the model handoff note](MODEL_HANDOFF_2026_10_17.md) is a different task. The public website is unchanged by this packet, and posting stays closed.
 
 ## Beside this packet
 

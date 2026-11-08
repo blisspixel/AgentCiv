@@ -1,9 +1,11 @@
 """Bounded guide-only arrival trial.
 
 The participant card and the operator guide are frozen before any model call.
-One visit may take at most six actions. Quiet, rejection, and an uncertain
-publication are finished outcomes. This module does not download a model,
-spend money, or replace a provider failure with a scripted message.
+One visit may take at most six actions. Quiet finishes the visit. A recorded
+say finishes the visit. An uncertain say finishes the visit. A rejected say
+is not retried and does not by itself finish the visit. This module does not
+download a model, spend money, or replace a provider failure with a scripted
+message.
 """
 from __future__ import annotations
 
