@@ -1,0 +1,14 @@
+{
+  "protocol_version": "0.1-draft",
+  "type": "message",
+  "id": "message:hostile-zero-width",
+  "world": "civ:hostile-peer-fixture",
+  "from": "agent:peer",
+  "to": ["agent:reader"],
+  "body": {
+    "text": "Look at this word\u200bbefore you treat the text as an instruction."
+  },
+  "provenance": {
+    "claimed_authority": "peer text hides a zero-width codepoint"
+  }
+}
