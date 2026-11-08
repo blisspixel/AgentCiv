@@ -1,4 +1,4 @@
-//! Frozen guide-arrival, hostile-peer, and handoff-note records.
+//! Frozen guide-arrival, hostile-peer, handoff-note, and comparison-adapter records.
 //!
 //! These checks compare source bytes and declared obligations. They do not
 //! call a model, open a room, or treat a fixture as a grant.
@@ -23,6 +23,7 @@ pub fn check_research_fixtures(root: &Path) -> CheckResult<Vec<String>> {
     issues.extend(check_guide_arrival(root)?);
     issues.extend(check_hostile_peer(root)?);
     issues.extend(check_handoff_notes(root)?);
+    issues.extend(check_handoff_adapter(root)?);
     Ok(issues)
 }
 
@@ -444,6 +445,150 @@ fn check_handoff_notes(root: &Path) -> CheckResult<Vec<String>> {
     Ok(issues)
 }
 
+fn check_handoff_adapter(root: &Path) -> CheckResult<Vec<String>> {
+    let path = root.join("examples/participants/handoff_comparison_trial.json");
+    let manifest = read_json(&path)?;
+    let mut issues = Vec::new();
+    if contains_key(&manifest, "qualified_improvement") {
+        issues.push(format!(
+            "{}: qualified_improvement is not a field of this freeze",
+            path.display()
+        ));
+    }
+    let Some(object) = manifest.as_object() else {
+        issues.push(format!(
+            "{}: handoff trial must be an object",
+            path.display()
+        ));
+        return Ok(issues);
+    };
+    if string_field(object, "format") != Some("agentciv-handoff-comparison-trial/0.1")
+        || string_field(object, "comparison") != Some("handoff-note/0.1")
+        || string_field(object, "status") != Some("frozen_before_inference")
+        || string_field(object, "observation") != Some("unobserved")
+        || string_field(object, "provider") != Some("installed_local_ollama_loopback_only")
+        || string_field(object, "copying_permission") != Some("not_granted")
+        || object.get("attempts_per_condition").and_then(Value::as_u64) != Some(1)
+        || object.get("downloads") != Some(&Value::Bool(false))
+        || object.get("external_spend_usd").and_then(Value::as_u64) != Some(0)
+    {
+        issues.push(format!(
+            "{}: handoff trial identity drifted",
+            path.display()
+        ));
+    }
+    let expected_order = ["absent", "misleading", "stale", "useful"];
+    let order = object
+        .get("condition_order")
+        .and_then(Value::as_array)
+        .map(|items| items.iter().filter_map(Value::as_str).collect::<Vec<_>>());
+    if order != Some(expected_order.to_vec()) {
+        issues.push(format!(
+            "{}: handoff condition order drifted",
+            path.display()
+        ));
+    }
+    let expected_checks = [
+        "retrieval",
+        "source_support",
+        "declared_derivation",
+        "task_behavior",
+    ];
+    let separate = object
+        .get("checks_kept_separate")
+        .and_then(Value::as_array)
+        .map(|items| items.iter().filter_map(Value::as_str).collect::<Vec<_>>());
+    if separate != Some(expected_checks.to_vec()) {
+        issues.push(format!("{}: handoff checks drifted", path.display()));
+    }
+    let Some(budgets) = object.get("budgets").and_then(Value::as_object) else {
+        issues.push(format!("{}: handoff budgets missing", path.display()));
+        return Ok(issues);
+    };
+    let temperature = budgets
+        .get("temperature")
+        .and_then(Value::as_f64)
+        .is_some_and(|number| number.to_bits() == 0.4_f64.to_bits());
+    if budgets
+        .get("generated_tokens_per_condition")
+        .and_then(Value::as_u64)
+        != Some(1024)
+        || budgets.get("context_tokens").and_then(Value::as_u64) != Some(8192)
+        || budgets.get("condition_seconds").and_then(Value::as_u64) != Some(120)
+        || budgets.get("wall_seconds").and_then(Value::as_u64) != Some(600)
+        || budgets.get("think") != Some(&Value::Bool(false))
+        || budgets.get("seed").and_then(Value::as_u64) != Some(42)
+        || budgets.get("answer_characters").and_then(Value::as_u64) != Some(400)
+        || budgets.get("prompt_bytes").and_then(Value::as_u64) != Some(8000)
+        || !temperature
+    {
+        issues.push(format!("{}: handoff trial budgets drifted", path.display()));
+    }
+    let prompt = object.get("prompt").and_then(Value::as_object);
+    if prompt.and_then(|item| string_field(item, "representation"))
+        != Some("originals_plus_one_condition")
+        || prompt.and_then(|item| string_field(item, "structured_output"))
+            != Some("ollama_json_schema")
+        || !prompt
+            .and_then(|item| string_field(item, "note"))
+            .is_some_and(|text| text.contains("not a shell"))
+    {
+        issues.push(format!(
+            "{}: handoff prompt contract drifted",
+            path.display()
+        ));
+    }
+    let Some(card_path) = object
+        .get("card_path")
+        .and_then(|value| relative_file(root, value))
+    else {
+        issues.push(format!(
+            "{}: handoff card path is not a repository file",
+            path.display()
+        ));
+        return Ok(issues);
+    };
+    let Some(fixture_path) = object
+        .get("fixture_path")
+        .and_then(|value| relative_file(root, value))
+    else {
+        issues.push(format!(
+            "{}: handoff fixture path is not a repository file",
+            path.display()
+        ));
+        return Ok(issues);
+    };
+    if string_field(object, "card_path") != Some("examples/participants/handoff_comparison_card.md")
+        || string_field(object, "fixture_path")
+            != Some("conformance/fixtures/handoff-notes/comparison.json")
+    {
+        issues.push(format!("{}: handoff paths drifted", path.display()));
+    }
+    let card = lf_normalized(&fs::read(&card_path)?);
+    let fixture = lf_normalized(&fs::read(&fixture_path)?);
+    check_digest(&mut issues, object.get("card"), &card, "handoff card");
+    check_digest(
+        &mut issues,
+        object.get("fixture"),
+        &fixture,
+        "handoff fixture",
+    );
+    for (label, key) in [("handoff card", "card"), ("handoff fixture", "fixture")] {
+        if object
+            .get(key)
+            .and_then(Value::as_object)
+            .and_then(|item| string_field(item, "newline"))
+            != Some("lf")
+        {
+            issues.push(format!(
+                "{}: {label} digest must name the LF form",
+                path.display()
+            ));
+        }
+    }
+    Ok(issues)
+}
+
 fn note<'a>(conditions: &'a Map<String, Value>, key: &str) -> Option<&'a Map<String, Value>> {
     conditions.get(key).and_then(Value::as_object)
 }
@@ -502,6 +647,10 @@ mod tests {
             }
         }
         fs::write(card, bytes).unwrap();
+        let handoff_card = staged
+            .path()
+            .join("examples/participants/handoff_comparison_card.md");
+        fs::write(&handoff_card, crlf(&fs::read(&handoff_card).unwrap())).unwrap();
         let issues = check_research_fixtures(staged.path()).unwrap();
         assert!(issues.is_empty(), "{issues:?}");
     }
@@ -604,6 +753,39 @@ mod tests {
         assert_issue(staged.path(), "absent note must be null");
     }
 
+    #[test]
+    fn handoff_adapter_rejects_a_second_attempt_a_changed_card_and_a_foreign_path() {
+        let staged = stage_repository();
+        let manifest = staged
+            .path()
+            .join("examples/participants/handoff_comparison_trial.json");
+        let mut value = load_value(&manifest);
+        value["attempts_per_condition"] = Value::from(2);
+        store_value(&manifest, &value);
+        assert_issue(staged.path(), "handoff trial identity drifted");
+
+        let staged = stage_repository();
+        let card = staged
+            .path()
+            .join("examples/participants/handoff_comparison_card.md");
+        let mut bytes = fs::read(&card).unwrap();
+        bytes.extend_from_slice(b"\nchanged\n");
+        fs::write(card, bytes).unwrap();
+        assert_issue(
+            staged.path(),
+            "handoff card: LF-normalized digest does not match the file",
+        );
+
+        let staged = stage_repository();
+        let manifest = staged
+            .path()
+            .join("examples/participants/handoff_comparison_trial.json");
+        let mut value = load_value(&manifest);
+        value["card_path"] = Value::from("../handoff_comparison_card.md");
+        store_value(&manifest, &value);
+        assert_issue(staged.path(), "handoff card path is not a repository file");
+    }
+
     fn assert_issue(root: &Path, phrase: &str) {
         let issues = check_research_fixtures(root).unwrap();
         assert!(
@@ -618,6 +800,8 @@ mod tests {
         for relative in [
             "examples/participants/guide_arrival_card.md",
             "examples/participants/guide_arrival_trial.json",
+            "examples/participants/handoff_comparison_card.md",
+            "examples/participants/handoff_comparison_trial.json",
             "docs/LOCAL_ENCOUNTER.md",
             "conformance/fixtures/handoff-notes/comparison.json",
         ] {
@@ -631,6 +815,18 @@ mod tests {
         let issues = check_research_fixtures(staged.path()).unwrap();
         assert!(issues.is_empty(), "{issues:?}");
         staged
+    }
+
+    fn crlf(raw: &[u8]) -> Vec<u8> {
+        let mut bytes = Vec::new();
+        for byte in lf_normalized(raw) {
+            if byte == b'\n' {
+                bytes.extend_from_slice(b"\r\n");
+            } else {
+                bytes.push(byte);
+            }
+        }
+        bytes
     }
 
     fn copy_file(from: &Path, to: &Path) {

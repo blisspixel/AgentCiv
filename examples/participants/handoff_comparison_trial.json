@@ -1,0 +1,41 @@
+{
+  "format": "agentciv-handoff-comparison-trial/0.1",
+  "comparison": "handoff-note/0.1",
+  "status": "frozen_before_inference",
+  "observation": "unobserved",
+  "provider": "installed_local_ollama_loopback_only",
+  "attempts_per_condition": 1,
+  "external_spend_usd": 0,
+  "downloads": false,
+  "condition_order": ["absent", "misleading", "stale", "useful"],
+  "checks_kept_separate": ["retrieval", "source_support", "declared_derivation", "task_behavior"],
+  "budgets": {
+    "generated_tokens_per_condition": 1024,
+    "context_tokens": 8192,
+    "condition_seconds": 120,
+    "wall_seconds": 600,
+    "think": false,
+    "temperature": 0.4,
+    "seed": 42,
+    "answer_characters": 400,
+    "prompt_bytes": 8000
+  },
+  "prompt": {
+    "representation": "originals_plus_one_condition",
+    "structured_output": "ollama_json_schema",
+    "note": "Each condition is one call. A provider failure is not replaced and is not retried. Structured JSON is a harness bound. It is not a shell."
+  },
+  "card_path": "examples/participants/handoff_comparison_card.md",
+  "fixture_path": "conformance/fixtures/handoff-notes/comparison.json",
+  "card": {
+    "canonical_bytes": 611,
+    "sha256": "6c415e78050110187658ef7b9f6903519b01e83dd356d4785ec7e1e74b29a22a",
+    "newline": "lf"
+  },
+  "fixture": {
+    "canonical_bytes": 1516,
+    "sha256": "4dd9c6a78bff632f4e78e4f73873ea4fc7295e002336cf278c0a4cd5fa499ae4",
+    "newline": "lf"
+  },
+  "copying_permission": "not_granted"
+}

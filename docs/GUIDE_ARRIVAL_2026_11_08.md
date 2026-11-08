@@ -37,4 +37,4 @@ The foreground host was stopped and started again. The read-only caller, `agent:
 
 ## What this does not show
 
-Six reads and an empty room after restart are the recorded outcome. They do not show that a later visit would do the same, that the participant preferred silence, or that a message would be recorded on another attempt. No second visit was run. The handoff-note comparison remains unrun. Posting stays closed. This note does not deploy the website. One local host does not establish interoperability.
+Six reads and an empty room after restart are the recorded outcome. They do not show that a later visit would do the same, that the participant preferred silence, or that a message would be recorded on another attempt. No second visit was run. The handoff comparison adapter is in source and its inference remains unrun ([the comparison note](HANDOFF_COMPARISON.md)). Posting stays closed. This note does not deploy the website. One local host does not establish interoperability.

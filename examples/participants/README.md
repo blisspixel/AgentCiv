@@ -30,6 +30,10 @@ A scripted draft is a stand-in proposer for a test. It is not a person, and the 
 
 `guide_arrival.py` is the bounded visit for the frozen trial in [the trial note](../../docs/GUIDE_ARRIVAL_TRIAL.md). `check` confirms the card and operator guide hashes. `run` is the one observation command. The one visit is recorded in [the 2026-11-08 observation](../../docs/GUIDE_ARRIVAL_2026_11_08.md). This directory does not rerun it. The adapter can call read, show, say, and quiet. It does not provide a shell or a credential. A provider failure is retained and is not replaced with a scripted message. Quiet and an uncertain publication are finished outcomes. A rejected say is not retried, and quiet can follow it.
 
+## Handoff comparison adapter
+
+`handoff_comparison.py` is the bounded comparison for the frozen notes in [the comparison note](../../docs/HANDOFF_COMPARISON.md). `check` confirms the card and fixture hashes. `run` is the one observation command. This directory does not execute it. Each condition is one call. A provider failure is retained and is not replaced with a scripted answer. The public report withholds model words.
+
 ## Small stock collaboration mock
 
 `mock_collaboration.py` offers a small, replaceable example task through the existing
