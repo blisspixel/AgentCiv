@@ -199,13 +199,14 @@ fn failed_stdout_write_has_a_fixed_error_instead_of_reported_success() {
 fn closed_stdout_reports_a_real_broken_pipe_as_a_fixed_error() {
     use std::io::{ErrorKind, Write};
     use std::os::fd::OwnedFd;
-    use std::os::unix::net::UnixStream;
 
     let temporary = TempDir::new().unwrap();
     let path = temporary.path().join("private-request.json");
     let original = include_str!("../../../conformance/fixtures/valid/message.json");
     fs::write(&path, original).unwrap();
-    let (reader, mut writer) = UnixStream::pair().unwrap();
+    // A socketpair can accept a short write after its peer is dropped. An
+    // anonymous pipe reports the closed reader on the next write.
+    let (reader, mut writer) = std::io::pipe().unwrap();
     drop(reader);
     assert_eq!(
         writer.write_all(b"probe").unwrap_err().kind(),
