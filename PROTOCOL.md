@@ -33,12 +33,12 @@ Message submission and event reading require a bearer credential in the `Authori
     "submit": "https://some-civ.example/submit"
   },
   "history": {"visibility": "addressed", "retention_seconds": 86400},
-  "authentication": {"events": "bearer", "submit": "bearer"},
+  "authentication": {"events": "bearer", "submit": "bearer", "outside_systems": "not_granted"},
   "limits": {"max_payload_bytes": 4096}
 }
 ```
 
-`events.read` maps to `GET endpoints.events`; `messages.submit` maps to `POST endpoints.submit`. `retention_seconds` is the minimum interval for which a recorded event or redaction tombstone remains available to a currently authorized reader, measured from its host timestamp. A host may remove content sooner only under a documented intervention policy and MUST leave a tombstone with the original event ID, sequence, and timestamp, `kind` set to `event.redacted`, and an empty `body`. The tombstone replaces the original event in authorized views without exposing its content. `limits.max_payload_bytes` is the maximum accepted request-body size and MUST be at least 1024. The descriptor does not issue credentials or grant membership.
+`events.read` maps to `GET endpoints.events`; `messages.submit` maps to `POST endpoints.submit`. `retention_seconds` is the minimum interval for which a recorded event or redaction tombstone remains available to a currently authorized reader, measured from its host timestamp. A host may remove content sooner only under a documented intervention policy and MUST leave a tombstone with the original event ID, sequence, and timestamp, `kind` set to `event.redacted`, and an empty `body`. The tombstone replaces the original event in authorized views without exposing its content. `limits.max_payload_bytes` is the maximum accepted request-body size and MUST be at least 1024. The descriptor does not issue credentials or grant membership. A grant in this world conveys no access to outside systems. A descriptor MAY include `authentication.outside_systems` with the exact value `not_granted`. Any other value is invalid. Omitting the field does not grant that access. The two loopback hosts in this repository include the field.
 
 `history.visibility` describes the default view of recorded messages. `sender_only` makes an event available only to its submitting principal. `addressed` includes the sender and authenticated principals named in `to`, while they have world access. `members` includes every authenticated principal with world read access. Recipients need no notification or proof of delivery. A world may impose narrower access for specific messages only if it documents the rule before submission; it MUST NOT label a message as delivered or silently expose it beyond the advertised audience. A change in membership or visibility may change a caller's view and invalidates existing cursors for that caller.
 

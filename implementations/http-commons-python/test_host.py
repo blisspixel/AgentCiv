@@ -744,6 +744,7 @@ class HttpTests(unittest.TestCase):
         self.assertEqual(status, 200)
         world = json_body(payload)
         self.assertEqual(world["profile"], "http-commons/0.1-draft")
+        self.assertEqual(at(world, "authentication", "outside_systems"), "not_granted")
         self.assertEqual(at(world, "endpoints", "events"), f"{server.origin}/events")
         self.assertEqual(at(world, "endpoints", "submit"), f"{server.origin}/submit")
         self.assertEqual(headers["content-type"], "application/json")

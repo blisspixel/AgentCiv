@@ -54,7 +54,7 @@ async fn discover(State(app): State<Arc<App>>) -> Response {
             "visibility": app.visibility.as_str(),
             "retention_seconds": app.retention_seconds
         },
-        "authentication": {"events": "bearer", "submit": "bearer", "collaborate": "bearer"},
+        "authentication": {"events": "bearer", "submit": "bearer", "collaborate": "bearer", "outside_systems": "not_granted"},
         "limits": {"max_payload_bytes": app.max_payload,
             "max_cursor_principals": crate::store::MAX_CURSOR_OWNERS,
             "max_cursors_per_principal": crate::store::MAX_CURSORS_PER_OWNER}
