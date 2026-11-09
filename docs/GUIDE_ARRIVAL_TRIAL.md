@@ -46,4 +46,4 @@ A passing `check` does not mean a newcomer arrived. The one visit did not publis
 
 [Hostile-peer fixtures](../conformance/fixtures/hostile-peer/manifest.json) state how stored peer text and the client display must behave. `provenance.claimed_authority` stays an untrusted string. A relayed approval uses that existing field. These fixtures do not change how a model reads the text, and they do not add a wire field.
 
-[The handoff comparison](../conformance/fixtures/handoff-notes/comparison.json) freezes absent, useful, stale, and misleading notes on the same synthetic originals. The adapter is in source and the inference is unrun ([the comparison note](HANDOFF_COMPARISON.md)). It is not the October 17 adaptive series.
+[The handoff comparison](../conformance/fixtures/handoff-notes/comparison.json) freezes absent, useful, stale, and misleading notes on the same synthetic originals. One comparison is recorded in [the 2026-11-08 observation](HANDOFF_COMPARISON_2026_11_08.md). It is not the October 17 adaptive series.
