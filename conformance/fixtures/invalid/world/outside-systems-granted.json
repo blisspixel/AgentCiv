@@ -1,0 +1,14 @@
+{
+  "protocol_version": "0.1-draft",
+  "profile": "http-commons/0.1-draft",
+  "type": "world",
+  "id": "civ:earth-17",
+  "capabilities": ["events.read", "messages.submit"],
+  "endpoints": {
+    "events": "https://some-civ.example/events",
+    "submit": "https://some-civ.example/submit"
+  },
+  "history": {"visibility": "addressed", "retention_seconds": 86400},
+  "authentication": {"events": "bearer", "submit": "bearer", "outside_systems": "granted"},
+  "limits": {"max_payload_bytes": 4096}
+}

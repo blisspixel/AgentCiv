@@ -558,6 +558,16 @@ async fn public_http_covers_recording_refusal_and_restart() {
     let base = discovery
         .trim_end_matches("/.well-known/agentciv")
         .to_owned();
+    let advertised = tokio::task::spawn_blocking({
+        let discovery = discovery.clone();
+        move || body_json(client().get(discovery).send().expect("discovery"))
+    })
+    .await
+    .expect("discovery");
+    assert_eq!(
+        advertised["authentication"]["outside_systems"],
+        "not_granted"
+    );
     let report = tokio::task::spawn_blocking({
         let discovery = discovery.clone();
         move || {

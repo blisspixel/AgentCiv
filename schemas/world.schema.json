@@ -42,7 +42,11 @@
       "required": ["events", "submit"],
       "properties": {
         "events": {"const": "bearer"},
-        "submit": {"const": "bearer"}
+        "submit": {"const": "bearer"},
+        "outside_systems": {
+          "const": "not_granted",
+          "description": "Optional. A grant in this world conveys no access to outside systems. The only accepted value is not_granted, and omitting the field does not grant that access."
+        }
       },
       "additionalProperties": true
     },

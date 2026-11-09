@@ -323,6 +323,29 @@ mod tests {
     }
 
     #[test]
+    fn omitting_outside_systems_stays_valid_and_other_values_fail() {
+        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+        let path = root.join("schemas/world.schema.json");
+        let registry = schema_registry(std::slice::from_ref(&path)).unwrap();
+        let schema = read_json(&path).unwrap();
+        let required = schema["properties"]["authentication"]["required"]
+            .as_array()
+            .unwrap();
+        assert!(required.iter().all(|name| name != "outside_systems"));
+        let mut record = read_json(&root.join("conformance/fixtures/valid/world.json")).unwrap();
+        validate_with_registry(&schema, &record, &registry).unwrap();
+        record["authentication"]
+            .as_object_mut()
+            .unwrap()
+            .remove("outside_systems");
+        validate_with_registry(&schema, &record, &registry).unwrap();
+        record["authentication"]["outside_systems"] = Value::from("granted");
+        assert!(validate_with_registry(&schema, &record, &registry).is_err());
+        record["authentication"]["outside_systems"] = Value::from("not_granted");
+        validate_with_registry(&schema, &record, &registry).unwrap();
+    }
+
+    #[test]
     fn archive_bundle_does_not_expand_http_submission_types() {
         let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
         let names = [

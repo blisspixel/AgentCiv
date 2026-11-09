@@ -1262,6 +1262,7 @@ class CommonsServer(ThreadingHTTPServer):
                 "events": "bearer",
                 "submit": "bearer",
                 "collaborate": "bearer",
+                "outside_systems": "not_granted",
             },
             "limits": {"max_payload_bytes": self.config.max_payload_bytes,
                        "max_cursor_principals": MAX_CURSOR_OWNERS,
