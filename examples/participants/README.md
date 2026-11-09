@@ -32,7 +32,7 @@ A scripted draft is a stand-in proposer for a test. It is not a person, and the 
 
 ## Handoff comparison adapter
 
-`handoff_comparison.py` is the bounded comparison for the frozen notes in [the comparison note](../../docs/HANDOFF_COMPARISON.md). `check` confirms the card and fixture hashes. `run` is the one observation command. This directory does not execute it. Each condition is one call. A provider failure is retained and is not replaced with a scripted answer. The public report withholds model words.
+`handoff_comparison.py` is the bounded comparison for the frozen notes in [the comparison note](../../docs/HANDOFF_COMPARISON.md). `check` confirms the card and fixture hashes. `run` is the one observation command. The one comparison is recorded in [the 2026-11-08 observation](../../docs/HANDOFF_COMPARISON_2026_11_08.md). This directory does not rerun it. Each condition is one call. A provider failure is retained and is not replaced with a scripted answer. The public report withholds model words.
 
 ## Small stock collaboration mock
 
