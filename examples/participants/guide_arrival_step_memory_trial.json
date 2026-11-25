@@ -62,8 +62,8 @@
     "sha256": "2bb3e2c16c9b90b59fe5fd52f048c176b3a40cc851d6020d150f846b0b2fd072"
   },
   "guide": {
-    "canonical_bytes": 26203,
-    "sha256": "9b9c2d1602671bacfa848fbe398be7c227693cd712b1c8da2575196f498bd231",
+    "canonical_bytes": 29396,
+    "sha256": "94c4efd66436dc6896b1bcc9f49fcd80b5be624fb82ffa292cc9b7c18333d73a",
     "newline": "lf"
   },
   "copying_permission": "not_granted"

@@ -6,6 +6,7 @@ No scheduling, participant generation, model calls, downloads, or public service
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import secrets
@@ -30,6 +31,17 @@ PAYLOAD_BYTES = 16384
 CONFIG_BYTES = 65536
 CLIENT_FORMAT = "agentciv-local-encounter-client/0.1-example"
 CACHE_PERMISSION = "operator_authorized_local_view_only_no_public_export"
+DEFAULT_RETENTION_SECONDS = 86400
+MAX_RETENTION_SECONDS = 31536000
+DEFAULT_SERVE_SECONDS = 7200
+MAX_SERVE_SECONDS = 604800
+SEED_CHOICES = ("reading-table",)
+SEED_PRINCIPAL = "maintainer-run:reading-table-seed"
+READING_TABLE_FIXTURE = ROOT / "examples" / "participants" / "fixtures" / "reading-table.json"
+SEED_DISCLOSURE_NOTICE = (
+    "Disclosed operator-seeded synthetic fixture content attributed to maintainer-run; "
+    "not a spontaneously formed community."
+)
 
 
 def _json(data: bytes) -> JsonObject:
@@ -71,13 +83,275 @@ def _provision_sidecars(state: Path) -> None:
             private.write_new(path, b"")
 
 
+def _ephemeral_port() -> int:
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as listener:
+        listener.bind(("127.0.0.1", 0))
+        return int(listener.getsockname()[1])
+
+
+def _host_argv(config_path: Path, host: str, host_binary: Path | None) -> list[str]:
+    if host == "rust":
+        found = host_binary if host_binary is not None else private.find_tool("agentciv-host")
+        binary = None if found is None else str(found)
+        if binary is None:
+            raise private.EncounterError("host_binary_unavailable")
+        return [binary, "--config", str(config_path)]
+    return [sys.executable, str(ROOT / "implementations" / "http-commons-python" / "host.py"),
+            "--config", str(config_path)]
+
+
+def _load_reading_table_fixture() -> list[tuple[str, JsonObject]]:
+    try:
+        raw = READING_TABLE_FIXTURE.read_bytes()
+    except OSError:
+        raise private.EncounterError("seed_fixture_unavailable") from None
+    if len(raw) > 1024 * 1024:
+        raise private.EncounterError("seed_fixture_invalid")
+    fixture = _json(raw)
+    if (fixture.get("format") != "agentciv-reading-table/0.1-example"
+        or fixture.get("copying_condition") != "operator_authorized_synthetic_fixture_export_only"):
+        raise private.EncounterError("seed_fixture_invalid")
+    rows = fixture.get("records")
+    if not isinstance(rows, list) or len(rows) != 7:
+        raise private.EncounterError("seed_fixture_invalid")
+    loaded: list[tuple[str, JsonObject]] = []
+    for entry in rows:
+        if not isinstance(entry, dict):
+            raise private.EncounterError("seed_fixture_invalid")
+        original = entry.get("original_utf8")
+        digest = entry.get("sha256")
+        if (not isinstance(original, str) or not isinstance(digest, str)
+            or hashlib.sha256(original.encode("utf-8")).hexdigest() != digest):
+            raise private.EncounterError("seed_fixture_invalid")
+        loaded.append((digest, _json(original.encode("utf-8"))))
+    return loaded
+
+
+def _http_json(method: str, url: str, token: str | None = None, body: bytes | None = None) -> tuple[int, JsonObject]:
+    import urllib.error
+    import urllib.request
+
+    headers: dict[str, str] = {}
+    if token is not None:
+        headers["Authorization"] = f"Bearer {token}"
+    if body is not None:
+        headers["Content-Type"] = "application/json"
+    request = urllib.request.Request(url, data=body, headers=headers, method=method)
+    try:
+        with urllib.request.urlopen(request, timeout=15) as response:
+            status = int(response.status)
+            payload = response.read(1024 * 1024)
+    except urllib.error.HTTPError as error:
+        status = int(error.code)
+        payload = error.read(1024 * 1024)
+    except (OSError, ValueError):
+        raise private.EncounterError("seed_submission_failed") from None
+    return status, _json(payload)
+
+
+def _fetch_event_sha(events_url: str, token: str, event_id: str) -> str:
+    status, page = _http_json("GET", events_url, token=token)
+    if status != 200:
+        raise private.EncounterError("seed_submission_failed")
+    events = page.get("events")
+    if not isinstance(events, list):
+        raise private.EncounterError("seed_submission_failed")
+    for item in events:
+        if isinstance(item, dict) and item.get("id") == event_id:
+            serialized = json.dumps(item, ensure_ascii=False, separators=(",", ":"), allow_nan=False)
+            return hashlib.sha256(serialized.encode("utf-8")).hexdigest()
+    raise private.EncounterError("seed_submission_failed")
+
+
+def _seed_disclosure(source_event: JsonObject, source_sha256: str) -> JsonObject:
+    return {
+        "seeded": True,
+        "seed_name": "reading-table",
+        "source_fixture": "examples/participants/fixtures/reading-table.json",
+        "source_event_id": source_event.get("id"),
+        "source_actor": source_event.get("actor"),
+        "source_sha256": source_sha256,
+        "operator_attribution": "maintainer-run",
+        "notice": SEED_DISCLOSURE_NOTICE,
+    }
+
+
+def _seed_reading_table(state: Path, world: str, principals: list[str], retention_seconds: int,
+                        host: str, host_binary: Path | None) -> int:
+    fixture_events = _load_reading_table_fixture()
+    seed_port = _ephemeral_port()
+    seed_origin = f"http://127.0.0.1:{seed_port}"
+    seed_token = secrets.token_urlsafe(32)
+    seed_config_path = state / ".seed-host.json"
+    private.write_new(seed_config_path, _bytes({
+        "world_id": world,
+        "title": "Manual local encounter",
+        "database_path": str(state / "world.sqlite"),
+        "listen": f"127.0.0.1:{seed_port}",
+        "visibility": "addressed",
+        "retention_seconds": retention_seconds,
+        "max_payload_bytes": PAYLOAD_BYTES,
+        "credentials": [{"principal": SEED_PRINCIPAL, "token": seed_token, "read": True, "write": True}],
+    }))
+    argv = _host_argv(seed_config_path, host, host_binary)
+    owned = _start(argv, seed_origin)
+    try:
+        _wait_ready(owned)
+        status, descriptor = _http_json("GET", f"{seed_origin}/.well-known/agentciv")
+        if status != 200 or descriptor.get("id") != world:
+            raise private.EncounterError("seed_submission_failed")
+        endpoints = descriptor.get("endpoints")
+        if not isinstance(endpoints, dict):
+            raise private.EncounterError("seed_submission_failed")
+        submit_url = str(endpoints["submit"])
+        collaborate_url = str(endpoints["collaborate"])
+        events_url = str(endpoints["events"])
+
+        recorded: dict[str, tuple[str, str, int, str]] = {}  # source_event_id -> (event_id, artifact_id, revision, sha256)
+        count = 0
+        for index, (source_sha, source_event) in enumerate(fixture_events, 1):
+            source_id = str(source_event["id"])
+            kind = str(source_event["kind"])
+            raw_body = source_event.get("body")
+            if not isinstance(raw_body, dict):
+                raise private.EncounterError("seed_fixture_invalid")
+            disclosure = _seed_disclosure(source_event, source_sha)
+
+            if kind == "artifact.recorded":
+                inner = raw_body.get("artifact_revision")
+                if not isinstance(inner, dict) or not isinstance(inner.get("body"), dict):
+                    raise private.EncounterError("seed_fixture_invalid")
+                artifact_id = str(inner["artifact_id"])
+                if source_id == "event:table-5":
+                    artifact_id = "artifact:reading-table-open-questions"
+                body_copy: JsonObject = json.loads(json.dumps(inner["body"]))
+                body_copy["seed_disclosure"] = disclosure
+
+                if source_id == "event:table-2":
+                    src_eid, src_aid, src_rev, src_sha = recorded["event:table-1"]
+                    offer = body_copy.get("activity_offer")
+                    if isinstance(offer, dict):
+                        offer["source_refs"] = [{"event_id": src_eid, "from": SEED_PRINCIPAL, "artifact_id": src_aid, "revision": src_rev}]
+                    practice = body_copy.get("reading_table_practice")
+                    if isinstance(practice, dict):
+                        selector: JsonObject = {"event_id": src_eid, "from": SEED_PRINCIPAL, "artifact_id": src_aid, "revision": src_rev, "original_sha256": src_sha}
+                        practice["source"] = selector
+                        practice["basis"] = selector
+                elif source_id == "event:table-5":
+                    src_eid, src_aid, src_rev, src_sha = recorded["event:table-1"]
+                    pas_eid, pas_aid, pas_rev, pas_sha = recorded["event:table-2"]
+                    offer = body_copy.get("activity_offer")
+                    if isinstance(offer, dict):
+                        offer["source_refs"] = [
+                            {"event_id": src_eid, "from": SEED_PRINCIPAL, "artifact_id": src_aid, "revision": src_rev},
+                            {"event_id": pas_eid, "from": SEED_PRINCIPAL, "artifact_id": pas_aid, "revision": pas_rev},
+                        ]
+                    practice = body_copy.get("reading_table_practice")
+                    if isinstance(practice, dict):
+                        practice["source"] = {"event_id": src_eid, "from": SEED_PRINCIPAL, "artifact_id": src_aid, "revision": src_rev, "original_sha256": src_sha}
+                        practice["basis"] = {"event_id": pas_eid, "from": SEED_PRINCIPAL, "artifact_id": pas_aid, "revision": pas_rev, "original_sha256": pas_sha}
+
+                submission: JsonObject = {
+                    "protocol_version": "0.1-draft",
+                    "type": "artifact_revision",
+                    "id": f"seed:reading-table:{index}",
+                    "world": world,
+                    "from": SEED_PRINCIPAL,
+                    "to": principals,
+                    "artifact_id": artifact_id,
+                    "media_type": str(inner["media_type"]),
+                    "body": body_copy,
+                }
+                if source_id == "event:table-2":
+                    _, src_aid, src_rev, _ = recorded["event:table-1"]
+                    submission["derived_from"] = {"from": SEED_PRINCIPAL, "artifact_id": src_aid, "revision": src_rev}
+                elif source_id == "event:table-5":
+                    _, pas_aid, pas_rev, _ = recorded["event:table-2"]
+                    submission["derived_from"] = {"from": SEED_PRINCIPAL, "artifact_id": pas_aid, "revision": pas_rev}
+                if "continuity_note" in inner:
+                    submission["continuity_note"] = inner["continuity_note"]
+                post_status, receipt = _http_json("POST", collaborate_url, token=seed_token, body=_bytes(submission))
+                if post_status != 200 or receipt.get("status") != "recorded":
+                    raise private.EncounterError("seed_submission_failed")
+                event_id = str(receipt["event_id"])
+                revision = int(str(receipt["revision"]))
+                sha = _fetch_event_sha(events_url, seed_token, event_id)
+                recorded[source_id] = (event_id, artifact_id, revision, sha)
+            elif kind in ("objection.recorded", "decline.recorded"):
+                key = "objection" if kind == "objection.recorded" else "decline"
+                inner = raw_body.get(key)
+                if not isinstance(inner, dict) or not isinstance(inner.get("body"), dict):
+                    raise private.EncounterError("seed_fixture_invalid")
+                _, pas_aid, pas_rev, _ = recorded["event:table-2"]
+                body_copy = json.loads(json.dumps(inner["body"]))
+                body_copy["seed_disclosure"] = disclosure
+                submission = {
+                    "protocol_version": "0.1-draft",
+                    "type": key,
+                    "id": f"seed:reading-table:{index}",
+                    "world": world,
+                    "from": SEED_PRINCIPAL,
+                    "to": principals,
+                    "target_from": SEED_PRINCIPAL,
+                    "artifact_id": pas_aid,
+                    "revision": pas_rev,
+                    "body": body_copy,
+                }
+                post_status, receipt = _http_json("POST", collaborate_url, token=seed_token, body=_bytes(submission))
+                if post_status != 200 or receipt.get("status") != "recorded":
+                    raise private.EncounterError("seed_submission_failed")
+            elif kind == "message.recorded":
+                inner = raw_body.get("message")
+                if not isinstance(inner, dict) or not isinstance(inner.get("body"), dict):
+                    raise private.EncounterError("seed_fixture_invalid")
+                body_copy = json.loads(json.dumps(inner["body"]))
+                body_copy["seed_disclosure"] = disclosure
+                adoption = body_copy.get("practice_adoption")
+                if isinstance(adoption, dict):
+                    target_source = "event:table-2" if source_id == "event:table-6" else "event:table-5"
+                    t_eid, t_aid, t_rev, t_sha = recorded[target_source]
+                    adoption["practice"] = {
+                        "event_id": t_eid,
+                        "from": SEED_PRINCIPAL,
+                        "artifact_id": t_aid,
+                        "revision": t_rev,
+                        "original_sha256": t_sha,
+                    }
+                submission = {
+                    "protocol_version": "0.1-draft",
+                    "type": "message",
+                    "id": f"seed:reading-table:{index}",
+                    "world": world,
+                    "from": SEED_PRINCIPAL,
+                    "to": principals,
+                    "body": body_copy,
+                }
+                post_status, receipt = _http_json("POST", submit_url, token=seed_token, body=_bytes(submission))
+                if post_status != 200 or receipt.get("status") != "recorded":
+                    raise private.EncounterError("seed_submission_failed")
+            else:
+                raise private.EncounterError("seed_fixture_invalid")
+            count += 1
+        return count
+    finally:
+        _stop_owned(owned)
+        if seed_config_path.exists():
+            private.check_file(seed_config_path)
+            seed_config_path.unlink()
+
+
 def initialize(state: Path, world: str, writers: list[str], readers: list[str], port: int = 8787,
-               retention_seconds: int = 86400) -> JsonObject:
+               retention_seconds: int = DEFAULT_RETENTION_SECONDS, *, seed: str | None = None,
+               host: str = "rust", host_binary: Path | None = None) -> JsonObject:
     principals = writers + readers
     if (not _identifier(world) or not writers or len(principals) > 16
         or any(not _identifier(item) for item in principals) or len(set(principals)) != len(principals)
         or type(port) is not int or not 1 <= port <= 65535
-        or type(retention_seconds) is not int or not 1 <= retention_seconds <= 31536000):
+        or type(retention_seconds) is not int or not 1 <= retention_seconds <= MAX_RETENTION_SECONDS
+        or (seed is not None and seed not in SEED_CHOICES)
+        or host not in ("rust", "python")
+        or (host == "python" and host_binary is not None)
+        or (seed is not None and SEED_PRINCIPAL in principals)):
         raise private.EncounterError("configuration_invalid")
     private.create_directory(state)
     # Elevated Windows processes can otherwise create SQLite's main file with
@@ -85,6 +359,9 @@ def initialize(state: Path, world: str, writers: list[str], readers: list[str], 
     # operator SID before either host writes it; SQLite initializes it in place.
     private.write_new(state / "world.sqlite", b"")
     _provision_sidecars(state)
+    seeded_events: int | None = None
+    if seed == "reading-table":
+        seeded_events = _seed_reading_table(state, world, principals, retention_seconds, host, host_binary)
     origin = f"http://127.0.0.1:{port}"
     credentials: list[JsonObject] = []
     clients: list[JsonObject] = []
@@ -104,9 +381,19 @@ def initialize(state: Path, world: str, writers: list[str], readers: list[str], 
         "database_path": str(state / "world.sqlite"), "listen": f"127.0.0.1:{port}",
         "visibility": "addressed", "retention_seconds": retention_seconds, "max_payload_bytes": PAYLOAD_BYTES,
         "credentials": credentials}))
-    return {"outcome": "initialized", "world": world, "origin": origin, "clients": clients,
+    result: JsonObject = {"outcome": "initialized", "world": world, "origin": origin, "clients": clients,
         "visibility": "addressed", "retention_seconds": retention_seconds, "payload_bytes": PAYLOAD_BYTES,
         "copying_permission": "not_granted", "external_spend_usd": 0}
+    if seed is not None and seeded_events is not None:
+        result.update({
+            "seed": seed,
+            "seed_principal": SEED_PRINCIPAL,
+            "seed_fixture": "examples/participants/fixtures/reading-table.json",
+            "seeded_events": seeded_events,
+            "seed_disclosure": SEED_DISCLOSURE_NOTICE,
+            "seed_host": host,
+        })
+    return result
 
 
 def _configuration(state: Path) -> JsonObject:
@@ -339,8 +626,8 @@ def _wait_ready(host: OwnedHost) -> None:
 
 
 def serve(state: Path, host: str = "rust", host_binary: Path | None = None, *,
-          seconds: int = 3600, max_storage_bytes: int = 67108864) -> JsonObject:
-    if (host not in ("rust", "python") or type(seconds) is not int or not 1 <= seconds <= 86400
+          seconds: int = DEFAULT_SERVE_SECONDS, max_storage_bytes: int = 67108864) -> JsonObject:
+    if (host not in ("rust", "python") or type(seconds) is not int or not 1 <= seconds <= MAX_SERVE_SECONDS
         or type(max_storage_bytes) is not int or not 1048576 <= max_storage_bytes <= 1073741824
         or (host == "python" and host_binary is not None)):
         raise private.EncounterError("configuration_invalid")
@@ -351,15 +638,7 @@ def serve(state: Path, host: str = "rust", host_binary: Path | None = None, *,
         # Validate all retained files first. Never repair ownership or replace a
         # retained sidecar: WAL content can include acknowledged transactions.
         _provision_sidecars(state)
-        if host == "rust":
-            found = host_binary if host_binary is not None else private.find_tool("agentciv-host")
-            binary = None if found is None else str(found)
-            if binary is None:
-                raise private.EncounterError("host_binary_unavailable")
-            argv = [binary, "--config", str(state / "host.json")]
-        else:
-            argv = [sys.executable, str(ROOT / "implementations" / "http-commons-python" / "host.py"),
-                    "--config", str(state / "host.json")]
+        argv = _host_argv(state / "host.json", host, host_binary)
         origin = "http://" + str(config["listen"])
         if not _port_available(str(config["listen"])):
             raise private.EncounterError("port_in_use")
@@ -390,22 +669,56 @@ def serve(state: Path, host: str = "rust", host_binary: Path | None = None, *,
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     commands = parser.add_subparsers(dest="command", required=True)
-    init = commands.add_parser("init")
+    init = commands.add_parser("init", help="initialize a private local room (empty by default; opt-in --seed reading-table)")
     init.add_argument("--state", required=True, type=Path)
     init.add_argument("--world", required=True)
     init.add_argument("--writer", required=True, action="append")
     init.add_argument("--reader", action="append", default=[])
     init.add_argument("--port", type=int, default=8787)
-    init.add_argument("--retention-seconds", type=int, default=86400)
+    init.add_argument(
+        "--retention-seconds",
+        type=int,
+        default=DEFAULT_RETENTION_SECONDS,
+        help=(
+            "room retention knob: minimum advertised history and retry-deduplication window in seconds "
+            "(1 to 31536000, default 86400; separate from serve --seconds and per-visit trial budgets; "
+            "use e.g. 2592000 for 30-day intermittent return)"
+        ),
+    )
+    init.add_argument(
+        "--seed",
+        choices=SEED_CHOICES,
+        help="opt-in disclosed seed from a frozen fixture (reading-table); omit for the empty-room control",
+    )
+    init.add_argument(
+        "--host",
+        choices=("rust", "python"),
+        default="rust",
+        help="host implementation used when seeding with --seed (default: rust)",
+    )
+    init.add_argument("--host-binary", type=Path, help="explicit agentciv-host binary used when seeding with --seed")
     member = commands.add_parser("member", help="add a member while the room is stopped")
     member.add_argument("--state", required=True, type=Path)
     member.add_argument("--principal", required=True)
     member.add_argument("--read-only", action="store_true")
-    hosting = commands.add_parser("serve")
+    hosting = commands.add_parser(
+        "serve",
+        help="run a bounded foreground host session; chain repeated sessions on the same state for longer runs",
+    )
     hosting.add_argument("--state", required=True, type=Path)
     hosting.add_argument("--host", choices=("rust", "python"), default="rust")
     hosting.add_argument("--host-binary", type=Path)
-    hosting.add_argument("--seconds", type=int, default=3600)
+    hosting.add_argument(
+        "--seconds",
+        type=int,
+        default=DEFAULT_SERVE_SECONDS,
+        help=(
+            "host serve-window knob: bounded foreground session duration in seconds "
+            "(1 to 604800 [7 days], default 7200 [2 hours]; separate from init --retention-seconds "
+            "and per-visit trial budgets in trial manifests; chain bounded sessions on the same "
+            "room state for longer runs, never an always-on host)"
+        ),
+    )
     hosting.add_argument("--max-storage-bytes", type=int, default=67108864)
     reading = commands.add_parser("read")
     reading.add_argument("--config", required=True, type=Path)
@@ -420,6 +733,11 @@ def main() -> int:
     showing.add_argument("view", type=Path)
     showing.add_argument("--config", required=True, type=Path)
     showing.add_argument("--event-id", help="inspect one exact saved event, including its quoted original JSON")
+    showing.add_argument(
+        "--since",
+        type=Path,
+        help="earlier saved view from this caller to compute a compact client-side read-only digest",
+    )
     offers = commands.add_parser("offers", help="page activities in one complete saved observation offline")
     offers.add_argument("view", type=Path)
     offers.add_argument("--config", required=True, type=Path)
@@ -457,7 +775,17 @@ def main() -> int:
     args = parser.parse_args()
     try:
         if args.command == "init":
-            result = initialize(args.state, args.world, args.writer, args.reader, args.port, args.retention_seconds)
+            result = initialize(
+                args.state,
+                args.world,
+                args.writer,
+                args.reader,
+                args.port,
+                args.retention_seconds,
+                seed=args.seed,
+                host=args.host,
+                host_binary=args.host_binary,
+            )
         elif args.command == "member":
             result = add_member(args.state, args.principal, write=not args.read_only)
         elif args.command == "serve":
@@ -466,7 +794,10 @@ def main() -> int:
         else:
             import encounter_client
             if args.command == "show":
-                print(encounter_client.show(args.config, args.view, event_id=args.event_id))
+                if args.since is not None:
+                    print(encounter_client.show(args.config, args.view, event_id=args.event_id, since=args.since))
+                else:
+                    print(encounter_client.show(args.config, args.view, event_id=args.event_id))
                 return 0
             elif args.command == "changes":
                 import encounter_return

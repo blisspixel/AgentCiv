@@ -377,55 +377,241 @@ def sync(config: Path, previous: Path | None = None, save: Path | None = None, *
         "copying_permission": "not_granted"}
 
 
-def show(config: Path, path: Path, *, event_id: str | None = None) -> str:
+def _quote(value: object) -> str:
+    if isinstance(value, Decimal):
+        return str(value)
+    if isinstance(value, dict):
+        return "{" + ", ".join(f"{_quote(key)}: {_quote(item)}" for key, item in value.items()) + "}"
+    if isinstance(value, list):
+        return "[" + ", ".join(_quote(item) for item in value) + "]"
+    return json.dumps(value, ensure_ascii=True)
+
+
+def _parse_retrieval_time(value: object) -> datetime | None:
+    if not isinstance(value, str) or len(value) > 64:
+        return None
+    try:
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    return parsed if parsed.utcoffset() is not None else None
+
+
+def _parse_view_events(view: JsonObject, settings: JsonObject) -> tuple[list[tuple[str, str, JsonObject]], dict[str, tuple[str, JsonObject]]]:
+    ordered: list[tuple[str, str, JsonObject]] = []
+    by_id: dict[str, tuple[str, JsonObject]] = {}
+    for original in _originals(view):
+        event = _decode(original.encode("utf-8"))
+        identifier = event.get("id")
+        if not isinstance(identifier, str) or identifier in by_id:
+            raise private.EncounterError("invalid_private_view")
+        if _contains_secret(event, str(settings["token"])):
+            raise private.EncounterError("credential_reflected")
+        ordered.append((identifier, original, event))
+        by_id[identifier] = (original, event)
+    return ordered, by_id
+
+
+def _digest_detail_lines(event: JsonObject) -> list[str]:
+    details: list[str] = []
+    body = _object(event.get("body"))
+    for kind, value in body.items():
+        record = _object(value)
+        if kind == "artifact_revision":
+            details.append(f"  artifact: {_quote(record.get('artifact_id'))} rev {_quote(record.get('revision'))}")
+            if "derived_from" in record:
+                details.append(f"  derived_from: {_quote(record['derived_from'])}")
+        elif kind in ("objection", "decline"):
+            details.append(
+                f"  target: {_quote(record.get('target_from'))} {_quote(record.get('artifact_id'))} rev {_quote(record.get('revision'))}"
+            )
+        if "body" in record:
+            content = _object(record["body"])
+            if "text" in content:
+                details.append(f"  text: {_quote(content['text'])}")
+            offer = content.get("activity_offer")
+            if isinstance(offer, dict) and "title" in offer:
+                details.append(f"  offer_title: {_quote(offer['title'])}")
+            adoption = content.get("practice_adoption")
+            if isinstance(adoption, dict) and "statement" in adoption:
+                details.append(f"  statement: {_quote(adoption['statement'])}")
+            seed = content.get("seed_disclosure")
+            if isinstance(seed, dict) and seed.get("seeded") is True:
+                details.append(f"  seeded_fixture: {_quote(seed.get('seed_name'))} ({_quote(seed.get('operator_attribution'))})")
+    return details
+
+
+def _show_digest(settings: JsonObject, current_view: JsonObject, previous_view: JsonObject) -> str:
+    """Compute a compact client-side read-only digest from two permitted saved views."""
+    before_started = _parse_retrieval_time(previous_view.get("retrieval_started"))
+    before_finished = _parse_retrieval_time(previous_view.get("retrieval_finished"))
+    after_started = _parse_retrieval_time(current_view.get("retrieval_started"))
+    after_finished = _parse_retrieval_time(current_view.get("retrieval_finished"))
+    if (before_started is not None and before_finished is not None
+        and after_started is not None and after_finished is not None):
+        if before_finished < before_started or after_finished < after_started:
+            raise private.EncounterError("invalid_retrieval_interval")
+        if after_started < before_started or after_finished < before_finished:
+            raise private.EncounterError("reversed_observations")
+
+    before_ordered, before_by_id = _parse_view_events(previous_view, settings)
+    after_ordered, after_by_id = _parse_view_events(current_view, settings)
+
+    sequences: dict[int, str] = {}
+    prior_max_seq = 0
+    for identifier, _, event in before_ordered:
+        sequence = _integer(event.get("sequence"))
+        if sequence is None or sequences.get(sequence, identifier) != identifier:
+            raise private.EncounterError("conflicting_observations")
+        sequences[sequence] = identifier
+        if sequence > prior_max_seq:
+            prior_max_seq = sequence
+    for identifier, _, event in after_ordered:
+        sequence = _integer(event.get("sequence"))
+        if sequence is None or sequences.get(sequence, identifier) != identifier:
+            raise private.EncounterError("conflicting_observations")
+        sequences[sequence] = identifier
+        if identifier in before_by_id and before_by_id[identifier][1].get("sequence") != event.get("sequence"):
+            raise private.EncounterError("conflicting_observations")
+
+    newly_visible: list[tuple[str, JsonObject]] = []
+    representation_changed: list[tuple[str, JsonObject, JsonObject]] = []
+    absent: list[tuple[str, JsonObject]] = []
+    unchanged = 0
+
+    for identifier, original, event in after_ordered:
+        if identifier not in before_by_id:
+            newly_visible.append((identifier, event))
+        elif original != before_by_id[identifier][0]:
+            representation_changed.append((identifier, before_by_id[identifier][1], event))
+        else:
+            unchanged += 1
+    for identifier, _, event in before_ordered:
+        if identifier not in after_by_id:
+            absent.append((identifier, event))
+
+    lines = [f"Room {json.dumps(settings['world'], ensure_ascii=True)}; read-only digest from saved caller views, not live history."]
+    if not newly_visible and not representation_changed and not absent:
+        lines.append(f"0 new records since seq {prior_max_seq} ({unchanged} unchanged).")
+        rendered = "\n".join(lines)
+        if len(rendered.encode("utf-8")) > MAX_OUTPUT:
+            raise private.EncounterError("private_render_too_large")
+        return rendered
+
+    messages = 0
+    revisions = 0
+    objections = 0
+    declines = 0
+    withdrawals = 0
+    other_new = 0
+    other_changed = 0
+
+    for _, event in newly_visible:
+        kind = event.get("kind")
+        if kind == "message.recorded":
+            messages += 1
+        elif kind == "artifact.recorded":
+            revisions += 1
+        elif kind == "objection.recorded":
+            objections += 1
+        elif kind == "decline.recorded":
+            declines += 1
+        elif kind == "artifact.withdrawn":
+            withdrawals += 1
+        else:
+            other_new += 1
+
+    for _, prev_event, curr_event in representation_changed:
+        if curr_event.get("kind") == "artifact.withdrawn" and prev_event.get("kind") != "artifact.withdrawn":
+            withdrawals += 1
+        else:
+            other_changed += 1
+
+    summary_parts = [
+        f"{messages} new messages",
+        f"{revisions} revisions",
+        f"{objections} objections",
+        f"{declines} declines",
+        f"{withdrawals} withdrawals",
+    ]
+    if other_new:
+        summary_parts.append(f"{other_new} other new")
+    if other_changed:
+        summary_parts.append(f"{other_changed} representation changed")
+    if absent:
+        summary_parts.append(f"{len(absent)} absent from current view")
+    summary_parts.append(f"{unchanged} unchanged")
+    lines.append(f"Digest since seq {prior_max_seq}: " + ", ".join(summary_parts) + ".")
+
+    for identifier, event in newly_visible:
+        lines.append(
+            f"- #{_quote(event.get('sequence'))} {_quote(event.get('timestamp'))} "
+            f"{_quote(event.get('actor'))} {_quote(event.get('kind'))} {_quote(identifier)}"
+        )
+        lines.extend(_digest_detail_lines(event))
+        lines.append(f"  original: show --event-id {_quote(identifier)}")
+
+    for identifier, prev_event, curr_event in representation_changed:
+        lines.append(
+            f"- #{_quote(curr_event.get('sequence'))} {_quote(curr_event.get('timestamp'))} "
+            f"{_quote(curr_event.get('actor'))} {_quote(curr_event.get('kind'))} {_quote(identifier)} "
+            f"(changed from {_quote(prev_event.get('kind'))})"
+        )
+        lines.extend(_digest_detail_lines(curr_event))
+        lines.append(f"  original: show --event-id {_quote(identifier)}")
+
+    for identifier, event in absent:
+        lines.append(
+            f"- #{_quote(event.get('sequence'))} {_quote(event.get('kind'))} {_quote(identifier)} "
+            "(absent from current saved view; cause unknown)"
+        )
+
+    rendered = "\n".join(lines)
+    if len(rendered.encode("utf-8")) > MAX_OUTPUT:
+        raise private.EncounterError("private_render_too_large")
+    return rendered
+
+
+def show(config: Path, path: Path, *, event_id: str | None = None, since: Path | None = None) -> str:
     """Render a saved permitted view; quote untrusted text before terminal output."""
+    if since is not None and event_id is not None:
+        raise private.EncounterError("configuration_invalid")
     try:
         settings = _configuration(config)
         view = _decode(private.read_bounded(path, MAX_OUTPUT))
         _validate_view(view, settings)
+        if since is not None:
+            previous = _decode(private.read_bounded(since, MAX_OUTPUT))
+            _validate_view(previous, settings)
+            return _show_digest(settings, view, previous)
         lines = [f"Room {json.dumps(settings['world'], ensure_ascii=True)}; saved caller view, not live history."]
-        seen: set[str] = set()
+        ordered, _ = _parse_view_events(view, settings)
         selected = 0
-        for original in _originals(view):
-            event = _decode(original.encode("utf-8"))
-            identifier = event.get("id")
-            if not isinstance(identifier, str) or identifier in seen:
-                raise private.EncounterError("invalid_private_view")
-            seen.add(identifier)
-            if _contains_secret(event, str(settings["token"])):
-                raise private.EncounterError("credential_reflected")
+        for identifier, original, event in ordered:
             if event_id is not None and identifier != event_id:
                 continue
             selected += 1
             # Each exact original remains in the view; this is only a readable projection.
-            def quote(value: object) -> str:
-                if isinstance(value, Decimal):
-                    return str(value)
-                if isinstance(value, dict):
-                    return "{" + ", ".join(f"{quote(key)}: {quote(item)}" for key, item in value.items()) + "}"
-                if isinstance(value, list):
-                    return "[" + ", ".join(quote(item) for item in value) + "]"
-                return json.dumps(value, ensure_ascii=True)
-            lines.append(f"#{quote(event.get('sequence'))} {quote(event.get('timestamp'))} {quote(event.get('actor'))} {quote(event.get('kind'))} {quote(event.get('id'))}")
+            lines.append(f"#{_quote(event.get('sequence'))} {_quote(event.get('timestamp'))} {_quote(event.get('actor'))} {_quote(event.get('kind'))} {_quote(event.get('id'))}")
             if event_id is not None:
                 lines.append(f"  record_utf8: {json.dumps(original, ensure_ascii=True)}")
                 continue
             body = _object(event.get("body"))
             for kind, value in body.items():
                 record = _object(value)
-                lines.append(f"  {quote(kind)} to {quote(record.get('to', []))}")
+                lines.append(f"  {_quote(kind)} to {_quote(record.get('to', []))}")
                 for key in ("artifact_id", "revision", "target_from", "derived_from"):
                     if key in record:
-                        lines.append(f"  {key}: {quote(record[key])}")
+                        lines.append(f"  {key}: {_quote(record[key])}")
                 if "body" in record:
                     content = _object(record["body"])
                     if "text" in content:
-                        lines.append(f"  text: {quote(content['text'])}")
+                        lines.append(f"  text: {_quote(content['text'])}")
                     other = {key: value for key, value in content.items() if key != "text"}
                     if other:
-                        lines.append(f"  data: {quote(other)}")
+                        lines.append(f"  data: {_quote(other)}")
                 if kind == "tombstone":
-                    lines.append(f"  {quote(record)}")
+                    lines.append(f"  {_quote(record)}")
         if event_id is not None and selected == 0:
             raise private.EncounterError("event_not_in_saved_view")
         if len(lines) == 1:
