@@ -126,11 +126,16 @@ def run(output: Path, *, host: str = "python", runtime_binary: Path | None = Non
                 "scripted_text": text, "runtime_world": WORLD})
 
         def dispatch(label: str, name: str, generation: int, invitation: str, *, history: bool = True,
-                     reason: str = "executor_started", child: str | None = None) -> JsonObject:
+                     reason: str = "executor_started", child: str | None = None,
+                     continuity: str | None = None) -> JsonObject:
             if history:
                 client.history(origin, tokens[name], expected_world=WORLD)
-            result = call(label, "dispatch", participant=name, generation=generation,
-                invitation_id=invitation, history_available=history)
+            if continuity is not None:
+                result = call(label, "dispatch", participant=name, generation=generation,
+                    invitation_id=invitation, history_available=history, continuity=continuity)
+            else:
+                result = call(label, "dispatch", participant=name, generation=generation,
+                    invitation_id=invitation, history_available=history)
             receipt = client.object_value(result.get("dispatch"))
             require(receipt.get("reason") == reason, "dispatch_reason_mismatch")
             require(receipt.get("status") == ("launched" if child else "not_launched"), "dispatch_status_mismatch")
@@ -156,6 +161,10 @@ def run(output: Path, *, host: str = "python", runtime_binary: Path | None = Non
             origin = walk.wait_until_ready(running)
             prepare(A, origin, "walk", text="I propose a walk. Participation is optional.")
             dispatch("walk", A, generation, "invitation:walk", child="recorded")
+            dispatch("restored_copy_while_active", A, generation, "invitation:restored-active",
+                reason="restored_copy_cannot_inherit_seat", continuity="restored_copy")
+            dispatch("forked_copy_while_active", A, generation, "invitation:forked-active",
+                reason="forked_copy_cannot_inherit_seat", continuity="forked_copy")
             prepare(B, origin, "song", text="I propose a song. It may stay unfinished.")
             dispatch("song", B, generation, "invitation:song", child="recorded")
             prepare(A, origin, "leave", "leave")
@@ -178,6 +187,10 @@ def run(output: Path, *, host: str = "python", runtime_binary: Path | None = Non
             require(generation > previous_generation, "coordinator_not_fenced")
             dispatch("old_coordinator", A, previous_generation, "invitation:old-owner", reason="stale_generation")
             dispatch("replacement_keeps_stop", A, generation, "invitation:replacement-a", reason="stopped")
+            dispatch("restored_copy_after_stop", A, generation, "invitation:restored-stopped",
+                reason="restored_copy_cannot_inherit_seat", continuity="restored_copy")
+            dispatch("forked_copy_after_stop", A, generation, "invitation:forked-stopped",
+                reason="forked_copy_cannot_inherit_seat", continuity="forked_copy")
             dispatch("replacement_unready", B, generation, "invitation:replacement-b", reason="not_ready")
             control("volunteer_own_resume", B, "resume", generation, "control:replacement-b")
             prepare(B, origin, "volunteer", text="I can continue my own song while the walk is stopped.")

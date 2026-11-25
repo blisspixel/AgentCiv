@@ -40,9 +40,17 @@ class DurableGatheringTests(unittest.TestCase):
                 rows = {str(client.object_value(row)["label"]): client.object_value(client.object_value(row)["result"])
                     for row in observations}
                 for label in ("stopped_invitation", "repeated_stopped_invitation", "replacement_keeps_stop",
-                              "world_restart_keeps_stop", "old_coordinator", "replacement_unready", "history_unavailable"):
+                              "world_restart_keeps_stop", "old_coordinator", "replacement_unready", "history_unavailable",
+                              "restored_copy_while_active", "forked_copy_while_active",
+                              "restored_copy_after_stop", "forked_copy_after_stop"):
                     self.assertIsNone(rows[label]["child"])
                     self.assertEqual(client.object_value(rows[label]["dispatch"])["status"], "not_launched")
+                for label in ("restored_copy_while_active", "restored_copy_after_stop"):
+                    self.assertEqual(client.object_value(rows[label]["dispatch"])["reason"],
+                        "restored_copy_cannot_inherit_seat")
+                for label in ("forked_copy_while_active", "forked_copy_after_stop"):
+                    self.assertEqual(client.object_value(rows[label]["dispatch"])["reason"],
+                        "forked_copy_cannot_inherit_seat")
                 self.assertEqual(client.object_value(rows["local_leave"]["child"])["outcome"], "left")
                 self.assertEqual(rows["stop_retry"], rows["explicit_scope_stop"])
                 self.assertEqual(rows["old_resume_retry"], rows["explicit_initial_resume_a"])

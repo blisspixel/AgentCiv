@@ -96,6 +96,15 @@ pub struct ControlReceipt {
     pub policy: String,
 }
 
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum SeatContinuity {
+    #[default]
+    Original,
+    RestoredCopy,
+    ForkedCopy,
+}
+
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct DispatchRequest {
@@ -107,6 +116,9 @@ pub struct DispatchRequest {
     pub history_available: bool,
     /// This bounded API admits exactly one callback and has no background queue.
     pub launch_budget: u32,
+    /// A restored or forked copy is never seated as the same participant.
+    #[serde(default)]
+    pub continuity: SeatContinuity,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -388,6 +400,10 @@ impl Gate {
         capacity(&tx, "invitations", MAX_ROWS)?;
         let blocked = if request.generation == 0 || request.generation != state.generation {
             Some("stale_generation")
+        } else if request.continuity == SeatContinuity::RestoredCopy {
+            Some("restored_copy_cannot_inherit_seat")
+        } else if request.continuity == SeatContinuity::ForkedCopy {
+            Some("forked_copy_cannot_inherit_seat")
         } else if state.stopped {
             Some("stopped")
         } else if !state.ready {

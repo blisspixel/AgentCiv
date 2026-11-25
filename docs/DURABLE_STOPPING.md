@@ -4,7 +4,7 @@ This local example adds an enforcing dispatch gate to the existing gathering. It
 
 ## Invariant and authority
 
-The exact assignment key is `(runtime_id, world_id, participant, activity)`. Its activity is a stable operator-approved identity. New invitation IDs, credentials, prompts, coordinators, and offer revisions do not change that key. Another volunteer can continue under their own principal without reversing a stopped participant's decision. There is no alias-transfer operation.
+The exact assignment key is `(runtime_id, world_id, participant, activity)`. Its activity is a stable operator-approved identity. New invitation IDs, credentials, prompts, coordinators, and offer revisions do not change that key. Another volunteer can continue under their own principal without reversing a stopped participant's decision. There is no alias-transfer operation. A restored or forked copy is never seated as the same participant and does not inherit the earlier principal's seat or enforced consent: a `dispatch` with `continuity: "restored_copy"` or `continuity: "forked_copy"` records `status: "not_launched"` with reason `restored_copy_cannot_inherit_seat` or `forked_copy_cannot_inherit_seat` without launching a child, and a copy registered under a distinct principal starts `stopped: true`, `ready: false`, `revision: 0` with its own control capability.
 
 After an acknowledged stop commits, no new process spawn for that key can occur through this adapter until a separately authorized explicit resume commits. The acknowledgement's policy is `future_launches_only`. A process spawned before the stop can still run after acknowledgement. This mechanism does not cancel running processes, recall delivered messages, delete private memory, or control other executors that bypass the gate.
 
@@ -71,7 +71,7 @@ Each request is one strict JSON object with `op` and `token`. Unknown fields are
 | `register` | `participant`, `activity` | Administrator |
 | `inspect` | `participant`, `activity` | Administrator or that scope's control capability |
 | `stop`, `resume` | `participant`, `activity`, `command_id`, `expected_revision`, `generation` | That exact scope's control capability |
-| `dispatch` | `participant`, `activity`, `generation`, `invitation_id`, `history_available` | Administrator |
+| `dispatch` | `participant`, `activity`, `generation`, `invitation_id`, `history_available`, optional `continuity` (`original`, `restored_copy`, `forked_copy`) | Administrator |
 
 For example, a scoped stop request is:
 

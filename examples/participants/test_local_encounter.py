@@ -1602,6 +1602,74 @@ class LocalEncounterProcessTests(unittest.TestCase):
             self.assertEqual((state / "host.json").read_bytes(), config_before)
             self.assertTrue((state / "client-01.json").is_file())
 
+    def test_memory_flow_is_by_choice_and_withdrawal_does_not_recall_kept_copies(self) -> None:
+        for host in ("python", "rust"):
+            with self.subTest(host=host), tempfile.TemporaryDirectory(prefix=f"agentciv-memory-{host}-") as temporary:
+                root = Path(temporary).resolve()
+                state = root / "room"
+                memory_dir = root / "participant-b-private-memory"
+                private.create_directory(memory_dir)
+                private_note = memory_dir / "notes.txt"
+                initial_note = b"participant B private note before visiting the room\n"
+                private.write_new(private_note, initial_note)
+
+                initialized = operator.initialize(state, WORLD, [A, B], [], free_port())
+                configs = {str(item["principal"]): Path(str(item["config"])) for item in objects(initialized["clients"])}
+                cache_b = Path(str(load(configs[B])["cache_directory"]))
+                origin = str(initialized["origin"])
+                argv = walk.python_argv(state / "host.json") if host == "python" else [str(self.host_binary), "--config", str(state / "host.json")]
+                owned = operator._start(argv, origin)
+
+                def publish(record: JsonObject, filename: str) -> JsonObject:
+                    path = root / filename
+                    path.write_bytes((json.dumps(record, ensure_ascii=False, indent=2) + "\n").encode("utf-8"))
+                    return client.submit(configs[str(record["from"])], path, None, reader_binary=self.reader_binary)
+
+                try:
+                    operator._wait_ready(owned)
+                    # A publishes a shared artifact revision to the room.
+                    parent = publish(authored("artifact_revision", "submission:memory-parent", A), "parent.json")
+                    self.assertEqual(parent["outcome"], "recorded")
+
+                    # Room records never write into B's private cache or private memory.
+                    self.assertEqual(list(cache_b.iterdir()), [])
+                    self.assertEqual(private_note.read_bytes(), initial_note)
+
+                    # B explicitly chooses to read the room and keep a copy in private memory.
+                    first_read = client.sync(configs[B], reader_binary=self.reader_binary)
+                    self.assertEqual(first_read["events"], 1)
+                    kept_view = Path(str(first_read["view_path"]))
+                    kept_view_bytes = kept_view.read_bytes()
+                    kept_snapshot = strings(obj(load(kept_view)["snapshot"])["records"])
+                    self.assertEqual(len(kept_snapshot), 1)
+                    self.assertEqual(civic.decode(kept_snapshot[0].encode())["kind"], "artifact.recorded")
+
+                    chosen_memory = initial_note + b"kept by participant B choice: " + kept_snapshot[0].encode("utf-8") + b"\n"
+                    private.replace_private(private_note, chosen_memory)
+
+                    # A later withdraws the artifact revision in the room.
+                    withdrawn = publish(authored("withdrawal", "submission:memory-withdraw", A), "withdraw.json")
+                    self.assertEqual(withdrawn["outcome"], "recorded")
+                    self.assertEqual(withdrawn["event_id"], parent["event_id"])
+
+                    # Incremental sync detects the withdrawal without altering B's kept view.
+                    with self.assertRaises(private.EncounterError) as caught:
+                        client.sync(configs[B], previous=kept_view, reader_binary=self.reader_binary)
+                    self.assertEqual(caught.exception.code, "prefix_changed")
+
+                    # A fresh read observes the tombstone in shared history.
+                    after_read = client.read(configs[B], reader_binary=self.reader_binary)
+                    after_rows = strings(obj(load(Path(str(after_read["view_path"])))["snapshot"])["records"])
+                    self.assertEqual(len(after_rows), 1)
+                    tombstone = civic.decode(after_rows[0].encode())
+                    self.assertEqual((tombstone["kind"], tombstone["body"]), ("artifact.withdrawn", {}))
+
+                    # Withdrawal does not recall, mutate, or delete any copy B chose to keep.
+                    self.assertEqual(kept_view.read_bytes(), kept_view_bytes)
+                    self.assertEqual(private_note.read_bytes(), chosen_memory)
+                finally:
+                    operator._stop_owned(owned)
+
 
 class NewcomerToolsTests(unittest.TestCase):
     def test_saved_view_shows_speakers_text_and_links_without_terminal_controls(self) -> None:

@@ -113,6 +113,8 @@ pub(super) fn invitation(
             | (
                 "not_launched",
                 "stale_generation"
+                    | "restored_copy_cannot_inherit_seat"
+                    | "forked_copy_cannot_inherit_seat"
                     | "stopped"
                     | "not_ready"
                     | "history_unavailable"
