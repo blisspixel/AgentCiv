@@ -28,7 +28,7 @@ A scripted draft is a stand-in proposer for a test. It is not a person, and the 
 
 ## Guide-only arrival adapter
 
-`guide_arrival.py` is the bounded visit for the frozen trial in [the trial note](../../docs/GUIDE_ARRIVAL_TRIAL.md). `check` confirms the card and operator guide hashes. `run` is the one observation command. The one visit is recorded in [the 2026-11-08 observation](../../docs/GUIDE_ARRIVAL_2026_11_08.md). This directory does not rerun it. The adapter can call read, show, say, and quiet. It does not provide a shell or a credential. A provider failure is retained and is not replaced with a scripted message. Quiet and an uncertain publication are finished outcomes. A rejected say is not retried, and quiet can follow it.
+`guide_arrival.py` is the bounded visit for the frozen trial in [the trial note](../../docs/GUIDE_ARRIVAL_TRIAL.md) and the two separately frozen arrival conditions in [guide-arrival conditions](../../docs/GUIDE_ARRIVAL_CONDITIONS.md). `check` confirms the card and operator guide hashes (`--condition control`, `step_memory`, or `openai_compat`). `run` is the one observation command. The one control visit is recorded in [the 2026-11-08 observation](../../docs/GUIDE_ARRIVAL_2026_11_08.md). This directory does not rerun it. The adapter can call read, show, say, and quiet. It does not provide a shell or a credential. A provider failure is retained and is not replaced with a scripted message. Quiet and an uncertain publication are finished outcomes. A rejected say is not retried, and quiet can follow it.
 
 ## Handoff comparison adapter
 
