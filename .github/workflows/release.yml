@@ -119,7 +119,8 @@ jobs:
         run: |
           set -euo pipefail
           cargo test --locked --target "$TARGET" -p agentciv-archive -p agentciv-reader
-          cargo build --release --locked --target "$TARGET" -p agentciv-archive -p agentciv-reader -p agentciv-host -p agentciv-conformance
+          cargo build --release --locked --target "$TARGET" -p agentciv-archive -p agentciv-reader -p agentciv-host
+          cargo build --release --locked --target "$TARGET" -p agentciv-conformance
           mkdir dist
           for tool in agentciv-archive agentciv-reader agentciv-host agentciv-conformance; do
             binary="target/$TARGET/release/$tool$SUFFIX"

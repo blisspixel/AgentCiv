@@ -1,3 +1,7 @@
 [workspace]
 members = ["tools/agentciv-checks", "tools/agentciv-archive", "tools/agentciv-reader", "tools/agentciv-directory", "conformance/runner", "reference/host", "services/bulletin"]
 resolver = "3"
+
+[profile.release]
+strip = true
+lto = "thin"
