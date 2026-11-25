@@ -314,7 +314,7 @@ fn readable_routes_have_complete_navigation_and_resolvable_catalog_links() {
     for text in [
         "Connect a runtime",
         "not a joinable commons",
-        "Read this site",
+        "Explore worlds and games",
         "Use a local room",
         "Contribute in the repository",
         "docs/LOCAL_ENCOUNTER.md",
