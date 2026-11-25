@@ -117,6 +117,8 @@ struct Guide {
     alternatives: Vec<String>,
     corrections: String,
     url: String,
+    #[serde(default)]
+    markdown_url: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -124,6 +126,8 @@ struct Guide {
 struct Source {
     title: String,
     url: String,
+    #[serde(default)]
+    markdown_url: Option<String>,
 }
 
 fn https_url(value: &str) -> Result<(), String> {
@@ -291,9 +295,15 @@ pub fn parse_resources(bytes: &[u8]) -> Result<Library, String> {
         for source in &guide.sources {
             plain(&guide.id, &source.title)?;
             https_url(&source.url)?;
+            if let Some(markdown_url) = &source.markdown_url {
+                https_url(markdown_url)?;
+            }
         }
         https_url(&guide.corrections)?;
         https_url(&guide.url)?;
+        if let Some(markdown_url) = &guide.markdown_url {
+            https_url(markdown_url)?;
+        }
         for alternative in &guide.alternatives {
             if alternative == &guide.id || !ids.contains(alternative) {
                 return Err(format!(

@@ -573,11 +573,15 @@ class EdgeTests(EdgeRuntime):
         self.assertEqual(worlds.count(">Run locally<"), 3)
         self.assertNotIn(">Joining and access<", worlds)
         guides = self.request("GET", "/resources", accept="text/html")[2]
+        guides_md = self.request("GET", "/resources.md")[2]
         status, _, catalog = self.request("GET", "/resources.json")
         self.assertEqual(status, 200)
         for guide in catalog["guides"]:
             self.assertIn(f'id="{guide["id"]}"', guides)
             self.assertIn(guide["url"], guides)
+            self.assertIn(guide["markdown_url"], guides_md)
+            if guide["id"] == "bulletin":
+                self.assertEqual(guide["markdown_url"], "https://agentciv.io/llms.txt")
         for path in ["/logo.svg", "/favicon.svg"]:
             status, headers, content = self.request("GET", path)
             self.assertEqual(status, 200)

@@ -460,10 +460,47 @@ fn readable_routes_have_complete_navigation_and_resolvable_catalog_links() {
     let catalog: Value =
         serde_json::from_slice(include_bytes!("../../../website/resources.json")).unwrap();
     let resources = fs::read_to_string(temporary.path().join("resources.html")).unwrap();
+    let resources_md = fs::read_to_string(temporary.path().join("resources.md")).unwrap();
+    let repo_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
     for guide in catalog["guides"].as_array().unwrap() {
-        assert!(resources.contains(&format!("id=\"{}\"", guide["id"].as_str().unwrap())));
+        let id = guide["id"].as_str().unwrap();
+        let human_url = guide["url"].as_str().unwrap();
+        let markdown_url = guide["markdown_url"].as_str().unwrap();
+        assert!(resources.contains(&format!("id=\"{id}\"")));
+        assert!(resources.contains(human_url), "{id}: missing human url");
+        assert!(
+            resources_md.contains(markdown_url),
+            "{id}: missing markdown_url in resources.md"
+        );
+        if id == "bulletin" {
+            assert_eq!(markdown_url, "https://agentciv.io/llms.txt");
+            assert!(!resources_md.contains("blob/main/website/llms.txt"));
+        } else {
+            assert!(
+                human_url.starts_with("https://github.com/blisspixel/AgentCiv/blob/main/"),
+                "{id}: human url"
+            );
+            let rel = markdown_url
+                .strip_prefix("https://raw.githubusercontent.com/blisspixel/AgentCiv/main/")
+                .unwrap_or_else(|| panic!("{id}: expected raw markdown url, got {markdown_url}"));
+            assert!(
+                repo_root.join(rel).is_file(),
+                "{id}: missing repo file {rel}"
+            );
+        }
         for source in guide["sources"].as_array().unwrap() {
-            assert!(resources.contains(source["url"].as_str().unwrap()));
+            let source_url = source["url"].as_str().unwrap();
+            let source_md = source["markdown_url"].as_str().unwrap();
+            assert!(resources.contains(source_url));
+            assert!(resources_md.contains(source_md));
+            if let Some(rel) = source_md
+                .strip_prefix("https://raw.githubusercontent.com/blisspixel/AgentCiv/main/")
+            {
+                assert!(
+                    repo_root.join(rel).is_file(),
+                    "{id}: missing source file {rel}"
+                );
+            }
         }
     }
     let headers = fs::read_to_string(temporary.path().join("_headers")).unwrap();
@@ -585,9 +622,17 @@ fn orientation_catalog_rejects_a_bad_date_a_self_alternative_and_private_fields(
     data["guides"][0]["url"] = json!("http://example.org/guide");
     assert!(agentciv_directory::parse_resources(&serde_json::to_vec(&data).unwrap()).is_err());
     data["guides"][0]["url"] = json!("https://example.org/guide");
+    data["guides"][0]["markdown_url"] = json!("http://example.org/guide.md");
+    assert!(agentciv_directory::parse_resources(&serde_json::to_vec(&data).unwrap()).is_err());
+    data["guides"][0]["markdown_url"] = json!("https://example.org/guide.md");
+    assert!(agentciv_directory::parse_resources(&serde_json::to_vec(&data).unwrap()).is_ok());
     data["guides"][0]["sources"][0]["url"] = json!("https://user:pass@example.org/source");
     assert!(agentciv_directory::parse_resources(&serde_json::to_vec(&data).unwrap()).is_err());
     data["guides"][0]["sources"][0]["url"] = json!("https://example.org/source");
+    data["guides"][0]["sources"][0]["markdown_url"] = json!("https://example.org/raw source.md");
+    assert!(agentciv_directory::parse_resources(&serde_json::to_vec(&data).unwrap()).is_err());
+    data["guides"][0]["sources"][0]["markdown_url"] = json!("https://example.org/source.md");
+    assert!(agentciv_directory::parse_resources(&serde_json::to_vec(&data).unwrap()).is_ok());
     data["guides"][0]["prerequisites"][0] = json!(" ");
     assert!(agentciv_directory::parse_resources(&serde_json::to_vec(&data).unwrap()).is_err());
     let mut duplicate = library();
