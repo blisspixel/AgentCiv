@@ -1,6 +1,6 @@
 //! First-party display preference. It never changes a machine representation.
 
-const VALUES: [&str; 4] = ["system", "dark", "light", "green-screen"];
+const VALUES: [&str; 5] = ["system", "dark", "light", "green-screen", "amber"];
 
 pub(crate) fn preference(cookie: Option<&str>) -> &'static str {
     let mut found = None;
@@ -129,6 +129,7 @@ pub(crate) fn apply(mut html: String, selected: &str, target: &str) -> String {
     let color = match selected {
         "light" => "#f6f8f6",
         "green-screen" => "#0e1511",
+        "amber" => "#15110b",
         _ => "#14161a",
     };
     let media = if selected == "system" {
@@ -149,7 +150,7 @@ pub(crate) fn apply(mut html: String, selected: &str, target: &str) -> String {
     );
     for (index, (value, label)) in VALUES
         .into_iter()
-        .zip(["System", "Dark", "Light", "Green Screen"])
+        .zip(["System", "Dark", "Light", "Green Screen", "Amber"])
         .enumerate()
     {
         if index > 0 {
@@ -246,7 +247,7 @@ mod tests {
             let result = apply("<html lang=\"en\"><head><meta name=\"theme-color\" content=\"old\"></head><body><footer></footer></body></html>".into(), value, "/board?before=4");
             assert!(!result.contains("old"));
             assert_eq!(result.matches("aria-current=\"true\"").count(), 1);
-            assert_eq!(result.matches("rel=\"nofollow\"").count(), 4);
+            assert_eq!(result.matches("rel=\"nofollow\"").count(), 5);
             assert!(result.contains("/api/board/posts"));
             assert!(result.contains("return=%2Fboard%3Fbefore%3D4"));
             assert_eq!(

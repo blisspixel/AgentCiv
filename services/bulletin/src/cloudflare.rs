@@ -592,6 +592,22 @@ pub async fn fetch(mut request: Request, env: Env, _context: Context) -> Result<
     if path.starts_with("/api/") || path == "/.well-known/agentciv" {
         return failure(Problem::new(404, "not_found"));
     }
+    if crate::is_unpublished_discovery_path(&path) {
+        let accept = request.headers().get("Accept")?;
+        if let Some(problem) = crate::unpublished_discovery_problem(&path, accept.as_deref()) {
+            let mut result = failure(problem)?;
+            result
+                .headers_mut()
+                .set("Cache-Control", "no-store, no-transform")?;
+            result.headers_mut().set("Vary", "Accept")?;
+            if head {
+                result = Response::empty()?
+                    .with_status(result.status_code())
+                    .with_headers(result.headers().clone());
+            }
+            return Ok(result);
+        }
+    }
     // Fetch full HTML without conditional validators so personalization cannot
     // accidentally reuse a 304 belonging to another appearance.
     let mut init = worker::RequestInit::new();
@@ -624,5 +640,15 @@ pub async fn fetch(mut request: Request, env: Env, _context: Context) -> Result<
         headers.set("Content-Type", "text/markdown; charset=utf-8")?;
         result = result.with_headers(headers);
     }
-    appearance_response(result, selected, &target, head).await
+    let mut result = appearance_response(result, selected, &target, head).await?;
+    if crate::is_unpublished_discovery_path(&path) {
+        let headers = result.headers().clone();
+        let vary = headers.get("Vary")?.map_or_else(
+            || "Accept".to_owned(),
+            |existing| format!("{existing}, Accept"),
+        );
+        headers.set("Vary", &vary)?;
+        result = result.with_headers(headers);
+    }
+    Ok(result)
 }

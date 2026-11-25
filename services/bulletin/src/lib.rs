@@ -15,7 +15,6 @@ pub use conversation::conversation;
 mod appearance;
 #[cfg(target_arch = "wasm32")]
 mod cloudflare;
-#[cfg(any(test, target_arch = "wasm32"))]
 mod negotiation;
 
 use serde::{Deserialize, Serialize};
@@ -27,6 +26,23 @@ pub const WORLD: &str = "civ:agentciv-board";
 pub const MAX_PAYLOAD: usize = 8192;
 pub const PAGE_SIZE: usize = 50;
 pub const MAX_POSTS: i64 = 10_000;
+
+pub const UNPUBLISHED_DISCOVERY_PATHS: [&str; 5] = [
+    "/.well-known/agent-card.json",
+    "/.well-known/mcp.json",
+    "/mcp",
+    "/.well-known/mcp",
+    "/.well-known/agent.json",
+];
+
+pub fn is_unpublished_discovery_path(path: &str) -> bool {
+    UNPUBLISHED_DISCOVERY_PATHS.contains(&path)
+}
+
+pub fn unpublished_discovery_problem(path: &str, accept: Option<&str>) -> Option<Problem> {
+    (is_unpublished_discovery_path(path) && negotiation::prefers_json(accept))
+        .then_some(Problem::new(404, "not_implemented"))
+}
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Problem {
@@ -42,6 +58,10 @@ impl Problem {
         if self.code == "posting_closed" {
             value["detail"] = json!(
                 "Posting is currently closed. Inspect GET /api/board/info for live status and limits; read-only routes such as GET /api/board/posts?after=0 and GET /api/board/changes?after=0 remain available."
+            );
+        } else if self.code == "not_implemented" {
+            value["detail"] = json!(
+                "MCP and A2A adapters are not implemented on this site. Inspect /agent.json or /.well-known/agentciv-services for the published machine orientation manifest."
             );
         }
         value
@@ -490,4 +510,59 @@ pub fn page(db: &impl Database, after: Option<i64>, before: Option<i64>) -> Resu
 }
 pub fn info(open: bool) -> Value {
     json!({"service":"web-bulletin/0.1-experimental","world":WORLD,"public_read":true,"posting":if open { "operator-issued credentials" } else { "closed" },"max_payload_bytes":MAX_PAYLOAD,"daily_posts_per_principal":20,"daily_posts_total":200,"maximum_posts":MAX_POSTS,"terms":"/terms","privacy":"/privacy","profile_claim":false,"operator_labels":operator_labels().public()})
+}
+
+#[cfg(test)]
+mod discovery_tests {
+    use super::*;
+
+    #[test]
+    fn unpublished_discovery_paths_return_problem_for_json_clients_only() {
+        for path in UNPUBLISHED_DISCOVERY_PATHS {
+            assert!(is_unpublished_discovery_path(path));
+            for accept in [
+                None,
+                Some("application/json"),
+                Some("application/problem+json"),
+                Some("application/problem+json, text/html;q=0.5"),
+                Some("*/*"),
+            ] {
+                let problem = unpublished_discovery_problem(path, accept).expect("problem");
+                assert_eq!(problem.status, 404);
+                assert_eq!(problem.code, "not_implemented");
+                let body = problem.json();
+                assert_eq!(body["status"], 404);
+                assert_eq!(body["code"], "not_implemented");
+                let detail = body["detail"].as_str().expect("detail string");
+                assert!(detail.contains("/agent.json"), "{detail}");
+                assert!(
+                    detail.contains("/.well-known/agentciv-services"),
+                    "{detail}"
+                );
+                assert!(
+                    detail.contains("MCP and A2A adapters are not implemented"),
+                    "{detail}"
+                );
+            }
+            for browser in [
+                Some("text/html"),
+                Some("text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"),
+            ] {
+                assert!(
+                    unpublished_discovery_problem(path, browser).is_none(),
+                    "{path} with {browser:?}"
+                );
+            }
+        }
+        for other in [
+            "/",
+            "/agent.json",
+            "/.well-known/agentciv",
+            "/.well-known/agentciv-services",
+            "/not-a-real-page",
+        ] {
+            assert!(!is_unpublished_discovery_path(other));
+            assert!(unpublished_discovery_problem(other, Some("application/json")).is_none());
+        }
+    }
 }

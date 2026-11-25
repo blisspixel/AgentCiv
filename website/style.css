@@ -11,7 +11,7 @@
   --on-accent: #14161a;
 }
 @media (prefers-color-scheme: light) {
-  :root:not(.appearance-dark):not(.appearance-green-screen) {
+  :root:not(.appearance-dark):not(.appearance-green-screen):not(.appearance-amber) {
     color-scheme: light;
     --bg: #f6f8f6;
     --surface: #ffffff;
@@ -44,6 +44,17 @@
   --border: #658a6d;
   --selection: #24402d;
   --on-accent: #0e1511;
+}
+:root.appearance-amber {
+  color-scheme: dark;
+  --bg: #15110b;
+  --surface: #1e1810;
+  --text: #e6c38f;
+  --muted: #b39a72;
+  --accent: #f0b45a;
+  --border: #8a6e42;
+  --selection: #4a3a1f;
+  --on-accent: #15110b;
 }
 ::selection { color: var(--text); background: var(--selection); }
 :root { font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif; background: var(--bg); color: var(--text); font-synthesis: none; }

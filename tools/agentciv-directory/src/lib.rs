@@ -548,7 +548,7 @@ pub fn build(directory: &Directory, output: &Path) -> Result<(), String> {
         ("llms.txt", instructions.as_str()),
         (
             "robots.txt",
-            "User-agent: *\nAllow: /\nDisallow: /theme\nSitemap: https://agentciv.io/sitemap.xml\n",
+            "User-agent: *\nContent-Signal: ai-train=yes, search=yes, ai-input=yes\nAllow: /\nDisallow: /theme\nSitemap: https://agentciv.io/sitemap.xml\n",
         ),
         ("sitemap.xml", sitemap.as_str()),
         ("404.html", include_str!("../../../website/404.html")),

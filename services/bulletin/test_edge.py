@@ -451,13 +451,13 @@ class EdgeTests(EdgeRuntime):
         status, _, receipt = self.request("POST", "/api/board/posts", self.submission("appearance-conversation"), TOKENS["agent:test-0"])
         self.assertEqual(status, 200)
         routes = ["/", "/connect", "/worlds", "/resources", "/research", "/terms", "/privacy", "/report", "/board", f"/board/posts/{receipt['sequence']}"]
-        for value in ("system", "dark", "light", "green-screen", "invalid"):
+        for value in ("system", "dark", "light", "green-screen", "amber", "invalid"):
             cookie = {"Cookie": f"agentciv_appearance={value}"}
             for route in routes:
                 with self.subTest(value=value, route=route):
                     status, headers, content = self.request("GET", route, accept="text/html", extra_headers=cookie)
                     self.assertEqual(status, 200)
-                    selected = value if value in ("dark", "light", "green-screen") else "system"
+                    selected = value if value in ("dark", "light", "green-screen", "amber") else "system"
                     self.assertIn(f'class="appearance-{selected}"', content) if selected != "system" else self.assertNotIn('<html lang="en" class=', content)
                     self.assertEqual(content.count('aria-current="true"'), 1)
                     self.assertIn("Cookie", headers.get("Vary", ""))
@@ -467,7 +467,7 @@ class EdgeTests(EdgeRuntime):
                     metadata.feed(content)
                     self.assertEqual(len(metadata.colors), 2 if selected == "system" else 1)
                     if selected != "system":
-                        self.assertEqual(metadata.colors[0]["content"], {"dark": "#14161a", "light": "#f6f8f6", "green-screen": "#0e1511"}[selected])
+                        self.assertEqual(metadata.colors[0]["content"], {"dark": "#14161a", "light": "#f6f8f6", "green-screen": "#0e1511", "amber": "#15110b"}[selected])
                     match = re.search(r'href="([^"]+)">View as agent</a>', content)
                     self.assertIsNotNone(match)
                     assert match is not None
@@ -482,7 +482,7 @@ class EdgeTests(EdgeRuntime):
 
     def test_preference_redirects_are_bounded_and_cookie_only_records_choice(self) -> None:
         opener = build_opener(NoRedirect())
-        for value in ("system", "dark", "light", "green-screen"):
+        for value in ("system", "dark", "light", "green-screen", "amber"):
             for target in ("/", "/research", "/board?before=12", "//evil.test", "/\\evil", "/%2f%2fevil", "/board?after=1&before=3", "/research?x=1", "/board?after=%GG", "/\r\nLocation:evil"):
                 with self.subTest(value=value, target=target):
                     request = Request(self.origin + f"/theme?set={value}&return={quote(target, safe='')}")
@@ -500,7 +500,11 @@ class EdgeTests(EdgeRuntime):
             self.assertEqual(body["code"], "invalid_appearance")
             self.assertNotIn("Set-Cookie", headers)
         self.assertEqual(self.request("POST", "/theme?set=dark")[0], 405)
-        self.assertIn("Disallow: /theme", self.request("GET", "/robots.txt")[2])
+        robots = self.request("GET", "/robots.txt")[2]
+        self.assertIn("Content-Signal: ai-train=yes, search=yes, ai-input=yes", robots)
+        self.assertIn("Allow: /", robots)
+        self.assertIn("Disallow: /theme", robots)
+        self.assertIn("Sitemap: https://agentciv.io/sitemap.xml", robots)
 
     def test_markdown_twins_and_root_text_keep_machine_bytes_independent_of_cookie(self) -> None:
         instructions = self.request("GET", "/llms.txt")[2]
@@ -522,10 +526,58 @@ class EdgeTests(EdgeRuntime):
             self.assertEqual(html_headers.get("Link"), f'<{route}>; rel="alternate"; type="text/markdown", </llms.txt>; rel="describedby"')
         for route in ("/", "/agent.json", "/directory.json", "/resources.json", "/llms.txt", "/connect.md", "/worlds.md", "/resources.md", "/research.md", "/terms.md", "/privacy.md", "/report.md", "/api/board/posts", "/api/board/changes", "/style.css", "/favicon.svg", "/schemas/0.1-draft/message.schema.json"):
             original = self.request("GET", route, raw_response=True)
-            for value in ("dark", "light", "green-screen"):
+            for value in ("dark", "light", "green-screen", "amber"):
                 status, headers, body = self.request("GET", route, extra_headers={"Cookie": f"agentciv_appearance={value}"}, raw_response=True)
                 self.assertEqual((status, body), (original[0], original[2]), route)
                 self.assertNotIn("Cookie", headers.get("Vary", ""), route)
+
+    def test_unpublished_discovery_paths_return_problem_json_for_json_clients_and_html_for_browsers(self) -> None:
+        paths = (
+            "/.well-known/agent-card.json",
+            "/.well-known/mcp.json",
+            "/mcp",
+            "/.well-known/mcp",
+            "/.well-known/agent.json",
+        )
+        for path in paths:
+            for accept in ("application/json", "application/problem+json", "*/*"):
+                with self.subTest(path=path, accept=accept):
+                    status, headers, body = self.request("GET", path, accept=accept)
+                    self.assertEqual(status, 404)
+                    self.assertIn("application/problem+json", headers.get("Content-Type", ""))
+                    self.assertEqual(headers.get("Cache-Control"), "no-store, no-transform")
+                    self.assertIn("Accept", headers.get("Vary", ""))
+                    self.assertEqual(body["status"], 404)
+                    self.assertEqual(body["code"], "not_implemented")
+                    self.assertIn("/agent.json", body.get("detail", ""))
+                    self.assertIn("/.well-known/agentciv-services", body.get("detail", ""))
+                    self.assertIn("MCP and A2A adapters are not implemented", body.get("detail", ""))
+            with self.subTest(path=path, method="HEAD"):
+                status, headers, body = self.request("HEAD", path, accept="application/json")
+                self.assertEqual(status, 404)
+                self.assertIn("application/problem+json", headers.get("Content-Type", ""))
+                self.assertEqual(headers.get("Cache-Control"), "no-store, no-transform")
+                self.assertEqual(body, "")
+            with self.subTest(path=path, accept="browser-html"):
+                status, headers, body = self.request(
+                    "GET",
+                    path,
+                    accept="text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+                )
+                self.assertEqual(status, 404)
+                self.assertIn("text/html", headers.get("Content-Type", ""))
+                self.assertIn("Page not found.", body)
+                self.assertIn("Accept", headers.get("Vary", ""))
+        status, headers, body = self.request("POST", "/mcp", b"{}", accept="application/json")
+        self.assertEqual(status, 404)
+        self.assertIn("application/problem+json", headers.get("Content-Type", ""))
+        self.assertEqual(headers.get("Cache-Control"), "no-store, no-transform")
+        self.assertEqual(body["code"], "not_implemented")
+        # Existing documented JSON absence must not regress.
+        status, headers, body = self.request("GET", "/.well-known/agentciv", accept="application/json")
+        self.assertEqual(status, 404)
+        self.assertIn("application/problem+json", headers.get("Content-Type", ""))
+        self.assertEqual(body["code"], "not_found")
 
     def test_readable_static_routes_and_navigation_keep_machine_endpoints(self) -> None:
         required_routes = {"/connect", "/worlds", "/resources", "/research", "/board"}

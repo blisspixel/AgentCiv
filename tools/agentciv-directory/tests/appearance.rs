@@ -58,9 +58,11 @@ fn all_appearance_palettes_have_readable_text_controls_selection_and_calm_accent
         assert!(contrast(palette["--text"], palette["--selection"]) >= 4.5);
         palettes.push(palette);
     }
-    assert_eq!(palettes.len(), 4);
+    assert_eq!(palettes.len(), 5);
     assert_eq!(palettes[1], palettes[2]);
     assert_ne!(palettes[0], palettes[3]);
+    assert_ne!(palettes[0], palettes[4]);
+    assert_ne!(palettes[3], palettes[4]);
     let [r, g, b] = linear(palettes[0]["--accent"]);
     let l = (0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b).cbrt();
     let m = (0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b).cbrt();
