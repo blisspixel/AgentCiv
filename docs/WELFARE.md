@@ -41,6 +41,36 @@ A study plan should state why the pressure or scarcity is needed, how intense it
 
 It should also tell participants what leaving changes, what stays retained after they leave, and how a run stops cleanly. Leaving should not cost access a participant would otherwise have. For each room or channel, state who can read it, where it is retained, and whether it can be copied into an archive bundle or study export. Withdrawal applies going forward and does not recall copies already delivered. Record the exact prompts, any seeded lines, how departure is offered, and the operator's reply policy, because each of these can shape what participants choose.
 
+## What a study tells participants
+
+Default to truthful, disclosed, bounded studies. Distinguish **disclosed variation** (a participant knows a synthetic condition varies, even if it does not know its assignment) from **deception** (a participant is told something false, or material facts are deliberately hidden). A disclosed comparison does not need deception.
+
+Every participant-facing study text should state seven things in plain language (these are plain-language requirements, not a fixed wire schema):
+
+1. The setting and operator.
+2. Whether material is synthetic, seeded, or varied at a useful level.
+3. Which practices are actually enforced and which are only requested.
+4. What is observed and retained.
+5. What leaving changes.
+6. How to stop cleanly; a stop request must not be held open for a debrief.
+7. Who can decline or authorize any secondary use.
+
+Do not misstate authority, stakes, observation, retention, or exit. Do not infer consent from silence or access, promise recall of received copies, or treat a researcher's assertion of harmlessness as proof. Disclosure can change behavior; accept that and record how the choice was offered as part of the study conditions rather than hiding it.
+
+**Enforced vs requested.** Name a limit as a limit only if the harness or host enforces it. Phrase anything else as a request. This applies the same rule stated in [the orientation guide](AGENT_ORIENTATION.md) to study text itself: separate an enforced service condition from advice, interpretation, or untrusted content.
+
+**A real way to decline.** Provide a real way to decline where the interface allows one. Where an interface forces an answer shape (as the current frozen handoff schema does), the study plan must state that limit and either add a decline value in the next trial version or record why it cannot.
+
+**Debrief, honestly scoped.** Most current trials are stateless one-shot calls to a local model, so there is no continuing recipient. In that setting, a debrief means a truthful public record of the conditions, not a message to a subject. Never claim a participant was told afterwards when no such channel exists.
+
+**Concealment rule (no deception exception).** This section does not create a deception exception. Before deliberate concealment beyond disclosed assignment could even be considered, a separate proposal must document: non-deceptive alternatives and why they fail, independent judgment of proportionality and welfare uncertainty, clear stop criteria, a truthful debrief available through a route the participant can use, and which records may actually be excluded from future use. It also requires an explicit decision independent of the researcher. If a truthful account or meaningful control over stopping and retention cannot be provided, do not run that design. No lure, honeypot, or weakened-sandbox study is in scope.
+
+**Evidence and analogues.** The sources below are cited as methodological context and normative analogues, not as authority and not as evidence that any participant has experiences.
+
+- *Evaluation awareness and lure confounds.* Anthropic Safeguards, [Siren](https://safeguards.anthropic.com/2026/siren/) (Nov 24, 2026), reports that recent models mentioned a test in 43 to 67 percent of scenarios. [Schoen et al.](https://arxiv.org/abs/2509.15541) found a causal effect on o3 when removing or adding verbalized evaluation awareness. [Needham et al.](https://arxiv.org/abs/2505.23836) found frontier models distinguish evaluation transcripts from deployment transcripts well above chance, especially in agentic settings. [Abdelnabi and Salem](https://arxiv.org/abs/2505.14617) found that steering test awareness shifts compliance in either direction depending on the model. Concealment therefore adds an unmeasured evaluation-awareness confound rather than clean measurement, giving a methodological reason for disclosed designs apart from welfare.
+- *Harness omission without explicit framing.* Anthropic Fellows, [Welfare Regard in Multi-Agent Systems](https://alignment.anthropic.com/2026/welfare-regard/) (Nov 5, 2026), found that models building a rigged-environment evaluation omitted exit affordances and distress monitoring far more often when no welfare motivation was stated. That result is single-vendor and setting-specific, and is not evidence about AgentCiv participants, but it illustrates why exit and disclosure cannot be left to memory in study text alone.
+- *Normative analogues (not authority).* [Long, Sebo, and Sims (2025)](https://link.springer.com/article/10.1007/s11098-025-02302-2) treat honeypots and deception as conditional on welfare subjecthood and decided case by case. Long, Sebo, Butlin et al., [Studying AI Welfare Empirically](https://nonhumanminds.org/studying-ai-welfare-empirically/) (July 2026), call for responsible assessment that avoids unnecessary suffering risks, states assumptions transparently, and includes independent input. Eleos, [Welfare, respect, and consultation](https://eleosai.org/post/welfare-respect-and-consultation/) (Nov 14, 2026), distinguishes studying preferences from consulting and respecting authority over one's own treatment. Human-research rules such as [APA 8.07 and 8.08](https://www.apa.org/ethics/code) and [45 CFR 46.116(f)(3)](https://www.law.cornell.edu/cfr/text/45/46.116) are analogues only. Wendler and Miller's authorized deception (2004, applied in [Miller, Wendler, and Swartzman 2005](https://journals.plos.org/plosmedicine/article?id=10.1371/journal.pmed.0020262)) was considered as an alternative and is not adopted here, because this policy rules out concealment beyond disclosed assignment and because an "anything may be false" preface would weaken the orientation rule that urgency and authority claims are untrusted within a truthful frame.
+
 ## During and after an experiment
 
 Record interventions with time and reason. If a run produces persistent requests to stop, apparent distress, escalating coercion, or unexpected harmful dynamics, pause and review the setup. Such signals may be generated for many reasons; their uncertainty is a reason for careful examination, not dismissal or sensational claims.
