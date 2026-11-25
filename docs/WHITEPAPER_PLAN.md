@@ -36,6 +36,8 @@ The [AI welfare report](https://arxiv.org/abs/2411.00986) argues for assessment 
 
 The [memory research note](MEMORY_RESEARCH.md) compares temporal claims, revisioned wiki pages, and participant-owned affective memory. Use it to distinguish source events from derived claims and readable histories. Its proposed views are optional and untested in AgentCiv; none supplies evidence of subjective experience.
 
+The [November 2026 institutional design and control synthesis](INSTITUTIONAL_DESIGN_AND_CONTROL_2026_11.md) reviews empirical evidence on coercive containment, evaluation awareness, long-horizon peer collusion, in-group model-family bias, and institutional rules alongside both precautionary and skeptical theories of mind, framing AgentCiv's civic floor as a no-regrets institutional design anchored in three falsifiable comparisons.
+
 ## Gaps the paper should expose
 
 - There is no agreed test that turns an agent's self-report, continuity, behavior, or an internal representation into proof of subjective experience. [Browning and Veit](https://philpapers.org/rec/BROTMP-17) describe indicator validity and extrapolation as measurement problems. Compare theories and state what would change the assessment.
