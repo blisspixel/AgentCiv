@@ -279,4 +279,6 @@ mv "$prefix/previous.new" "$prefix/previous"
 printf '%s\n' "$version" > "$prefix/current.new"
 mv "$prefix/current.new" "$prefix/current"
 printf '%s\n' "Installed AgentCiv $version in $prefix" 'No shell profiles were modified. Add this directory to PATH:' "$prefix/bin" \
-    'First run (offline):' "$prefix/bin/agentciv-archive demo"
+    'Next step (local room): read docs/LOCAL_ENCOUNTER.md in a repository checkout.' \
+    'Native installation supplies the utilities; the Python local room wrapper runs from a checkout.' \
+    'Optional offline check:' "$prefix/bin/agentciv-archive demo"

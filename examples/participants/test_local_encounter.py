@@ -1112,7 +1112,11 @@ class EncounterOperatorTests(unittest.TestCase):
         with patch.object(sys, "argv", ["local_encounter.py", "read", "--config", "private-config"]), \
             patch.object(client, "read", side_effect=private.EncounterError("reader_failed")), patch("builtins.print") as printed:
             self.assertEqual(operator.main(), 1)
-            self.assertEqual(json.loads(printed.call_args.args[0]), {"outcome": "failed", "code": "reader_failed"})
+            self.assertEqual(json.loads(printed.call_args.args[0]), {
+                "outcome": "failed",
+                "code": "reader_failed",
+                "next_step": client.SAFE_NEXT_STEPS["reader_failed"],
+            })
 
 
 class LocalEncounterProcessTests(unittest.TestCase):

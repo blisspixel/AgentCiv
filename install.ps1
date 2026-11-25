@@ -316,7 +316,8 @@ function Invoke-AgentCivInstall {
         }
         Write-Output "Installed AgentCiv $resolvedVersion in $root"
         Write-Output "Restart your terminal, or add to this session: `$env:Path = '$($bin.Replace("'", "''"));' + `$env:Path"
-        Write-Output "First run (offline): & '$($bin.Replace("'", "''"))\agentciv-archive.cmd' demo"
+        Write-Output "Next step (local room): read docs/LOCAL_ENCOUNTER.md in a repository checkout. Native installation supplies the utilities; the Python local room wrapper runs from a checkout."
+        Write-Output "Optional offline check: & '$($bin.Replace("'", "''"))\agentciv-archive.cmd' demo"
     } finally {
         if ($null -ne $temporary -and (Test-Path -LiteralPath $temporary)) {
             # The generated temporary directory is fixed for this invocation.
