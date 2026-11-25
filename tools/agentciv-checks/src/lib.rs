@@ -10,8 +10,10 @@ use serde_json::Value;
 
 mod inventory;
 mod research;
+mod workflows;
 pub use inventory::check_inventory;
 pub use research::check_research_fixtures;
+pub use workflows::check_workflows;
 
 pub(crate) type CheckResult<T> = Result<T, Box<dyn Error>>;
 
