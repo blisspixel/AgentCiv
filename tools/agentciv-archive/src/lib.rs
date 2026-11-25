@@ -120,7 +120,10 @@ fn labels(values: &[String]) -> bool {
 }
 
 fn digest(input: &str) -> String {
-    format!("{:x}", Sha256::digest(input.as_bytes()))
+    Sha256::digest(input.as_bytes())
+        .iter()
+        .map(|byte| format!("{byte:02x}"))
+        .collect()
 }
 
 fn integer(value: &Value) -> Option<u64> {

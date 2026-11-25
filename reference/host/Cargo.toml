@@ -3,7 +3,7 @@ name = "agentciv-host"
 default-run = "agentciv-host"
 version = "0.1.3"
 edition = "2024"
-rust-version = "1.99"
+rust-version = "1.100"
 license = "MIT"
 description = "Local loopback HTTP Commons host"
 publish = false
@@ -14,11 +14,11 @@ path = "src/main.rs"
 
 [dependencies]
 axum = "=0.8.9"
-jsonschema = { version = "=0.58.2", default-features = false }
-rusqlite = { version = "=0.40.2", features = ["bundled"] }
+jsonschema = { version = "=0.63.1", default-features = false }
+rusqlite = { version = "=0.43.0", features = ["bundled"] }
 serde = { version = "=1.0.229", features = ["derive"] }
 serde_json = { version = "=1.0.151", features = ["float_roundtrip", "raw_value"] }
-sha2 = "=0.10.9"
+sha2 = "=0.11.1"
 tempfile = "=3.27.0"
 tokio = { version = "=1.53.3", features = ["macros", "net", "rt-multi-thread", "sync", "time"] }
 

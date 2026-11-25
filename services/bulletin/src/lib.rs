@@ -91,7 +91,10 @@ pub struct Grant {
     pub moderator: bool,
 }
 pub fn token_digest(token: &str) -> String {
-    format!("{:x}", Sha256::digest(token.as_bytes()))
+    Sha256::digest(token.as_bytes())
+        .iter()
+        .map(|byte| format!("{byte:02x}"))
+        .collect()
 }
 pub fn reporting_contact(value: &str) -> Option<&str> {
     let mut parts = value.split('@');

@@ -2,18 +2,18 @@
 name = "agentciv-checks"
 version = "0.1.0"
 edition = "2024"
-rust-version = "1.99"
+rust-version = "1.100"
 license = "MIT"
 description = "Repository checks for AgentCiv documentation and JSON fixtures"
 publish = false
 
 [dependencies]
 agentciv-directory = { path = "../agentciv-directory" }
-jsonschema = { version = "=0.58.2", default-features = false }
+jsonschema = { version = "=0.63.1", default-features = false }
 percent-encoding = "=2.3.2"
-regex = "=1.13.1"
+regex = "=1.13.2"
 serde = { version = "=1.0.229", features = ["derive"] }
-sha2 = "=0.10.9"
+sha2 = "=0.11.1"
 serde_json = "=1.0.151"
 
 [dev-dependencies]

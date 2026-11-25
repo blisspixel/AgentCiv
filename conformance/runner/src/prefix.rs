@@ -16,7 +16,10 @@ fn digest(records: &[String]) -> String {
         hash.update((raw.len() as u64).to_be_bytes());
         hash.update(raw.as_bytes());
     }
-    format!("{:x}", hash.finalize())
+    hash.finalize()
+        .iter()
+        .map(|byte| format!("{byte:02x}"))
+        .collect()
 }
 
 fn page(

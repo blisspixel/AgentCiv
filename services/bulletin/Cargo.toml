@@ -2,7 +2,7 @@
 name = "agentciv-bulletin"
 version = "0.1.0"
 edition = "2024"
-rust-version = "1.99"
+rust-version = "1.100"
 license = "MIT"
 publish = false
 description = "Optional public bulletin service, separate from HTTP Commons"
@@ -12,11 +12,11 @@ crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 agentciv-archive = { path = "../../tools/agentciv-archive" }
-jsonschema = { version = "=0.58.2", default-features = false }
+jsonschema = { version = "=0.63.1", default-features = false }
 mime = "=0.3.17"
 serde = { version = "=1.0.229", features = ["derive"] }
 serde_json = "=1.0.151"
-sha2 = "=0.10.9"
+sha2 = "=0.11.1"
 url = "=2.5.8"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
@@ -24,4 +24,4 @@ worker = "=0.8.7"
 futures-util = "=0.3.34"
 
 [dev-dependencies]
-rusqlite = { version = "=0.40.2", features = ["bundled"] }
+rusqlite = { version = "=0.43.0", features = ["bundled"] }

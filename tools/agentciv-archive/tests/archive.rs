@@ -85,7 +85,10 @@ fn explicit_selection_preserves_bytes_and_excludes_unselected_history() {
     assert_eq!(bundle.entries[0].record_utf8, raw);
     assert_eq!(
         bundle.entries[0].sha256,
-        format!("{:x}", Sha256::digest(raw.as_bytes()))
+        Sha256::digest(raw.as_bytes())
+            .iter()
+            .map(|byte| format!("{byte:02x}"))
+            .collect::<String>()
     );
     let copied = encoded(&bundle);
     let view = inspect(&copied).unwrap();
@@ -133,10 +136,10 @@ fn copy_integrity_does_not_authenticate_a_self_consistently_changed_source() {
     let mut bundle = selected(&[raw], &["event:source"]);
     bundle.entries[0].record_utf8.push('\n');
     assert_eq!(validate(&encoded(&bundle)).unwrap_err(), "digest_mismatch");
-    bundle.entries[0].sha256 = format!(
-        "{:x}",
-        Sha256::digest(bundle.entries[0].record_utf8.as_bytes())
-    );
+    bundle.entries[0].sha256 = Sha256::digest(bundle.entries[0].record_utf8.as_bytes())
+        .iter()
+        .map(|byte| format!("{byte:02x}"))
+        .collect();
     assert!(validate(&encoded(&bundle)).is_ok());
     let view = inspect(&encoded(&bundle)).unwrap();
     assert_eq!(view["copy_integrity"], "matched");
