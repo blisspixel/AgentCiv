@@ -1,9 +1,11 @@
 """Frozen guide-only arrival trial. No test here contacts Ollama or a live host."""
 from __future__ import annotations
 
+import http.server
 import json
 import sys
 import tempfile
+import threading
 import types
 import unittest
 from io import StringIO
@@ -565,6 +567,296 @@ class CommandTests(unittest.TestCase):
                 complete("card")
         self.assertEqual(caught.exception.code, "connection_refused")
         self.assertNotIn("sentence", str(caught.exception))
+
+
+def _start_loopback_server(
+    test: unittest.TestCase,
+    handler_factory: Callable[[], type[http.server.BaseHTTPRequestHandler]],
+) -> str:
+    server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), handler_factory())
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    test.addCleanup(server.server_close)
+    test.addCleanup(server.shutdown)
+    return f"http://127.0.0.1:{server.server_port}"
+
+
+class StepMemoryConditionTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self.state, self.config, self.cache = room(self)
+
+    def test_step_memory_freeze_and_declaration_rejection(self) -> None:
+        checked = guide.check_freeze("step_memory")
+        self.assertEqual(checked["outcome"], "frozen")
+        self.assertEqual(checked["trial"], guide.STEP_MEMORY_TRIAL_ID)
+        self.assertEqual(checked["condition"], "step_memory")
+        code, cli_checked = capture(["check", "--condition", "step_memory"])
+        self.assertEqual(code, 0)
+        self.assertEqual(cli_checked["trial"], guide.STEP_MEMORY_TRIAL_ID)
+
+        manifest = guide.load_manifest("step_memory")
+        card = guide.canonical_bytes(guide.CARD_PATH)
+        operator = guide.canonical_bytes(guide.GUIDE_PATH)
+        mutated = json.loads(json.dumps(manifest))
+        del mutated["disclosure"]
+        with self.assertRaises(guide.TrialError) as caught:
+            guide.verify_freeze(mutated, card, operator, condition="step_memory")
+        self.assertEqual(caught.exception.code, "freeze_mismatch")
+
+        with self.assertRaises(guide.TrialError) as invalid_cond:
+            guide.check_freeze("unknown_condition")
+        self.assertEqual(invalid_cond.exception.code, "invalid_condition")
+
+    def test_step_memory_prompt_includes_step_and_action_labels_only_not_earlier_results(self) -> None:
+        prompts: list[str] = []
+        replies = iter((
+            '{"action":"read"}',
+            '{"action":"read"}',
+            '{"action":"show"}',
+            '{"action":"read"}',
+            '{"action":"quiet"}',
+        ))
+        event_counts = iter((2, 2, 3))
+
+        def complete(prompt: str) -> str:
+            prompts.append(prompt)
+            return next(replies)
+
+        def fake_read(config: Path, save: Path | None = None, *, reader_binary: Path | None = None) -> JsonObject:
+            del config, save, reader_binary
+            return {"outcome": "read", "events": next(event_counts), "pages": 1, "view_path": str(self.cache / "view-0001.json")}
+
+        with patch.object(bound_client(), "read", fake_read), \
+                patch.object(bound_client(), "show", return_value="UNIQUE_SHOW_BODY_MARKER"), \
+                patch.object(bound_client(), "say", side_effect=AssertionError("quiet visit must not publish")):
+            result = guide.visit(self.state, self.config, complete, condition="step_memory")
+
+        self.assertEqual(result["trial"], guide.STEP_MEMORY_TRIAL_ID)
+        self.assertEqual(result["terminal"], "quiet")
+        self.assertEqual(result["publication"], "none")
+        self.assertEqual(result["provider_calls"], 5)
+        self.assertIn("Step 1 of 6. Your earlier actions: none.", prompts[0])
+        self.assertIn("Step 2 of 6. Your earlier actions: read.", prompts[1])
+        self.assertNotIn("new events since last read", prompts[1])
+        self.assertIn("Step 3 of 6. Your earlier actions: read, read. 0 new events since last read.", prompts[2])
+        self.assertIn("Step 4 of 6. Your earlier actions: read, read, show.", prompts[3])
+        self.assertIn("UNIQUE_SHOW_BODY_MARKER", prompts[3])
+        self.assertIn("Step 5 of 6. Your earlier actions: read, read, show, read. 1 new event since last read.", prompts[4])
+        # Earlier show result text must NOT repeat on step 5.
+        self.assertNotIn("UNIQUE_SHOW_BODY_MARKER", prompts[4])
+
+    def test_step_memory_over_mock_loopback_ollama_server(self) -> None:
+        recorded_prompts: list[str] = []
+        replies = iter(('{"action":"read"}', '{"action":"quiet"}'))
+
+        def make_handler() -> type[http.server.BaseHTTPRequestHandler]:
+            class Handler(http.server.BaseHTTPRequestHandler):
+                def log_message(self, format: str, *args: object) -> None:
+                    del format, args
+
+                def do_GET(self) -> None:
+                    if self.path == "/api/tags":
+                        body = json.dumps({"models": [{"name": "local-test"}]}).encode("utf-8")
+                    elif self.path == "/api/version":
+                        body = json.dumps({"version": "0.0.0-test"}).encode("utf-8")
+                    else:
+                        self.send_response(404)
+                        self.end_headers()
+                        return
+                    self.send_response(200)
+                    self.send_header("Content-Type", "application/json")
+                    self.end_headers()
+                    self.wfile.write(body)
+
+                def do_POST(self) -> None:
+                    length = int(self.headers.get("Content-Length", "0"))
+                    payload = json.loads(self.rfile.read(length).decode("utf-8"))
+                    if self.path == "/api/show":
+                        body = json.dumps({"details": {}}).encode("utf-8")
+                    elif self.path == "/api/chat":
+                        recorded_prompts.append(str(payload["messages"][0]["content"]))
+                        body = json.dumps({
+                            "done": True,
+                            "done_reason": "stop",
+                            "message": {"role": "assistant", "content": next(replies)},
+                        }).encode("utf-8")
+                    else:
+                        self.send_response(404)
+                        self.end_headers()
+                        return
+                    self.send_response(200)
+                    self.send_header("Content-Type", "application/json")
+                    self.end_headers()
+                    self.wfile.write(body)
+
+            return Handler
+
+        origin = _start_loopback_server(self, make_handler)
+
+        def fake_read(config: Path, save: Path | None = None, *, reader_binary: Path | None = None) -> JsonObject:
+            del config, save, reader_binary
+            return {"outcome": "read", "events": 0, "pages": 1, "view_path": str(self.cache / "view-0001.json")}
+
+        with patch.object(bound_client(), "read", fake_read):
+            code, result = capture([
+                "run", "--state", str(self.state), "--config", str(self.config),
+                "--model", "local-test", "--origin", origin, "--condition", "step_memory",
+            ])
+        self.assertEqual(code, 0)
+        self.assertEqual(result["trial"], guide.STEP_MEMORY_TRIAL_ID)
+        self.assertEqual(result["terminal"], "quiet")
+        self.assertEqual(len(recorded_prompts), 2)
+        self.assertIn("Step 1 of 6. Your earlier actions: none.", recorded_prompts[0])
+        self.assertIn("Step 2 of 6. Your earlier actions: read.", recorded_prompts[1])
+
+
+class OpenAICompatConditionTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self.state, self.config, self.cache = room(self)
+
+    def test_openai_compat_freeze_and_cli_check(self) -> None:
+        checked = guide.check_freeze("openai_compat")
+        self.assertEqual(checked["outcome"], "frozen")
+        self.assertEqual(checked["trial"], guide.OPENAI_COMPAT_TRIAL_ID)
+        self.assertEqual(checked["condition"], "openai_compat")
+        code, cli_checked = capture(["check", "--condition", "openai_compat"])
+        self.assertEqual(code, 0)
+        self.assertEqual(cli_checked["trial"], guide.OPENAI_COMPAT_TRIAL_ID)
+
+    def test_openai_compat_loopback_server_sends_json_schema_and_completes_quiet(self) -> None:
+        seen_requests: list[JsonObject] = []
+        replies = iter(('{"action":"read"}', '{"action":"quiet"}'))
+
+        def make_handler() -> type[http.server.BaseHTTPRequestHandler]:
+            class Handler(http.server.BaseHTTPRequestHandler):
+                def log_message(self, format: str, *args: object) -> None:
+                    del format, args
+
+                def do_POST(self) -> None:
+                    if self.path != "/v1/chat/completions":
+                        self.send_response(404)
+                        self.end_headers()
+                        return
+                    length = int(self.headers.get("Content-Length", "0"))
+                    payload = json.loads(self.rfile.read(length).decode("utf-8"))
+                    seen_requests.append(payload)
+                    body = json.dumps({
+                        "choices": [{"message": {"role": "assistant", "content": next(replies)}}],
+                    }).encode("utf-8")
+                    self.send_response(200)
+                    self.send_header("Content-Type", "application/json")
+                    self.end_headers()
+                    self.wfile.write(body)
+
+            return Handler
+
+        origin = _start_loopback_server(self, make_handler)
+
+        def fake_read(config: Path, save: Path | None = None, *, reader_binary: Path | None = None) -> JsonObject:
+            del config, save, reader_binary
+            return {"outcome": "read", "events": 0, "pages": 1, "view_path": str(self.cache / "view-0001.json")}
+
+        with patch.object(bound_client(), "read", fake_read), \
+                patch.object(bound_client(), "say", side_effect=AssertionError("quiet visit must not publish")):
+            code, result = capture([
+                "run", "--state", str(self.state), "--config", str(self.config),
+                "--model", "local-gguf", "--origin", origin, "--condition", "openai_compat",
+            ])
+
+        self.assertEqual(code, 0)
+        self.assertEqual(result["trial"], guide.OPENAI_COMPAT_TRIAL_ID)
+        self.assertEqual(result["terminal"], "quiet")
+        self.assertEqual(result["publication"], "none")
+        self.assertEqual(result["provider_calls"], 2)
+        self.assertEqual(len(seen_requests), 2)
+        first = seen_requests[0]
+        self.assertEqual(first["model"], "local-gguf")
+        self.assertEqual(first["stream"], False)
+        self.assertEqual(first["temperature"], 0.4)
+        self.assertEqual(first["seed"], 42)
+        self.assertEqual(first["max_tokens"], 1024)
+        response_format = first["response_format"]
+        self.assertIsInstance(response_format, dict)
+        if not isinstance(response_format, dict):
+            raise AssertionError("response_format")
+        self.assertEqual(response_format["type"], "json_schema")
+        json_schema = response_format["json_schema"]
+        self.assertIsInstance(json_schema, dict)
+        if not isinstance(json_schema, dict):
+            raise AssertionError("json_schema")
+        self.assertEqual(json_schema["name"], "guide_arrival_action")
+        self.assertEqual(json_schema["schema"], guide._action_schema())
+        # Control prompt representation must not include step-memory line.
+        messages = first["messages"]
+        self.assertIsInstance(messages, list)
+        if not isinstance(messages, list) or not isinstance(messages[0], dict):
+            raise AssertionError("messages")
+        self.assertNotIn("Your earlier actions:", str(messages[0]["content"]))
+
+    def test_openai_compat_rejects_non_loopback_origin_and_invalid_model_without_journal(self) -> None:
+        for bad_origin in (
+            "https://api.openai.com",
+            "http://example.com:8080",
+            "http://user:pass@127.0.0.1:8080",
+            "http://127.0.0.1:8080/v1",
+        ):
+            with self.subTest(origin=bad_origin):
+                code, failed = capture([
+                    "run", "--state", str(self.state), "--config", str(self.config),
+                    "--model", "local-gguf", "--origin", bad_origin, "--condition", "openai_compat",
+                ])
+                self.assertEqual(code, 1)
+                self.assertEqual(failed["code"], "non_loopback_origin")
+                self.assertFalse((self.state / guide.JOURNAL_NAME).exists())
+
+        with self.assertRaises(guide.TrialError) as caught:
+            guide.openai_compat_complete("http://127.0.0.1:8080", "   ")
+        self.assertEqual(caught.exception.code, "invalid_model")
+
+    def test_openai_compat_failure_paths_map_to_closed_provider_codes(self) -> None:
+        cases: list[tuple[str, int, bytes, dict[str, str], str]] = [
+            ("malformed_json", 200, b"not-json{", {}, "invalid_json"),
+            ("missing_choices", 200, b'{"id":"1"}', {}, "invalid_json"),
+            ("http_500", 500, b'{"error":"boom"}', {}, "http_status_500"),
+            ("redirect", 302, b"", {"Location": "http://127.0.0.1:9/v1/chat/completions"}, "redirect_refused"),
+            ("too_large", 200, b"x" * (collaboration.MAX_RESPONSE_BYTES + 10), {}, "response_too_large"),
+            (
+                "credential_reflected",
+                200,
+                json.dumps({"choices": [{"message": {"content": TOKEN}}]}).encode("utf-8"),
+                {},
+                "provider_error",
+            ),
+        ]
+        for name, status, body, headers, expected_code in cases:
+            with self.subTest(case=name):
+                def make_handler(
+                    resp_status: int = status,
+                    resp_body: bytes = body,
+                    resp_headers: dict[str, str] = headers,
+                ) -> type[http.server.BaseHTTPRequestHandler]:
+                    class Handler(http.server.BaseHTTPRequestHandler):
+                        def log_message(self, format: str, *args: object) -> None:
+                            del format, args
+
+                        def do_POST(self) -> None:
+                            length = int(self.headers.get("Content-Length", "0"))
+                            self.rfile.read(length)
+                            self.send_response(resp_status)
+                            for key, value in resp_headers.items():
+                                self.send_header(key, value)
+                            self.end_headers()
+                            self.wfile.write(resp_body)
+
+                    return Handler
+
+                origin = _start_loopback_server(self, make_handler)
+                state, config, _cache = room(self)
+                result = guide.run_live(state, config, "local-gguf", origin, condition="openai_compat")
+                self.assertEqual(result["terminal"], "provider_failed")
+                self.assertEqual(result["provider_code"], expected_code)
+                self.assertEqual(result["publication"], "none")
+                self.assertNotIn(TOKEN, json.dumps(result))
 
 
 if __name__ == "__main__":

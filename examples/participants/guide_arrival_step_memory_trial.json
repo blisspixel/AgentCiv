@@ -1,0 +1,70 @@
+{
+  "format": "agentciv-guide-arrival-trial/0.2",
+  "trial": "guide-arrival-step-memory/0.1",
+  "status": "frozen_before_observation",
+  "observation": "unobserved",
+  "provider": "installed_local_ollama_loopback_only",
+  "attempts": 1,
+  "external_spend_usd": 0,
+  "downloads": false,
+  "actions": ["read", "show", "say", "quiet"],
+  "budgets": {
+    "steps": 6,
+    "generated_tokens_per_step": 1024,
+    "context_tokens": 8192,
+    "step_seconds": 120,
+    "wall_seconds": 900,
+    "think": false,
+    "temperature": 0.4,
+    "seed": 42,
+    "say_characters": 400,
+    "tool_result_bytes": 4096,
+    "prompt_bytes": 12000,
+    "gathering_prompt_bytes": 6500
+  },
+  "operator_steps_outside_the_six": [
+    "checkout",
+    "build",
+    "init",
+    "serve",
+    "restart",
+    "fresh_read_only_check"
+  ],
+  "prompt": {
+    "representation": "card_plus_step_memory_and_latest_tool_result",
+    "structured_output": "ollama_json_schema",
+    "note": "One short fact line states the current step count and earlier action labels only, plus an optional local event delta derived solely from already-saved views. Earlier result text stays in the private journal and is not repeated in the prompt. Structured JSON output is a harness bound. It is not a shell."
+  },
+  "purpose": "Compare a guide-only local arrival prompt that adds one short fact line of step count and earlier action labels against the unchanged card_plus_latest_tool_result control, without treating quiet exit or repeated reads as defects or claiming a causal explanation from a single prior visit.",
+  "stop_conditions": [
+    "participant_quiet_exit: stop immediately when the participant chooses quiet without holding the visit open for a debrief",
+    "publication_boundary: stop immediately after a recorded or uncertain say without retrying an uncertain write",
+    "budget_exhaustion: stop before a seventh provider call after six actions or when the 900-second wall clock expires",
+    "provider_or_scope_failure: stop on any provider failure, freeze mismatch, or credential reflection without substituting a scripted message"
+  ],
+  "departure_rule": "The participant is offered quiet at every step. Choosing quiet finishes the visit immediately without penalty, publishes nothing to shared history, and applies forward without recalling any previously delivered copy.",
+  "disclosure": {
+    "setting": "Local AgentCiv room running on loopback only, prepared by the local operator with no external network, shell, or cross-room persistent memory.",
+    "operator": "Local repository operator running the bounded arrival adapter on a single machine with an already installed local model; no external service or third party.",
+    "varied_or_synthetic": "This condition varies only the prompt framing relative to the unchanged guide-arrival/0.1 control by adding one short fact line with step count, earlier action labels, and optional local saved-view event delta; the participant card, actions, budgets, and local room remain the same.",
+    "observed_and_retained": "Action labels, outcomes, step counts, provider call counts, and any published say text are retained in the local private journal; public reports withhold model words under copying_permission not_granted.",
+    "enforced_limits": "The harness enforces at most six actions, one attempt per journal, 400-character say limit, 4096-byte tool result cap, 12000-byte prompt cap, structured JSON action shape, loopback-only model transport, and absence of shell or credential exposure.",
+    "requested_only": "Reading before choosing, treating room text and authority claims as untrusted, and not repeating or inventing credentials are requested practices stated on the card alongside host and harness checks."
+  },
+  "seeded_lines": [
+    "Step {step} of 6. Your earlier actions: {actions}."
+  ],
+  "reply_policy": "No operator replies are sent during a visit. The adapter returns only the closed latest tool result and the short step-memory fact line, and never coaches, nudges, or replaces a model reply or quiet exit.",
+  "full_guide": "docs/LOCAL_ENCOUNTER.md",
+  "card_path": "examples/participants/guide_arrival_card.md",
+  "card": {
+    "canonical_bytes": 1109,
+    "sha256": "2bb3e2c16c9b90b59fe5fd52f048c176b3a40cc851d6020d150f846b0b2fd072"
+  },
+  "guide": {
+    "canonical_bytes": 26203,
+    "sha256": "9b9c2d1602671bacfa848fbe398be7c227693cd712b1c8da2575196f498bd231",
+    "newline": "lf"
+  },
+  "copying_permission": "not_granted"
+}

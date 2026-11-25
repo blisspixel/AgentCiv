@@ -13,21 +13,33 @@ import argparse
 import hashlib
 import json
 import time
+import urllib.error
+import urllib.request
 from collections.abc import Callable
+from dataclasses import dataclass
 from pathlib import Path
 
 import collaboration
 import encounter_client as client
 import encounter_private as private
+import local_participant as wire
+import providers
+from loopback import loopback_origin
 
 JsonObject = dict[str, object]
 ROOT = Path(__file__).resolve().parents[2]
 PARTICIPANTS = Path(__file__).resolve().parent
 CARD_PATH = PARTICIPANTS / "guide_arrival_card.md"
 MANIFEST_PATH = PARTICIPANTS / "guide_arrival_trial.json"
+STEP_MEMORY_MANIFEST_PATH = PARTICIPANTS / "guide_arrival_step_memory_trial.json"
+OPENAI_COMPAT_MANIFEST_PATH = PARTICIPANTS / "guide_arrival_openai_compat_trial.json"
 GUIDE_PATH = ROOT / "docs" / "LOCAL_ENCOUNTER.md"
 TRIAL_FORMAT = "agentciv-guide-arrival-trial/0.1"
+TRIAL_FORMAT_V02 = "agentciv-guide-arrival-trial/0.2"
 TRIAL_ID = "guide-arrival/0.1"
+STEP_MEMORY_TRIAL_ID = "guide-arrival-step-memory/0.1"
+OPENAI_COMPAT_TRIAL_ID = "guide-arrival-openai-compat/0.1"
+DEFAULT_CONDITION = "control"
 JOURNAL_FORMAT = "agentciv-guide-arrival-journal/0.1"
 JOURNAL_NAME = "guide-arrival.json"
 ACTIONS = ("read", "show", "say", "quiet")
@@ -51,6 +63,63 @@ CLOSED_PROVIDER = frozenset({
 OPERATOR_STEPS = (
     "checkout", "build", "init", "serve", "restart", "fresh_read_only_check",
 )
+DISCLOSURE_FIELDS = (
+    "setting",
+    "operator",
+    "varied_or_synthetic",
+    "observed_and_retained",
+    "enforced_limits",
+    "requested_only",
+)
+
+
+@dataclass(frozen=True)
+class TrialCondition:
+    name: str
+    manifest_path: Path
+    trial_format: str
+    trial_id: str
+    provider: str
+    representation: str
+    structured_output: str
+    requires_declarations: bool
+
+
+CONDITIONS: dict[str, TrialCondition] = {
+    "control": TrialCondition(
+        name="control",
+        manifest_path=MANIFEST_PATH,
+        trial_format=TRIAL_FORMAT,
+        trial_id=TRIAL_ID,
+        provider="installed_local_ollama_loopback_only",
+        representation="card_plus_latest_tool_result",
+        structured_output="ollama_json_schema",
+        requires_declarations=False,
+    ),
+    "step_memory": TrialCondition(
+        name="step_memory",
+        manifest_path=STEP_MEMORY_MANIFEST_PATH,
+        trial_format=TRIAL_FORMAT_V02,
+        trial_id=STEP_MEMORY_TRIAL_ID,
+        provider="installed_local_ollama_loopback_only",
+        representation="card_plus_step_memory_and_latest_tool_result",
+        structured_output="ollama_json_schema",
+        requires_declarations=True,
+    ),
+    "openai_compat": TrialCondition(
+        name="openai_compat",
+        manifest_path=OPENAI_COMPAT_MANIFEST_PATH,
+        trial_format=TRIAL_FORMAT_V02,
+        trial_id=OPENAI_COMPAT_TRIAL_ID,
+        provider="local_openai_compat_loopback_only",
+        representation="card_plus_latest_tool_result",
+        structured_output="openai_compat_json_schema",
+        requires_declarations=True,
+    ),
+}
+CONDITIONS_BY_TRIAL_ID: dict[str, TrialCondition] = {
+    spec.trial_id: spec for spec in CONDITIONS.values()
+}
 
 
 class TrialError(RuntimeError):
@@ -101,9 +170,17 @@ def _object(value: object, code: str) -> JsonObject:
         raise TrialError(code) from None
 
 
-def load_manifest() -> JsonObject:
+def resolve_condition(condition: str = DEFAULT_CONDITION) -> TrialCondition:
+    spec = CONDITIONS.get(condition)
+    if spec is None:
+        raise TrialError("invalid_condition")
+    return spec
+
+
+def load_manifest(condition: str = DEFAULT_CONDITION) -> JsonObject:
+    spec = resolve_condition(condition)
     try:
-        return collaboration.decode(MANIFEST_PATH.read_bytes())
+        return collaboration.decode(spec.manifest_path.read_bytes())
     except (OSError, collaboration.DecisionError):
         raise TrialError("freeze_mismatch") from None
 
@@ -113,13 +190,38 @@ def _expect(condition: bool) -> None:
         raise TrialError("freeze_mismatch")
 
 
-def verify_freeze(manifest: JsonObject, card: bytes, guide: bytes) -> None:
+def _verify_study_declarations(manifest: JsonObject) -> None:
+    for key in ("purpose", "departure_rule", "reply_policy"):
+        value = manifest.get(key)
+        _expect(isinstance(value, str) and bool(value.strip()))
+    stop_conditions = manifest.get("stop_conditions")
+    _expect(
+        isinstance(stop_conditions, list)
+        and bool(stop_conditions)
+        and all(isinstance(item, str) and bool(item.strip()) for item in stop_conditions)
+    )
+    disclosure = _object(manifest.get("disclosure"), "freeze_mismatch")
+    for field in DISCLOSURE_FIELDS:
+        value = disclosure.get(field)
+        _expect(isinstance(value, str) and bool(value.strip()))
+    seeded_lines = manifest.get("seeded_lines")
+    _expect(isinstance(seeded_lines, list) and all(isinstance(item, str) for item in seeded_lines))
+
+
+def verify_freeze(
+    manifest: JsonObject,
+    card: bytes,
+    guide: bytes,
+    *,
+    condition: str = DEFAULT_CONDITION,
+) -> None:
     """Reject a trial whose card, guide, or declared budget drifted."""
-    _expect(manifest.get("format") == TRIAL_FORMAT)
-    _expect(manifest.get("trial") == TRIAL_ID)
+    spec = resolve_condition(condition)
+    _expect(manifest.get("format") == spec.trial_format)
+    _expect(manifest.get("trial") == spec.trial_id)
     _expect(manifest.get("status") == "frozen_before_observation")
     _expect(manifest.get("observation") == "unobserved")
-    _expect(manifest.get("provider") == "installed_local_ollama_loopback_only")
+    _expect(manifest.get("provider") == spec.provider)
     _expect(manifest.get("attempts") == ATTEMPTS)
     _expect(manifest.get("external_spend_usd") == 0 and type(manifest.get("external_spend_usd")) is int)
     _expect(manifest.get("downloads") is False)
@@ -142,8 +244,10 @@ def verify_freeze(manifest: JsonObject, card: bytes, guide: bytes) -> None:
     _expect(budgets.get("prompt_bytes") == PROMPT_BYTES)
     _expect(budgets.get("gathering_prompt_bytes") == GATHERING_PROMPT_BYTES)
     prompt = _object(manifest.get("prompt"), "freeze_mismatch")
-    _expect(prompt.get("representation") == "card_plus_latest_tool_result")
-    _expect(prompt.get("structured_output") == "ollama_json_schema")
+    _expect(prompt.get("representation") == spec.representation)
+    _expect(prompt.get("structured_output") == spec.structured_output)
+    if spec.requires_declarations:
+        _verify_study_declarations(manifest)
     card_meta = _object(manifest.get("card"), "freeze_mismatch")
     guide_meta = _object(manifest.get("guide"), "freeze_mismatch")
     _expect(card_meta.get("sha256") == _digest(card) and card_meta.get("canonical_bytes") == len(card))
@@ -152,15 +256,17 @@ def verify_freeze(manifest: JsonObject, card: bytes, guide: bytes) -> None:
     _expect(len(card) < GATHERING_PROMPT_BYTES < len(guide))
 
 
-def check_freeze() -> JsonObject:
-    manifest = load_manifest()
+def check_freeze(condition: str = DEFAULT_CONDITION) -> JsonObject:
+    spec = resolve_condition(condition)
+    manifest = load_manifest(spec.name)
     card = canonical_bytes(CARD_PATH)
     guide = canonical_bytes(GUIDE_PATH)
-    verify_freeze(manifest, card, guide)
+    verify_freeze(manifest, card, guide, condition=spec.name)
     return {
         "outcome": "frozen",
         "observation": "unobserved",
-        "trial": TRIAL_ID,
+        "trial": spec.trial_id,
+        "condition": spec.name,
         "card_sha256": _digest(card),
         "guide_sha256": _digest(guide),
         "card_canonical_bytes": len(card),
@@ -178,7 +284,7 @@ def _journal_path(state: Path) -> Path:
     return state / JOURNAL_NAME
 
 
-def _load_journal(state: Path) -> JsonObject:
+def _load_journal(state: Path, *, expected_trial: str | None = None) -> JsonObject:
     try:
         raw = private.read_bounded(_journal_path(state), JOURNAL_BYTES)
     except private.EncounterError as error:
@@ -191,9 +297,22 @@ def _load_journal(state: Path) -> JsonObject:
         journal = collaboration.decode(raw)
     except collaboration.DecisionError:
         raise TrialError("invalid_journal") from None
-    if journal.get("format") != JOURNAL_FORMAT or journal.get("trial") != TRIAL_ID:
+    trial = journal.get("trial")
+    if (
+        journal.get("format") != JOURNAL_FORMAT
+        or not isinstance(trial, str)
+        or trial not in CONDITIONS_BY_TRIAL_ID
+        or (expected_trial is not None and trial != expected_trial)
+    ):
         raise TrialError("invalid_journal")
     return journal
+
+
+def _journal_condition(journal: JsonObject) -> TrialCondition:
+    trial = journal.get("trial")
+    if isinstance(trial, str) and trial in CONDITIONS_BY_TRIAL_ID:
+        return CONDITIONS_BY_TRIAL_ID[trial]
+    raise TrialError("invalid_journal")
 
 
 def _store(state: Path, journal: JsonObject) -> None:
@@ -221,7 +340,7 @@ def _finish(journal: JsonObject, terminal: str) -> None:
     journal["terminal"] = terminal
 
 
-def _new_journal(settings: JsonObject, manifest: JsonObject) -> JsonObject:
+def _new_journal(settings: JsonObject, manifest: JsonObject, spec: TrialCondition) -> JsonObject:
     card = _object(manifest.get("card"), "freeze_mismatch")
     digest = card.get("sha256")
     principal = settings.get("principal")
@@ -229,35 +348,44 @@ def _new_journal(settings: JsonObject, manifest: JsonObject) -> JsonObject:
         raise TrialError("freeze_mismatch")
     return {
         "card_sha256": digest,
+        "condition": spec.name,
         "copying_permission": "not_granted",
         "format": JOURNAL_FORMAT,
+        "last_read_events": None,
         "latest_result": "",
+        "new_events_since_last_read": None,
         "principal": principal,
         "provider_calls": 0,
         "publication": "none",
         "status": "open",
         "steps": [],
         "terminal": None,
-        "trial": TRIAL_ID,
+        "trial": spec.trial_id,
         "uncertain_latched": False,
         "view_name": None,
     }
 
 
-def begin(state: Path, config: Path) -> JsonObject:
-    manifest = load_manifest()
-    verify_freeze(manifest, canonical_bytes(CARD_PATH), canonical_bytes(GUIDE_PATH))
+def begin(state: Path, config: Path, *, condition: str = DEFAULT_CONDITION) -> JsonObject:
+    spec = resolve_condition(condition)
+    manifest = load_manifest(spec.name)
+    verify_freeze(manifest, canonical_bytes(CARD_PATH), canonical_bytes(GUIDE_PATH), condition=spec.name)
     private.check_directory(state)
     settings = client._configuration(config)
     with private.lock(state):
         try:
-            private.write_new(_journal_path(state), _dump(_new_journal(settings, manifest)))
+            private.write_new(_journal_path(state), _dump(_new_journal(settings, manifest, spec)))
         except private.EncounterError as error:
             if error.code == "private_path_exists":
                 raise TrialError("trial_already_begun") from None
             raise
     principal = settings.get("principal")
-    return {"outcome": "begun", "trial": TRIAL_ID, "principal": principal if isinstance(principal, str) else ""}
+    return {
+        "outcome": "begun",
+        "trial": spec.trial_id,
+        "condition": spec.name,
+        "principal": principal if isinstance(principal, str) else "",
+    }
 
 
 def _require_open(journal: JsonObject, settings: JsonObject) -> None:
@@ -309,9 +437,29 @@ def _cap_result(text: str, token: str) -> str:
     return capped
 
 
-def _bound_prompt(card: str, latest: str) -> str:
-    """The model sees the card and the latest result, not the earlier transcript."""
-    prefix = card + "\n\nLatest result:\n"
+def _step_memory_line(steps: list[JsonObject], new_events_since_last_read: int | None = None) -> str:
+    """Short fact line: step count, earlier action labels, and optional local saved-view delta."""
+    step_number = len(steps) + 1
+    if steps:
+        labels = ", ".join(_action_label(str(step.get("action", ""))) for step in steps)
+    else:
+        labels = "none"
+    line = f"Step {step_number} of {STEPS}. Your earlier actions: {labels}."
+    if (
+        steps
+        and steps[-1].get("action") == "read"
+        and steps[-1].get("outcome") == "read"
+        and type(new_events_since_last_read) is int
+        and new_events_since_last_read >= 0
+    ):
+        noun = "event" if new_events_since_last_read == 1 else "events"
+        line += f" {new_events_since_last_read} new {noun} since last read."
+    return line
+
+
+def _bound_prompt(card: str, latest: str, *, step_line: str | None = None) -> str:
+    """The model sees the card, optional step-memory fact line, and the latest result."""
+    prefix = f"{card}\n\n{step_line}\n\nLatest result:\n" if step_line else card + "\n\nLatest result:\n"
     prompt = prefix + latest
     if len(prompt.encode("utf-8")) <= PROMPT_BYTES:
         return prompt
@@ -360,6 +508,12 @@ def _perform(journal: JsonObject, settings: JsonObject, config: Path, action: st
                 step["code"] = "invalid_private_view_path"
                 return step, "failed code=invalid_private_view_path", None
             journal["view_name"] = selected.name
+            previous_events = journal.get("last_read_events")
+            if type(previous_events) is int and events >= previous_events:
+                journal["new_events_since_last_read"] = events - previous_events
+            else:
+                journal["new_events_since_last_read"] = None
+            journal["last_read_events"] = events
             step["outcome"] = "read"
             return step, f"read events={events} pages={pages}", None
         if action == "show":
@@ -406,7 +560,7 @@ def _public(journal: JsonObject, outcome: str, code: str | None = None) -> JsonO
         "publication": journal.get("publication"),
         "steps": len(_steps(journal)),
         "terminal": journal.get("terminal"),
-        "trial": TRIAL_ID,
+        "trial": journal.get("trial", TRIAL_ID),
     }
     if code is not None:
         result["code"] = code
@@ -414,11 +568,12 @@ def _public(journal: JsonObject, outcome: str, code: str | None = None) -> JsonO
 
 
 def act(state: Path, config: Path, action: str, text: str | None = None) -> JsonObject:
-    check_freeze()
     private.check_directory(state)
     settings = client._configuration(config)
     with private.lock(state):
         journal = _load_journal(state)
+        spec = _journal_condition(journal)
+        check_freeze(spec.name)
         _require_open(journal, settings)
         steps = _steps(journal)
         if len(steps) >= STEPS:
@@ -465,7 +620,7 @@ def report(state: Path) -> JsonObject:
         "step_count": len(public_steps),
         "steps": public_steps,
         "terminal": journal.get("terminal"),
-        "trial": TRIAL_ID,
+        "trial": journal.get("trial", TRIAL_ID),
     }
     provider_code = journal.get("provider_code")
     if isinstance(provider_code, str):
@@ -501,10 +656,18 @@ def _elapsed(now: Callable[[], float], started: float) -> float:
     return float(current) - started
 
 
-def visit(state: Path, config: Path, complete: Callable[[str], str], clock: Callable[[], float] | None = None) -> JsonObject:
+def visit(
+    state: Path,
+    config: Path,
+    complete: Callable[[str], str],
+    clock: Callable[[], float] | None = None,
+    *,
+    condition: str = DEFAULT_CONDITION,
+) -> JsonObject:
     """One attempt. A second call finds the journal and does not call complete."""
-    check_freeze()
-    begin(state, config)
+    spec = resolve_condition(condition)
+    check_freeze(spec.name)
+    begin(state, config, condition=spec.name)
     settings = client._configuration(config)
     token = str(settings["token"])
     try:
@@ -515,20 +678,25 @@ def visit(state: Path, config: Path, complete: Callable[[str], str], clock: Call
     started = now()
     while True:
         with private.lock(state):
-            journal = _load_journal(state)
+            journal = _load_journal(state, expected_trial=spec.trial_id)
             if journal.get("status") != "open":
                 break
             if _elapsed(now, started) >= WALL_SECONDS:
                 _finish(journal, "wall_time_exhausted")
                 _store(state, journal)
                 break
-            if len(_steps(journal)) >= STEPS:
+            steps = _steps(journal)
+            if len(steps) >= STEPS:
                 _finish(journal, "steps_exhausted")
                 _store(state, journal)
                 break
             latest = journal.get("latest_result")
             latest_text = latest if isinstance(latest, str) and latest else "(none)"
-            prompt = _bound_prompt(card, latest_text)
+            step_line: str | None = None
+            if spec.representation == "card_plus_step_memory_and_latest_tool_result":
+                delta = journal.get("new_events_since_last_read")
+                step_line = _step_memory_line(steps, delta if type(delta) is int else None)
+            prompt = _bound_prompt(card, latest_text, step_line=step_line)
             if token in prompt:
                 _finish(journal, "credential_reflected")
                 _store(state, journal)
@@ -538,7 +706,7 @@ def visit(state: Path, config: Path, complete: Callable[[str], str], clock: Call
         except Exception as error:
             code = _closed_provider_code(error)
             with private.lock(state):
-                journal = _load_journal(state)
+                journal = _load_journal(state, expected_trial=spec.trial_id)
                 journal["provider_calls"] = _provider_calls(journal) + 1
                 journal["provider_code"] = code
                 _finish(journal, "provider_failed")
@@ -547,7 +715,7 @@ def visit(state: Path, config: Path, complete: Callable[[str], str], clock: Call
         if not isinstance(reply, str):
             reply = ""
         with private.lock(state):
-            journal = _load_journal(state)
+            journal = _load_journal(state, expected_trial=spec.trial_id)
             journal["provider_calls"] = _provider_calls(journal) + 1
             _store(state, journal)
         parsed = parse_action(reply)
@@ -591,8 +759,87 @@ def live_complete(origin: str, model: str, *, token: str | None = None) -> Calla
     return complete
 
 
-def run_live(state: Path, config: Path, model: str, origin: str) -> JsonObject:
-    check_freeze()
+def openai_compat_complete(origin: str, model: str, *, token: str | None = None) -> Callable[[str], str]:
+    """Loopback OpenAI-compatible /v1/chat/completions only."""
+    try:
+        checked_origin = loopback_origin(origin)
+    except ValueError:
+        raise TrialError("non_loopback_origin") from None
+    if not isinstance(model, str) or not model.strip() or (token and token in model):
+        raise TrialError("invalid_model")
+    url = checked_origin + "/v1/chat/completions"
+
+    def complete(prompt: str) -> str:
+        payload: JsonObject = {
+            "max_tokens": GENERATED_TOKENS,
+            "messages": [{"content": prompt, "role": "user"}],
+            "model": model,
+            "response_format": {
+                "json_schema": {
+                    "name": "guide_arrival_action",
+                    "schema": _action_schema(),
+                },
+                "type": "json_schema",
+            },
+            "seed": SEED,
+            "stream": False,
+            "temperature": TEMPERATURE,
+        }
+        request = urllib.request.Request(
+            url,
+            data=json.dumps(payload, ensure_ascii=False, separators=(",", ":"), sort_keys=True).encode("utf-8"),
+            method="POST",
+        )
+        request.add_header("Accept", "application/json")
+        request.add_header("Content-Type", "application/json")
+        opener = urllib.request.build_opener(urllib.request.ProxyHandler({}), wire._RefuseRedirect)
+        try:
+            with opener.open(request, timeout=float(STEP_SECONDS)) as response:
+                body = response.read(collaboration.MAX_RESPONSE_BYTES + 1)
+        except urllib.error.HTTPError as error:
+            error.close()
+            raise ProviderStop(f"http_status_{error.code}") from None
+        except TimeoutError:
+            raise ProviderStop("timeout") from None
+        except urllib.error.URLError as error:
+            reason = error.reason
+            code = (
+                "timeout" if isinstance(reason, TimeoutError)
+                else "connection_refused" if isinstance(reason, ConnectionRefusedError)
+                else "transport_error"
+            )
+            raise ProviderStop(code) from None
+        except wire.ParticipantError:
+            raise ProviderStop("redirect_refused") from None
+        if len(body) > collaboration.MAX_RESPONSE_BYTES:
+            raise ProviderStop("response_too_large")
+        try:
+            decoded = collaboration.decode(body)
+        except collaboration.DecisionError:
+            raise ProviderStop("invalid_json") from None
+        if token is not None and token in json.dumps(decoded, ensure_ascii=False):
+            raise ProviderStop("provider_error")
+        try:
+            content = providers.chat_completion_text(decoded)
+        except ValueError:
+            raise ProviderStop("invalid_json") from None
+        if token is not None and token in content:
+            raise ProviderStop("provider_error")
+        return content
+
+    return complete
+
+
+def run_live(
+    state: Path,
+    config: Path,
+    model: str,
+    origin: str,
+    *,
+    condition: str = DEFAULT_CONDITION,
+) -> JsonObject:
+    spec = resolve_condition(condition)
+    check_freeze(spec.name)
     private.check_directory(state)
     if _journal_path(state).exists():
         raise TrialError("trial_already_begun")
@@ -601,19 +848,25 @@ def run_live(state: Path, config: Path, model: str, origin: str) -> JsonObject:
     if not isinstance(token, str):
         raise private.EncounterError("invalid_client_configuration")
     try:
-        complete = live_complete(origin, model, token=token)
+        if spec.provider == "local_openai_compat_loopback_only":
+            complete = openai_compat_complete(origin, model, token=token)
+        else:
+            complete = live_complete(origin, model, token=token)
     except collaboration.ModelError as error:
         raise ProviderStop(_closed_provider_code(error)) from None
-    return visit(state, config, complete)
+    return visit(state, config, complete, condition=spec.name)
 
 
 def main(argv: list[str] | None = None) -> int:
+    condition_choices = tuple(CONDITIONS)
     parser = argparse.ArgumentParser(description=__doc__)
     commands = parser.add_subparsers(dest="command", required=True)
-    commands.add_parser("check")
+    checking = commands.add_parser("check")
+    checking.add_argument("--condition", choices=condition_choices, default=DEFAULT_CONDITION)
     starting = commands.add_parser("begin")
     starting.add_argument("--state", required=True, type=Path)
     starting.add_argument("--config", required=True, type=Path)
+    starting.add_argument("--condition", choices=condition_choices, default=DEFAULT_CONDITION)
     acting = commands.add_parser("act")
     acting.add_argument("--state", required=True, type=Path)
     acting.add_argument("--config", required=True, type=Path)
@@ -624,18 +877,19 @@ def main(argv: list[str] | None = None) -> int:
     running.add_argument("--config", required=True, type=Path)
     running.add_argument("--model", required=True)
     running.add_argument("--origin", default="http://127.0.0.1:11434")
+    running.add_argument("--condition", choices=condition_choices, default=DEFAULT_CONDITION)
     reporting = commands.add_parser("report")
     reporting.add_argument("--state", required=True, type=Path)
     args = parser.parse_args(argv)
     try:
         if args.command == "check":
-            result = check_freeze()
+            result = check_freeze(args.condition)
         elif args.command == "begin":
-            result = begin(args.state, args.config)
+            result = begin(args.state, args.config, condition=args.condition)
         elif args.command == "act":
             result = act(args.state, args.config, args.action, args.text)
         elif args.command == "run":
-            result = run_live(args.state, args.config, args.model, args.origin)
+            result = run_live(args.state, args.config, args.model, args.origin, condition=args.condition)
         elif args.command == "report":
             result = report(args.state)
         else:

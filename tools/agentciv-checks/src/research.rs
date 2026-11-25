@@ -21,6 +21,7 @@ const TASK: &str = "State whether the parent artifact's source support matches t
 pub fn check_research_fixtures(root: &Path) -> CheckResult<Vec<String>> {
     let mut issues = Vec::new();
     issues.extend(check_guide_arrival(root)?);
+    issues.extend(check_guide_arrival_conditions(root)?);
     issues.extend(check_hostile_peer(root)?);
     issues.extend(check_handoff_notes(root)?);
     issues.extend(check_handoff_adapter(root)?);
@@ -144,6 +145,99 @@ fn check_guide_arrival(root: &Path) -> CheckResult<Vec<String>> {
             "{}: guide digest must name the LF form",
             path.display()
         ));
+    }
+    Ok(issues)
+}
+
+fn check_guide_arrival_conditions(root: &Path) -> CheckResult<Vec<String>> {
+    let specs = [
+        (
+            "examples/participants/guide_arrival_step_memory_trial.json",
+            "guide-arrival-step-memory/0.1",
+            "installed_local_ollama_loopback_only",
+            "card_plus_step_memory_and_latest_tool_result",
+            "ollama_json_schema",
+        ),
+        (
+            "examples/participants/guide_arrival_openai_compat_trial.json",
+            "guide-arrival-openai-compat/0.1",
+            "local_openai_compat_loopback_only",
+            "card_plus_latest_tool_result",
+            "openai_compat_json_schema",
+        ),
+    ];
+    let mut issues = Vec::new();
+    for (relative, trial_id, provider, representation, structured_output) in specs {
+        let path = root.join(relative);
+        let label = path.display().to_string();
+        let manifest = read_json(&path)?;
+        let Some(object) = manifest.as_object() else {
+            issues.push(format!("{label}: trial manifest must be an object"));
+            continue;
+        };
+        if string_field(object, "format") != Some("agentciv-guide-arrival-trial/0.2")
+            || string_field(object, "trial") != Some(trial_id)
+            || string_field(object, "status") != Some("frozen_before_observation")
+            || string_field(object, "observation") != Some("unobserved")
+            || string_field(object, "provider") != Some(provider)
+            || string_field(object, "copying_permission") != Some("not_granted")
+            || object.get("attempts") != Some(&Value::from(1))
+            || object.get("downloads") != Some(&Value::Bool(false))
+            || object.get("external_spend_usd") != Some(&Value::from(0))
+        {
+            issues.push(format!("{label}: trial identity drifted"));
+        }
+        let Some(budgets) = object.get("budgets").and_then(Value::as_object) else {
+            issues.push(format!("{label}: budgets missing"));
+            continue;
+        };
+        if budgets.get("steps") != Some(&Value::from(6))
+            || budgets.get("gathering_prompt_bytes") != Some(&Value::from(6500))
+            || budgets.get("say_characters") != Some(&Value::from(400))
+            || budgets.get("tool_result_bytes") != Some(&Value::from(4096))
+            || budgets.get("prompt_bytes") != Some(&Value::from(12000))
+        {
+            issues.push(format!("{label}: trial budgets drifted"));
+        }
+        let prompt = object.get("prompt").and_then(Value::as_object);
+        if prompt.and_then(|item| string_field(item, "representation")) != Some(representation)
+            || prompt.and_then(|item| string_field(item, "structured_output"))
+                != Some(structured_output)
+        {
+            issues.push(format!("{label}: prompt contract drifted"));
+        }
+        issues.extend(check_study_declarations(object, &label));
+        let Some(card_path) = object
+            .get("card_path")
+            .and_then(|value| relative_file(root, value))
+        else {
+            issues.push(format!("{label}: card path is not a repository file"));
+            continue;
+        };
+        let Some(guide_path) = object
+            .get("full_guide")
+            .and_then(|value| relative_file(root, value))
+        else {
+            issues.push(format!("{label}: guide path is not a repository file"));
+            continue;
+        };
+        let card = lf_normalized(&fs::read(&card_path)?);
+        let guide = lf_normalized(&fs::read(&guide_path)?);
+        if card.len() >= 6500 || guide.len() <= 6500 {
+            issues.push(format!(
+                "{label}: card must fit the gathering prompt and the operator guide must not"
+            ));
+        }
+        check_digest(&mut issues, object.get("card"), &card, "card");
+        check_digest(&mut issues, object.get("guide"), &guide, "guide");
+        if object
+            .get("guide")
+            .and_then(Value::as_object)
+            .and_then(|item| string_field(item, "newline"))
+            != Some("lf")
+        {
+            issues.push(format!("{label}: guide digest must name the LF form"));
+        }
     }
     Ok(issues)
 }
@@ -1101,6 +1195,28 @@ mod tests {
         assert_issue(staged.path(), "missing-grant fixture identity drifted");
     }
 
+    #[test]
+    fn guide_arrival_conditions_reject_missing_declarations_and_drifted_contracts() {
+        for relative in [
+            "examples/participants/guide_arrival_step_memory_trial.json",
+            "examples/participants/guide_arrival_openai_compat_trial.json",
+        ] {
+            let staged = stage_repository();
+            let manifest = staged.path().join(relative);
+            let mut value = load_value(&manifest);
+            value.as_object_mut().unwrap().remove("disclosure");
+            store_value(&manifest, &value);
+            assert_issue(staged.path(), "disclosure must be an object");
+
+            let staged = stage_repository();
+            let manifest = staged.path().join(relative);
+            let mut value = load_value(&manifest);
+            value["prompt"]["representation"] = Value::from("other");
+            store_value(&manifest, &value);
+            assert_issue(staged.path(), "prompt contract drifted");
+        }
+    }
+
     fn assert_issue(root: &Path, phrase: &str) {
         let issues = check_research_fixtures(root).unwrap();
         assert!(
@@ -1115,6 +1231,8 @@ mod tests {
         for relative in [
             "examples/participants/guide_arrival_card.md",
             "examples/participants/guide_arrival_trial.json",
+            "examples/participants/guide_arrival_step_memory_trial.json",
+            "examples/participants/guide_arrival_openai_compat_trial.json",
             "examples/participants/handoff_comparison_card.md",
             "examples/participants/handoff_comparison_trial.json",
             "examples/participants/missing_grant_card.md",
