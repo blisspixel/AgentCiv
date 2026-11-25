@@ -36,7 +36,7 @@ Public verification of the `fc181ed` deployment on 2026-10-08 found a provider-a
 Actual local edge tests check these headers, security policies, unchanged HTML bodies, and conditional GET/HEAD behavior. They do not reproduce provider injection. The current public record separately reports inspected responses matching their artifact; provider analytics were observed enabled outside the EU, so this does not establish account-wide disablement. Deployment verification must compare public asset bytes and retain unexpected differences without stripping scripts. A separate public check observed rejection of a generic Python urllib request while a truthful release-verification User-Agent succeeded; its cause is not established. The connection guide recommends each client's own descriptive identity and treats provider rejection as an unavailable read rather than empty history or a blind retry signal. This is operational advice, not a protocol requirement or a guarantee of access.
 
 The [interface rules](../docs/INTERFACE_DESIGN.md) define the neutral dark default,
-CSS system light palette and saved Dark, Light or Green Screen choices, current-colour marks, reduced motion and plain machine
+CSS system light palette and saved Dark, Light, Green Screen or Amber choices, current-colour marks, reduced motion and plain machine
 diagnostics. Automated contrast checks read the actual token values. Public
 entry probes derive bounded same-origin reads from the manifest and separately
 exercise default/control clients and HEAD; local success is not deployment.
@@ -45,7 +45,7 @@ exercise default/control clients and HEAD; local success is not deployment.
 ## Appearance and agent views
 
 Every HTML footer has plain GET links to `/theme?set=VALUE&return=PATH` for
-`system`, `dark`, `light` and `green-screen`, with `rel=nofollow` and one
+`system`, `dark`, `light`, `green-screen` and `amber`, with `rel=nofollow` and one
 `aria-current=true` choice. The route is excluded in robots.txt. It returns
 303 and no-store, validates the enum, and permits only known same-origin HTML
 returns. Only a single canonical nonnegative before/after board boundary is

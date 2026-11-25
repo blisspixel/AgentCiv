@@ -506,6 +506,11 @@ fn readable_routes_have_complete_navigation_and_resolvable_catalog_links() {
     let headers = fs::read_to_string(temporary.path().join("_headers")).unwrap();
     assert!(headers.contains("default-src 'none'"));
     assert!(headers.contains("form-action 'none'"));
+    let robots = fs::read_to_string(temporary.path().join("robots.txt")).unwrap();
+    assert_eq!(
+        robots,
+        "User-agent: *\nContent-Signal: ai-train=yes, search=yes, ai-input=yes\nAllow: /\nDisallow: /theme\nSitemap: https://agentciv.io/sitemap.xml\n"
+    );
 }
 
 #[test]

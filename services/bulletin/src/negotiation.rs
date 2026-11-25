@@ -1,7 +1,9 @@
 //! Select root representations without overriding explicit exclusions.
 
+#[cfg(any(test, target_arch = "wasm32"))]
 use crate::Problem;
 
+#[cfg(any(test, target_arch = "wasm32"))]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub(crate) enum RootView {
     Machine,
@@ -27,19 +29,8 @@ fn quality(value: &str) -> Option<u16> {
     }
 }
 
-pub(crate) fn root_view(accept: Option<&str>) -> Result<RootView, Problem> {
-    let Some(accept) = accept.filter(|value| !value.trim().is_empty()) else {
-        return Ok(RootView::Machine);
-    };
-    let representations = [
-        mime::APPLICATION_JSON,
-        mime::TEXT_HTML_UTF_8,
-        "text/markdown; charset=utf-8"
-            .parse()
-            .expect("constant MIME"),
-        mime::TEXT_PLAIN_UTF_8,
-    ];
-    let mut choices: [Option<(u8, usize, u16)>; 4] = [None; 4];
+fn best_weights<const N: usize>(accept: &str, representations: &[mime::Mime; N]) -> [u16; N] {
+    let mut choices: [Option<(u8, usize, u16)>; N] = [None; N];
     let mut quoted = false;
     let mut escaped = false;
     // Commas inside quoted media parameters do not separate ranges.
@@ -98,7 +89,23 @@ pub(crate) fn root_view(accept: Option<&str>) -> Result<RootView, Problem> {
             }
         }
     }
-    let weights = choices.map(|choice| choice.map_or(0, |(_, _, weight)| weight));
+    choices.map(|choice| choice.map_or(0, |(_, _, weight)| weight))
+}
+
+#[cfg(any(test, target_arch = "wasm32"))]
+pub(crate) fn root_view(accept: Option<&str>) -> Result<RootView, Problem> {
+    let Some(accept) = accept.filter(|value| !value.trim().is_empty()) else {
+        return Ok(RootView::Machine);
+    };
+    let representations = [
+        mime::APPLICATION_JSON,
+        mime::TEXT_HTML_UTF_8,
+        "text/markdown; charset=utf-8"
+            .parse()
+            .expect("constant MIME"),
+        mime::TEXT_PLAIN_UTF_8,
+    ];
+    let weights = best_weights(accept, &representations);
     let maximum = weights.into_iter().max().unwrap_or(0);
     if maximum == 0 {
         return Err(Problem::new(406, "not_acceptable"));
@@ -112,6 +119,21 @@ pub(crate) fn root_view(accept: Option<&str>) -> Result<RootView, Problem> {
         .iter()
         .position(|weight| *weight == maximum)
         .expect("maximum exists")])
+}
+
+/// Return true when a client prefers JSON (or sends no Accept header) over HTML.
+pub(crate) fn prefers_json(accept: Option<&str>) -> bool {
+    let Some(accept) = accept.filter(|value| !value.trim().is_empty()) else {
+        return true;
+    };
+    let representations = [
+        mime::APPLICATION_JSON,
+        "application/problem+json".parse().expect("constant MIME"),
+        mime::TEXT_HTML_UTF_8,
+    ];
+    let [json, problem_json, html] = best_weights(accept, &representations);
+    let best_json = json.max(problem_json);
+    best_json > 0 && best_json >= html
 }
 
 #[cfg(test)]
@@ -175,6 +197,35 @@ mod tests {
                 root_view(Some(accept)).unwrap_err().code,
                 "not_acceptable",
                 "{accept}"
+            );
+        }
+    }
+
+    #[test]
+    fn prefers_json_handles_json_problem_json_and_browser_accept_headers() {
+        assert!(prefers_json(None));
+        for accept in [
+            "",
+            "*/*",
+            "application/json",
+            "application/problem+json",
+            "application/problem+json, text/html;q=0.5",
+            "application/json, text/html",
+            "text/html;q=0.2, application/json;q=0.9",
+            "text/html;q=0, */*;q=1",
+        ] {
+            assert!(prefers_json(Some(accept)), "expected JSON for {accept}");
+        }
+        for accept in [
+            "text/html",
+            "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+            "text/*;q=0.8, application/json;q=0.5",
+            "application/json;q=0, application/problem+json;q=0, text/html;q=0",
+            "image/png",
+        ] {
+            assert!(
+                !prefers_json(Some(accept)),
+                "expected non-JSON for {accept}"
             );
         }
     }

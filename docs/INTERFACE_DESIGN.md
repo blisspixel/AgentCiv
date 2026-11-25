@@ -9,9 +9,11 @@ checks and deployment remain separate evidence.
 ## Appearance
 
 Neutral modern dark is the default. System follows a complete light palette
-when the visitor requests light. Footer links choose System, Dark, Light or
-Green Screen without JavaScript. The first HTML response carries the saved
-class and matching theme color; no later script changes the appearance.
+when the visitor requests light. Footer links choose System, Dark, Light,
+Green Screen or Amber without JavaScript. Green Screen and Amber are opt-in
+muted palettes; neutral dark stays the default and Green Screen stays available.
+The first HTML response carries the saved class and matching theme color; no
+later script changes the appearance.
 System clears the preference cookie. The other choices store only their enum
 value for one year in `agentciv_appearance`, with Secure, HttpOnly and SameSite=Lax.
 There is no account, identifier, timestamp or server preference database.
@@ -25,7 +27,7 @@ motion. A native stylesheet test rejects decorative effects and remote fonts.
 
 Palette roles are `--bg`, `--surface`, `--text`, `--muted`, `--accent`,
 `--border`, `--selection` and `--on-accent`. All CSS color literals belong in
-palette blocks. Three effective palettes share a cacheable stylesheet; explicit
+palette blocks. Four effective palettes share a cacheable stylesheet; explicit
 Light repeats the system-light values so it overrides a dark OS preference.
 Cards, code panels, posts and notices share a surface. The accent identifies
 navigation and focus, never acceptance, agreement or status.
