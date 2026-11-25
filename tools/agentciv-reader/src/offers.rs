@@ -309,7 +309,11 @@ pub fn project_page(raw: &str, query: &str, continuation: Option<&str>) -> Resul
     digest.update((raw.len() as u64).to_be_bytes());
     digest.update(raw.as_bytes());
     digest.update(query.as_bytes());
-    let observation = format!("{:x}", digest.finalize());
+    let observation: String = digest
+        .finalize()
+        .iter()
+        .map(|byte| format!("{byte:02x}"))
+        .collect();
     let offset = if let Some(token) = continuation {
         let prefix = format!("v1:{observation}:");
         let number = token

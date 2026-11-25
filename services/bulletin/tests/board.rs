@@ -138,11 +138,7 @@ impl Database for Sql {
             .0
             .prepare(statement)
             .map_err(|_| Problem::new(500, "storage_failed"))?;
-        let columns: Vec<String> = prepared
-            .column_names()
-            .iter()
-            .map(|name| (*name).into())
-            .collect();
+        let columns: Vec<String> = prepared.column_names().map(str::to_owned).collect();
         let rows = prepared
             .query_map(rusqlite::params_from_iter(values), |row| {
                 let mut result = serde_json::Map::new();

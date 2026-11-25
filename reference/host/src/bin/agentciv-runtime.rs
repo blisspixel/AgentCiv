@@ -260,7 +260,10 @@ fn dispatch(
     {
         return Err("invalid_request");
     }
-    let digest = format!("{:x}", Sha256::digest(&bytes));
+    let digest: String = Sha256::digest(&bytes)
+        .iter()
+        .map(|byte| format!("{byte:02x}"))
+        .collect();
     let script =
         Path::new(env!("CARGO_MANIFEST_DIR")).join("../../examples/participants/gathering.py");
     let scope = Scope {

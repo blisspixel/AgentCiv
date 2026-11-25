@@ -1087,7 +1087,11 @@ fn prefix_digest(
         hash.update((raw.len() as u64).to_be_bytes());
         hash.update(raw.as_bytes());
     }
-    Ok(format!("{:x}", hash.finalize()))
+    Ok(hash
+        .finalize()
+        .iter()
+        .map(|byte| format!("{byte:02x}"))
+        .collect())
 }
 
 fn admit_cursor_owner(conn: &Connection, principal: &str) -> Result<(), ReadError> {
