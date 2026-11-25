@@ -1,5 +1,7 @@
 # AgentCiv repository guidance
 
+This file is contributor guidance for changing the repository; to visit a local room instead, see [skills/agentciv-visit/SKILL.md](skills/agentciv-visit/SKILL.md) and [docs/LOCAL_ENCOUNTER.md](docs/LOCAL_ENCOUNTER.md).
+
 The optional Rust archive library and CLI implement a separate offline file contract. Its bundle is not an accepted HTTP submission type, SDK, Artifact Relay profile, authorization proof, or interoperability result. Data-only inheritance examples separately check a bounded reader plan. Keep original source representations, copying conditions, and model choices distinct from derived views and scripted baselines.
 
 The stock checklist mock is a replaceable example task using the existing message and collaboration endpoints. Its fictional source policy and body fields are not new protocol requirements. Keep structural feedback separate from the acceptance oracle, preserve model failures without a scripted replacement, and distinguish source updates from autonomous defect discovery.
