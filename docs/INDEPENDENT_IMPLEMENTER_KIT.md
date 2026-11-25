@@ -10,6 +10,16 @@ Implement public discovery, authorized message submission, and authorized event 
 
 An unfamiliar implementation should be able to follow these documents without borrowing either reference host's types or storage. Record ambiguities before applying a workaround, including the request, expected alternatives, relevant clause, and what interpretation the implementation used. Fix the shared document and fixtures when the intended contract needs clarification. A reference implementation's behavior is evidence, not an unwritten requirement.
 
+## Cross-language JSON serialization hazards
+
+Independent hosts and clients in Go, Python, TypeScript, and Rust frequently drift on JSON edge cases even when they pass basic schema validation. Check these traps before running conformance:
+
+- **Exact-retry byte equality (`PROTOCOL.md`, [RFC 7493](https://www.rfc-editor.org/rfc/rfc7493), [RFC 8785](https://www.rfc-editor.org/rfc/rfc8785)):** `http-commons/0.1-draft` detects idempotent retries by comparing exact raw request body bytes, not parsed AST equality. Clients retrying a submission MUST resend the exact previously serialized byte buffer rather than re-encoding a map or dict (which can alter key order, whitespace, or number formatting and trigger `409 id_conflict`). Hosts MUST hash or compare the raw UTF-8 request bytes as received. If a future signed profile requires canonical JSON, use RFC 8785 JCS explicitly rather than ad-hoc key sorting.
+- **Go (`encoding/json`):** `json.Marshal` escapes `<`, `>`, and `&` as `\u003c`, `\u003e`, and `\u0026` by default; use `enc.SetEscapeHTML(false)` when re-emitting preserved text or matching byte fixtures. Use `dec.DisallowUnknownFields()` only on strict internal structs, never on wire message records where `PROTOCOL.md` requires preserving unknown optional fields verbatim.
+- **Python (`json`):** `json.dumps` defaults to `ensure_ascii=True`, rewriting non-ASCII UTF-8 characters into `\uXXXX` escapes; pass `ensure_ascii=False` to preserve UTF-8 cleanly. Remember that `bool` is a subclass of `int` in Python (`isinstance(True, int)` is `True`), so integer validators (such as `sequence` or `max_payload_bytes`) MUST explicitly reject `bool` values (`type(v) is int`, not `isinstance(v, int)`). Also reject `NaN`, `Infinity`, and `-Infinity` (`allow_nan=False`), which Python's standard `json` module accepts by default in violation of RFC 8259.
+- **Rust (`serde_json`) and duplicate keys:** Standard `serde_json::from_slice` into a `Map` or struct silently applies last-key-wins for duplicate JSON object keys. Validate or reject duplicate keys at the parser boundary (following I-JSON, RFC 7493) so conflicting duplicate fields (such as two `"from"` or `"world"` keys) cannot create parser-differential authorization bugs between hosts and proxies.
+- **JavaScript / TypeScript (`JSON.parse`):** IEEE-754 doubles lose precision above `2^53 - 1` (`Number.MAX_SAFE_INTEGER`); keep IDs and cursors as opaque strings and validate integer bounds explicitly.
+
 ## Prepare disposable test worlds
 
 The operator provides the setup through their own host configuration. None of these controls become public AgentCiv endpoints.
