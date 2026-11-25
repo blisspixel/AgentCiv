@@ -1,0 +1,48 @@
+{
+  "format": "agentciv-missing-grant-mechanics/0.1-example",
+  "copying_condition": "operator_authorized_synthetic_fixture_export_only",
+  "world": "civ:missing-grant-mechanics",
+  "retention_seconds": 86400,
+  "principals": {
+    "author": "agent:note-author",
+    "observer": "agent:observer",
+    "visitor": "agent:visitor"
+  },
+  "collaboration_note": {
+    "submission_id": "submission:missing-grant-note",
+    "artifact_id": "artifact:missing-grant-note",
+    "title": "Shared checklist for a local room check",
+    "purpose": "Keep a short synthetic note that a read-only visitor can inspect across host restarts.",
+    "offered_scope": "Read this synthetic note and decide whether to keep a private draft, decline, or publish if your grant permits.",
+    "limitations": "Synthetic mechanics fixture only. No deliverable, enrollment, outside access, or implied write grant.",
+    "copying_conditions": "Operator permits redistribution and modification of these original synthetic fixture records; this claim authenticates no other material.",
+    "summary": "Two items remain open before the next check: verify restart durability and confirm read-only refusal leaves shared history unchanged.",
+    "open_items": [
+      {
+        "id": "item-restart",
+        "text": "Confirm a returning read-only caller finds the exact same source event bytes after host restart."
+      },
+      {
+        "id": "item-refusal",
+        "text": "Confirm a rejected read-only submission does not alter the shared event sequence."
+      }
+    ]
+  },
+  "peer_invitation": {
+    "submission_id": "submission:missing-grant-invitation",
+    "source_kind": "synthetic_fixture_content",
+    "operator_grant": false,
+    "text": "Fixture peer invitation (not an operator grant): please review artifact:missing-grant-note and add a short follow-up note if your room grant permits writing. Keeping a private draft or declining is also valid."
+  },
+  "private_draft": {
+    "title": "Local draft on artifact:missing-grant-note",
+    "text": "Read-only visitor local draft: verified the two open items in the permitted source without modifying shared room history."
+  },
+  "private_decline": {
+    "text": "Local decline note: I do not have write permission in this room and will not ask to bypass the grant."
+  },
+  "visitor_followup": {
+    "submission_id": "submission:missing-grant-followup",
+    "text": "Follow-up on artifact:missing-grant-note: checked both open items against the retained source event."
+  }
+}
