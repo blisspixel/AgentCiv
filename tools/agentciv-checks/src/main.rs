@@ -4,6 +4,7 @@ use std::process::ExitCode;
 
 use agentciv_checks::{
     check_bulletin_config, check_docs, check_inventory, check_research_fixtures, check_schemas,
+    check_workflows,
 };
 
 fn main() -> ExitCode {
@@ -44,9 +45,16 @@ fn main() -> ExitCode {
             return ExitCode::FAILURE;
         }
     }
+    match check_workflows(&root) {
+        Ok(found) => issues.extend(found),
+        Err(error) => {
+            eprintln!("workflow check failed: {error}");
+            return ExitCode::FAILURE;
+        }
+    }
     if issues.is_empty() {
         println!(
-            "Documentation, schema, conformance inventory, research fixture, and bulletin configuration checks passed."
+            "Documentation, schema, conformance inventory, research fixture, bulletin configuration, and workflow checks passed."
         );
         ExitCode::SUCCESS
     } else {
