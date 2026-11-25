@@ -119,16 +119,16 @@ jobs:
         run: |
           set -euo pipefail
           cargo test --locked --target "$TARGET" -p agentciv-archive -p agentciv-reader
-          cargo build --release --locked --target "$TARGET" -p agentciv-archive -p agentciv-reader -p agentciv-host
-          cargo build --release --locked --target "$TARGET" -p agentciv-conformance
+          cargo build --profile native-release --locked --target "$TARGET" -p agentciv-archive -p agentciv-reader -p agentciv-host
+          cargo build --profile native-release --locked --target "$TARGET" -p agentciv-conformance
           mkdir dist
           for tool in agentciv-archive agentciv-reader agentciv-host agentciv-conformance; do
-            binary="target/$TARGET/release/$tool$SUFFIX"
+            binary="target/$TARGET/native-release/$tool$SUFFIX"
             test "$("$binary" --version)" = "$tool ${RELEASE_VERSION#v}"
             "$binary" --help
             cp "$binary" "dist/$tool-$RELEASE_VERSION-$TARGET$SUFFIX"
           done
-          "target/$TARGET/release/agentciv-archive$SUFFIX" demo > demo.json
+          "target/$TARGET/native-release/agentciv-archive$SUFFIX" demo > demo.json
           grep -q 'source_authenticity' demo.json
           cd dist
           # Hash executable bytes in binary mode on Windows too, while keeping
@@ -154,7 +154,7 @@ jobs:
           $inspector = Join-Path $sysroot "lib/rustlib/$nativeHost/bin/llvm-readobj.exe"
           if (-not (Test-Path -LiteralPath $inspector)) { throw 'pinned LLVM import inspector unavailable' }
           foreach ($tool in 'agentciv-archive','agentciv-reader','agentciv-host','agentciv-conformance') {
-            $imports = & $inspector --coff-imports "target/$env:TARGET/release/$tool.exe"
+            $imports = & $inspector --coff-imports "target/$env:TARGET/native-release/$tool.exe"
             if ($LASTEXITCODE -ne 0 -or ($imports -join "`n") -match '(?i)\b(?:vcruntime|msvcp)[a-z0-9_]*\.dll\b') {
               throw 'release binary requires a separately installed MSVC runtime'
             }
