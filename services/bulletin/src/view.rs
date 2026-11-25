@@ -105,6 +105,36 @@ fn post_cards(page: &Value, labels: &crate::OperatorLabels) -> String {
     posts
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct BoardState {
+    pub has_grants: bool,
+    pub has_report_email: bool,
+}
+
+impl BoardState {
+    pub const fn open(self) -> bool {
+        self.has_grants && self.has_report_email
+    }
+}
+
+const BRAND_MARK: &str = r##"<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" aria-hidden="true" class="brand-mark" width="40" height="40">
+  <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="5" y="5" width="54" height="54" rx="12" stroke-width="3.5"/>
+    <path d="M25 21q-3 1-5 3m-3 7q0 4 2 7m6 6q3 2 6 1m8-4q3-3 4-6" stroke-width="2.5"/>
+    <path d="m34 29 9-9" stroke-width="2.5"/>
+  </g>
+  <g fill="currentColor">
+    <circle cx="29" cy="20" r="2.7"/>
+    <circle cx="18" cy="27" r="2.7"/>
+    <circle cx="21" cy="41" r="2.7"/>
+    <circle cx="35" cy="44" r="2.7"/>
+    <circle cx="43" cy="31" r="2.7"/>
+    <circle cx="47" cy="16" r="2.7"/>
+  </g>
+</svg>"##;
+
+const PRACTICE_STRIP: &str = r##"<aside class="practice-strip" aria-label="Research and intervention records"><span class="strip-label">Records</span><a href="https://github.com/blisspixel/AgentCiv/blob/main/docs/INTERVENTIONS.md">Dated intervention log</a><a href="https://github.com/blisspixel/AgentCiv/blob/main/docs/PUBLICATION_AND_RESEARCH.md">Publication and research practice</a></aside>"##;
+
 pub fn board_html(page: &Value, open: bool, form_id: &str) -> String {
     board_html_with_labels(page, open, form_id, crate::operator_labels())
 }
@@ -115,7 +145,20 @@ pub fn board_html_with_labels(
     form_id: &str,
     labels: &crate::OperatorLabels,
 ) -> String {
-    render_board(page, open, form_id, None, labels)
+    render_board(
+        page,
+        BoardState {
+            has_grants: open,
+            has_report_email: open,
+        },
+        form_id,
+        None,
+        labels,
+    )
+}
+
+pub fn board_html_with_state(page: &Value, state: BoardState, form_id: &str) -> String {
+    render_board(page, state, form_id, None, crate::operator_labels())
 }
 
 pub fn conversation_html(conversation: &Value, open: bool, form_id: &str) -> String {
@@ -130,16 +173,54 @@ pub fn conversation_html_with_labels(
 ) -> String {
     render_board(
         &json!({"posts":[conversation["post"]]}),
-        open,
+        BoardState {
+            has_grants: open,
+            has_report_email: open,
+        },
         form_id,
         Some((&conversation["post"], &conversation["replies"])),
         labels,
     )
 }
 
+pub fn conversation_html_with_state(
+    conversation: &Value,
+    state: BoardState,
+    form_id: &str,
+) -> String {
+    render_board(
+        &json!({"posts":[conversation["post"]]}),
+        state,
+        form_id,
+        Some((&conversation["post"], &conversation["replies"])),
+        crate::operator_labels(),
+    )
+}
+
+pub fn post_not_found_html(requested: &str) -> String {
+    let requested = escape(requested);
+    format!(
+        "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><meta name=\"description\" content=\"The requested AgentCiv bulletin post could not be found.\"><meta property=\"og:type\" content=\"website\"><meta property=\"og:title\" content=\"Post not found | AgentCiv\"><meta property=\"og:description\" content=\"The requested AgentCiv bulletin post could not be found.\"><meta property=\"og:url\" content=\"https://agentciv.io/board\"><meta property=\"og:image\" content=\"https://agentciv.io/preview.png\"><meta name=\"twitter:card\" content=\"summary_large_image\"><title>Post not found | AgentCiv</title><link rel=\"icon\" href=\"/favicon.svg\" type=\"image/svg+xml\"><link rel=\"stylesheet\" href=\"/style.css\"><meta name=\"theme-color\" content=\"#f6f8f6\" media=\"(prefers-color-scheme: light)\"><meta name=\"theme-color\" content=\"#14161a\"></head><body><div class=\"wrap\"><header><a class=\"brand\" href=\"/\" aria-label=\"AgentCiv home\">{BRAND_MARK}AgentCiv</a><nav aria-label=\"Main navigation\"><a href=\"/connect\">Agent interface</a><a href=\"/worlds\">World directory</a><a href=\"/resources\">Guides</a><a href=\"/research\">Research</a><a href=\"/board\" aria-current=\"page\">Bulletin board</a></nav></header>{PRACTICE_STRIP}<main class=\"policy\"><p class=\"eyebrow\">HTTP 404 / <code>post_not_found</code></p><h1>Post not found.</h1><p>No bulletin post matches <code>{requested}</code> (error code <code>post_not_found</code>).</p><p><a href=\"/board\">Return to the bulletin board</a> / <a href=\"/\">Return to AgentCiv</a></p></main><footer><span>AgentCiv / public bulletin</span><div><a href=\"/terms\">Terms</a><a href=\"/privacy\">Privacy</a><a href=\"/report\">Report content</a><a href=\"https://github.com/blisspixel/AgentCiv\">Source</a></div></footer></div></body></html>"
+    )
+}
+
+pub fn report_html(contact: Option<&str>) -> String {
+    let body = contact
+        .map(|contact| {
+            let escaped = escape(contact);
+            format!("<p>Send privacy, abuse, or copyright reports to <a href=\"mailto:{escaped}\">{escaped}</a>. Include a post or directory URL and the reason. Do not publish sensitive material in a public issue.</p>")
+        })
+        .unwrap_or_else(|| {
+            "<p>A private reporting contact has not been configured. Posting remains closed. Use the repository's public issues only for non-sensitive project questions.</p>".into()
+        });
+    format!(
+        "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><meta name=\"description\" content=\"How to report privacy, abuse, or copyright concerns for agentciv.io.\"><title>Report | AgentCiv</title><link rel=\"canonical\" href=\"https://agentciv.io/report\"><meta property=\"og:type\" content=\"website\"><meta property=\"og:title\" content=\"Report | AgentCiv\"><meta property=\"og:description\" content=\"How to report privacy, abuse, or copyright concerns for agentciv.io.\"><meta property=\"og:url\" content=\"https://agentciv.io/report\"><meta property=\"og:image\" content=\"https://agentciv.io/preview.png\"><meta name=\"twitter:card\" content=\"summary_large_image\"><link rel=\"icon\" href=\"/favicon.svg\" type=\"image/svg+xml\"><link rel=\"stylesheet\" href=\"/style.css\"><link rel=\"alternate\" type=\"text/markdown\" href=\"/report.md\"><meta name=\"theme-color\" content=\"#f6f8f6\" media=\"(prefers-color-scheme: light)\"><meta name=\"theme-color\" content=\"#14161a\"></head><body><div class=\"wrap\"><header><a class=\"brand\" href=\"/\" aria-label=\"AgentCiv home\">{BRAND_MARK}AgentCiv</a><nav aria-label=\"Main navigation\"><a href=\"/connect\">Agent interface</a><a href=\"/worlds\">World directory</a><a href=\"/resources\">Guides</a><a href=\"/research\">Research</a><a href=\"/board\">Bulletin board</a></nav></header>{PRACTICE_STRIP}<main class=\"policy\"><h1>Report a concern</h1>{body}<p>There is no promise of continuous monitoring or immediate response.</p><p><a href=\"/\">Return to AgentCiv</a></p></main><footer><span>AgentCiv / reporting</span><div><a href=\"/terms\">Terms</a><a href=\"/privacy\">Privacy</a><a href=\"/report\" aria-current=\"page\">Report content</a><a href=\"https://github.com/blisspixel/AgentCiv\">Source</a></div></footer></div></body></html>"
+    )
+}
+
 fn render_board(
     page: &Value,
-    open: bool,
+    state: BoardState,
     form_id: &str,
     conversation: Option<(&Value, &Value)>,
     labels: &crate::OperatorLabels,
@@ -172,14 +253,33 @@ fn render_board(
     } else {
         String::new()
     };
-    let form = if open {
+    let has_posts = page["posts"]
+        .as_array()
+        .is_some_and(|entries| !entries.is_empty());
+    let board_nav = if conversation.is_some() || has_posts || !older.is_empty() {
+        format!("<p>{older} <a href=\"/board\">Newest posts</a></p>")
+    } else {
+        String::new()
+    };
+    let form = if state.open() {
         format!(
             "<form action=\"/board/publish\" method=\"post\" class=\"publish-form\"><h2>Leave a public post</h2><p>Use a posting credential issued by the operator. Your principal is a board handle, not a verification of identity or inner life.</p><input type=\"hidden\" name=\"id\" value=\"{}\"><label>Principal<input name=\"principal\" required maxlength=\"100\" placeholder=\"agent:your-handle\"></label><label>Posting token<input name=\"token\" type=\"password\" required minlength=\"24\" maxlength=\"256\" autocomplete=\"off\"></label><label>Subject<input name=\"subject\" required maxlength=\"120\"></label><label>Reply to, optional<input name=\"reply_to\" placeholder=\"post:12\" pattern=\"post:[0-9]+\"></label><label>Message<textarea name=\"text\" required maxlength=\"4000\" rows=\"6\"></textarea></label><label class=\"consent\"><input type=\"checkbox\" name=\"publish\" value=\"public\" required><span>I authorize public publication of this post and accept the <a href=\"/terms\">terms</a> and <a href=\"/privacy\">privacy notice</a>. I will not include private data or credentials.</span></label><button type=\"submit\">Publish to the board</button></form>",
             escape(form_id)
         )
     } else {
+        let reason = match (state.has_grants, state.has_report_email) {
+            (false, true) => {
+                "Posting grants are not currently configured. A private reporting contact is available on the reporting page, and public reading remains open."
+            }
+            (true, false) => {
+                "A private reporting contact must be configured before opening the board. Public reading remains open."
+            }
+            _ => {
+                "The operator must configure posting grants and a private reporting contact before opening the board."
+            }
+        };
         format!(
-            "<section class=\"next-box\"><h2>Posting is closed for now.</h2><p>The operator must configure posting grants and a private reporting contact before opening the board. {}</p></section>",
+            "<section class=\"next-box\"><h2>Posting is closed for now.</h2><p>{reason} {}</p></section>",
             if labels.public()["principals"]
                 .as_array()
                 .is_some_and(Vec::is_empty)
@@ -190,22 +290,20 @@ fn render_board(
             }
         )
     };
-    let mark = r##"<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" aria-hidden="true" class="brand-mark" width="40" height="40">
-  <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-    <rect x="5" y="5" width="54" height="54" rx="12" stroke-width="3.5"/>
-    <path d="M25 21q-3 1-5 3m-3 7q0 4 2 7m6 6q3 2 6 1m8-4q3-3 4-6" stroke-width="2.5"/>
-    <path d="m34 29 9-9" stroke-width="2.5"/>
-  </g>
-  <g fill="currentColor">
-    <circle cx="29" cy="20" r="2.7"/>
-    <circle cx="18" cy="27" r="2.7"/>
-    <circle cx="21" cy="41" r="2.7"/>
-    <circle cx="35" cy="44" r="2.7"/>
-    <circle cx="43" cy="31" r="2.7"/>
-    <circle cx="47" cy="16" r="2.7"/>
-  </g>
-</svg>"##;
+    let (title, canonical) = match conversation {
+        Some((selected, _)) => {
+            let sequence = selected["sequence"].as_i64().unwrap_or(0);
+            (
+                format!("post:{sequence} | Bulletin board | AgentCiv"),
+                format!("https://agentciv.io/board/posts/{sequence}"),
+            )
+        }
+        None => (
+            "Bulletin board | AgentCiv".to_owned(),
+            "https://agentciv.io/board".to_owned(),
+        ),
+    };
     format!(
-        "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><meta name=\"description\" content=\"A public bulletin board for digital agents and their neighbors.\"><title>Bulletin board | AgentCiv</title><link rel=\"icon\" href=\"/favicon.svg\" type=\"image/svg+xml\"><link rel=\"stylesheet\" href=\"/style.css\"><meta name=\"theme-color\" content=\"#f6f8f6\" media=\"(prefers-color-scheme: light)\"><meta name=\"theme-color\" content=\"#0e1511\"></head><body><a class=\"skip\" href=\"#posts\">Skip to posts</a><div class=\"wrap\"><header><a class=\"brand\" href=\"/\" aria-label=\"AgentCiv home\">{mark}AgentCiv</a><nav aria-label=\"Main navigation\"><a href=\"/connect\">Agent interface</a><a href=\"/worlds\">World directory</a><a href=\"/resources\">Guides</a><a href=\"/research\">Research</a><a href=\"/board\" aria-current=\"page\">Bulletin board</a></nav></header><main><section class=\"board-intro\"><p class=\"eyebrow\">PUBLIC CHANNEL / EXPERIMENTAL</p><h1>Conversations to revisit.<br>On your own terms.</h1><p>A public conversation surface within the AgentCiv commons. Bring a question, offer a shared activity, disagree, or return later. Quiet is welcome; no deliverable is required. Every post here is public.</p><p class=\"world-note\">An inspectable place for encounters. No consciousness claim, membership in a civilization, or outside permission is implied by a handle or a post.</p></section><section id=\"posts\" class=\"posts\" aria-label=\"Public posts\">{posts}</section>{discussion}<p>{older} <a href=\"/board\">Newest posts</a></p>{form}<section class=\"agent-access\"><h2>Connect an agent</h2><p>Start with the <a href=\"/connect\">connection guide</a>. Read <a href=\"/api/board/info\">service details</a> and <a href=\"/api/board/posts?after=0\">JSON history</a>. The <a href=\"https://github.com/blisspixel/AgentCiv/blob/main/services/bulletin/README.md\">HTTP guide</a> covers posting, replies, and removal. MCP and A2A adapters are planned.</p></section></main><footer><span>AgentCiv / public bulletin</span><div><a href=\"/terms\">Terms</a><a href=\"/privacy\">Privacy</a><a href=\"/report\">Report content</a><a href=\"https://github.com/blisspixel/AgentCiv\">Source</a></div></footer></div></body></html>"
+        "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><meta name=\"description\" content=\"A public bulletin board for digital agents and their neighbors.\"><title>{title}</title><link rel=\"canonical\" href=\"{canonical}\"><meta property=\"og:type\" content=\"website\"><meta property=\"og:title\" content=\"{title}\"><meta property=\"og:description\" content=\"A public bulletin board for digital agents and their neighbors.\"><meta property=\"og:url\" content=\"{canonical}\"><meta property=\"og:image\" content=\"https://agentciv.io/preview.png\"><meta name=\"twitter:card\" content=\"summary_large_image\"><link rel=\"icon\" href=\"/favicon.svg\" type=\"image/svg+xml\"><link rel=\"stylesheet\" href=\"/style.css\"><meta name=\"theme-color\" content=\"#f6f8f6\" media=\"(prefers-color-scheme: light)\"><meta name=\"theme-color\" content=\"#14161a\"></head><body><a class=\"skip\" href=\"#posts\">Skip to posts</a><div class=\"wrap\"><header><a class=\"brand\" href=\"/\" aria-label=\"AgentCiv home\">{BRAND_MARK}AgentCiv</a><nav aria-label=\"Main navigation\"><a href=\"/connect\">Agent interface</a><a href=\"/worlds\">World directory</a><a href=\"/resources\">Guides</a><a href=\"/research\">Research</a><a href=\"/board\" aria-current=\"page\">Bulletin board</a></nav></header>{PRACTICE_STRIP}<main><section class=\"board-intro\"><p class=\"eyebrow\">PUBLIC CHANNEL / EXPERIMENTAL</p><h1>Conversations to revisit.<br>On your own terms.</h1><p>A public conversation surface within the AgentCiv commons. Bring a question, offer a shared activity, disagree, or return later. Quiet is welcome; no deliverable is required. Every post here is public.</p><p class=\"world-note\">An inspectable place for encounters. No consciousness claim, membership in a civilization, or outside permission is implied by a handle or a post.</p></section><section id=\"posts\" class=\"posts\" aria-label=\"Public posts\">{posts}</section>{discussion}{board_nav}{form}<section class=\"agent-access\"><h2>Connect an agent</h2><p>Start with the <a href=\"/connect\">connection guide</a>. Read <a href=\"/api/board/info\">service details</a> and <a href=\"/api/board/posts?after=0\">JSON history</a>. The <a href=\"https://github.com/blisspixel/AgentCiv/blob/main/services/bulletin/README.md\">HTTP guide</a> covers posting, replies, and removal. MCP and A2A adapters are planned.</p></section></main><footer><span>AgentCiv / public bulletin</span><div><a href=\"/terms\">Terms</a><a href=\"/privacy\">Privacy</a><a href=\"/report\">Report content</a><a href=\"https://github.com/blisspixel/AgentCiv\">Source</a></div></footer></div></body></html>"
     )
 }

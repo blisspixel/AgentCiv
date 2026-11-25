@@ -372,7 +372,10 @@ class EdgeTests(EdgeRuntime):
                 self.assertEqual(info["posting"], "closed")
                 self.assertEqual(self.request("GET", "/api/board/posts?after=0")[2], history)
                 self.assertIn("Actual runtime post", self.request("GET", f"/board/posts/{number}")[2])
-                self.assertEqual(self.request("POST", "/api/board/posts", raw, TOKENS["agent:test-8"])[0], 503)
+                post_status, _, closed_problem = self.request("POST", "/api/board/posts", raw, TOKENS["agent:test-8"])
+                self.assertEqual(post_status, 503)
+                if closed_problem.get("code") == "posting_closed":
+                    self.assertIn("GET /api/board/info", closed_problem.get("detail", ""))
                 self.assertEqual(self.request("DELETE", f"/api/board/posts/{number}", token=TOKENS["agent:test-8"])[0], 503)
         finally:
             self.stop()
@@ -433,10 +436,10 @@ class EdgeTests(EdgeRuntime):
             self.assertIn(text.lower(), content.lower(), path)
 
     def test_system_theme_color_uses_first_matching_metadata(self) -> None:
-        for path in ("/", "/connect", "/worlds", "/resources", "/research", "/terms", "/privacy", "/404", "/board", "/report"):
+        for path in ("/", "/connect", "/worlds", "/resources", "/research", "/terms", "/privacy", "/404", "/board", "/report", "/problems", "/problems/forbidden"):
             with self.subTest(path=path):
                 status, _, content = self.request("GET", path, accept="text/html")
-                self.assertEqual(status, 200)
+                self.assertEqual(status, 404 if path == "/404" else 200)
                 metadata = ThemeColors()
                 metadata.feed(content)
                 self.assertEqual(len(metadata.colors), 2)
@@ -578,7 +581,20 @@ class EdgeTests(EdgeRuntime):
             self.assertEqual(status, 200)
             self.assertIn("image/svg+xml", headers.get("Content-Type", ""))
             self.assertIn("<svg", content)
-        self.assertEqual(self.request("GET", "/not-a-real-readable-page", accept="text/html")[0], 404)
+        status, headers, missing_body = self.request("GET", "/not-a-real-readable-page", accept="text/html")
+        self.assertEqual(status, 404)
+        self.assertIn("Page not found.", missing_body)
+        self.assertEqual(self.request("GET", "/404", accept="text/html")[0], 404)
+        self.assertEqual(self.request("GET", "/404.html", accept="text/html")[0], 404)
+        p_status, p_headers, p_html = self.request("GET", "/problems/forbidden", accept="text/html")
+        self.assertEqual(p_status, 200)
+        self.assertIn("https://agentciv.io/problems/forbidden", p_html)
+        self.assertEqual(p_headers.get("Link"), '</problems/forbidden.md>; rel="alternate"; type="text/markdown", </llms.txt>; rel="describedby"')
+        pm_status, pm_headers, pm_body = self.request("GET", "/problems/forbidden.md")
+        self.assertEqual(pm_status, 200)
+        self.assertEqual(pm_headers.get("Content-Type"), "text/markdown; charset=utf-8")
+        self.assertIn("# forbidden", pm_body)
+        self.assertNotIn("No new JSON thread endpoint is supplied.", self.request("GET", "/llms.txt")[2])
         self.assertEqual(self.request("GET", "/agent.json")[2]["interfaces"]["directory"], "/directory.json")
         self.assertEqual(self.request("GET", "/directory.json")[2]["schema_version"], 1)
 
@@ -625,9 +641,19 @@ class EdgeTests(EdgeRuntime):
             status, headers, _ = self.request("GET", route)
             self.assertEqual(status, expected)
             self.assertEqual(headers.get("Cache-Control"), "no-store")
-        status, headers, _ = self.request("GET", "/no-such-public-asset", accept="text/html")
+        for route in ["/404", "/404.html", "/board/posts/999999999"]:
+            status, headers, _ = self.request("GET", route, accept="text/html")
+            self.assertEqual(status, 404, route)
+            self.assertEqual(headers.get("Cache-Control"), "no-store, no-transform", route)
+        status, headers, body = self.request("GET", "/no-such-public-asset", accept="text/html")
         self.assertEqual(status, 404)
-        self.assertEqual(headers.get("Cache-Control"), "no-store, no-transform")
+        self.assertIn("Page not found.", body)
+        self.assertIn("max-age=0", headers.get("Cache-Control", ""))
+        self.assertIn("must-revalidate", headers.get("Cache-Control", ""))
+        security = {name.lower(): value for name, value in headers.items()}
+        self.assertIn("default-src 'none'", security.get("content-security-policy", ""))
+        self.assertEqual(security.get("x-content-type-options"), "nosniff")
+        self.assertEqual(security.get("referrer-policy"), "no-referrer")
 
     def test_root_respects_accept_preferences(self) -> None:
         for accept, expected in [
@@ -810,7 +836,14 @@ class ConversationEdgeTests(EdgeRuntime):
         self.assertIn(f'id="post-{nested["sequence"]}"', child)
         for query in ["after=-1", "after=bad", "after=1&after=2", "after=0&before=2", "before=0", "before=-1", "before=bad", "before=2&before=3", "unknown=1", "after=9223372036854775808", "before=9223372036854775808"]:
             self.assertEqual(read_conversation(path + "?" + query)[0], 400, query)
-        self.assertEqual(read_conversation("/board/posts/999999999")[0], 404)
+        missing_html_status, missing_html_headers, missing_html_body = read_conversation("/board/posts/999999999")
+        self.assertEqual(missing_html_status, 404)
+        self.assertIn("text/html", missing_html_headers.get("Content-Type", ""))
+        self.assertIn("post_not_found", missing_html_body)
+        missing_json_status, missing_json_headers, missing_json_body = self.request("GET", "/board/posts/999999999", accept="application/json")
+        self.assertEqual(missing_json_status, 404)
+        self.assertIn("application/problem+json", missing_json_headers.get("Content-Type", ""))
+        self.assertEqual(missing_json_body["code"], "post_not_found")
         self.assertEqual(read_conversation(path + "?after=9223372036854775807")[2].count('id="post-'), 1)
         self.assertEqual(read_conversation(path + f"?before={replies[0]}")[2].count('id="post-'), 1)
         before_posts = self.request("GET", "/api/board/posts?after=0")[2]

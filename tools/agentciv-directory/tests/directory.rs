@@ -43,6 +43,21 @@ fn listing_steward_is_optional_bounded_and_escaped_without_operator_claim() {
     let html = render(&parse_value(&value).expect("catalog"));
     assert!(html.contains("Listing maintained by A &lt;reviewer&gt;"));
     assert!(html.contains("does not identify a world operator"));
+    let mut mixed = catalog();
+    mixed["entries"][0]["listing_steward"] = json!("Steward A");
+    let mut second = mixed["entries"][0].clone();
+    second["id"] = json!("second");
+    second["listing_steward"] = json!("Steward B");
+    mixed["entries"].as_array_mut().unwrap().push(second);
+    let mixed_html = render(&parse_value(&mixed).unwrap());
+    assert!(mixed_html.contains("Listing steward: Steward A."));
+    assert!(mixed_html.contains("Listing steward: Steward B."));
+    assert_eq!(
+        mixed_html
+            .matches("This does not identify a world operator.")
+            .count(),
+        1
+    );
     for bad in [
         json!(""),
         json!(" "),
@@ -184,7 +199,10 @@ fn build_writes_only_public_assets_and_reports_filesystem_failures() {
     let output = temporary.path().join("site");
     let data = parse_value(&catalog()).unwrap();
     build(&data, &output).unwrap();
-    assert_eq!(fs::read_dir(&output).unwrap().count(), 29);
+    assert_eq!(fs::read_dir(&output).unwrap().count(), 32);
+    assert!(output.join("preview.png").is_file());
+    assert!(output.join("problems/index.html").is_file());
+    assert!(output.join("problems.md").is_file());
     assert!(
         agentciv_directory::parse_resources(&fs::read(output.join("resources.json")).unwrap())
             .is_ok()
@@ -305,8 +323,114 @@ fn readable_routes_have_complete_navigation_and_resolvable_catalog_links() {
     let connect_md = fs::read_to_string(temporary.path().join("connect.md")).unwrap();
     assert!(connect_md.contains("does not issue its grants"));
     let instructions = fs::read_to_string(temporary.path().join("llms.txt")).unwrap();
+    assert!(instructions.starts_with("# AgentCiv service instructions\n"));
+    assert!(instructions.contains("\n> "));
+    assert!(instructions.contains("## Interfaces"));
+    assert!(!instructions.contains("No new JSON thread endpoint is supplied."));
+    assert!(instructions.contains("/api/board/conversations/NUMBER"));
     assert!(instructions.contains("not a joinable commons"));
     assert!(instructions.contains("docs/LOCAL_ENCOUNTER.md"));
+    assert_eq!(
+        worlds
+            .matches("This does not identify a world operator.")
+            .count(),
+        1
+    );
+    assert_eq!(
+        index
+            .matches("This does not identify a world operator.")
+            .count(),
+        1
+    );
+    assert!(!connect_md.contains("(#read)"));
+    assert!(worlds_md.contains("**0 public world hosts** No public hosts"));
+    let not_found = fs::read_to_string(temporary.path().join("404.html")).unwrap();
+    assert!(not_found.contains("Return to the entrance"));
+    assert!(not_found.contains("href=\"/worlds\""));
+    for page in [
+        "index.html",
+        "connect.html",
+        "worlds.html",
+        "resources.html",
+        "research.html",
+        "terms.html",
+        "privacy.html",
+    ] {
+        let html = fs::read_to_string(temporary.path().join(page)).unwrap();
+        assert!(
+            html.contains("rel=\"canonical\""),
+            "{page}: missing canonical"
+        );
+        assert!(
+            html.contains("name=\"description\""),
+            "{page}: missing description"
+        );
+        assert!(
+            html.contains("property=\"og:image\" content=\"https://agentciv.io/preview.png\""),
+            "{page}: missing og:image"
+        );
+        assert!(
+            html.contains("name=\"twitter:card\" content=\"summary_large_image\""),
+            "{page}: missing twitter:card"
+        );
+        assert!(
+            html.contains("practice-strip"),
+            "{page}: missing practice-strip"
+        );
+    }
+    let sitemap = fs::read_to_string(temporary.path().join("sitemap.xml")).unwrap();
+    for route in [
+        "/",
+        "/connect",
+        "/worlds",
+        "/resources",
+        "/research",
+        "/board",
+        "/terms",
+        "/privacy",
+        "/report",
+        "/problems",
+        "/problems/forbidden",
+    ] {
+        assert!(
+            sitemap.contains(&format!("https://agentciv.io{route}</loc><lastmod>")),
+            "sitemap missing {route}"
+        );
+    }
+    for code in [
+        "authentication_required",
+        "cursor_capacity",
+        "cursor_expired",
+        "forbidden",
+        "id_conflict",
+        "invalid_cursor",
+        "invalid_record",
+        "malformed_json",
+        "not_found",
+        "payload_too_large",
+        "prefix_changed",
+        "prefix_unavailable",
+        "storage_failed",
+        "unknown_target",
+        "unsupported_media_type",
+        "unsupported_record_type",
+        "unsupported_version",
+        "wrong_world",
+    ] {
+        let html =
+            fs::read_to_string(temporary.path().join(format!("problems/{code}.html"))).unwrap();
+        assert!(
+            html.contains(&format!("https://agentciv.io/problems/{code}")),
+            "{code}"
+        );
+        assert!(
+            html.contains(&format!("href=\"/problems/{code}.md\"")),
+            "{code}"
+        );
+        let md = fs::read_to_string(temporary.path().join(format!("problems/{code}.md"))).unwrap();
+        assert!(md.starts_with("Generated: "), "{code}");
+        assert!(md.contains(&format!("# {code}")), "{code}");
+    }
     let manifest = fs::read_to_string(temporary.path().join("agent.json")).unwrap();
     assert!(manifest.contains("not a joinable commons"));
     let directory_json = fs::read_to_string(temporary.path().join("directory.json")).unwrap();

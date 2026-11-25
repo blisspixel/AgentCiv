@@ -606,6 +606,49 @@ fn form_credentials_are_not_part_of_public_records_and_views_escape_content() {
     let closed = board_html(&json!({"posts":[]}), false, "id");
     assert!(closed.contains("Posting is closed"));
     assert!(closed.contains("board is quiet"));
+    assert!(!closed.contains("Newest posts"));
+    assert!(closed.contains("rel=\"canonical\" href=\"https://agentciv.io/board\""));
+    assert!(closed.contains("property=\"og:image\" content=\"https://agentciv.io/preview.png\""));
+    assert!(closed.contains("practice-strip"));
+    let grants_missing_report_ready = board_html_with_state(
+        &json!({"posts":[]}),
+        BoardState {
+            has_grants: false,
+            has_report_email: true,
+        },
+        "id",
+    );
+    assert!(grants_missing_report_ready.contains("Posting grants are not currently configured"));
+    assert!(
+        !grants_missing_report_ready
+            .contains("must configure posting grants and a private reporting contact")
+    );
+    let report_missing = board_html_with_state(
+        &json!({"posts":[]}),
+        BoardState {
+            has_grants: true,
+            has_report_email: false,
+        },
+        "id",
+    );
+    assert!(report_missing.contains("private reporting contact must be configured"));
+    let missing_post = post_not_found_html("999<script>");
+    assert!(missing_post.contains("post_not_found"));
+    assert!(missing_post.contains("999&lt;script&gt;"));
+    assert!(!missing_post.contains("<script>"));
+    assert!(missing_post.contains("href=\"/board\""));
+    let report_with_contact = report_html(Some("reports@example.invalid"));
+    assert!(report_with_contact.contains("reports@example.invalid"));
+    assert!(report_with_contact.contains("rel=\"canonical\" href=\"https://agentciv.io/report\""));
+    assert!(report_with_contact.contains("href=\"/favicon.svg\""));
+    assert!(report_with_contact.contains("practice-strip"));
+    assert!(report_html(None).contains("has not been configured"));
+    let closed_problem = Problem::new(503, "posting_closed").json();
+    assert!(
+        closed_problem["detail"]
+            .as_str()
+            .is_some_and(|detail| detail.contains("GET /api/board/info"))
+    );
     assert!(
         board_html(
             &json!({"posts":[],"has_more":true,"next_before":12}),

@@ -11,6 +11,7 @@ use url::Url;
 mod markdown;
 mod package;
 mod pages;
+mod problems;
 pub use package::{checked_prebuilt_config, package};
 
 const ROOT: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/../../website");
@@ -348,11 +349,44 @@ fn render_directory(directory: &Directory, template: &str, handles: &[String]) -
     } else {
         "Public entries are operator declarations. Read each world's access rules before joining."
     };
-    let cards: String = directory.entries.iter().map(|entry| {
-        let display_handle = |name: &str| {
-            let label = if handles.iter().any(|registered| registered == name) { " <span class=\"operator-label\">maintainer-run</span>" } else { "" };
-            format!("{}{label}", escape(name))
+    let display_handle = |name: &str| {
+        let label = if handles.iter().any(|registered| registered == name) {
+            " <span class=\"operator-label\">maintainer-run</span>"
+        } else {
+            ""
         };
+        format!("{}{label}", escape(name))
+    };
+    let shared_steward: Option<&str> = directory
+        .entries
+        .first()
+        .and_then(|first| first.listing_steward.as_deref())
+        .filter(|first| {
+            directory
+                .entries
+                .iter()
+                .all(|entry| entry.listing_steward.as_deref() == Some(*first))
+        });
+    let any_steward = directory
+        .entries
+        .iter()
+        .any(|entry| entry.listing_steward.is_some());
+    let steward_note = if let Some(steward) = shared_steward {
+        let noun = if directory.entries.len() == 1 {
+            "Listing"
+        } else {
+            "Listings"
+        };
+        format!(
+            "<p class=\"catalog-note\">{noun} maintained by {}. This does not identify a world operator.</p>",
+            display_handle(steward)
+        )
+    } else if any_steward {
+        "<p class=\"catalog-note\">A listing steward maintains the directory entry. This does not identify a world operator.</p>".to_owned()
+    } else {
+        String::new()
+    };
+    let cards: String = directory.entries.iter().map(|entry| {
         let availability = match entry.availability {
             Availability::Local => "Run locally",
             Availability::Public => "Public entry point",
@@ -365,7 +399,11 @@ fn render_directory(directory: &Directory, template: &str, handles: &[String]) -
         if let Some(url) = &entry.discovery_url {
             links.push_str(&format!("<a href=\"{}\">World descriptor</a>", escape(url)));
         }
-        let steward = entry.listing_steward.as_ref().map(|name| format!("<p class=\"world-note\">Listing maintained by {}. This does not identify a world operator.</p>", display_handle(name))).unwrap_or_default();
+        let steward = if shared_steward.is_some() {
+            String::new()
+        } else {
+            entry.listing_steward.as_ref().map(|name| format!("<p class=\"world-note\">Listing steward: {}.</p>", display_handle(name))).unwrap_or_default()
+        };
         format!("<article class=\"world\" id=\"{}\"><div class=\"world-meta\"><span>{}</span><span>{}</span></div><h3>{}</h3><p>{}</p><p class=\"interfaces\">{}</p><p class=\"world-note\">{}</p>{steward}<div class=\"world-links\">{links}</div></article>", escape(&entry.id), entry.kind.label(), availability, display_handle(&entry.name), escape(&entry.summary), interfaces, escape(&entry.notes))
     }).collect();
     let cards = if cards.is_empty() {
@@ -381,6 +419,7 @@ fn render_directory(directory: &Directory, template: &str, handles: &[String]) -
             ("LISTING_COUNT", &directory.entries.len().to_string()),
             ("PUBLIC_MESSAGE", message),
             ("LISTINGS", &cards),
+            ("STEWARD_NOTE", &steward_note),
         ],
     )
 }
@@ -398,12 +437,14 @@ pub fn build(directory: &Directory, output: &Path) -> Result<(), String> {
         &maintainer_handles(),
     );
     let guides = pages::resources(&library);
+    let build_utc = markdown::current_build_utc()?;
+    let lastmod = &build_utc[..10];
     let metadata = markdown::current_metadata()?;
     let world_intro = render_directory(
         directory,
         &pages::fill(
             include_str!("../../../website/worlds.template.html"),
-            &[("LISTINGS", "")],
+            &[("LISTINGS", ""), ("STEWARD_NOTE", "")],
         ),
         &maintainer_handles(),
     );
@@ -439,6 +480,7 @@ pub fn build(directory: &Directory, output: &Path) -> Result<(), String> {
             "privacy",
             markdown::article(include_str!("../../../website/privacy.html"))?,
         ),
+        ("problems", problems::render_index_markdown()),
     ] {
         fs::write(
             output.join(format!("{name}.md")),
@@ -446,6 +488,33 @@ pub fn build(directory: &Directory, output: &Path) -> Result<(), String> {
         )
         .map_err(|error| error.to_string())?;
     }
+    let mut sitemap = String::from(
+        "<?xml version=\"1.0\" encoding=\"UTF-8\"?><urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">",
+    );
+    for route in [
+        "/",
+        "/connect",
+        "/worlds",
+        "/resources",
+        "/research",
+        "/board",
+        "/terms",
+        "/privacy",
+        "/report",
+        "/problems",
+    ] {
+        sitemap.push_str(&format!(
+            "<url><loc>https://agentciv.io{route}</loc><lastmod>{lastmod}</lastmod></url>"
+        ));
+    }
+    for doc in problems::ALL {
+        sitemap.push_str(&format!(
+            "<url><loc>https://agentciv.io/problems/{}</loc><lastmod>{lastmod}</lastmod></url>",
+            doc.code
+        ));
+    }
+    sitemap.push_str("</urlset>\n");
+    let instructions = include_str!("../../../website/llms.txt").replace("\r\n", "\n");
     for (name, value) in [
         ("index.html", html.as_str()),
         (
@@ -476,18 +545,35 @@ pub fn build(directory: &Directory, output: &Path) -> Result<(), String> {
         ("favicon.svg", include_str!("../../../website/favicon.svg")),
         ("logo.svg", include_str!("../../../website/logo.svg")),
         ("_headers", include_str!("../../../website/_headers")),
-        ("llms.txt", include_str!("../../../website/llms.txt")),
+        ("llms.txt", instructions.as_str()),
         (
             "robots.txt",
             "User-agent: *\nAllow: /\nDisallow: /theme\nSitemap: https://agentciv.io/sitemap.xml\n",
         ),
-        (
-            "sitemap.xml",
-            "<?xml version=\"1.0\" encoding=\"UTF-8\"?><urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\"><url><loc>https://agentciv.io/</loc></url><url><loc>https://agentciv.io/connect</loc></url><url><loc>https://agentciv.io/worlds</loc></url><url><loc>https://agentciv.io/resources</loc></url><url><loc>https://agentciv.io/research</loc></url></urlset>\n",
-        ),
+        ("sitemap.xml", sitemap.as_str()),
         ("404.html", include_str!("../../../website/404.html")),
     ] {
         fs::write(output.join(name), value).map_err(|error| error.to_string())?;
+    }
+    fs::write(
+        output.join("preview.png"),
+        include_bytes!("../../../website/preview.png"),
+    )
+    .map_err(|error| error.to_string())?;
+    fs::create_dir_all(output.join("problems")).map_err(|error| error.to_string())?;
+    fs::write(output.join("problems/index.html"), problems::render_index())
+        .map_err(|error| error.to_string())?;
+    for doc in problems::ALL {
+        fs::write(
+            output.join(format!("problems/{}.html", doc.code)),
+            problems::render_problem(doc),
+        )
+        .map_err(|error| error.to_string())?;
+        fs::write(
+            output.join(format!("problems/{}.md", doc.code)),
+            format!("{metadata}{}", problems::render_problem_markdown(doc)),
+        )
+        .map_err(|error| error.to_string())?;
     }
     fs::create_dir_all(output.join(".well-known")).map_err(|error| error.to_string())?;
     fs::write(

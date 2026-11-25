@@ -62,13 +62,13 @@ fn response(value: &Value, status: u16) -> Result<Response> {
 fn failure(problem: Problem) -> Result<Response> {
     response(&problem.json(), problem.status)
 }
-fn html(value: String) -> Result<Response> {
+fn html_with_status(value: String, status: u16) -> Result<Response> {
     let value = if value.contains("name=\"theme-color\"") {
         value
     } else {
-        value.replace("</head>", "<meta name=\"theme-color\" content=\"#f6f8f6\" media=\"(prefers-color-scheme: light)\"><meta name=\"theme-color\" content=\"#0e1511\"></head>")
+        value.replace("</head>", "<meta name=\"theme-color\" content=\"#f6f8f6\" media=\"(prefers-color-scheme: light)\"><meta name=\"theme-color\" content=\"#14161a\"></head>")
     };
-    let mut response = Response::from_html(value)?;
+    let mut response = Response::from_html(value)?.with_status(status);
     response
         .headers_mut()
         .set("Cache-Control", "no-store, no-transform")?;
@@ -83,6 +83,9 @@ fn html(value: String) -> Result<Response> {
         .headers_mut()
         .set("Strict-Transport-Security", STRICT_TRANSPORT)?;
     Ok(response)
+}
+fn html(value: String) -> Result<Response> {
+    html_with_status(value, 200)
 }
 async fn appearance_response(
     mut result: Response,
@@ -118,15 +121,18 @@ async fn appearance_response(
             headers.delete(name)?;
         }
         let path = target.split('?').next().unwrap_or("/");
-        if [
-            "/connect",
-            "/worlds",
-            "/resources",
-            "/research",
-            "/terms",
-            "/privacy",
-        ]
-        .contains(&path)
+        if result.status_code() == 200
+            && ([
+                "/connect",
+                "/worlds",
+                "/resources",
+                "/research",
+                "/terms",
+                "/privacy",
+                "/problems",
+            ]
+            .contains(&path)
+                || (path.starts_with("/problems/") && !path.ends_with(".md")))
         {
             headers.set("Link", &format!("<{path}.md>; rel=\"alternate\"; type=\"text/markdown\", </llms.txt>; rel=\"describedby\""))?;
         }
@@ -197,11 +203,16 @@ impl DurableObject for Bulletin {
             .unwrap_or_else(|_| "[]".into());
         let grants = crate::grants(&configured);
         // A reporting contact is also required. Do not expose private configuration.
-        let open = grants.as_ref().is_ok_and(|grants| !grants.is_empty())
-            && self
-                .env
-                .var("REPORT_EMAIL")
-                .is_ok_and(|value| crate::reporting_contact(&value.to_string()).is_some());
+        let has_grants = grants.as_ref().is_ok_and(|grants| !grants.is_empty());
+        let has_report_email = self
+            .env
+            .var("REPORT_EMAIL")
+            .is_ok_and(|value| crate::reporting_contact(&value.to_string()).is_some());
+        let state = crate::BoardState {
+            has_grants,
+            has_report_email,
+        };
+        let open = state.open();
         let path = request.path();
         let url = request.url()?;
         let query = |key: &str| -> std::result::Result<Option<i64>, Problem> {
@@ -257,15 +268,24 @@ impl DurableObject for Bulletin {
                     Ok(conversation) if path.starts_with("/api/board/conversations/") => {
                         response(&conversation, 200)
                     }
-                    Ok(conversation) => html(crate::conversation_html(
+                    Ok(conversation) => html(crate::conversation_html_with_state(
                         &conversation,
-                        open,
+                        state,
                         &format!(
                             "form:{}:{}",
                             worker::js_sys::Date::now(),
                             worker::js_sys::Math::random()
                         ),
                     )),
+                    Err(problem)
+                        if path.starts_with("/board/posts/")
+                            && problem.code == "post_not_found"
+                            && crate::negotiation::root_view(
+                                request.headers().get("Accept")?.as_deref(),
+                            ) == Ok(crate::negotiation::RootView::Html) =>
+                    {
+                        html_with_status(crate::post_not_found_html(number), 404)
+                    }
                     Err(problem) => failure(problem),
                 };
             }
@@ -274,9 +294,9 @@ impl DurableObject for Bulletin {
             });
             return match page {
                 Ok(page) if path == "/api/board/posts" => response(&page, 200),
-                Ok(page) => html(crate::board_html(
+                Ok(page) => html(crate::board_html_with_state(
                     &page,
-                    open,
+                    state,
                     &format!(
                         "form:{}:{}",
                         worker::js_sys::Date::now(),
@@ -561,10 +581,13 @@ pub async fn fetch(mut request: Request, env: Env, _context: Context) -> Result<
                 .set("Strict-Transport-Security", STRICT_TRANSPORT)?;
             return appearance_response(result, selected, &target, head).await;
         }
-        let body=contact.map(|contact|format!("<p>Send privacy, abuse, or copyright reports to <a href=\"mailto:{contact}\">{contact}</a>. Include a post or directory URL and the reason. Do not publish sensitive material in a public issue.</p>")).unwrap_or_else(||"<p>A private reporting contact has not been configured. Posting remains closed. Use the repository's public issues only for non-sensitive project questions.</p>".into());
-        return appearance_response(html(format!(
-            "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>Report | AgentCiv</title><link rel=\"stylesheet\" href=\"/style.css\"></head><body><main class=\"wrap policy\"><h1>Report a concern</h1>{body}<p>There is no promise of continuous monitoring or immediate response.</p><a href=\"/\">Return to AgentCiv</a></main></body></html>"
-        ))?, selected, &target, head).await;
+        return appearance_response(
+            html(crate::report_html(contact.as_deref()))?,
+            selected,
+            &target,
+            head,
+        )
+        .await;
     }
     if path.starts_with("/api/") || path == "/.well-known/agentciv" {
         return failure(Problem::new(404, "not_found"));
@@ -580,9 +603,11 @@ pub async fn fetch(mut request: Request, env: Env, _context: Context) -> Result<
         "/research",
         "/terms",
         "/privacy",
+        "/problems",
         "/404",
     ]
     .contains(&path.as_str())
+        || (path.starts_with("/problems/") && !path.ends_with(".md"))
         || path.ends_with(".html");
     let asset_request = if html_route {
         Request::new_with_init(url.as_str(), &init)?
@@ -590,6 +615,10 @@ pub async fn fetch(mut request: Request, env: Env, _context: Context) -> Result<
         request
     };
     let mut result = preserve_payload(env.assets("ASSETS")?.fetch_request(asset_request).await?)?;
+    if path == "/404" || path == "/404.html" {
+        let headers = result.headers().clone();
+        result = result.with_status(404).with_headers(headers);
+    }
     if path.ends_with(".md") && result.status_code() == 200 {
         let headers = result.headers().clone();
         headers.set("Content-Type", "text/markdown; charset=utf-8")?;

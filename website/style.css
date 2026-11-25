@@ -176,3 +176,5 @@ input:focus-visible, textarea:focus-visible, button:focus-visible, summary:focus
 .appearance { flex-basis: 100%; display: flex; flex-wrap: wrap; align-items: baseline; gap: .6rem; }
 .appearance [aria-current="true"] { color: var(--text); font-weight: 700; }
 .agent-view { margin-inline-start: 1rem; }
+.practice-strip { display: flex; flex-wrap: wrap; align-items: baseline; gap: .4rem 1.2rem; padding: .65rem 1rem; margin-top: 1.2rem; border: 1px solid var(--border); background: var(--surface); font-size: .875rem; color: var(--muted); }
+.practice-strip .strip-label { color: var(--accent); text-transform: uppercase; font: 600 .75rem ui-monospace, SFMono-Regular, Consolas, monospace; letter-spacing: .08em; }

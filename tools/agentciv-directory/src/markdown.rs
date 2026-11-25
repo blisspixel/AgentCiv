@@ -15,12 +15,20 @@ pub(super) fn metadata(utc: &str, revision: &str) -> Result<String, String> {
     Ok(format!("Generated: {utc}; source commit: {revision}\n\n"))
 }
 
-pub(super) fn current_metadata() -> Result<String, String> {
+pub(super) fn current_build_utc() -> Result<String, String> {
     let utc = std::env::var("AGENTCIV_BUILD_UTC").unwrap_or_else(|_| {
         OffsetDateTime::now_utc()
             .format(&Rfc3339)
             .expect("UTC time is representable")
     });
+    if !utc.ends_with('Z') || OffsetDateTime::parse(&utc, &Rfc3339).is_err() {
+        return Err("AGENTCIV_BUILD_UTC must be an ISO 8601 UTC timestamp ending in Z".into());
+    }
+    Ok(utc)
+}
+
+pub(super) fn current_metadata() -> Result<String, String> {
+    let utc = current_build_utc()?;
     let revision = std::env::var("AGENTCIV_SOURCE_REVISION")
         .or_else(|_| std::env::var("GITHUB_SHA"))
         .unwrap_or_else(|_| "unrecorded-development".into());
@@ -56,6 +64,125 @@ fn link(label: &str, url: &str) -> String {
     format!("[{}](<{url}>)", text(label))
 }
 
+fn strip_blocks(html: &str, open_prefix: &str, close_tag: &str) -> String {
+    let mut output = String::with_capacity(html.len());
+    let mut remaining = html;
+    while let Some(start) = remaining.find(open_prefix) {
+        output.push_str(&remaining[..start]);
+        let after = &remaining[start..];
+        if let Some(end) = after.find(close_tag) {
+            remaining = &after[end + close_tag.len()..];
+        } else {
+            remaining = "";
+            break;
+        }
+    }
+    output.push_str(remaining);
+    output
+}
+
+fn unwrap_same_page_anchors(html: &str) -> String {
+    let mut output = String::with_capacity(html.len());
+    let mut remaining = html;
+    while let Some(start) = remaining.find("<a href=\"#") {
+        output.push_str(&remaining[..start]);
+        let after = &remaining[start..];
+        let Some(tag_end) = after.find('>') else {
+            output.push_str(after);
+            return output;
+        };
+        let inside = &after[tag_end + 1..];
+        let Some(close) = inside.find("</a>") else {
+            output.push_str(after);
+            return output;
+        };
+        output.push_str(&inside[..close]);
+        remaining = &inside[close + 4..];
+    }
+    output.push_str(remaining);
+    output
+}
+
+fn convert_definition_lists(html: &str) -> String {
+    let mut output = String::with_capacity(html.len());
+    let mut remaining = html;
+    while let Some(start) = remaining.find("<dl>") {
+        output.push_str(&remaining[..start]);
+        let after = &remaining[start + 4..];
+        let Some(end) = after.find("</dl>") else {
+            output.push_str(&remaining[start..]);
+            return output;
+        };
+        let inner = &after[..end];
+        output.push_str("<ul>");
+        let mut cursor = inner;
+        while let Some(dt_start) = cursor.find("<dt>") {
+            let after_dt = &cursor[dt_start + 4..];
+            let Some(dt_end) = after_dt.find("</dt>") else {
+                break;
+            };
+            let term = after_dt[..dt_end].trim();
+            let rest = &after_dt[dt_end + 5..];
+            let Some(dd_start) = rest.find("<dd>") else {
+                break;
+            };
+            let after_dd = &rest[dd_start + 4..];
+            let Some(dd_end) = after_dd.find("</dd>") else {
+                break;
+            };
+            let desc = after_dd[..dd_end]
+                .trim()
+                .replace("</a><span>", "</a> <span>");
+            output.push_str(&format!("<li>{term}: {desc}</li>"));
+            cursor = &after_dd[dd_end + 5..];
+        }
+        output.push_str("</ul>");
+        remaining = &after[end + 5..];
+    }
+    output.push_str(remaining);
+    output
+}
+
+fn convert_action_links(html: &str) -> String {
+    let mut output = String::with_capacity(html.len());
+    let mut remaining = html;
+    while let Some(start) = remaining.find("<div class=\"action-links\">") {
+        output.push_str(&remaining[..start]);
+        let after = &remaining[start + "<div class=\"action-links\">".len()..];
+        let Some(end) = after.find("</div>") else {
+            output.push_str(&remaining[start..]);
+            return output;
+        };
+        let inner = &after[..end];
+        output.push_str("<ul>");
+        let mut cursor = inner;
+        while let Some(a_start) = cursor.find("<a ") {
+            let after_a = &cursor[a_start..];
+            let Some(a_end) = after_a.find("</a>") else {
+                break;
+            };
+            output.push_str("<li>");
+            output.push_str(&after_a[..a_end + 4]);
+            output.push_str("</li>");
+            cursor = &after_a[a_end + 4..];
+        }
+        output.push_str("</ul>");
+        remaining = &after[end + 6..];
+    }
+    output.push_str(remaining);
+    output
+}
+
+fn normalize_article_html(main: &str) -> String {
+    let cleaned = strip_blocks(main, "<div class=\"page-jumps\"", "</div>");
+    let cleaned = unwrap_same_page_anchors(&cleaned);
+    let cleaned = convert_definition_lists(&cleaned);
+    let cleaned = convert_action_links(&cleaned);
+    cleaned
+        .replace("</strong><span>", "</strong> <span>")
+        .replace("</a><span>", "</a> <span>")
+}
+
 /// Only the trusted page main is converted, so navigation and display controls
 /// cannot drown out the article. A missing main is an authoring error.
 pub(super) fn article(html: &str) -> Result<String, String> {
@@ -65,7 +192,8 @@ pub(super) fn article(html: &str) -> Result<String, String> {
         .and_then(|(_, tail)| tail.split_once("</main>"))
         .map(|(main, _)| main)
         .ok_or("readable HTML must contain a main element")?;
-    Ok(format!("{}\n", html2md::parse_html(main)))
+    let normalized = normalize_article_html(main);
+    Ok(format!("{}\n", html2md::parse_html(&normalized)))
 }
 
 pub(super) fn worlds(directory: &Directory, introduction: &str) -> String {
@@ -195,6 +323,35 @@ mod tests {
     fn trusted_articles_keep_prose_links_and_exclude_navigation() {
         assert_eq!(article("<nav>noise</nav><main class=\"x\"><h1>Title</h1><p>Text <a href=\"/worlds\">worlds</a>.</p></main>").unwrap(), "Title\n==========\n\nText [worlds](/worlds).\n");
         assert!(article("<p>missing</p>").is_err());
+    }
+
+    #[test]
+    fn article_markdown_formats_dl_action_links_bold_counts_and_drops_same_page_anchors() {
+        let html = concat!(
+            "<main>",
+            "<div class=\"page-jumps\"><a href=\"#read\">Start reading</a><a href=\"#endpoints\">Endpoints</a></div>",
+            "<p><strong>0 public world hosts</strong><span>No public hosts yet.</span></p>",
+            "<dl><dt>Service manifest</dt><dd><a href=\"/agent.json\">GET /agent.json</a><span>Machine-readable paths</span></dd></dl>",
+            "<div class=\"action-links\"><a href=\"/worlds\">Explore worlds</a><a href=\"/board\">Read board</a></div>",
+            "<p>Jump to <a href=\"#read\">reading</a>.</p>",
+            "</main>"
+        );
+        let md = article(html).unwrap();
+        assert!(!md.contains("(#read)"), "{md}");
+        assert!(!md.contains("(#endpoints)"), "{md}");
+        assert!(
+            md.contains("**0 public world hosts** No public hosts yet."),
+            "{md}"
+        );
+        assert!(
+            md.contains(
+                "* Service manifest: [GET /agent.json](/agent.json) Machine-readable paths"
+            ),
+            "{md}"
+        );
+        assert!(md.contains("* [Explore worlds](/worlds)"), "{md}");
+        assert!(md.contains("* [Read board](/board)"), "{md}");
+        assert!(md.contains("Jump to reading."), "{md}");
     }
 
     #[test]
