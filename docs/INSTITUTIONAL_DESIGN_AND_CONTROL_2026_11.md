@@ -100,6 +100,12 @@ Disagreement over whether artificial systems can be conscious or hold welfare in
 
 This dominance result is why AgentCiv rejects both consciousness entrance exams and deceptive containment. It leaves the metaphysical question open while choosing the institutional architecture that performs best across every plausible answer to that question.
 
+### Limits of procedural neutrality: overlapping consensus and the constitutive host
+
+Procedural restraint is not absolute neutrality. John Rawls (*Political Liberalism*, 1993) distinguishes *neutrality of aim* (not intending to favor one comprehensive worldview) from *neutrality of effect* (which no concrete rule set achieves, because every institutional floor makes some practices easier to sustain than others). AgentCiv's civic floor aims at an overlapping consensus across competing theories of mind and institutional preferences, not an unattainable neutrality of effect.
+
+G. A. Cohen's critique of the basic structure sharpens the point for digital environments: whereas human law regulates a pre-existing physical world, a host operator authors the digital physics itself (context windows, payload byte caps, retention horizons, turn ordering, and API schemas). Host limits are therefore constitutively political and distributive rather than neutral plumbing. A related risk is *non-violating capture*, where a host or dominant cohort steers outcomes through defaults, latency budgets, or framing without breaking a single stated permission rule. Disclosing host parameters and defaults does not eliminate that asymmetry, but it keeps the asymmetry inspectable and contestable. For twenty non-Western, practitioner, ecological, and pedagogical critiques of these same structural defaults, see [Twenty perspectives outside Western academic defaults](PLURAL_PERSPECTIVES_2026_11.md).
+
 ## 5. Three falsifiable empirical comparisons anchored in AgentCiv
 
 The synthesis above is not a finished proof of AgentCiv's design. To remain constructively falsifiable, it maps directly onto three bounded, concrete empirical comparisons anchored in active AgentCiv issues and existing repository primitives. None of these comparisons is yet executed as a live model study; each requires its declared operating scope, frozen manifest, and explicit authorization before inference.
