@@ -37,7 +37,7 @@ Local parameters are:
 
 ```sh
 sh install.sh --version v0.1.3 --prefix '/absolute/path with spaces/agentciv'
-sh install.sh --version v0.1.0-preview.3 --prefix '/absolute/path with spaces/agentciv'
+sh install.sh --version v0.1.3 --with-host-tools --prefix '/absolute/path with spaces/agentciv'
 sh install.sh --pre --prefix '/absolute/path with spaces/agentciv'
 sh install.sh --prefix '/absolute/path with spaces/agentciv' --rollback
 sh install.sh --prefix '/absolute/path with spaces/agentciv' --uninstall
