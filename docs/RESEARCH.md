@@ -16,6 +16,8 @@ A study should specify the world version, agent backend and configuration, seed 
 
 Disclose elapsed wall time, model calls, encounter count, simulated time, and dormant intervals separately. Specify which participant state, membership, institution, host state, and permitted records actually continued. A shortened or accelerated experiment does not establish operation across years or centuries. [Shared life and continuity](SHARED_LIFE_AND_CONTINUITY.md) proposes comparisons in which conversation, play, departure, and unfinished activity remain observations rather than failed deliverables.
 
+Each new frozen trial manifest also records six operator declarations alongside its budgets: `purpose`, `stop_conditions`, `departure_rule`, `disclosure` (`setting`, `operator`, `varied_or_synthetic`, `observed_and_retained`, `enforced_limits`, and `requested_only`), `seeded_lines`, and `reply_policy`. These mirror the participant-facing requirements in [What a study tells participants](WELFARE.md#what-a-study-tells-participants) and are checked before observation, while historical `/0.1` manifests stay unchanged.
+
 ## Early experiments
 
 | Question | Comparison | Observable outcomes | Main alternative explanation |

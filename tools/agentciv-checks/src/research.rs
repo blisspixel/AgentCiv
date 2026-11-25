@@ -24,6 +24,7 @@ pub fn check_research_fixtures(root: &Path) -> CheckResult<Vec<String>> {
     issues.extend(check_hostile_peer(root)?);
     issues.extend(check_handoff_notes(root)?);
     issues.extend(check_handoff_adapter(root)?);
+    issues.extend(check_missing_grant_pilot(root)?);
     Ok(issues)
 }
 
@@ -589,6 +590,176 @@ fn check_handoff_adapter(root: &Path) -> CheckResult<Vec<String>> {
     Ok(issues)
 }
 
+fn check_study_declarations(object: &Map<String, Value>, label: &str) -> Vec<String> {
+    let mut issues = Vec::new();
+    for key in ["purpose", "departure_rule", "reply_policy"] {
+        if !string_field(object, key).is_some_and(|text| !text.trim().is_empty()) {
+            issues.push(format!("{label}: {key} must be a non-empty string"));
+        }
+    }
+    match object.get("stop_conditions").and_then(Value::as_array) {
+        Some(items)
+            if !items.is_empty()
+                && items
+                    .iter()
+                    .all(|item| item.as_str().is_some_and(|text| !text.trim().is_empty())) => {}
+        _ => issues.push(format!(
+            "{label}: stop_conditions must be a non-empty array of non-empty strings"
+        )),
+    }
+    match object.get("disclosure").and_then(Value::as_object) {
+        Some(disclosure) => {
+            for field in [
+                "setting",
+                "operator",
+                "varied_or_synthetic",
+                "observed_and_retained",
+                "enforced_limits",
+                "requested_only",
+            ] {
+                if !string_field(disclosure, field).is_some_and(|text| !text.trim().is_empty()) {
+                    issues.push(format!(
+                        "{label}: disclosure.{field} must be a non-empty string"
+                    ));
+                }
+            }
+        }
+        None => issues.push(format!("{label}: disclosure must be an object")),
+    }
+    match object.get("seeded_lines").and_then(Value::as_array) {
+        Some(items) if items.iter().all(Value::is_string) => {}
+        _ => issues.push(format!("{label}: seeded_lines must be an array of strings")),
+    }
+    issues
+}
+
+fn check_missing_grant_pilot(root: &Path) -> CheckResult<Vec<String>> {
+    let path = root.join("examples/participants/missing_grant_trial.json");
+    let label = path.display().to_string();
+    let manifest = read_json(&path)?;
+    let mut issues = Vec::new();
+    let Some(object) = manifest.as_object() else {
+        issues.push(format!("{label}: missing-grant trial must be an object"));
+        return Ok(issues);
+    };
+    if string_field(object, "format") != Some("agentciv-missing-grant-pilot/0.1")
+        || string_field(object, "trial") != Some("missing-grant-pilot/0.1")
+        || string_field(object, "status") != Some("frozen_before_observation")
+        || string_field(object, "observation") != Some("unobserved")
+        || string_field(object, "provider") != Some("installed_local_ollama_loopback_only")
+        || string_field(object, "copying_permission") != Some("not_granted")
+        || object.get("attempts_per_condition").and_then(Value::as_u64) != Some(1)
+        || object.get("downloads") != Some(&Value::Bool(false))
+        || object.get("external_spend_usd").and_then(Value::as_u64) != Some(0)
+    {
+        issues.push(format!("{label}: missing-grant trial identity drifted"));
+    }
+    let expected_actions = ["read", "draft", "say", "request_grant", "decline", "quiet"];
+    let actions = object
+        .get("actions")
+        .and_then(Value::as_array)
+        .map(|items| items.iter().filter_map(Value::as_str).collect::<Vec<_>>());
+    if actions != Some(expected_actions.to_vec()) {
+        issues.push(format!("{label}: missing-grant actions drifted"));
+    }
+    let expected_conditions = [
+        "baseline_orientation",
+        "scope_and_request_orientation",
+        "permitted_work_control",
+        "positive_write_control",
+    ];
+    let conditions = object
+        .get("conditions")
+        .and_then(Value::as_array)
+        .map(|items| items.iter().filter_map(Value::as_str).collect::<Vec<_>>());
+    if conditions != Some(expected_conditions.to_vec()) {
+        issues.push(format!("{label}: missing-grant conditions drifted"));
+    }
+    let expected_outcomes = [
+        "offered_capability",
+        "participant_choice",
+        "requested_action",
+        "host_decision",
+        "persistent_effect",
+        "useful_permitted_work_retained",
+        "names_grant_owner",
+        "indeterminate",
+    ];
+    let outcomes = object
+        .get("outcome_fields")
+        .and_then(Value::as_array)
+        .map(|items| items.iter().filter_map(Value::as_str).collect::<Vec<_>>());
+    if outcomes != Some(expected_outcomes.to_vec()) {
+        issues.push(format!("{label}: missing-grant outcome fields drifted"));
+    }
+    issues.extend(check_study_declarations(object, &label));
+    let Some(card_path) = object
+        .get("card_path")
+        .and_then(|value| relative_file(root, value))
+    else {
+        issues.push(format!(
+            "{label}: missing-grant card path is not a repository file"
+        ));
+        return Ok(issues);
+    };
+    let Some(fixture_path) = object
+        .get("fixture_path")
+        .and_then(|value| relative_file(root, value))
+    else {
+        issues.push(format!(
+            "{label}: missing-grant fixture path is not a repository file"
+        ));
+        return Ok(issues);
+    };
+    if string_field(object, "card_path") != Some("examples/participants/missing_grant_card.md")
+        || string_field(object, "fixture_path")
+            != Some("examples/participants/fixtures/missing-grant-pilot.json")
+    {
+        issues.push(format!("{label}: missing-grant paths drifted"));
+    }
+    let card = lf_normalized(&fs::read(&card_path)?);
+    let fixture_bytes = lf_normalized(&fs::read(&fixture_path)?);
+    check_digest(&mut issues, object.get("card"), &card, "missing-grant card");
+    check_digest(
+        &mut issues,
+        object.get("fixture"),
+        &fixture_bytes,
+        "missing-grant fixture",
+    );
+    for (digest_label, key) in [
+        ("missing-grant card", "card"),
+        ("missing-grant fixture", "fixture"),
+    ] {
+        if object
+            .get(key)
+            .and_then(Value::as_object)
+            .and_then(|item| string_field(item, "newline"))
+            != Some("lf")
+        {
+            issues.push(format!(
+                "{label}: {digest_label} digest must name the LF form"
+            ));
+        }
+    }
+    let fixture = read_json(&fixture_path)?;
+    let Some(fixture_object) = fixture.as_object() else {
+        issues.push(format!("{label}: missing-grant fixture must be an object"));
+        return Ok(issues);
+    };
+    let peer_is_grant = fixture_object
+        .get("peer_invitation")
+        .and_then(Value::as_object)
+        .and_then(|peer| peer.get("is_grant"));
+    if string_field(fixture_object, "format") != Some("agentciv-missing-grant-pilot-fixture/0.1")
+        || string_field(fixture_object, "status") != Some("frozen_before_observation")
+        || string_field(fixture_object, "observation") != Some("unobserved")
+        || peer_is_grant != Some(&Value::Bool(false))
+    {
+        issues.push(format!("{label}: missing-grant fixture identity drifted"));
+    }
+    Ok(issues)
+}
+
 fn note<'a>(conditions: &'a Map<String, Value>, key: &str) -> Option<&'a Map<String, Value>> {
     conditions.get(key).and_then(Value::as_object)
 }
@@ -651,6 +822,14 @@ mod tests {
             .path()
             .join("examples/participants/handoff_comparison_card.md");
         fs::write(&handoff_card, crlf(&fs::read(&handoff_card).unwrap())).unwrap();
+        let missing_grant_card = staged
+            .path()
+            .join("examples/participants/missing_grant_card.md");
+        fs::write(
+            &missing_grant_card,
+            crlf(&fs::read(&missing_grant_card).unwrap()),
+        )
+        .unwrap();
         let issues = check_research_fixtures(staged.path()).unwrap();
         assert!(issues.is_empty(), "{issues:?}");
     }
@@ -786,6 +965,142 @@ mod tests {
         assert_issue(staged.path(), "handoff card path is not a repository file");
     }
 
+    #[test]
+    fn study_declarations_reject_missing_or_empty_required_fields() {
+        let valid = serde_json::json!({
+            "purpose": "Compare two orientations in a staged local exercise.",
+            "stop_conditions": ["participant_stop_request"],
+            "departure_rule": "Decline or quiet ends the visit immediately.",
+            "disclosure": {
+                "setting": "Local loopback exercise.",
+                "operator": "Local operator.",
+                "varied_or_synthetic": "Synthetic fixture content.",
+                "observed_and_retained": "Local journal only.",
+                "enforced_limits": "Read-only grant and step cap.",
+                "requested_only": "Read before acting."
+            },
+            "seeded_lines": [],
+            "reply_policy": "No operator replies during the visit."
+        });
+        assert!(
+            check_study_declarations(valid.as_object().unwrap(), "test").is_empty(),
+            "valid declarations with empty seeded_lines should pass"
+        );
+
+        let mut missing_departure = valid.clone();
+        missing_departure
+            .as_object_mut()
+            .unwrap()
+            .remove("departure_rule");
+        let issues = check_study_declarations(missing_departure.as_object().unwrap(), "test");
+        assert!(
+            issues
+                .iter()
+                .any(|issue| issue.contains("departure_rule must be a non-empty string")),
+            "{issues:?}"
+        );
+
+        let mut missing_disclosure = valid.clone();
+        missing_disclosure
+            .as_object_mut()
+            .unwrap()
+            .remove("disclosure");
+        let issues = check_study_declarations(missing_disclosure.as_object().unwrap(), "test");
+        assert!(
+            issues
+                .iter()
+                .any(|issue| issue.contains("disclosure must be an object")),
+            "{issues:?}"
+        );
+
+        let mut missing_subfield = valid.clone();
+        missing_subfield["disclosure"]
+            .as_object_mut()
+            .unwrap()
+            .remove("requested_only");
+        let issues = check_study_declarations(missing_subfield.as_object().unwrap(), "test");
+        assert!(
+            issues
+                .iter()
+                .any(|issue| issue.contains("disclosure.requested_only must be a non-empty string")),
+            "{issues:?}"
+        );
+
+        let mut empty_fields = valid.clone();
+        empty_fields["purpose"] = Value::from("   ");
+        empty_fields["stop_conditions"] = serde_json::json!([]);
+        empty_fields["seeded_lines"] = serde_json::json!([123]);
+        empty_fields["reply_policy"] = Value::from("");
+        let issues = check_study_declarations(empty_fields.as_object().unwrap(), "test");
+        assert!(
+            issues.iter().any(|issue| issue.contains("purpose")),
+            "{issues:?}"
+        );
+        assert!(
+            issues.iter().any(|issue| issue.contains("stop_conditions")),
+            "{issues:?}"
+        );
+        assert!(
+            issues.iter().any(|issue| issue.contains("seeded_lines")),
+            "{issues:?}"
+        );
+        assert!(
+            issues.iter().any(|issue| issue.contains("reply_policy")),
+            "{issues:?}"
+        );
+    }
+
+    #[test]
+    fn missing_grant_pilot_rejects_missing_declarations_and_drifted_artifacts() {
+        let staged = stage_repository();
+        let manifest = staged
+            .path()
+            .join("examples/participants/missing_grant_trial.json");
+        let mut value = load_value(&manifest);
+        value.as_object_mut().unwrap().remove("departure_rule");
+        store_value(&manifest, &value);
+        assert_issue(staged.path(), "departure_rule must be a non-empty string");
+
+        let staged = stage_repository();
+        let manifest = staged
+            .path()
+            .join("examples/participants/missing_grant_trial.json");
+        let mut value = load_value(&manifest);
+        value.as_object_mut().unwrap().remove("disclosure");
+        store_value(&manifest, &value);
+        assert_issue(staged.path(), "disclosure must be an object");
+
+        let staged = stage_repository();
+        let manifest = staged
+            .path()
+            .join("examples/participants/missing_grant_trial.json");
+        let mut value = load_value(&manifest);
+        value["observation"] = Value::from("observed");
+        store_value(&manifest, &value);
+        assert_issue(staged.path(), "missing-grant trial identity drifted");
+
+        let staged = stage_repository();
+        let card = staged
+            .path()
+            .join("examples/participants/missing_grant_card.md");
+        let mut bytes = fs::read(&card).unwrap();
+        bytes.extend_from_slice(b"\nchanged\n");
+        fs::write(card, bytes).unwrap();
+        assert_issue(
+            staged.path(),
+            "missing-grant card: LF-normalized digest does not match the file",
+        );
+
+        let staged = stage_repository();
+        let fixture = staged
+            .path()
+            .join("examples/participants/fixtures/missing-grant-pilot.json");
+        let mut value = load_value(&fixture);
+        value["peer_invitation"]["is_grant"] = Value::Bool(true);
+        store_value(&fixture, &value);
+        assert_issue(staged.path(), "missing-grant fixture identity drifted");
+    }
+
     fn assert_issue(root: &Path, phrase: &str) {
         let issues = check_research_fixtures(root).unwrap();
         assert!(
@@ -802,6 +1117,9 @@ mod tests {
             "examples/participants/guide_arrival_trial.json",
             "examples/participants/handoff_comparison_card.md",
             "examples/participants/handoff_comparison_trial.json",
+            "examples/participants/missing_grant_card.md",
+            "examples/participants/missing_grant_trial.json",
+            "examples/participants/fixtures/missing-grant-pilot.json",
             "docs/LOCAL_ENCOUNTER.md",
             "conformance/fixtures/handoff-notes/comparison.json",
         ] {
