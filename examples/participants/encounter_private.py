@@ -6,17 +6,19 @@ owner. These checks grant no permission to export records or contact a world.
 
 from __future__ import annotations
 
+import ctypes
 import json
 import os
 import secrets
 import stat
 import subprocess
 import sys
+import threading
 import time
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from contextlib import contextmanager
 from pathlib import Path
-from typing import BinaryIO
+from typing import Any, BinaryIO
 
 ROOT = Path(__file__).resolve().parents[2]
 MAX_PRIVATE_BYTES = 4 * 1024 * 1024
@@ -33,73 +35,217 @@ class EncounterError(RuntimeError):
         self.field = field
 
 
-_ACL_SCRIPT = r"""
-# Python can inherit PowerShell 7's module path while invoking Windows PowerShell
-# 5.1. Use only the latter's built-in modules, never the inherited module search.
-$env:PSModulePath = $PSHOME + '\Modules'
-$ErrorActionPreference = 'Stop'
-try {
-  [Console]::InputEncoding = New-Object Text.UTF8Encoding($false)
-  $request = [Console]::In.ReadToEnd() | ConvertFrom-Json
-  $sid = [Security.Principal.WindowsIdentity]::GetCurrent().User
-  if ($request.action -eq 'set') {
-    if ($request.directory) {
-      $acl = New-Object Security.AccessControl.DirectorySecurity
-      $inherit = [Security.AccessControl.InheritanceFlags]'ContainerInherit,ObjectInherit'
-    } else {
-      $acl = New-Object Security.AccessControl.FileSecurity
-      $inherit = [Security.AccessControl.InheritanceFlags]::None
-    }
-    $acl.SetOwner($sid)
-    $acl.SetAccessRuleProtection($true, $false)
-    $rule = New-Object Security.AccessControl.FileSystemAccessRule($sid,
-      [Security.AccessControl.FileSystemRights]::FullControl, $inherit,
-      [Security.AccessControl.PropagationFlags]::None,
-      [Security.AccessControl.AccessControlType]::Allow)
-    $acl.AddAccessRule($rule)
-    if ($request.directory) {
-      [IO.Directory]::SetAccessControl($request.path, $acl)
-    } else {
-      [IO.File]::SetAccessControl($request.path, $acl)
-    }
-  }
-  $actual = if ($request.directory) {
-    [IO.Directory]::GetAccessControl($request.path)
-  } else {
-    [IO.File]::GetAccessControl($request.path)
-  }
-  if ($actual.GetOwner([Security.Principal.SecurityIdentifier]).Value -ne $sid.Value) { exit 2 }
-  $rules = @($actual.GetAccessRules($true, $true, [Security.Principal.SecurityIdentifier]))
-  if ($rules.Count -eq 0) { exit 2 }
-  $full = $false
-  foreach ($rule in $rules) {
-    if ($rule.IdentityReference.Value -ne $sid.Value -or
-        $rule.AccessControlType -ne [Security.AccessControl.AccessControlType]::Allow) { exit 2 }
-    if (($rule.FileSystemRights -band [Security.AccessControl.FileSystemRights]::FullControl) -eq
-        [Security.AccessControl.FileSystemRights]::FullControl) { $full = $true }
-  }
-  if (-not $full) { exit 2 }
-  if ($request.directory -and -not $actual.AreAccessRulesProtected) { exit 2 }
-  exit 0
-} catch { exit 2 }
-"""
+_TOKEN_QUERY = 0x0008
+_TOKEN_USER_CLASS = 1
+_ERROR_SUCCESS = 0
+_SE_FILE_OBJECT = 1
+_OWNER_SECURITY_INFORMATION = 0x00000001
+_DACL_SECURITY_INFORMATION = 0x00000004
+_PROTECTED_DACL_SECURITY_INFORMATION = 0x80000000
+_ACL_REVISION = 2
+_ACCESS_ALLOWED_ACE_TYPE = 0
+_OBJECT_INHERIT_ACE = 0x01
+_CONTAINER_INHERIT_ACE = 0x02
+_INHERIT_ONLY_ACE = 0x08
+_DIR_INHERIT_FLAGS = _CONTAINER_INHERIT_ACE | _OBJECT_INHERIT_ACE
+_FILE_ALL_ACCESS = 0x001F01FF
+_SE_DACL_PROTECTED = 0x1000
+_ACL_SIZE_INFORMATION_CLASS = 2
+_ACL_HEADER_BYTES = 8
 
 
-# Bounds a PowerShell start on a loaded host, not the ACL decision. A timeout still fails closed.
-_ACL_TIMEOUT_SECONDS = 60
+class _SidAndAttributes(ctypes.Structure):
+    _fields_ = [("Sid", ctypes.c_void_p), ("Attributes", ctypes.c_uint32)]
+
+
+class _AclSizeInformation(ctypes.Structure):
+    _fields_ = [
+        ("AceCount", ctypes.c_uint32),
+        ("AclBytesInUse", ctypes.c_uint32),
+        ("AclBytesFree", ctypes.c_uint32),
+    ]
+
+
+class _AccessAllowedAceHeader(ctypes.Structure):
+    _fields_ = [
+        ("AceType", ctypes.c_uint8),
+        ("AceFlags", ctypes.c_uint8),
+        ("AceSize", ctypes.c_uint16),
+        ("Mask", ctypes.c_uint32),
+    ]
+
+
+def _bind_win32(library: Any, name: str, argtypes: list[Any], restype: Any) -> Callable[..., Any]:
+    function = getattr(library, name)
+    function.argtypes = argtypes
+    function.restype = restype
+    return function  # type: ignore[no-any-return]
+
+
+class _Win32AclApi:
+    """Direct Win32 advapi32/kernel32 owner-only ACL enforcement without subprocesses."""
+
+    def __init__(self, advapi32: Any, kernel32: Any) -> None:
+        void_p = ctypes.c_void_p
+        p_void_p = ctypes.POINTER(ctypes.c_void_p)
+        u16 = ctypes.c_uint16
+        u32 = ctypes.c_uint32
+        p_u16 = ctypes.POINTER(ctypes.c_uint16)
+        p_u32 = ctypes.POINTER(ctypes.c_uint32)
+        c_bool = ctypes.c_int
+
+        self._get_current_process = _bind_win32(kernel32, "GetCurrentProcess", [], void_p)
+        self._close_handle = _bind_win32(kernel32, "CloseHandle", [void_p], c_bool)
+        self._local_free = _bind_win32(kernel32, "LocalFree", [void_p], void_p)
+
+        self._open_process_token = _bind_win32(advapi32, "OpenProcessToken", [void_p, u32, p_void_p], c_bool)
+        self._get_token_information = _bind_win32(advapi32, "GetTokenInformation", [void_p, u32, void_p, u32, p_u32], c_bool)
+        self._is_valid_sid = _bind_win32(advapi32, "IsValidSid", [void_p], c_bool)
+        self._get_length_sid = _bind_win32(advapi32, "GetLengthSid", [void_p], u32)
+        self._copy_sid = _bind_win32(advapi32, "CopySid", [u32, void_p, void_p], c_bool)
+        self._equal_sid = _bind_win32(advapi32, "EqualSid", [void_p, void_p], c_bool)
+        self._initialize_acl = _bind_win32(advapi32, "InitializeAcl", [void_p, u32, u32], c_bool)
+        self._add_access_allowed_ace_ex = _bind_win32(advapi32, "AddAccessAllowedAceEx", [void_p, u32, u32, u32, void_p], c_bool)
+        self._set_named_security_info = _bind_win32(
+            advapi32, "SetNamedSecurityInfoW", [ctypes.c_wchar_p, u32, u32, void_p, void_p, void_p, void_p], u32,
+        )
+        self._get_named_security_info = _bind_win32(
+            advapi32, "GetNamedSecurityInfoW",
+            [ctypes.c_wchar_p, u32, u32, p_void_p, p_void_p, p_void_p, p_void_p, p_void_p], u32,
+        )
+        self._get_security_descriptor_control = _bind_win32(
+            advapi32, "GetSecurityDescriptorControl", [void_p, p_u16, p_u32], c_bool,
+        )
+        self._get_acl_information = _bind_win32(advapi32, "GetAclInformation", [void_p, void_p, u32, u32], c_bool)
+        self._get_ace = _bind_win32(advapi32, "GetAce", [void_p, u32, p_void_p], c_bool)
+        self._user_sid_buf, self._user_sid_len = self._resolve_user_sid()
+
+    def _resolve_user_sid(self) -> tuple[ctypes.Array[ctypes.c_char], int]:
+        token = ctypes.c_void_p()
+        if not self._open_process_token(self._get_current_process(), _TOKEN_QUERY, ctypes.byref(token)) or not token.value:
+            raise EncounterError("private_permissions_unavailable")
+        try:
+            needed = ctypes.c_uint32(0)
+            self._get_token_information(token, _TOKEN_USER_CLASS, None, 0, ctypes.byref(needed))
+            if needed.value == 0:
+                raise EncounterError("private_permissions_unavailable")
+            token_buf = ctypes.create_string_buffer(needed.value)
+            if not self._get_token_information(token, _TOKEN_USER_CLASS, token_buf, needed.value, ctypes.byref(needed)):
+                raise EncounterError("private_permissions_unavailable")
+            sid_ptr = _SidAndAttributes.from_buffer(token_buf).Sid
+            if not sid_ptr or not self._is_valid_sid(sid_ptr):
+                raise EncounterError("private_permissions_unavailable")
+            sid_len = int(self._get_length_sid(sid_ptr))
+            if sid_len <= 0:
+                raise EncounterError("private_permissions_unavailable")
+            sid_buf = ctypes.create_string_buffer(sid_len)
+            if not self._copy_sid(sid_len, ctypes.c_void_p(ctypes.addressof(sid_buf)), sid_ptr):
+                raise EncounterError("private_permissions_unavailable")
+            return sid_buf, sid_len
+        finally:
+            self._close_handle(token)
+
+    def _user_sid_ptr(self) -> ctypes.c_void_p:
+        return ctypes.c_void_p(ctypes.addressof(self._user_sid_buf))
+
+    def set_owner_only(self, path: Path, directory: bool) -> None:
+        ace_flags = _DIR_INHERIT_FLAGS if directory else 0
+        acl_size = ((_ACL_HEADER_BYTES + ctypes.sizeof(_AccessAllowedAceHeader) + self._user_sid_len + 3) // 4) * 4
+        dacl_buf = ctypes.create_string_buffer(acl_size)
+        dacl_ptr = ctypes.c_void_p(ctypes.addressof(dacl_buf))
+        user_sid = self._user_sid_ptr()
+        if not self._initialize_acl(dacl_ptr, acl_size, _ACL_REVISION):
+            raise EncounterError("private_permissions_unavailable")
+        if not self._add_access_allowed_ace_ex(dacl_ptr, _ACL_REVISION, ace_flags, _FILE_ALL_ACCESS, user_sid):
+            raise EncounterError("private_permissions_unavailable")
+        security_info = _OWNER_SECURITY_INFORMATION | _DACL_SECURITY_INFORMATION | _PROTECTED_DACL_SECURITY_INFORMATION
+        status = int(self._set_named_security_info(str(path), _SE_FILE_OBJECT, security_info, user_sid, None, dacl_ptr, None))
+        if status != _ERROR_SUCCESS:
+            raise EncounterError("private_permissions_unavailable")
+
+    def check_owner_only(self, path: Path, directory: bool) -> None:
+        owner_sid = ctypes.c_void_p()
+        dacl = ctypes.c_void_p()
+        sd = ctypes.c_void_p()
+        security_info = _OWNER_SECURITY_INFORMATION | _DACL_SECURITY_INFORMATION
+        status = int(self._get_named_security_info(
+            str(path), _SE_FILE_OBJECT, security_info, ctypes.byref(owner_sid), None, ctypes.byref(dacl), None, ctypes.byref(sd),
+        ))
+        try:
+            if status != _ERROR_SUCCESS or not sd.value:
+                raise EncounterError("private_permissions_unavailable")
+            user_sid = self._user_sid_ptr()
+            if not owner_sid.value or not self._equal_sid(owner_sid, user_sid):
+                raise EncounterError("private_permissions_invalid")
+            if not dacl.value:
+                raise EncounterError("private_permissions_invalid")
+            if directory:
+                control = ctypes.c_uint16(0)
+                revision = ctypes.c_uint32(0)
+                if not self._get_security_descriptor_control(sd, ctypes.byref(control), ctypes.byref(revision)):
+                    raise EncounterError("private_permissions_unavailable")
+                if (control.value & _SE_DACL_PROTECTED) == 0:
+                    raise EncounterError("private_permissions_invalid")
+            acl_info = _AclSizeInformation()
+            if not self._get_acl_information(dacl, ctypes.byref(acl_info), ctypes.sizeof(acl_info), _ACL_SIZE_INFORMATION_CLASS):
+                raise EncounterError("private_permissions_unavailable")
+            if acl_info.AceCount == 0:
+                raise EncounterError("private_permissions_invalid")
+            full = False
+            ace_header_bytes = ctypes.sizeof(_AccessAllowedAceHeader)
+            for index in range(acl_info.AceCount):
+                ace_ptr = ctypes.c_void_p()
+                if not self._get_ace(dacl, index, ctypes.byref(ace_ptr)) or not ace_ptr.value:
+                    raise EncounterError("private_permissions_unavailable")
+                header = _AccessAllowedAceHeader.from_address(ace_ptr.value)
+                ace_sid = ctypes.c_void_p(ace_ptr.value + ace_header_bytes)
+                if header.AceType != _ACCESS_ALLOWED_ACE_TYPE or not self._equal_sid(ace_sid, user_sid):
+                    raise EncounterError("private_permissions_invalid")
+                has_full_rights = (header.Mask & _FILE_ALL_ACCESS) == _FILE_ALL_ACCESS
+                has_inherit = (not directory) or (header.AceFlags & _DIR_INHERIT_FLAGS) == _DIR_INHERIT_FLAGS
+                if has_full_rights and has_inherit and (header.AceFlags & _INHERIT_ONLY_ACE) == 0:
+                    full = True
+            if not full:
+                raise EncounterError("private_permissions_invalid")
+        finally:
+            if sd.value:
+                self._local_free(sd)
+
+
+_WIN32_ACL_LOCK = threading.Lock()
+_WIN32_ACL_API: _Win32AclApi | None = None
+
+
+def _get_win32_acl_api() -> _Win32AclApi:
+    global _WIN32_ACL_API
+    if _WIN32_ACL_API is not None:
+        return _WIN32_ACL_API
+    with _WIN32_ACL_LOCK:
+        if _WIN32_ACL_API is not None:
+            return _WIN32_ACL_API
+        win_dll = getattr(ctypes, "WinDLL", None)
+        if win_dll is None:
+            raise EncounterError("private_permissions_unavailable")
+        try:
+            api = _Win32AclApi(win_dll("advapi32"), win_dll("kernel32"))
+        except (OSError, AttributeError, ValueError, ctypes.ArgumentError):
+            raise EncounterError("private_permissions_unavailable") from None
+        _WIN32_ACL_API = api
+        return api
 
 
 def _windows_acl(path: Path, action: str, directory: bool) -> None:
-    try:
-        result = subprocess.run(
-            ["powershell.exe", "-NoLogo", "-NoProfile", "-NonInteractive", "-Command", _ACL_SCRIPT],
-            input=json.dumps({"path": str(path), "action": action, "directory": directory}),
-            text=True, encoding="utf-8", stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=_ACL_TIMEOUT_SECONDS, check=False,
-        )
-    except (OSError, subprocess.SubprocessError):
-        raise EncounterError("private_permissions_unavailable") from None
-    if result.returncode != 0:
+    if action not in ("set", "check"):
         raise EncounterError("private_permissions_invalid")
+    try:
+        api = _get_win32_acl_api()
+        if action == "set":
+            api.set_owner_only(path, directory)
+        api.check_owner_only(path, directory)
+    except EncounterError:
+        raise
+    except (OSError, AttributeError, ValueError, ctypes.ArgumentError):
+        raise EncounterError("private_permissions_unavailable") from None
 
 
 def find_executable(name: str) -> Path | None:

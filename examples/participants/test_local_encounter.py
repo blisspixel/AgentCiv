@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import copy
+import ctypes
 import hashlib
 import json
 import os
@@ -180,16 +181,264 @@ class PrivateEncounterFilesTests(unittest.TestCase):
     def test_windows_acl_verification_fails_closed_without_private_trace(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             path = Path(temporary).resolve()
-            with patch.object(subprocess, "run", return_value=subprocess.CompletedProcess([], 2)), \
+            with patch.object(private, "_WIN32_ACL_API", None), patch.object(ctypes, "WinDLL", None, create=True), \
                 self.assertRaises(private.EncounterError) as caught:
                 private._windows_acl(path, "check", True)
+            self.assertEqual(caught.exception.code, "private_permissions_unavailable")
+            with patch.object(private, "_WIN32_ACL_API", None), \
+                patch.object(ctypes, "WinDLL", side_effect=OSError("private-trace"), create=True), \
+                self.assertRaises(private.EncounterError) as caught:
+                private._windows_acl(path, "set", False)
+            self.assertEqual(caught.exception.code, "private_permissions_unavailable")
+            self.assertNotIn("private-trace", str(caught.exception))
+            with self.assertRaises(private.EncounterError) as caught:
+                private._windows_acl(path, "unknown", False)
             self.assertEqual(caught.exception.code, "private_permissions_invalid")
-            for failure in (OSError("private-trace"), subprocess.TimeoutExpired("private-command", 15)):
-                with self.subTest(failure=type(failure).__name__), patch.object(subprocess, "run", side_effect=failure), \
-                    self.assertRaises(private.EncounterError) as caught:
-                    private._windows_acl(path, "set", False)
+
+    def test_win32_acl_api_enforces_owner_only_policy_and_frees_handles(self) -> None:
+        owner_sid = ctypes.create_string_buffer(b"\x01\x01\x00\x00\x00\x00\x00\x05\x12\x00\x00\x00", 12)
+        other_sid = ctypes.create_string_buffer(b"\x01\x01\x00\x00\x00\x00\x00\x05\x13\x00\x00\x00", 12)
+
+        def make_ace(ace_type: int, ace_flags: int, mask: int, sid_buf: ctypes.Array[ctypes.c_char]) -> ctypes.Array[ctypes.c_char]:
+            header_size = ctypes.sizeof(private._AccessAllowedAceHeader)
+            sid_bytes = bytes(sid_buf)
+            ace_buf = ctypes.create_string_buffer(header_size + len(sid_bytes))
+            header = private._AccessAllowedAceHeader.from_buffer(ace_buf)
+            header.AceType = ace_type
+            header.AceFlags = ace_flags
+            header.AceSize = header_size + len(sid_bytes)
+            header.Mask = mask
+            ctypes.memmove(ctypes.addressof(ace_buf) + header_size, sid_bytes, len(sid_bytes))
+            return ace_buf
+
+        def make_fake_win32() -> tuple[SimpleNamespace, SimpleNamespace, dict[str, object]]:
+            state: dict[str, object] = {
+                "owner_buf": owner_sid,
+                "aces": [],
+                "dacl_present": True,
+                "control": private._SE_DACL_PROTECTED,
+                "closed_handles": [],
+                "freed_sds": [],
+                "set_status": 0,
+                "get_status": 0,
+                "open_token_ok": True,
+                "token_info_size": ctypes.sizeof(private._SidAndAttributes),
+                "token_info_ok": True,
+                "valid_sid": True,
+                "sid_len": len(owner_sid),
+                "copy_sid_ok": True,
+                "init_acl_ok": True,
+                "add_ace_ok": True,
+                "sd_control_ok": True,
+                "acl_info_ok": True,
+                "get_ace_ok": True,
+                "last_set_flags": None,
+                "last_set_sec_info": None,
+            }
+
+            def _sid_bytes(ptr: object) -> bytes:
+                addr = ptr.value if isinstance(ptr, ctypes.c_void_p) else int(ptr) if isinstance(ptr, int) else 0
+                return ctypes.string_at(addr, len(owner_sid)) if addr else b""
+
+            def open_process_token(_proc: object, _access: int, out_token: object) -> int:
+                if not state["open_token_ok"]:
+                    return 0
+                getattr(out_token, "_obj").value = 0x1001
+                return 1
+
+            def get_token_information(_token: object, _cls: int, buf: ctypes.Array[ctypes.c_char] | None, length: int, needed: object) -> int:
+                size = int(state["token_info_size"]) if isinstance(state["token_info_size"], int) else 0
+                getattr(needed, "_obj").value = size
+                if buf is None or length == 0:
+                    return 0
+                if not state["token_info_ok"]:
+                    return 0
+                info = private._SidAndAttributes.from_buffer(buf)
+                info.Sid = ctypes.addressof(owner_sid)
+                info.Attributes = 0
+                return 1
+
+            def is_valid_sid(ptr: object) -> int:
+                return 1 if (state["valid_sid"] and ptr) else 0
+
+            def get_length_sid(_ptr: object) -> int:
+                return int(state["sid_len"]) if isinstance(state["sid_len"], int) else 0
+
+            def copy_sid(length: int, dst: object, src: object) -> int:
+                if not state["copy_sid_ok"]:
+                    return 0
+                dst_addr = (dst.value or 0) if isinstance(dst, ctypes.c_void_p) else int(dst) if isinstance(dst, int) else 0
+                src_addr = (src.value or 0) if isinstance(src, ctypes.c_void_p) else int(src) if isinstance(src, int) else 0
+                ctypes.memmove(dst_addr, src_addr, length)
+                return 1
+
+            def equal_sid(left: object, right: object) -> int:
+                return 1 if _sid_bytes(left) == _sid_bytes(right) else 0
+
+            def initialize_acl(_acl: object, _size: int, _rev: int) -> int:
+                return 1 if state["init_acl_ok"] else 0
+
+            def add_access_allowed_ace_ex(_acl: object, _rev: int, flags: int, mask: int, sid: object) -> int:
+                if not state["add_ace_ok"]:
+                    return 0
+                state["last_set_flags"] = flags
+                copied_sid = ctypes.create_string_buffer(_sid_bytes(sid), len(owner_sid))
+                state["aces"] = [make_ace(private._ACCESS_ALLOWED_ACE_TYPE, flags, mask, copied_sid)]
+                return 1
+
+            def set_named_security_info(_name: str, _obj_type: int, sec_info: int, _owner: object, _grp: object, _dacl: object, _sacl: object) -> int:
+                state["last_set_sec_info"] = sec_info
+                if sec_info & private._PROTECTED_DACL_SECURITY_INFORMATION:
+                    state["control"] = private._SE_DACL_PROTECTED
+                return int(state["set_status"]) if isinstance(state["set_status"], int) else 0
+
+            def get_named_security_info(_name: str, _obj_type: int, _sec_info: int, out_owner: object, _grp: object, out_dacl: object, _sacl: object, out_sd: object) -> int:
+                status = int(state["get_status"]) if isinstance(state["get_status"], int) else 0
+                if status != 0:
+                    return status
+                owner_buf = state["owner_buf"]
+                getattr(out_owner, "_obj").value = ctypes.addressof(owner_buf) if isinstance(owner_buf, ctypes.Array) else None
+                getattr(out_dacl, "_obj").value = 0x2002 if state["dacl_present"] else None
+                getattr(out_sd, "_obj").value = 0x3003
+                return 0
+
+            def get_security_descriptor_control(_sd: object, out_ctrl: object, out_rev: object) -> int:
+                if not state["sd_control_ok"]:
+                    return 0
+                getattr(out_ctrl, "_obj").value = int(state["control"]) if isinstance(state["control"], int) else 0
+                getattr(out_rev, "_obj").value = 1
+                return 1
+
+            def get_acl_information(_dacl: object, out_info: object, _length: int, _cls: int) -> int:
+                if not state["acl_info_ok"]:
+                    return 0
+                aces = state["aces"]
+                getattr(out_info, "_obj").AceCount = len(aces) if isinstance(aces, list) else 0
+                return 1
+
+            def get_ace(_dacl: object, index: int, out_ace: object) -> int:
+                if not state["get_ace_ok"]:
+                    return 0
+                aces = state["aces"]
+                if not isinstance(aces, list) or index >= len(aces):
+                    return 0
+                getattr(out_ace, "_obj").value = ctypes.addressof(aces[index])
+                return 1
+
+            def close_handle(handle: object) -> int:
+                closed = state["closed_handles"]
+                if isinstance(closed, list):
+                    closed.append(handle.value if isinstance(handle, ctypes.c_void_p) else handle)
+                return 1
+
+            def local_free(ptr: object) -> None:
+                freed = state["freed_sds"]
+                if isinstance(freed, list):
+                    freed.append(ptr.value if isinstance(ptr, ctypes.c_void_p) else ptr)
+                return None
+
+            advapi32 = SimpleNamespace(
+                OpenProcessToken=open_process_token,
+                GetTokenInformation=get_token_information,
+                IsValidSid=is_valid_sid,
+                GetLengthSid=get_length_sid,
+                CopySid=copy_sid,
+                EqualSid=equal_sid,
+                InitializeAcl=initialize_acl,
+                AddAccessAllowedAceEx=add_access_allowed_ace_ex,
+                SetNamedSecurityInfoW=set_named_security_info,
+                GetNamedSecurityInfoW=get_named_security_info,
+                GetSecurityDescriptorControl=get_security_descriptor_control,
+                GetAclInformation=get_acl_information,
+                GetAce=get_ace,
+            )
+            kernel32 = SimpleNamespace(
+                GetCurrentProcess=lambda: 0xFFFF,
+                CloseHandle=close_handle,
+                LocalFree=local_free,
+            )
+            return advapi32, kernel32, state
+
+        advapi32, kernel32, state = make_fake_win32()
+        with patch.object(private, "_WIN32_ACL_API", None), \
+            patch.object(ctypes, "WinDLL", side_effect=lambda name: advapi32 if name == "advapi32" else kernel32, create=True):
+            target = Path("/tmp/fake-private-target")
+            private._windows_acl(target, "set", True)
+            self.assertEqual(state["last_set_flags"], private._DIR_INHERIT_FLAGS)
+            self.assertEqual(state["closed_handles"], [0x1001])
+            self.assertEqual(state["freed_sds"], [0x3003])
+
+            private._windows_acl(target, "set", False)
+            self.assertEqual(state["last_set_flags"], 0)
+            self.assertEqual(len(state["freed_sds"]) if isinstance(state["freed_sds"], list) else 0, 2)
+
+            # Policy failure cases must all raise private_permissions_invalid and still LocalFree(sd).
+            policy_cases: list[tuple[str, bool, dict[str, object]]] = [
+                ("wrong_owner", False, {"owner_buf": other_sid}),
+                ("null_owner", False, {"owner_buf": None}),
+                ("null_dacl", False, {"dacl_present": False}),
+                ("unprotected_dir", True, {"control": 0, "aces": [make_ace(0, private._DIR_INHERIT_FLAGS, private._FILE_ALL_ACCESS, owner_sid)]}),
+                ("empty_dacl", False, {"aces": []}),
+                ("deny_ace", False, {"aces": [make_ace(1, 0, private._FILE_ALL_ACCESS, owner_sid)]}),
+                ("foreign_sid_ace", False, {"aces": [
+                    make_ace(0, 0, private._FILE_ALL_ACCESS, owner_sid),
+                    make_ace(0, 0, private._FILE_ALL_ACCESS, other_sid),
+                ]}),
+                ("partial_rights", False, {"aces": [make_ace(0, 0, 0x00120089, owner_sid)]}),
+                ("dir_missing_inherit", True, {"aces": [make_ace(0, 0, private._FILE_ALL_ACCESS, owner_sid)]}),
+                ("inherit_only_ace", True, {"aces": [make_ace(0, private._DIR_INHERIT_FLAGS | private._INHERIT_ONLY_ACE, private._FILE_ALL_ACCESS, owner_sid)]}),
+            ]
+            for label, is_dir, overrides in policy_cases:
+                with self.subTest(case=label):
+                    saved = dict(state)
+                    state.update(owner_buf=owner_sid, dacl_present=True, control=private._SE_DACL_PROTECTED,
+                        aces=[make_ace(0, private._DIR_INHERIT_FLAGS if is_dir else 0, private._FILE_ALL_ACCESS, owner_sid)])
+                    state.update(overrides)
+                    before_frees = len(state["freed_sds"]) if isinstance(state["freed_sds"], list) else 0
+                    with self.assertRaises(private.EncounterError) as caught:
+                        private._windows_acl(target, "check", is_dir)
+                    self.assertEqual(caught.exception.code, "private_permissions_invalid")
+                    after_frees = len(state["freed_sds"]) if isinstance(state["freed_sds"], list) else 0
+                    self.assertEqual(after_frees, before_frees + 1)
+                    state.update(saved)
+
+            # Win32 API error cases must fail closed with private_permissions_unavailable.
+            api_error_cases: list[tuple[str, str, bool, dict[str, object]]] = [
+                ("init_acl_failed", "set", False, {"init_acl_ok": False}),
+                ("add_ace_failed", "set", False, {"add_ace_ok": False}),
+                ("set_sec_info_failed", "set", False, {"set_status": 5}),
+                ("get_sec_info_failed", "check", False, {"get_status": 5}),
+                ("sd_control_failed", "check", True, {"sd_control_ok": False}),
+                ("acl_info_failed", "check", False, {"acl_info_ok": False}),
+                ("get_ace_failed", "check", False, {"get_ace_ok": False}),
+            ]
+            for label, action, is_dir, overrides in api_error_cases:
+                with self.subTest(case=label):
+                    saved = dict(state)
+                    state.update(owner_buf=owner_sid, dacl_present=True, control=private._SE_DACL_PROTECTED,
+                        aces=[make_ace(0, private._DIR_INHERIT_FLAGS if is_dir else 0, private._FILE_ALL_ACCESS, owner_sid)])
+                    state.update(overrides)
+                    with self.assertRaises(private.EncounterError) as caught:
+                        private._windows_acl(target, action, is_dir)
+                    self.assertEqual(caught.exception.code, "private_permissions_unavailable")
+                    state.update(saved)
+
+        # Token/SID resolution failures during API construction must fail closed.
+        init_cases: list[tuple[str, dict[str, object]]] = [
+            ("open_token_failed", {"open_token_ok": False}),
+            ("token_size_zero", {"token_info_size": 0}),
+            ("token_info_failed", {"token_info_ok": False}),
+            ("invalid_sid", {"valid_sid": False}),
+            ("sid_len_zero", {"sid_len": 0}),
+            ("copy_sid_failed", {"copy_sid_ok": False}),
+        ]
+        for label, init_overrides in init_cases:
+            with self.subTest(init_case=label):
+                bad_advapi32, bad_kernel32, bad_state = make_fake_win32()
+                bad_state.update(init_overrides)
+                with self.assertRaises(private.EncounterError) as caught:
+                    private._Win32AclApi(bad_advapi32, bad_kernel32)
                 self.assertEqual(caught.exception.code, "private_permissions_unavailable")
-                self.assertNotIn("private-trace", str(caught.exception))
 
     def test_lock_is_bounded_and_released_after_failure(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
