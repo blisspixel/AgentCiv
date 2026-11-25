@@ -493,18 +493,8 @@ def main() -> int:
         print(json.dumps(result, ensure_ascii=True))
         return 0 if result.get("outcome") in ("initialized", "member_added", "stopped", "read", "synced", "recorded", "compared", "inspected", "offers") else 1
     except private.EncounterError as error:
-        failure: JsonObject = {"outcome": "failed", "code": error.code}
-        if error.name is not None:
-            failure["file"] = error.name
-        if error.field is not None:
-            failure["field"] = error.field
-            if error.code == "invalid_private_view_path":
-                failure["title"] = "Saved views must be named view-*.json inside this member's configured cache_directory"
-            else:
-                failure["title"] = f"Invalid authored record: check /{error.field}"
-        elif error.code == "invalid_authored_json":
-            failure["title"] = "Authored record is not a valid JSON object"
-        print(json.dumps(failure, ensure_ascii=True))
+        import encounter_client
+        print(json.dumps(encounter_client.format_error(error), ensure_ascii=True))
         return 1
     except (OSError, ValueError, RecursionError, subprocess.SubprocessError):
         print(json.dumps({"outcome": "failed", "code": "local_operation_failed"}))

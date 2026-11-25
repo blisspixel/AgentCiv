@@ -58,7 +58,9 @@ Describe 'Native PowerShell installer' {
         }
     }
     It 'installs versioned native utilities without requiring PATH changes' {
-        Invoke-AgentCivInstall -InstallPrefix $script:installPrefix -SkipPath
+        $output = (Invoke-AgentCivInstall -InstallPrefix $script:installPrefix -SkipPath) -join "`n"
+        $output | Should Match 'docs/LOCAL_ENCOUNTER\.md'
+        $output | Should Match 'agentciv-archive\.cmd.*demo'
         [IO.File]::ReadAllText((Join-Path $script:installPrefix 'current')).Trim() | Should Be 'v0.1.0'
         Test-Path -LiteralPath (Join-Path $script:installPrefix 'versions/v0.1.0/agentciv-reader.exe') | Should Be $true
         Test-Path -LiteralPath (Join-Path $script:installPrefix 'bin/agentciv-host.cmd') | Should Be $false

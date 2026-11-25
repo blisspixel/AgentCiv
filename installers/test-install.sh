@@ -112,6 +112,8 @@ reject --prefix "$scratch/new${newline}line"
 reject --prefix "$scratch/multiline-version" --version "v0.1.0${newline}../../outside"
 prefix=$scratch/installation\ with\ spaces
 run --prefix "$prefix"
+grep -Fq 'docs/LOCAL_ENCOUNTER.md' "$scratch/stdout"
+grep -Fq 'agentciv-archive demo' "$scratch/stdout"
 [ "$("$prefix/bin/agentciv-archive" --version)" = 'agentciv-archive 0.1.0' ]
 [ "$(cat "$prefix/current")" = v0.1.0 ]
 run --prefix "$prefix" --version 0.1.0

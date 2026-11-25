@@ -8,6 +8,7 @@ from __future__ import annotations
 import hashlib
 import json
 import subprocess
+import sys
 import uuid
 from collections.abc import Iterator
 from contextlib import contextmanager
@@ -32,6 +33,54 @@ MAX_FILES = 16
 PREFIX_READ_FAILURES = ("prefix_changed", "prefix_unavailable", "cursor_expired")
 BUDGETS: JsonObject = {"max_pages": 32, "max_events": 2048, "max_response_bytes": 262144,
     "max_record_bytes": 16000, "max_total_bytes": 4194304, "seconds": 30}
+BUDGET_ERROR_LIMITS: dict[str, str] = {
+    "page_limit": "max_pages",
+    "event_limit": "max_events",
+    "response_limit": "max_response_bytes",
+    "record_limit": "max_record_bytes",
+    "total_byte_limit": "max_total_bytes",
+}
+SAFE_NEXT_STEPS: dict[str, str] = {
+    "host_unreachable": "Confirm the foreground host is running and the configured origin still points at it; do not invent a new room.",
+    "host_read_timeout": "Wait and retry the same read path within the configured seconds budget; do not issue a new say id to recover.",
+    "reader_binary_not_found": "Build or install agentciv-reader and pass an explicit --reader-binary path if needed.",
+    "private_path_exists": "Inspect the existing private path and choose a new state directory; do not overwrite or adopt it automatically.",
+    "private_lock_unavailable": "Stop or wait for the other process holding the room lock; do not start a second host on the same state.",
+    "room_exceeds_client_budget": "Inspect the named client budget limit, preserve the request journal, and stop for explicit review; do not issue a new say id.",
+    "reader_failed": "Preserve the request journal and stop for explicit reconciliation; do not issue a new say id.",
+}
+
+
+class BudgetExceededError(private.EncounterError):
+    """Raised when a local room read exceeds a configured client budget."""
+
+    def __init__(self, limit: str, configured_value: int) -> None:
+        super().__init__("room_exceeds_client_budget", field=limit)
+        self.limit = limit
+        self.configured_value = configured_value
+
+
+def format_error(error: private.EncounterError) -> JsonObject:
+    """Format an EncounterError into a safe machine-readable diagnostic."""
+    failure: JsonObject = {"outcome": "failed", "code": error.code}
+    if error.name is not None:
+        failure["file"] = error.name
+    if isinstance(error, BudgetExceededError):
+        failure["limit"] = error.limit
+        failure["configured_value"] = error.configured_value
+        failure["title"] = f"Room exceeds client budget {error.limit} ({error.configured_value})"
+    elif error.field is not None:
+        failure["field"] = error.field
+        if error.code == "invalid_private_view_path":
+            failure["title"] = "Saved views must be named view-*.json inside this member's configured cache_directory"
+        else:
+            failure["title"] = f"Invalid authored record: check /{error.field}"
+    elif error.code == "invalid_authored_json":
+        failure["title"] = "Authored record is not a valid JSON object"
+    next_step = SAFE_NEXT_STEPS.get(error.code)
+    if next_step is not None:
+        failure["next_step"] = next_step
+    return failure
 
 
 def _object(value: object) -> JsonObject:
@@ -111,9 +160,14 @@ def _process(binary: Path, command: str, path: Path, previous: Path | None = Non
             raise private.EncounterError("host_unreachable")
         if diagnostic == {"outcome": "failed", "code": "deadline_exceeded"}:
             raise private.EncounterError("host_read_timeout")
+        for native_code, limit in BUDGET_ERROR_LIMITS.items():
+            if diagnostic == {"outcome": "failed", "code": native_code}:
+                raise BudgetExceededError(limit, int(str(BUDGETS[limit])))
         for code in (*PREFIX_READ_FAILURES, "prefix_validation_unsupported", "prefix_validation_failed", "invalid_resume_state", "forbidden", "authentication_required"):
             if diagnostic == {"outcome": "failed", "code": code}:
                 raise private.EncounterError(code)
+    if result.returncode == 0 and len(result.stdout) > MAX_OUTPUT:
+        raise BudgetExceededError("max_output", MAX_OUTPUT)
     if result.returncode != 0 or len(result.stdout) > MAX_OUTPUT:
         if command == "offers-page" and len(result.stderr) <= 1024:
             try:
@@ -123,6 +177,8 @@ def _process(binary: Path, command: str, path: Path, previous: Path | None = Non
             if diagnostic in ({"outcome": "failed", "code": "invalid_offer_continuation"},
                               {"outcome": "failed", "code": "invalid_offer_query"}):
                 raise private.EncounterError(str(diagnostic["code"]))
+        if len(result.stdout) > MAX_OUTPUT:
+            raise BudgetExceededError("max_output", MAX_OUTPUT)
         raise private.EncounterError("reader_failed")
     try:
         return civic.decode(result.stdout)
@@ -587,6 +643,20 @@ def say(config: Path, text: str, to: list[str] | None = None, basis: Path | None
         recipients = list(dict.fromkeys(to)) if to else (others or [principal])
         if not all(_text(item) for item in recipients):
             raise private.EncounterError("invalid_recipient")
+        warnings: list[str] = []
+        if "members" in settings and to:
+            roster = [str(item) for item in _members(settings)]
+            unknown = [recipient for recipient in recipients if recipient not in roster]
+            if unknown:
+                if _contains_secret(unknown, str(settings["token"])):
+                    raise private.EncounterError("invalid_authored_record", field="credential")
+                warning = (
+                    f"Warning: recipient(s) not on room roster: {', '.join(unknown)}. "
+                    f"Known roster: {', '.join(roster)}. "
+                    "Submitting as addressed without rewriting recipients."
+                )
+                print(warning, file=sys.stderr)
+                warnings.append(warning)
         record: JsonObject = {"protocol_version": "0.1-draft", "type": "message", "id": f"message:{uuid.uuid4().hex}",
             "world": settings["world"], "from": principal, "to": recipients, "body": {"text": text}}
         raw = (json.dumps(record, ensure_ascii=False, indent=2) + "\n").encode("utf-8")
@@ -594,7 +664,10 @@ def say(config: Path, text: str, to: list[str] | None = None, basis: Path | None
         raise
     except (ValueError, UnicodeError):
         raise private.EncounterError("invalid_message_text") from None
-    return _publish(settings, raw, basis, reader_binary)
+    result = _publish(settings, raw, basis, reader_binary)
+    if warnings:
+        result["warnings"] = warnings
+    return result
 
 
 def _members(settings: JsonObject) -> list[object]:
