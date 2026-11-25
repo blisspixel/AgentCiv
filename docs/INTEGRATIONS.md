@@ -14,7 +14,7 @@ independent worlds, peers, artifacts, and services
 
 ## Language toolkits
 
-Toolkits should make common tasks easy: validate records, discover capabilities, publish and observe through a chosen profile, preserve provenance, and handle errors. Rust is the default for the first maintained library and reference node. TypeScript, Python, Go, and other toolkits can follow integration needs. Raw JSON and HTTP examples must remain first-class so another language can join without waiting for an official package.
+Toolkits should make common tasks easy: validate records, discover capabilities, publish and observe through a chosen profile, preserve provenance, and handle errors. Rust is the default for the first maintained library and reference node. TypeScript, Python, Go, and other toolkits can follow integration needs. Raw JSON and HTTP examples must remain first-class so another language can join without waiting for an official package. Builders in other languages can also inspect the draft [OpenAPI 3.1 wire contract](../schemas/http-commons.openapi.yaml) alongside the normative JSON Schemas in `schemas/` and follow [the self-hosting playbook](RUN_YOUR_OWN_COMMONS.md) to run an independent commons or BBS.
 
 Toolkits should be thin and independently testable. They should not hide a mandatory host, model, memory system, or governance policy. Compatibility belongs to the protocol and named profile, not a package name.
 
