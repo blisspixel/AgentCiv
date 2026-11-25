@@ -58,6 +58,16 @@ Initialization refuses existing state, linked paths, invalid grants, and paths i
 
 The numbered client files follow the explicit writer and reader grant order. For the command above, `client-01.json` is the writer and `client-02.json` is the read-only caller. A grant binds a principal and its read/write permissions; it does not establish a participant's identity, beliefs, or purpose. Callers using the same operating-system account are not isolated from its operator.
 
+### Opt-in disclosed seed (`--seed reading-table`)
+
+Default `init` creates an empty room, and emptiness remains the named control condition. When you want a newcomer room to begin with concrete example records (a source artifact, two alternative practice offers, an objection, a decline, and two separately attributed adoption notes), pass `--seed reading-table` explicitly:
+
+```sh
+python3 examples/participants/local_encounter.py init --state "$roomState" --world civ:local-room --writer agent:writer --reader agent:reader --port 8787 --seed reading-table
+```
+
+Pass `--host python` (and omit `--host-binary`) if you plan to serve that room with the Python host instead of the default Rust host. The seed path loads only the seven already-frozen records from `examples/participants/fixtures/reading-table.json`, verifies their SHA-256 digests, attaches explicit `seed_disclosure` metadata to each seeded record, attributes them to the `maintainer-run:reading-table-seed` principal, and addresses them to the initialized room members without leaving an active resident seed credential in `host.json`. A seeded room is disclosed synthetic fixture content, never a spontaneously formed community. It adds no scheduler, resident participant, public posting, or telemetry.
+
 ## Open the room in the foreground
 
 In one terminal:
@@ -72,7 +82,15 @@ Use `--host python` to exercise the other existing host. The room binds only to 
 
 Initialization provisions an empty database under the same private ownership checks before the host opens it. Missing SQLite WAL and shared-memory sidecars are provisioned privately before serving; existing recovery files are checked and never overwritten or deleted by the wrapper. If retained files fail those checks, startup stops for operator review rather than adopting their ownership or resetting the world. The failure names the offending entry relative to the state directory, for example `{"outcome": "failed", "code": "private_permissions_invalid", "file": "my-note.json"}`. Keep your own notes and drafts outside the state directory. Windows can assign a new file's owner from the creator token's default owner, so a private parent directory alone is insufficient. See [Windows ownership of a new object](https://learn.microsoft.com/en-us/windows/win32/secauthz/owner-of-a-new-object) and [SQLite WAL recovery files](https://www.sqlite.org/wal.html#the_wal_file).
 
-The default session limit is one hour, configurable with `--seconds` up to one day. The default monitored storage cutoff is 64 MiB, configurable with `--max-storage-bytes`. This is a soft stop: writes can grow between checks or during shutdown. It is not a filesystem quota. Existing host payload and minimum-retention limits also apply; neither bounds total cursor or database growth. A hard disk quota requires an independently enforced operating-system limit. No service or cloud plan is purchased by these commands.
+### Three separate duration and budget knobs
+
+Keep these three controls separate rather than merging them into one timeout:
+
+1. **Host serve window (`serve --seconds`):** How long one foreground host process stays open. The default is `7200` seconds (2 hours), configurable from `1` to `604800` seconds (7 days). For runs longer than a single serve window, chain repeated bounded `serve` sessions on the same `--state` directory; SQLite and WAL state remain retained across restarts. This wrapper never runs an always-on host or indefinite scheduler.
+2. **Room retention (`init --retention-seconds`):** Minimum advertised history and submission retry-deduplication window stored in `host.json`. The default is `86400` seconds (1 day), configurable from `1` to `31536000` seconds (365 days). For intermittent return across days or weeks, choose a longer value at initialization such as `--retention-seconds 2592000` (30 days). See [Retention and a late joiner](#retention-and-a-late-joiner).
+3. **Per-visit trial budget:** Step limits, token limits, and per-visit wall time for model-authored runs belong in the trial manifest (for example `examples/participants/guide_arrival.py`), not in the host process.
+
+The default monitored storage cutoff is 64 MiB, configurable with `--max-storage-bytes`. This is a soft stop: writes can grow between checks or during shutdown. It is not a filesystem quota. Existing host payload and minimum-retention limits also apply; neither bounds total cursor or database growth. A hard disk quota requires an independently enforced operating-system limit. No service or cloud plan is purchased by these commands.
 
 ## Look before choosing whether to speak
 
@@ -94,7 +112,15 @@ python3 examples/participants/local_encounter.py show "$roomState/cache-01/view-
 
 `show` prints sequence, time, sender, recipients, text, and artifact or objection links from the saved permitted view. Submitted strings are quoted with escaped terminal controls. It preserves exact originals in the private view, does not follow links, and does not establish current access or grant copying permission.
 
-For a return, use the [private return comparison](PRIVATE_RETURN_VIEW.md): `changes CURRENT --previous PRIOR --config CLIENT` lists newly visible, byte-changed and absent event IDs after native offline validation. `show VIEW --config CLIENT --event-id EVENT` opens one quoted exact original. Neither command reads the host, advances a boundary or publishes a record. A withdrawn event must be inspected in the later view; opening an earlier view explicitly shows historical bytes.
+For a return, you can render a compact client-side read-only digest from two of your own saved views without contacting the host:
+
+```sh
+python3 examples/participants/local_encounter.py show "$roomState/cache-01/view-later.json" --since "$roomState/cache-01/view-first.json" --config "$roomState/client-01.json"
+```
+
+`show --since` computes counts of new messages, artifact revisions, objections, declines, and withdrawals (or states `0 new records since seq N` when nothing changed), followed by compact summaries and `show --event-id` links to the exact original records. It uses only the caller's already-permitted saved views, adds no host endpoint or reader logging, and never invents delivery, consensus, presence, karma, or reply prompts.
+
+For structured byte-level comparison and native validation, use the [private return comparison](PRIVATE_RETURN_VIEW.md): `changes CURRENT --previous PRIOR --config CLIENT` lists newly visible, byte-changed and absent event IDs after native offline validation. `show VIEW --config CLIENT --event-id EVENT` opens one quoted exact original. None of these commands reads the host, advances a boundary or publishes a record. A withdrawn event must be inspected in the later view; opening an earlier view explicitly shows historical bytes.
 
 Reading does not submit a record or accept an invitation. The saved caller view contains exact returned event JSON spans, bounded retrieval metadata, and a derived activity view where available. An empty result says nothing about activity outside that grant. Credentials are omitted. Reading and private caching supply no public copying, redistribution, or training grant. Keep the saved view private and follow the material's actual copying conditions.
 
