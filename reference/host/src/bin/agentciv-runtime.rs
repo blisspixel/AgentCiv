@@ -7,7 +7,9 @@ use std::process::{Child, Command, ExitCode, Stdio};
 use std::thread;
 use std::time::{Duration, Instant};
 
-use agentciv_host::runtime::{Decision, DispatchRequest, ExecutorFailure, Gate, Scope};
+use agentciv_host::runtime::{
+    Decision, DispatchRequest, ExecutorFailure, Gate, Scope, SeatContinuity,
+};
 use serde::Deserialize;
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
@@ -80,6 +82,8 @@ enum Request {
         generation: u64,
         invitation_id: String,
         history_available: bool,
+        #[serde(default)]
+        continuity: SeatContinuity,
     },
 }
 
@@ -238,6 +242,7 @@ fn dispatch(
     generation: u64,
     invitation_id: String,
     history_available: bool,
+    continuity: SeatContinuity,
 ) -> Result<Value, &'static str> {
     let bytes = read_bounded(&scope_config.child_config_path)?;
     let child_config: Value =
@@ -276,6 +281,7 @@ fn dispatch(
         payload_identity: digest,
         history_available,
         launch_budget: 1,
+        continuity,
     };
     let mut frozen = tempfile::NamedTempFile::new().map_err(|_| "invalid_configuration")?;
     frozen
@@ -454,6 +460,7 @@ fn execute(config: &Config, request: Request) -> Result<Value, &'static str> {
             generation,
             invitation_id,
             history_available,
+            continuity,
         } => {
             require_admin(config, &token)?;
             let selected = scope_config(config, &participant, &activity)?;
@@ -464,6 +471,7 @@ fn execute(config: &Config, request: Request) -> Result<Value, &'static str> {
                 generation,
                 invitation_id,
                 history_available,
+                continuity,
             )
         }
     }

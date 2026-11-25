@@ -30,6 +30,7 @@ fn request(id: &str, generation: u64) -> DispatchRequest {
         payload_identity: "fixture-input-sha256".to_owned(),
         history_available: true,
         launch_budget: 1,
+        continuity: SeatContinuity::Original,
     }
 }
 
@@ -693,4 +694,88 @@ fn incomplete_schema_and_malformed_receipts_are_unavailable() {
         gate.control(&scope, "other-stop", 1, Decision::Stop, 0),
         Err(Error::StateUnavailable)
     );
+}
+
+#[test]
+fn restored_or_forked_copy_never_inherits_seat_or_enforced_consent() {
+    let (_directory, gate, scope, generation) = fixture();
+    gate.control(&scope, "ready", 0, Decision::Resume, generation)
+        .unwrap();
+
+    // While the original participant is active and ready, a restored or forked
+    // copy cannot be seated as the same participant or inherit its consent.
+    let mut restored = request("restored-while-active", generation);
+    restored.continuity = SeatContinuity::RestoredCopy;
+    let restored_outcome = gate.dispatch(&scope, &restored, forbidden).unwrap();
+    assert_eq!(restored_outcome.receipt.status, LaunchStatus::NotLaunched);
+    assert_eq!(
+        restored_outcome.receipt.reason,
+        "restored_copy_cannot_inherit_seat"
+    );
+    assert_eq!(
+        gate.dispatch(&scope, &restored, forbidden).unwrap().receipt,
+        restored_outcome.receipt
+    );
+    let mut altered = restored.clone();
+    altered.continuity = SeatContinuity::Original;
+    assert!(matches!(
+        gate.dispatch(&scope, &altered, forbidden),
+        Err(Error::Conflict)
+    ));
+
+    let mut forked = request("forked-while-active", generation);
+    forked.continuity = SeatContinuity::ForkedCopy;
+    let forked_outcome = gate.dispatch(&scope, &forked, forbidden).unwrap();
+    assert_eq!(forked_outcome.receipt.status, LaunchStatus::NotLaunched);
+    assert_eq!(
+        forked_outcome.receipt.reason,
+        "forked_copy_cannot_inherit_seat"
+    );
+
+    // Registering a copy under a distinct participant principal starts stopped
+    // and never inherits the earlier principal's active consent.
+    let distinct_copy = Scope {
+        participant: "participant-A-fork".to_owned(),
+        activity: scope.activity.clone(),
+    };
+    let copy_state = gate.register_scope(&distinct_copy).unwrap();
+    assert!(copy_state.stopped);
+    assert!(!copy_state.ready);
+    assert_eq!(copy_state.revision, 0);
+    assert_eq!(
+        gate.dispatch(
+            &distinct_copy,
+            &request("copy-before-own-resume", generation),
+            forbidden
+        )
+        .unwrap()
+        .receipt
+        .reason,
+        "stopped"
+    );
+
+    // After the original participant stops and the coordinator restarts, a
+    // restored or forked copy still cannot inherit the seat or bypass the stop.
+    gate.control(&scope, "stop-original", 1, Decision::Stop, generation)
+        .unwrap();
+    let restarted = gate.claim_coordinator("coordinator-restarted").unwrap();
+    let mut restored_after_stop = request("restored-after-stop", restarted);
+    restored_after_stop.continuity = SeatContinuity::RestoredCopy;
+    assert_eq!(
+        gate.dispatch(&scope, &restored_after_stop, forbidden)
+            .unwrap()
+            .receipt
+            .reason,
+        "restored_copy_cannot_inherit_seat"
+    );
+    let mut forked_after_stop = request("forked-after-stop", restarted);
+    forked_after_stop.continuity = SeatContinuity::ForkedCopy;
+    assert_eq!(
+        gate.dispatch(&scope, &forked_after_stop, forbidden)
+            .unwrap()
+            .receipt
+            .reason,
+        "forked_copy_cannot_inherit_seat"
+    );
+    assert!(gate.inspect(&scope).unwrap().stopped);
 }

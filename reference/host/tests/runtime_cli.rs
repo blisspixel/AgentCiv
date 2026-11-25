@@ -322,3 +322,85 @@ fn supported_backup_recovery_rotates_all_capabilities_before_reusing_generations
     assert_eq!(resumed["control"]["state"]["ready"], true);
     assert_eq!(resumed["control"]["state"]["revision"], 3);
 }
+
+#[test]
+fn restored_or_forked_copy_is_never_seated_as_same_participant() {
+    let fixture = Fixture::new();
+    fixture.prepare();
+    fixture.resume();
+    fixture.child_config("http://127.0.0.1:1", "civ:test");
+
+    for (continuity, reason) in [
+        ("restored_copy", "restored_copy_cannot_inherit_seat"),
+        ("forked_copy", "forked_copy_cannot_inherit_seat"),
+    ] {
+        let blocked = fixture.successful(json!({
+            "op": "dispatch",
+            "token": ADMIN,
+            "participant": "agent:one",
+            "activity": "activity:test",
+            "generation": 1,
+            "invitation_id": format!("invitation:{continuity}-active"),
+            "history_available": true,
+            "continuity": continuity
+        }));
+        assert_eq!(blocked["dispatch"]["status"], "not_launched");
+        assert_eq!(blocked["dispatch"]["reason"], reason);
+        assert!(blocked["child"].is_null());
+    }
+
+    // A separate participant principal starts stopped and cannot reuse agent:one's
+    // control capability or active consent.
+    let copy_scope = fixture.successful(json!({
+        "op": "register",
+        "token": ADMIN,
+        "participant": "agent:two",
+        "activity": "activity:test"
+    }));
+    assert_eq!(copy_scope["scope"]["stopped"], true);
+    assert_eq!(copy_scope["scope"]["ready"], false);
+    assert_eq!(copy_scope["scope"]["revision"], 0);
+    let (success, denied) = fixture.command(json!({
+        "op": "resume",
+        "token": CONTROL,
+        "participant": "agent:two",
+        "activity": "activity:test",
+        "command_id": "resume:wrong-capability",
+        "expected_revision": 0,
+        "generation": 1
+    }));
+    assert!(!success);
+    assert_eq!(denied["code"], "unauthorized");
+
+    // Stop agent:one and restart the coordinator; restored or forked copies still
+    // cannot inherit the seat or bypass the stop.
+    fixture.successful(json!({
+        "op": "stop",
+        "token": CONTROL,
+        "participant": "agent:one",
+        "activity": "activity:test",
+        "command_id": "stop:before-copy",
+        "expected_revision": 1,
+        "generation": 1
+    }));
+    assert_eq!(
+        fixture.successful(json!({"op": "claim", "token": ADMIN}))["generation"],
+        2
+    );
+    let after_stop = fixture.successful(json!({
+        "op": "dispatch",
+        "token": ADMIN,
+        "participant": "agent:one",
+        "activity": "activity:test",
+        "generation": 2,
+        "invitation_id": "invitation:restored-after-stop",
+        "history_available": true,
+        "continuity": "restored_copy"
+    }));
+    assert_eq!(after_stop["dispatch"]["status"], "not_launched");
+    assert_eq!(
+        after_stop["dispatch"]["reason"],
+        "restored_copy_cannot_inherit_seat"
+    );
+    assert!(after_stop["child"].is_null());
+}

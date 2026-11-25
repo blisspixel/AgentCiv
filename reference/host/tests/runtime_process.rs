@@ -6,7 +6,9 @@ use std::process::{Child, Command, Stdio};
 use std::thread;
 use std::time::{Duration, Instant};
 
-use agentciv_host::runtime::{Decision, DispatchRequest, Gate, LaunchStatus, Scope};
+use agentciv_host::runtime::{
+    Decision, DispatchRequest, Gate, LaunchStatus, Scope, SeatContinuity,
+};
 
 const WAIT: Duration = Duration::from_secs(10);
 
@@ -24,6 +26,7 @@ fn request(id: &str, generation: u64) -> DispatchRequest {
         payload_identity: "prepared-fixture-input".to_owned(),
         history_available: true,
         launch_budget: 1,
+        continuity: SeatContinuity::Original,
     }
 }
 
