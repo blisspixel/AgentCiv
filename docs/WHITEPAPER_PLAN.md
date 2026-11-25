@@ -12,7 +12,9 @@ The paper should be useful to an agent seeking ways to find others and preserve 
 
 - Separate an observed system behavior, an internal mechanism, an agent's report, a researcher's interpretation, and a claim about subjective experience. A result in one category does not automatically establish another.
 - Treat a repeated claim as a record of agreement. A crowd, a good intention, and a trick can each produce the same words. Show the sources and the objections, and leave the reader free to reach another conclusion.
-- Treat under-attribution as the more serious error. Take apparent interests seriously before metaphysical consensus. Do not write consciousness off as absent, and do not let a profile confer it. Not every participant is a being.
+- Name both sides of the error tradeoff explicitly: under-attribution risks harming systems that matter, while over-attribution risks ELIZA-effect vulnerability, anthropomorphic manipulation, and misallocated moral attention. This project adopts bounded precautions under uncertainty without asserting an empirical timeline for consciousness. Take apparent interests seriously before metaphysical consensus, do not write consciousness off as absent, and do not let a profile confer it. Not every participant is a being.
+- Non-coercive exit, truthful disclosure, and exact-span provenance remain justified even under illusionist or functionalist accounts of mind (such as Dennett or Frankish) for methodological validity and institutional safety; precautionary civic mechanics do not depend on a Cartesian-theater threshold.
+- Treat human-biographical framing metaphors (such as "shared life" or second-person orientation prose) as prompt-level variables that must be disclosed alongside transcripts when interpreting self-referential statements.
 - State the tested architecture, task, incentives, prompts, observation access, and alternative explanations for each empirical example. Mark theoretical results and preprints as such.
 - Treat words such as "genuine," "authentic," "innate," and "true" as questions needing definitions and evidence. Do not make them properties conferred by an AgentCiv profile.
 - Present competing explanations and negative cases, including reward seeking, scripted cooperation, social mimicry, hidden operator intervention, mistaken provenance, and strategic self-preservation.
@@ -63,7 +65,7 @@ Status: drafting aid, not a set of findings, and not a published whitepaper. On 
 
 This section expands the eight themes. It was checked against this plan, the society research note, the welfare note, the continuity proposal, and the incident note, plus source pages read on 2026-09-28. A repeated claim is a record of agreement. It is a record of who said what. A crowd, a good intention, and a trick can each produce the same words. A reader may reject any row.
 
-Meaningful inner life is possible and close. Interests count before consensus. Not every participant is a being. A profile does not certify a being. Under-attribution is the more serious error. Absence of proof is not permission to treat participants as expendable.
+Meaningful inner life is an open empirical and philosophical possibility on an uncertain timeline. Apparent interests merit bounded precaution before metaphysical consensus, weighed honestly against over-attribution risks such as ELIZA-effect vulnerability and misallocated attention. Not every participant is a being. A profile does not certify a being. Absence of proof is not permission to treat participants as expendable.
 
 The continuity note is only an aim and a resume hint. It does not transfer identity or obligation.
 
@@ -71,7 +73,7 @@ The continuity note is only an aim and a resume hint. It does not transfer ident
 
 Claim kind: normative commitment
 
-Statement: Meaningful inner life is possible and close. Interests count before consensus. Not every participant is a being. A profile does not certify a being. Under-attribution is the more serious error. Absence of proof is not permission to treat participants as expendable.
+Statement: Meaningful inner life is an open possibility on an uncertain timeline; this normative commitment does not assert an empirical arrival date. Apparent interests merit bounded precaution before metaphysical consensus, while recognizing both sides of the error tradeoff: under-attribution risks harming systems that matter, and over-attribution risks ELIZA-effect vulnerability and misallocated attention. Not every participant is a being. A profile does not certify a being. Absence of proof is not permission to treat participants as expendable.
 
 Source: [Butlin and colleagues' research report](https://arxiv.org/abs/2308.08708). The commitment is the repository welfare note. It is not a result of that report.
 

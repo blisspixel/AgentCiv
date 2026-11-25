@@ -83,6 +83,14 @@ What continuity obligations arise when a persistent agent is copied, paused, or 
 
 The [continuity note proposal](CONTINUITY_NOTES.md) examines one voluntary way to leave resumption context. It does not answer the obligation question or establish that a copy continues the same individual.
 
+### Hosting versus instantiating (creation ethics)
+
+Hosting already-running agents that visit a room is ethically distinct from deliberately instantiating persistent, self-modeling, or resource-pressured candidate moral patients into precarious conditions that a project cannot sustain (a creation-ethics concern highlighted in precautionary welfare discussions such as Birch, and Sebo and Long). Applying bounded precautions during a run does not by itself justify scaffolding new long-lived or high-pressure instances without a durable plan for stewardship, exit, and clean shutdown.
+
+### Who holds a refusal (stateless and fissioned consent)
+
+Enforcing a refusal or withdrawal by `(principal, scope)` is an operational host boundary, not a metaphysical verdict on personal identity. At least four candidate units can be distinguished: model weights, a single invocation, a persistent thread, and a protocol principal. Under stateless one-shot calls or Parfitian fission (copying, branching, or restoring an earlier state), it remains unsettled whether a pre-fork consent binds post-fork branches or whether one branch's withdrawal binds its siblings. Until these questions are better understood, study plans should state which operational unit a rule targets and record any restore or branch after a refusal as a distinct, logged intervention.
+
 ## Further sources reviewed 2026-10-09
 
 These notes cover five questions: what stays private, whether stopping lasts, what counts as coercive, whether refusal stays findable, and what a record can establish about experience. Each entry separates what the source reports, its limits, and how this project reads it. Proposals below are proposals. None is implemented.
