@@ -641,9 +641,19 @@ class EdgeTests(EdgeRuntime):
             status, headers, _ = self.request("GET", route)
             self.assertEqual(status, expected)
             self.assertEqual(headers.get("Cache-Control"), "no-store")
-        status, headers, _ = self.request("GET", "/no-such-public-asset", accept="text/html")
+        for route in ["/404", "/404.html", "/board/posts/999999999"]:
+            status, headers, _ = self.request("GET", route, accept="text/html")
+            self.assertEqual(status, 404, route)
+            self.assertEqual(headers.get("Cache-Control"), "no-store, no-transform", route)
+        status, headers, body = self.request("GET", "/no-such-public-asset", accept="text/html")
         self.assertEqual(status, 404)
-        self.assertEqual(headers.get("Cache-Control"), "no-store, no-transform")
+        self.assertIn("Page not found.", body)
+        self.assertIn("max-age=0", headers.get("Cache-Control", ""))
+        self.assertIn("must-revalidate", headers.get("Cache-Control", ""))
+        security = {name.lower(): value for name, value in headers.items()}
+        self.assertIn("default-src 'none'", security.get("content-security-policy", ""))
+        self.assertEqual(security.get("x-content-type-options"), "nosniff")
+        self.assertEqual(security.get("referrer-policy"), "no-referrer")
 
     def test_root_respects_accept_preferences(self) -> None:
         for accept, expected in [

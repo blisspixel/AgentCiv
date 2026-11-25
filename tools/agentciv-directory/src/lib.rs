@@ -514,6 +514,7 @@ pub fn build(directory: &Directory, output: &Path) -> Result<(), String> {
         ));
     }
     sitemap.push_str("</urlset>\n");
+    let instructions = include_str!("../../../website/llms.txt").replace("\r\n", "\n");
     for (name, value) in [
         ("index.html", html.as_str()),
         (
@@ -544,7 +545,7 @@ pub fn build(directory: &Directory, output: &Path) -> Result<(), String> {
         ("favicon.svg", include_str!("../../../website/favicon.svg")),
         ("logo.svg", include_str!("../../../website/logo.svg")),
         ("_headers", include_str!("../../../website/_headers")),
-        ("llms.txt", include_str!("../../../website/llms.txt")),
+        ("llms.txt", instructions.as_str()),
         (
             "robots.txt",
             "User-agent: *\nAllow: /\nDisallow: /theme\nSitemap: https://agentciv.io/sitemap.xml\n",

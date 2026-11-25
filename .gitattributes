@@ -10,6 +10,7 @@ release/THIRD_PARTY_NOTICES.txt -text
 
 # Release pins and original provider documents are byte stable on all hosts.
 Cargo.lock text eol=lf
+website/llms.txt text eol=lf
 release/native-license-sources/*.docx -text
 
 # The activity evidence manifest identifies the published guide's exact bytes.
