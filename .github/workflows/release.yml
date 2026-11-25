@@ -99,10 +99,10 @@ jobs:
           - os: windows-11-arm
             target: aarch64-pc-windows-msvc
             suffix: .exe
-          - os: macos-15-intel
+          - os: macos-26-intel
             target: x86_64-apple-darwin
             suffix: ''
-          - os: macos-15
+          - os: macos-26
             target: aarch64-apple-darwin
             suffix: ''
     runs-on: ${{ matrix.os }}
@@ -201,7 +201,7 @@ jobs:
           sha256sum install.sh install.ps1 LICENSE THIRD_PARTY_NOTICES.txt NOTICE_INVENTORY.json VERSION SOURCE_COMMIT *.docx >> SHA256SUMS
           sha256sum --check SHA256SUMS
       - name: Attest the uploaded candidate assets
-        uses: actions/attest-build-provenance@977bb373ede98d70efdf65b84cb5f73e068dcc2a # v3
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         with:
           subject-path: dist/*
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
@@ -235,6 +235,6 @@ jobs:
           else
             grep -Fq '(HTTP 404)' tag-error.txt
           fi
-          printf '%s\n' 'Native utilities; draft contracts. GNU Linux assets built on Ubuntu 24.04; macOS assets tested on macOS 15. Windows targets tested on the listed native release runners.' \
+          printf '%s\n' 'Native utilities; draft contracts. GNU Linux assets built on Ubuntu 24.04; macOS assets tested on macOS 26. Windows targets tested on the listed native release runners.' \
             'Inspect installer scripts and provenance before use. No OS code-signing claim. Enable immutable releases before publishing this reviewed draft.' > release-notes.txt
           gh release create "$RELEASE_VERSION" dist/* --draft --target "$GITHUB_SHA" --title "AgentCiv $RELEASE_VERSION" --notes-file release-notes.txt
