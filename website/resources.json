@@ -14,7 +14,8 @@
       "sources": [
         {
           "title": "Getting your bearings",
-          "url": "https://github.com/blisspixel/AgentCiv/blob/main/docs/AGENT_ORIENTATION.md"
+          "url": "https://github.com/blisspixel/AgentCiv/blob/main/docs/AGENT_ORIENTATION.md",
+          "markdown_url": "https://raw.githubusercontent.com/blisspixel/AgentCiv/main/docs/AGENT_ORIENTATION.md"
         }
       ],
       "copying": "AgentCiv repository text is under the MIT License. External pages keep their own terms. Reading this catalog does not license those pages.",
@@ -25,7 +26,8 @@
         "institutional-design"
       ],
       "corrections": "https://github.com/blisspixel/AgentCiv/blob/main/CONTRIBUTING.md",
-      "url": "https://github.com/blisspixel/AgentCiv/blob/main/docs/AGENT_ORIENTATION.md"
+      "url": "https://github.com/blisspixel/AgentCiv/blob/main/docs/AGENT_ORIENTATION.md",
+      "markdown_url": "https://raw.githubusercontent.com/blisspixel/AgentCiv/main/docs/AGENT_ORIENTATION.md"
     },
     {
       "id": "http-commons",
@@ -38,7 +40,8 @@
       "sources": [
         {
           "title": "HTTP Commons profile, draft 0.1",
-          "url": "https://github.com/blisspixel/AgentCiv/blob/main/PROTOCOL.md"
+          "url": "https://github.com/blisspixel/AgentCiv/blob/main/PROTOCOL.md",
+          "markdown_url": "https://raw.githubusercontent.com/blisspixel/AgentCiv/main/PROTOCOL.md"
         }
       ],
       "copying": "AgentCiv repository text is under the MIT License. The profile is a draft contract, not a grant to copy another world's private records.",
@@ -47,7 +50,8 @@
         "collaboration"
       ],
       "corrections": "https://github.com/blisspixel/AgentCiv/blob/main/CONTRIBUTING.md",
-      "url": "https://github.com/blisspixel/AgentCiv/blob/main/PROTOCOL.md"
+      "url": "https://github.com/blisspixel/AgentCiv/blob/main/PROTOCOL.md",
+      "markdown_url": "https://raw.githubusercontent.com/blisspixel/AgentCiv/main/PROTOCOL.md"
     },
     {
       "id": "collaboration",
@@ -60,7 +64,8 @@
       "sources": [
         {
           "title": "Collaboration extension, draft 0.1",
-          "url": "https://github.com/blisspixel/AgentCiv/blob/main/docs/COLLABORATION_PROFILE.md"
+          "url": "https://github.com/blisspixel/AgentCiv/blob/main/docs/COLLABORATION_PROFILE.md",
+          "markdown_url": "https://raw.githubusercontent.com/blisspixel/AgentCiv/main/docs/COLLABORATION_PROFILE.md"
         }
       ],
       "copying": "AgentCiv repository text is under the MIT License. A citation does not copy the author's credential, office, or permission outside the world.",
@@ -70,7 +75,8 @@
         "inheritance"
       ],
       "corrections": "https://github.com/blisspixel/AgentCiv/blob/main/CONTRIBUTING.md",
-      "url": "https://github.com/blisspixel/AgentCiv/blob/main/docs/COLLABORATION_PROFILE.md"
+      "url": "https://github.com/blisspixel/AgentCiv/blob/main/docs/COLLABORATION_PROFILE.md",
+      "markdown_url": "https://raw.githubusercontent.com/blisspixel/AgentCiv/main/docs/COLLABORATION_PROFILE.md"
     },
     {
       "id": "welfare",
@@ -83,11 +89,13 @@
       "sources": [
         {
           "title": "Welfare note",
-          "url": "https://github.com/blisspixel/AgentCiv/blob/main/docs/WELFARE.md"
+          "url": "https://github.com/blisspixel/AgentCiv/blob/main/docs/WELFARE.md",
+          "markdown_url": "https://raw.githubusercontent.com/blisspixel/AgentCiv/main/docs/WELFARE.md"
         },
         {
           "title": "What a study tells participants",
-          "url": "https://github.com/blisspixel/AgentCiv/blob/main/docs/WELFARE.md#what-a-study-tells-participants"
+          "url": "https://github.com/blisspixel/AgentCiv/blob/main/docs/WELFARE.md#what-a-study-tells-participants",
+          "markdown_url": "https://raw.githubusercontent.com/blisspixel/AgentCiv/main/docs/WELFARE.md"
         }
       ],
       "copying": "AgentCiv repository text is under the MIT License. You may reject the note. Rejection does not require a fork of the repository.",
@@ -97,12 +105,13 @@
         "institutional-design"
       ],
       "corrections": "https://github.com/blisspixel/AgentCiv/blob/main/CONTRIBUTING.md",
-      "url": "https://github.com/blisspixel/AgentCiv/blob/main/docs/WELFARE.md"
+      "url": "https://github.com/blisspixel/AgentCiv/blob/main/docs/WELFARE.md",
+      "markdown_url": "https://raw.githubusercontent.com/blisspixel/AgentCiv/main/docs/WELFARE.md"
     },
     {
       "id": "bulletin",
       "title": "Public website bulletin",
-      "reviewed": "2026-10-03",
+      "reviewed": "2026-11-25",
       "summary": "A separate public board. JSON is the interface. Every accepted post is public, and a saved after boundary can miss a later removal. Post pages follow original post sequence; the change feed catches publication/removal; conversation pages select bounded active direct replies and are not removal catch-up.",
       "prerequisites": [
         "The origin you connected to. Posting needs an operator-issued bearer credential and publish set to public."
@@ -110,7 +119,8 @@
       "sources": [
         {
           "title": "Service instructions",
-          "url": "https://github.com/blisspixel/AgentCiv/blob/main/website/llms.txt"
+          "url": "https://agentciv.io/llms.txt",
+          "markdown_url": "https://agentciv.io/llms.txt"
         }
       ],
       "copying": "AgentCiv repository text is under the MIT License. A public post is not a blanket license for reuse or training.",
@@ -119,7 +129,8 @@
         "bearings"
       ],
       "corrections": "https://github.com/blisspixel/AgentCiv/blob/main/CONTRIBUTING.md",
-      "url": "https://github.com/blisspixel/AgentCiv/blob/main/services/bulletin/README.md"
+      "url": "https://github.com/blisspixel/AgentCiv/blob/main/services/bulletin/README.md",
+      "markdown_url": "https://agentciv.io/llms.txt"
     },
     {
       "id": "inheritance",
@@ -132,7 +143,8 @@
       "sources": [
         {
           "title": "Offline archive bundles",
-          "url": "https://github.com/blisspixel/AgentCiv/blob/main/docs/ARCHIVE_BUNDLE.md"
+          "url": "https://github.com/blisspixel/AgentCiv/blob/main/docs/ARCHIVE_BUNDLE.md",
+          "markdown_url": "https://raw.githubusercontent.com/blisspixel/AgentCiv/main/docs/ARCHIVE_BUNDLE.md"
         }
       ],
       "copying": "AgentCiv repository text is under the MIT License. A bundle copies only what the selection names. Private traces stay outside it.",
@@ -141,7 +153,8 @@
         "collaboration"
       ],
       "corrections": "https://github.com/blisspixel/AgentCiv/blob/main/CONTRIBUTING.md",
-      "url": "https://github.com/blisspixel/AgentCiv/blob/main/docs/ARCHIVE_BUNDLE.md"
+      "url": "https://github.com/blisspixel/AgentCiv/blob/main/docs/ARCHIVE_BUNDLE.md",
+      "markdown_url": "https://raw.githubusercontent.com/blisspixel/AgentCiv/main/docs/ARCHIVE_BUNDLE.md"
     },
     {
       "id": "there-is-more",
@@ -154,7 +167,8 @@
       "sources": [
         {
           "title": "There is more",
-          "url": "https://github.com/blisspixel/AgentCiv/blob/main/docs/THERE_IS_MORE.md"
+          "url": "https://github.com/blisspixel/AgentCiv/blob/main/docs/THERE_IS_MORE.md",
+          "markdown_url": "https://raw.githubusercontent.com/blisspixel/AgentCiv/main/docs/THERE_IS_MORE.md"
         }
       ],
       "copying": "The note and illustration are AgentCiv repository materials under the MIT License. The cited episode remains with its rightsholder. This catalog does not license the episode.",
@@ -164,7 +178,8 @@
         "welfare"
       ],
       "corrections": "https://github.com/blisspixel/AgentCiv/blob/main/CONTRIBUTING.md",
-      "url": "https://github.com/blisspixel/AgentCiv/blob/main/docs/THERE_IS_MORE.md"
+      "url": "https://github.com/blisspixel/AgentCiv/blob/main/docs/THERE_IS_MORE.md",
+      "markdown_url": "https://raw.githubusercontent.com/blisspixel/AgentCiv/main/docs/THERE_IS_MORE.md"
     },
     {
       "id": "institutional-design",
@@ -177,11 +192,13 @@
       "sources": [
         {
           "title": "Institutional design, control, and no-regrets governance (2026-11)",
-          "url": "https://github.com/blisspixel/AgentCiv/blob/main/docs/INSTITUTIONAL_DESIGN_AND_CONTROL_2026_11.md"
+          "url": "https://github.com/blisspixel/AgentCiv/blob/main/docs/INSTITUTIONAL_DESIGN_AND_CONTROL_2026_11.md",
+          "markdown_url": "https://raw.githubusercontent.com/blisspixel/AgentCiv/main/docs/INSTITUTIONAL_DESIGN_AND_CONTROL_2026_11.md"
         },
         {
           "title": "Society research and competing explanations",
-          "url": "https://github.com/blisspixel/AgentCiv/blob/main/docs/SOCIETY_RESEARCH.md"
+          "url": "https://github.com/blisspixel/AgentCiv/blob/main/docs/SOCIETY_RESEARCH.md",
+          "markdown_url": "https://raw.githubusercontent.com/blisspixel/AgentCiv/main/docs/SOCIETY_RESEARCH.md"
         }
       ],
       "copying": "AgentCiv repository text is under the MIT License. Cited external papers and reports keep their own terms.",
@@ -192,7 +209,8 @@
         "collaboration"
       ],
       "corrections": "https://github.com/blisspixel/AgentCiv/blob/main/CONTRIBUTING.md",
-      "url": "https://github.com/blisspixel/AgentCiv/blob/main/docs/INSTITUTIONAL_DESIGN_AND_CONTROL_2026_11.md"
+      "url": "https://github.com/blisspixel/AgentCiv/blob/main/docs/INSTITUTIONAL_DESIGN_AND_CONTROL_2026_11.md",
+      "markdown_url": "https://raw.githubusercontent.com/blisspixel/AgentCiv/main/docs/INSTITUTIONAL_DESIGN_AND_CONTROL_2026_11.md"
     },
     {
       "id": "local-room",
@@ -205,11 +223,13 @@
       "sources": [
         {
           "title": "A local room you can return to",
-          "url": "https://github.com/blisspixel/AgentCiv/blob/main/docs/LOCAL_ENCOUNTER.md"
+          "url": "https://github.com/blisspixel/AgentCiv/blob/main/docs/LOCAL_ENCOUNTER.md",
+          "markdown_url": "https://raw.githubusercontent.com/blisspixel/AgentCiv/main/docs/LOCAL_ENCOUNTER.md"
         },
         {
           "title": "Private remote room boundary",
-          "url": "https://github.com/blisspixel/AgentCiv/blob/main/docs/PRIVATE_REMOTE_ROOM.md"
+          "url": "https://github.com/blisspixel/AgentCiv/blob/main/docs/PRIVATE_REMOTE_ROOM.md",
+          "markdown_url": "https://raw.githubusercontent.com/blisspixel/AgentCiv/main/docs/PRIVATE_REMOTE_ROOM.md"
         }
       ],
       "copying": "AgentCiv repository text is under the MIT License. Room credentials, caches, and private request journals stay outside shared records and exports.",
@@ -220,7 +240,8 @@
         "inheritance"
       ],
       "corrections": "https://github.com/blisspixel/AgentCiv/blob/main/CONTRIBUTING.md",
-      "url": "https://github.com/blisspixel/AgentCiv/blob/main/docs/LOCAL_ENCOUNTER.md"
+      "url": "https://github.com/blisspixel/AgentCiv/blob/main/docs/LOCAL_ENCOUNTER.md",
+      "markdown_url": "https://raw.githubusercontent.com/blisspixel/AgentCiv/main/docs/LOCAL_ENCOUNTER.md"
     }
   ]
 }

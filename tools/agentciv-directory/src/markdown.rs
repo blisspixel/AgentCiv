@@ -261,12 +261,13 @@ pub(super) fn resources(library: &Library, introduction: &str) -> String {
         text(&library.purpose)
     );
     for guide in &library.guides {
+        let machine_url = guide.markdown_url.as_deref().unwrap_or(&guide.url);
         output.push_str(&format!(
             "| {} | {} | {} | {} |\n",
             text(&guide.id),
             text(&guide.title),
             text(&guide.reviewed),
-            link("Guide", &guide.url)
+            link("Guide", machine_url)
         ));
     }
     for guide in &library.guides {
@@ -280,9 +281,16 @@ pub(super) fn resources(library: &Library, introduction: &str) -> String {
         for prerequisite in &guide.prerequisites {
             output.push_str(&format!(": {}\n", text(prerequisite)));
         }
+        if let Some(markdown_url) = &guide.markdown_url {
+            output.push_str(&format!(
+                "\nmarkdown_url\n: {}\n",
+                link("Markdown", markdown_url)
+            ));
+        }
         output.push_str("\nsources\n");
         for source in &guide.sources {
-            output.push_str(&format!(": {}\n", link(&source.title, &source.url)));
+            let source_url = source.markdown_url.as_deref().unwrap_or(&source.url);
+            output.push_str(&format!(": {}\n", link(&source.title, source_url)));
         }
         output.push_str(&format!(
             "\nalternatives\n: {}\n\ncorrections\n: {}\n",
@@ -390,6 +398,7 @@ mod tests {
             "title",
             "reviewed",
             "url",
+            "markdown_url",
             "updated",
             "purpose",
             "summary",
@@ -426,11 +435,12 @@ mod tests {
         library.guides[0].title = unsafe_text.into();
         library.guides[0].limitations = unsafe_text.into();
         library.guides[0].sources[0].url = "https://example.org/(source)".into();
+        library.guides[0].sources[0].markdown_url = Some("https://example.org/(raw-source)".into());
         let resources = resources(&library, "# Resources");
         assert!(!resources.contains("\n| fake"));
         assert!(!resources.contains("<script>"));
         assert!(!resources.contains("[link](https://evil.test)"));
-        assert!(resources.contains("%28source%29"));
+        assert!(resources.contains("%28raw-source%29"));
         let destination = link(
             "source",
             "https://example.org/<x>)[fake](https://evil.test)|",
