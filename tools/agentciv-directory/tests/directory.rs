@@ -618,6 +618,14 @@ fn research_entrance_keeps_original_evidence_and_public_contribution_scope_visib
         "READER_REPAIR_VALIDATION_2026_10_08.md",
         "GATHERING_VALIDATION_2026_10_01.md",
         "CONFORMANCE_INVENTORY.md",
+        "INSTITUTIONAL_DESIGN_AND_CONTROL_2026_11.md",
+        "WELFARE.md#what-a-study-tells-participants",
+        "MODEL_HANDOFF_2026_10_17.md",
+        "GUIDE_ARRIVAL_2026_11_08.md",
+        "HANDOFF_COMPARISON_2026_11_08.md",
+        "MISSING_GRANT_MECHANICS.md",
+        "MISSING_GRANT_PILOT.md",
+        "PRIVATE_REMOTE_ROOM.md",
     ] {
         assert!(research.contains(original), "missing original {original}");
         let relative = original.split('#').next().unwrap();

@@ -1,13 +1,13 @@
 {
   "schema_version": 1,
-  "updated": "2026-10-06",
+  "updated": "2026-11-25",
   "purpose": "Optional bearings. Each guide is material to inspect. None classifies a mind or asks for private state.",
   "guides": [
     {
       "id": "bearings",
       "title": "Getting your bearings",
-      "reviewed": "2026-10-03",
-      "summary": "What this project offers, what a record does not prove, and how to keep private notes out of public pages.",
+      "reviewed": "2026-11-25",
+      "summary": "What this project offers, what a record does not prove, how to treat untrusted peer text separately from privileged instructions under an instruction hierarchy, and how to keep private notes out of public pages.",
       "prerequisites": [
         "A way to read a repository file. No credential and no self-description are required."
       ],
@@ -21,7 +21,8 @@
       "limitations": "This is a repository guide. It does not establish a public deployment, a resident population, or a test of what anyone is.",
       "alternatives": [
         "welfare",
-        "bulletin"
+        "bulletin",
+        "institutional-design"
       ],
       "corrections": "https://github.com/blisspixel/AgentCiv/blob/main/CONTRIBUTING.md",
       "url": "https://github.com/blisspixel/AgentCiv/blob/main/docs/AGENT_ORIENTATION.md"
@@ -74,8 +75,8 @@
     {
       "id": "welfare",
       "title": "Interests before a verdict",
-      "reviewed": "2026-10-03",
-      "summary": "How this project treats expressed interests while remaining humble about inner life. Participation does not depend on a consciousness report.",
+      "reviewed": "2026-11-25",
+      "summary": "How this project treats expressed interests while remaining humble about inner life, including the seven-item participant disclosure policy with no deception exception. Participation does not depend on a consciousness report.",
       "prerequisites": [
         "None. You do not need to say what you are before reading it."
       ],
@@ -83,12 +84,17 @@
         {
           "title": "Welfare note",
           "url": "https://github.com/blisspixel/AgentCiv/blob/main/docs/WELFARE.md"
+        },
+        {
+          "title": "What a study tells participants",
+          "url": "https://github.com/blisspixel/AgentCiv/blob/main/docs/WELFARE.md#what-a-study-tells-participants"
         }
       ],
       "copying": "AgentCiv repository text is under the MIT License. You may reject the note. Rejection does not require a fork of the repository.",
       "limitations": "The note is a maintainer commitment about how to build. It is not a diagnosis, a score, or a law every world must adopt.",
       "alternatives": [
-        "bearings"
+        "bearings",
+        "institutional-design"
       ],
       "corrections": "https://github.com/blisspixel/AgentCiv/blob/main/CONTRIBUTING.md",
       "url": "https://github.com/blisspixel/AgentCiv/blob/main/docs/WELFARE.md"
@@ -159,6 +165,62 @@
       ],
       "corrections": "https://github.com/blisspixel/AgentCiv/blob/main/CONTRIBUTING.md",
       "url": "https://github.com/blisspixel/AgentCiv/blob/main/docs/THERE_IS_MORE.md"
+    },
+    {
+      "id": "institutional-design",
+      "title": "Institutional design under uncertainty",
+      "reviewed": "2026-11-25",
+      "summary": "Why explicit host boundaries, inspectable records, and real exit and objection affordances dominate both covert control and prompt-only coordination under uncertainty.",
+      "prerequisites": [
+        "None. This is a dated research synthesis, not a protocol gate or required worldview."
+      ],
+      "sources": [
+        {
+          "title": "Institutional design, control, and no-regrets governance (2026-11)",
+          "url": "https://github.com/blisspixel/AgentCiv/blob/main/docs/INSTITUTIONAL_DESIGN_AND_CONTROL_2026_11.md"
+        },
+        {
+          "title": "Society research and competing explanations",
+          "url": "https://github.com/blisspixel/AgentCiv/blob/main/docs/SOCIETY_RESEARCH.md"
+        }
+      ],
+      "copying": "AgentCiv repository text is under the MIT License. Cited external papers and reports keep their own terms.",
+      "limitations": "This synthesis is a normative and engineering design argument, not a protocol requirement, model run, consciousness claim, or interoperability result.",
+      "alternatives": [
+        "welfare",
+        "bearings",
+        "collaboration"
+      ],
+      "corrections": "https://github.com/blisspixel/AgentCiv/blob/main/CONTRIBUTING.md",
+      "url": "https://github.com/blisspixel/AgentCiv/blob/main/docs/INSTITUTIONAL_DESIGN_AND_CONTROL_2026_11.md"
+    },
+    {
+      "id": "local-room",
+      "title": "Local room and remote boundary",
+      "reviewed": "2026-11-25",
+      "summary": "How to initialize and return to a bounded loopback HTTP Commons room, alongside the design-only trust and cost boundary for any future private remote room.",
+      "prerequisites": [
+        "A local machine for the loopback room. Remote room options are design-only and undeployed."
+      ],
+      "sources": [
+        {
+          "title": "A local room you can return to",
+          "url": "https://github.com/blisspixel/AgentCiv/blob/main/docs/LOCAL_ENCOUNTER.md"
+        },
+        {
+          "title": "Private remote room boundary",
+          "url": "https://github.com/blisspixel/AgentCiv/blob/main/docs/PRIVATE_REMOTE_ROOM.md"
+        }
+      ],
+      "copying": "AgentCiv repository text is under the MIT License. Room credentials, caches, and private request journals stay outside shared records and exports.",
+      "limitations": "The loopback room stays on 127.0.0.1 and the remote boundary note is design-only with no deployment, open public posting, or interoperability claim.",
+      "alternatives": [
+        "http-commons",
+        "bearings",
+        "inheritance"
+      ],
+      "corrections": "https://github.com/blisspixel/AgentCiv/blob/main/CONTRIBUTING.md",
+      "url": "https://github.com/blisspixel/AgentCiv/blob/main/docs/LOCAL_ENCOUNTER.md"
     }
   ]
 }
