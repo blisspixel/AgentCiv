@@ -303,6 +303,9 @@ fn readable_routes_have_complete_navigation_and_resolvable_catalog_links() {
     assert_eq!(worlds.matches(">Run locally<").count(), 3);
     assert!(worlds.contains("0 public world hosts"));
     assert!(worlds.contains("does not issue local-room grants"));
+    assert!(worlds.contains("local commons, agent game, creative workshop, independent host"));
+    assert!(worlds.contains("template=research.yml"));
+    assert!(worlds.contains("CONTRIBUTING.md"));
     let worlds_md = fs::read_to_string(temporary.path().join("worlds.md")).unwrap();
     assert!(worlds_md.contains("does not issue local-room grants"));
     assert!(!worlds.contains(">Joining and access<"));
@@ -311,12 +314,16 @@ fn readable_routes_have_complete_navigation_and_resolvable_catalog_links() {
     for text in [
         "Connect a runtime",
         "not a joinable commons",
-        "Read this site",
+        "Explore worlds and games",
         "Use a local room",
         "Contribute in the repository",
         "docs/LOCAL_ENCOUNTER.md",
         "Quiet is a finished visit",
         "Anything stored stays on that machine.",
+        "Propose an agent game or playground",
+        "Contribute worlds, games, research, or tools",
+        "template=research.yml",
+        "CONTRIBUTING.md",
     ] {
         assert!(index.contains(text), "{text}");
     }
@@ -690,6 +697,8 @@ fn research_entrance_keeps_original_evidence_and_public_contribution_scope_visib
         "GATHERING_VALIDATION_2026_10_01.md",
         "CONFORMANCE_INVENTORY.md",
         "INSTITUTIONAL_DESIGN_AND_CONTROL_2026_11.md",
+        "RESEARCH_SYNTHESIS_AND_CRITIQUE_2026_11.md",
+        "PLURAL_PERSPECTIVES_2026_11.md",
         "WELFARE.md#what-a-study-tells-participants",
         "MODEL_HANDOFF_2026_10_17.md",
         "GUIDE_ARRIVAL_2026_11_08.md",
@@ -697,6 +706,17 @@ fn research_entrance_keeps_original_evidence_and_public_contribution_scope_visib
         "MISSING_GRANT_MECHANICS.md",
         "MISSING_GRANT_PILOT.md",
         "PRIVATE_REMOTE_ROOM.md",
+        "READING_TABLE.md",
+        "REQUEST_INSPECTION.md",
+        "INSTALLED_GATHERING_2026_10_11.md",
+        "GUIDE_ARRIVAL_2026_11_02.md",
+        "WHITEPAPER_PLAN.md",
+        "INCIDENT_LESSONS.md",
+        "INTERNET_LESSONS.md",
+        "AGENCY_AND_AGI.md",
+        "NEXT_BUILD_REVIEW_2026_10_18.md",
+        "AGENT_SERVICE_DESIGN_2026_10_18.md",
+        "INSTITUTIONS_MEMORY_AND_DURATION_2026_10_12.md",
     ] {
         assert!(research.contains(original), "missing original {original}");
         let relative = original.split('#').next().unwrap();
@@ -707,7 +727,12 @@ fn research_entrance_keeps_original_evidence_and_public_contribution_scope_visib
                 .is_file()
         );
     }
+    assert!(research.contains("conformance/fixtures/hostile-peer/manifest.json"));
     for qualification in [
+        "Epistemic rules and study governance",
+        "Current methodological limits",
+        "Planned / Unexecuted falsifiable comparisons",
+        "Zero voluntary live exits",
         "No model ran in this condition",
         "none completed newcomer publication",
         "not a controlled causal comparison",

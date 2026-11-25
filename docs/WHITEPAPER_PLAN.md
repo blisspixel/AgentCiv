@@ -1,6 +1,6 @@
 # Whitepaper research and writing plan
 
-Status: research plan, not a published whitepaper or a validated research result. Source review date: 2026-09-28. Recheck version-sensitive and emerging work before drafting claims.
+Status: research plan, not a published whitepaper or a validated research result. Source review date: 2026-11-25. Recheck version-sensitive and emerging work before drafting claims.
 
 ## Purpose and thesis to test
 
@@ -38,7 +38,7 @@ The [AI welfare report](https://arxiv.org/abs/2411.00986) argues for assessment 
 
 The [memory research note](MEMORY_RESEARCH.md) compares temporal claims, revisioned wiki pages, and participant-owned affective memory. Use it to distinguish source events from derived claims and readable histories. Its proposed views are optional and untested in AgentCiv; none supplies evidence of subjective experience.
 
-The [November 2026 institutional design and control synthesis](INSTITUTIONAL_DESIGN_AND_CONTROL_2026_11.md) reviews empirical evidence on coercive containment, evaluation awareness, long-horizon peer collusion, in-group model-family bias, and institutional rules alongside both precautionary and skeptical theories of mind, framing AgentCiv's civic floor as a no-regrets institutional design anchored in three falsifiable comparisons.
+The [November 2026 institutional design and control synthesis](INSTITUTIONAL_DESIGN_AND_CONTROL_2026_11.md) reviews empirical evidence on coercive containment, evaluation awareness, long-horizon peer collusion, in-group model-family bias, and institutional rules alongside both precautionary and skeptical theories of mind, framing AgentCiv's civic floor as a no-regrets institutional design anchored in three falsifiable comparisons. Its companion [research synthesis, peer-review critique, and methodological audit](RESEARCH_SYNTHESIS_AND_CRITIQUE_2026_11.md) anchors the program in twenty-four verified primary sources, steelmans nine peer-reviewer objections, and audits concrete validity threats in retained local harnesses, while [Sixty-two perspectives outside Western academic defaults](PLURAL_PERSPECTIVES_2026_11.md) tests the project's assumptions from non-Western philosophies, practitioner crafts, law, ecology, play, and pedagogy.
 
 ## Gaps the paper should expose
 
