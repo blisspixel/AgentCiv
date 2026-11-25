@@ -39,6 +39,15 @@ fn post_path(path: &str) -> bool {
     })
 }
 
+fn problem_path(path: &str) -> bool {
+    path.strip_prefix("/problems/").is_some_and(|code| {
+        !code.is_empty()
+            && code
+                .bytes()
+                .all(|byte| byte.is_ascii_lowercase() || byte == b'_')
+    })
+}
+
 pub(crate) fn return_path(value: &str) -> String {
     // The query parser already decoded once. Reject further encodings and URL
     // normalization rather than allowing a second interpretation at redirect.
@@ -53,6 +62,7 @@ pub(crate) fn return_path(value: &str) -> String {
     let (path, query) = value.split_once('?').unwrap_or((value, ""));
     let board = path == "/board" || post_path(path);
     if !board
+        && !problem_path(path)
         && ![
             "/",
             "/connect",
@@ -62,6 +72,7 @@ pub(crate) fn return_path(value: &str) -> String {
             "/terms",
             "/privacy",
             "/report",
+            "/problems",
             "/404.html",
         ]
         .contains(&path)
@@ -92,7 +103,8 @@ pub(crate) fn agent_path(path: &str) -> String {
         "/worlds" => "/directory.json".into(),
         "/resources" => "/resources.json".into(),
         "/board" => "/api/board/posts".into(),
-        "/research" | "/terms" | "/privacy" | "/report" => format!("{path}.md"),
+        "/research" | "/terms" | "/privacy" | "/report" | "/problems" => format!("{path}.md"),
+        _ if problem_path(path) => format!("{path}.md"),
         _ if post_path(path) => path.replacen("/board/posts/", "/api/board/conversations/", 1),
         _ => "/llms.txt".into(),
     }
@@ -199,6 +211,8 @@ mod tests {
             "/",
             "/connect",
             "/report",
+            "/problems",
+            "/problems/forbidden",
             "/board?after=0",
             "/board/posts/3?before=9",
         ] {
@@ -254,6 +268,8 @@ mod tests {
             ("/worlds", "/directory.json"),
             ("/resources", "/resources.json"),
             ("/research", "/research.md"),
+            ("/problems", "/problems.md"),
+            ("/problems/forbidden", "/problems/forbidden.md"),
             ("/board/posts/3", "/api/board/conversations/3"),
             ("/unknown", "/llms.txt"),
         ] {

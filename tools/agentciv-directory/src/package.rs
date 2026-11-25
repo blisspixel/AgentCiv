@@ -20,7 +20,8 @@ command = "worker-build --release --locked"
 [assets]
 directory = "../../website/dist"
 binding = "ASSETS"
-run_worker_first = ["/", "/connect", "/worlds", "/resources", "/research", "/terms", "/privacy", "/theme", "/*.html", "/404", "/board", "/board/*", "/api/*", "/report", "/report.md", "/.well-known/agentciv"]
+not_found_handling = "404-page"
+run_worker_first = ["/", "/connect", "/worlds", "/resources", "/research", "/terms", "/privacy", "/theme", "/*.html", "/404", "/board", "/board/*", "/api/*", "/report", "/report.md", "/problems", "/problems/*", "/.well-known/agentciv"]
 
 [[durable_objects.bindings]]
 name = "BOARD"
@@ -146,6 +147,7 @@ mod tests {
         for original in [
             "2026-10-03",
             "ASSETS",
+            "not_found_handling = \"404-page\"",
             "BOARD",
             "new_sqlite_classes",
             "worker-build --release --locked",

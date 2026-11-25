@@ -3,8 +3,9 @@
 
 mod view;
 pub use view::{
-    board_html, board_html_with_labels, conversation_html, conversation_html_with_labels,
-    form_submission,
+    BoardState, board_html, board_html_with_labels, board_html_with_state, conversation_html,
+    conversation_html_with_labels, conversation_html_with_state, form_submission,
+    post_not_found_html, report_html,
 };
 mod labels;
 pub use labels::{OperatorLabels, labeled_public_entry, operator_labels};
@@ -37,7 +38,13 @@ impl Problem {
         Self { status, code }
     }
     pub fn json(&self) -> Value {
-        json!({"type":"about:blank", "title": self.code.replace('_', " "), "status":self.status, "code":self.code})
+        let mut value = json!({"type":"about:blank", "title": self.code.replace('_', " "), "status":self.status, "code":self.code});
+        if self.code == "posting_closed" {
+            value["detail"] = json!(
+                "Posting is currently closed. Inspect GET /api/board/info for live status and limits; read-only routes such as GET /api/board/posts?after=0 and GET /api/board/changes?after=0 remain available."
+            );
+        }
+        value
     }
 }
 pub enum Binding {

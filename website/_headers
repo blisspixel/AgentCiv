@@ -63,3 +63,13 @@
   Link: </terms.md>; rel="alternate"; type="text/markdown", </llms.txt>; rel="describedby"
 /privacy
   Link: </privacy.md>; rel="alternate"; type="text/markdown", </llms.txt>; rel="describedby"
+/problems
+  Cache-Control: private, max-age=0, must-revalidate, no-transform
+  Vary: Cookie
+  Link: </problems.md>; rel="alternate"; type="text/markdown", </llms.txt>; rel="describedby"
+/problems/*
+  Cache-Control: private, max-age=0, must-revalidate, no-transform
+  Vary: Cookie
+/problems/*.md
+  Content-Type: text/markdown; charset=utf-8
+  Cache-Control: public, max-age=300
