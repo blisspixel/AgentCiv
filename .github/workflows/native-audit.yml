@@ -50,19 +50,20 @@ jobs:
           cargo -vV > dist/audit/cargo.txt
           cp Cargo.lock rust-toolchain.toml dist/audit/
           cargo test --locked --target "$TARGET" -p agentciv-archive -p agentciv-reader
-          cargo build --release --locked --target "$TARGET" -p agentciv-archive -p agentciv-reader -p agentciv-host -p agentciv-conformance
+          cargo build --profile native-release --locked --target "$TARGET" -p agentciv-archive -p agentciv-reader -p agentciv-host
+          cargo build --profile native-release --locked --target "$TARGET" -p agentciv-conformance
           cargo metadata --locked --format-version 1 --filter-platform "$TARGET" > dist/audit/metadata.json
           audit_version=$(jq -er '[.packages[] | select(.name == "agentciv-archive" or .name == "agentciv-reader" or .name == "agentciv-host" or .name == "agentciv-conformance") | .version] | select(length == 4) | unique | select(length == 1) | .[0]' dist/audit/metadata.json)
           [[ "$audit_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
           printf 'AUDIT_VERSION=v%s\n' "$audit_version" >> "$GITHUB_ENV"
           printf 'v%s\n' "$audit_version" > dist/audit/VERSION
           for tool in agentciv-archive agentciv-reader agentciv-host agentciv-conformance; do
-            binary="target/$TARGET/release/$tool$SUFFIX"
+            binary="target/$TARGET/native-release/$tool$SUFFIX"
             test "$("$binary" --version)" = "$tool $audit_version"
             "$binary" --help > "dist/audit/$tool-help.txt"
             cp "$binary" "dist/$tool-v$audit_version-$TARGET$SUFFIX"
           done
-          "target/$TARGET/release/agentciv-archive$SUFFIX" demo > dist/audit/demo.json
+          "target/$TARGET/native-release/agentciv-archive$SUFFIX" demo > dist/audit/demo.json
           grep -q 'source_authenticity' dist/audit/demo.json
           (
             cd dist
@@ -99,7 +100,7 @@ jobs:
         run: |
           set -euo pipefail
           for tool in agentciv-archive agentciv-reader agentciv-host agentciv-conformance; do
-            binary="target/$TARGET/release/$tool"
+            binary="target/$TARGET/native-release/$tool"
             readelf --dynamic "$binary" > "dist/audit/$tool-dynamic.txt"
             readelf --version-info "$binary" > "dist/audit/$tool-symbol-versions.txt"
             ldd "$binary" > "dist/audit/$tool-runtime.txt"
@@ -112,7 +113,7 @@ jobs:
         run: |
           set -euo pipefail
           for tool in agentciv-archive agentciv-reader agentciv-host agentciv-conformance; do
-            binary="target/$TARGET/release/$tool"
+            binary="target/$TARGET/native-release/$tool"
             otool -L "$binary" > "dist/audit/$tool-runtime.txt"
             vtool -show-build "$binary" > "dist/audit/$tool-build-version.txt"
           done
@@ -129,7 +130,7 @@ jobs:
           $auditInspector = Join-Path $auditSysroot "lib/rustlib/$auditHost/bin/llvm-readobj.exe"
           if (-not (Test-Path -LiteralPath $auditInspector)) { throw 'pinned import inspector unavailable' }
           foreach ($tool in 'agentciv-archive','agentciv-reader','agentciv-host','agentciv-conformance') {
-            $auditImports = & $auditInspector --coff-imports "target/$env:TARGET/release/$tool.exe"
+            $auditImports = & $auditInspector --coff-imports "target/$env:TARGET/native-release/$tool.exe"
             if ($LASTEXITCODE -ne 0 -or ($auditImports -join "`n") -match '(?i)\b(?:vcruntime|msvcp)[a-z0-9_]*\.dll\b') {
               throw 'binary requires a separately installed MSVC runtime'
             }

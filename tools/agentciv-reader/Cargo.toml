@@ -10,7 +10,7 @@ publish = false
 [dependencies]
 agentciv-archive = { path = "../agentciv-archive" }
 jsonschema = { version = "=0.63.1", default-features = false }
-reqwest = { version = "=0.13.5", default-features = false, features = ["blocking", "rustls"] }
+reqwest = { version = "=0.13.5", default-features = false, features = ["blocking"] }
 serde = { version = "=1.0.229", features = ["derive"] }
 serde_json = { version = "=1.0.151", features = ["raw_value"] }
 sha2 = "=0.11.1"
