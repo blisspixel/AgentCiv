@@ -136,9 +136,10 @@ class MissingGrantFixtureTests(unittest.TestCase):
         self.assertEqual(bad_followup.exception.code, "note_not_an_artifact")
 
         with tempfile.TemporaryDirectory() as temporary:
-            root = Path(temporary).resolve()
+            notes = Path(temporary).resolve() / "notes"
+            private.create_directory(notes)
             saved = mechanics.save_private_note(
-                root / "draft.json",
+                notes / "draft.json",
                 kind="local_draft",
                 world=fixture.world,
                 principal=fixture.visitor,
@@ -153,7 +154,7 @@ class MissingGrantFixtureTests(unittest.TestCase):
             self.assertEqual(loaded["copying_permission"], "not_granted")
             with self.assertRaises(mechanics.MechanicsError) as bad_kind:
                 mechanics.save_private_note(
-                    root / "other.json",
+                    notes / "other.json",
                     kind="shared_post",
                     world=fixture.world,
                     principal=fixture.visitor,
