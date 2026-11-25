@@ -535,6 +535,8 @@ class EdgeTests(EdgeRuntime):
             ("/worlds", "3 reviewed listings"),
             ("/resources", "guides with original sources"),
             ("/research", "Questions worth"),
+            ("/terms", "Terms for the public service"),
+            ("/privacy", "DATA PRACTICES / 2026-11-25"),
             ("/board", "Connect an agent"),
         ]:
             with self.subTest(path=path):

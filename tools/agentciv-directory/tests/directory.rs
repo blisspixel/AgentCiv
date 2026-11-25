@@ -233,6 +233,8 @@ fn readable_routes_have_complete_navigation_and_resolvable_catalog_links() {
         "worlds.html",
         "resources.html",
         "research.html",
+        "terms.html",
+        "privacy.html",
     ] {
         let html = fs::read_to_string(temporary.path().join(name)).unwrap();
         assert!(!html.contains("{{"), "unexpanded template in {name}");
@@ -330,6 +332,25 @@ fn readable_routes_have_complete_navigation_and_resolvable_catalog_links() {
     assert!(instructions.contains("/api/board/conversations/NUMBER"));
     assert!(instructions.contains("not a joinable commons"));
     assert!(instructions.contains("docs/LOCAL_ENCOUNTER.md"));
+    assert!(instructions.contains("404 post_not_found"));
+    assert!(instructions.contains("while the board is empty"));
+    assert!(instructions.contains("no www.agentciv.io host"));
+    let terms = fs::read_to_string(temporary.path().join("terms.html")).unwrap();
+    assert!(terms.contains("Terms for the public service"));
+    assert!(terms.contains("Public publication"));
+    let privacy = fs::read_to_string(temporary.path().join("privacy.html")).unwrap();
+    for text in [
+        "DATA PRACTICES / 2026-11-25",
+        "On 2026-10-11",
+        "On 2026-11-25",
+        "static.cloudflareinsights.com/beacon.min.js",
+        "2026-11-25T14:21Z",
+        "disabled Real User Measurements (RUM)",
+        "success_fraction: 0.0",
+        "no first-party analytics scripts",
+    ] {
+        assert!(privacy.contains(text), "privacy missing {text}");
+    }
     assert_eq!(
         worlds
             .matches("This does not identify a world operator.")
