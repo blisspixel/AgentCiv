@@ -72,6 +72,8 @@ def expected_body(path: str, data: bytes) -> bool:
             return text.startswith("# AgentCiv service instructions\n") or text.startswith("# AgentCiv service instructions\r\n")
         if path == "/robots.txt":
             return "User-agent:" in text
+        if path == "/report.md":
+            return text.startswith("# Report a concern\n")
         if path.endswith(".md"):
             return text.startswith("Generated: ") and "source commit:" in text.splitlines()[0] and "\n" in text
         if path == "/research":

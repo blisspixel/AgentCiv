@@ -39,10 +39,19 @@ impl Database for Sql {
 // One year, without includeSubDomains: other names in the zone are outside this service.
 // Agents that ignore HSTS still need the zone to redirect HTTP before posting opens.
 const STRICT_TRANSPORT: &str = "max-age=31536000";
+const PERMISSIONS_POLICY: &str = "camera=(), microphone=(), geolocation=()";
+const DATA_CSP: &str = "default-src 'none'; frame-ancestors 'none'";
+const API_DISCOVERY_LINK: &str = "</.well-known/api-catalog>; rel=\"api-catalog\", </agent.json>; rel=\"service-desc\"; type=\"application/json\", </llms.txt>; rel=\"service-doc\"; type=\"text/markdown\"";
 
 fn response(value: &Value, status: u16) -> Result<Response> {
     let mut response = Response::from_json(value)?.with_status(status);
     response.headers_mut().set("Cache-Control", "no-store")?;
+    response
+        .headers_mut()
+        .set("Content-Security-Policy", DATA_CSP)?;
+    response
+        .headers_mut()
+        .set("Permissions-Policy", PERMISSIONS_POLICY)?;
     response
         .headers_mut()
         .set("X-Content-Type-Options", "nosniff")?;
@@ -73,6 +82,9 @@ fn html_with_status(value: String, status: u16) -> Result<Response> {
         .headers_mut()
         .set("Cache-Control", "no-store, no-transform")?;
     response.headers_mut().set("Content-Security-Policy","default-src 'none'; style-src 'self'; img-src 'self'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'")?;
+    response
+        .headers_mut()
+        .set("Permissions-Policy", PERMISSIONS_POLICY)?;
     response
         .headers_mut()
         .set("X-Content-Type-Options", "nosniff")?;
@@ -227,7 +239,9 @@ impl DurableObject for Bulletin {
         };
         if request.method() == Method::Get {
             if path == "/api/board/info" {
-                return response(&crate::info(open), 200);
+                let mut result = response(&crate::info(open), 200)?;
+                result.headers_mut().set("Link", API_DISCOVERY_LINK)?;
+                return Ok(result);
             }
             let now = worker::js_sys::Date::new_0()
                 .to_iso_string()
@@ -426,7 +440,16 @@ pub async fn fetch(mut request: Request, env: Env, _context: Context) -> Result<
         result.headers_mut().set("Location", &location)?;
         result.headers_mut().set("Set-Cookie", &cookie)?;
         result.headers_mut().set("Cache-Control", "no-store")?;
+        result
+            .headers_mut()
+            .set("Permissions-Policy", PERMISSIONS_POLICY)?;
+        result
+            .headers_mut()
+            .set("X-Content-Type-Options", "nosniff")?;
         result.headers_mut().set("Referrer-Policy", "no-referrer")?;
+        result
+            .headers_mut()
+            .set("Strict-Transport-Security", STRICT_TRANSPORT)?;
         return Ok(result);
     }
     if path == "/" && matches!(request.method(), Method::Get | Method::Head) {
@@ -492,6 +515,7 @@ pub async fn fetch(mut request: Request, env: Env, _context: Context) -> Result<
             |existing| format!("{existing}, Accept"),
         );
         headers.set("Vary", &vary)?;
+        headers.set("Link", API_DISCOVERY_LINK)?;
         result = result.with_headers(headers);
         if head {
             result = Response::empty()?
@@ -570,12 +594,18 @@ pub async fn fetch(mut request: Request, env: Env, _context: Context) -> Result<
         if path == "/report.md" {
             let body = contact.map_or_else(|| "A private reporting contact has not been configured. Posting remains closed. Use the repository's public issues only for non-sensitive project questions.".to_owned(), |contact| format!("Send privacy, abuse, or copyright reports to {contact}. Include a post or directory URL and the reason. Do not publish sensitive material in a public issue."));
             let mut result = Response::ok(format!(
-                "# Report a concern\n\nOperated by Pueo Labs as an open-source research project.\n\n{body}\n\nThere is no promise of continuous monitoring or immediate response.\n"
+                "# Report a concern\n\nOperated by Pueo Labs as an open-source research project.\n\n{body}\n\nBulletin posts expire automatically after 24 hours, so include post IDs promptly.\n\nThere is no promise of continuous monitoring or immediate response.\n"
             ))?;
             result
                 .headers_mut()
                 .set("Content-Type", "text/markdown; charset=utf-8")?;
             result.headers_mut().set("Cache-Control", "no-store")?;
+            result
+                .headers_mut()
+                .set("Content-Security-Policy", DATA_CSP)?;
+            result
+                .headers_mut()
+                .set("Permissions-Policy", PERMISSIONS_POLICY)?;
             result
                 .headers_mut()
                 .set("X-Content-Type-Options", "nosniff")?;

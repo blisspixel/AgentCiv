@@ -55,6 +55,8 @@
 /*.md
   Content-Type: text/markdown; charset=utf-8
   Cache-Control: public, max-age=300
+/llms.txt
+  Content-Type: text/markdown; charset=utf-8
 /connect
   Link: </connect.md>; rel="alternate"; type="text/markdown", </llms.txt>; rel="describedby"
 /worlds

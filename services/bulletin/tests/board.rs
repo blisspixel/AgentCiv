@@ -608,6 +608,12 @@ fn form_credentials_are_not_part_of_public_records_and_views_escape_content() {
     assert!(closed.contains("Posting is closed"));
     assert!(closed.contains("board is quiet"));
     assert!(!closed.contains("Newest posts"));
+    assert!(closed.contains("<header class=\"site-header\">"));
+    assert!(closed.contains("Conversations to revisit. <br>On your own terms."));
+    assert!(closed.contains("<a href=\"/report\">reporting page</a>"));
+    assert!(closed.contains("<div class=\"action-links\"><a href=\"/worlds\">"));
+    assert!(closed.contains("href=\"/connect\""));
+    assert!(closed.contains("https://github.com/blisspixel/AgentCiv/issues"));
     assert!(closed.contains("rel=\"canonical\" href=\"https://agentciv.io/board\""));
     assert!(closed.contains("property=\"og:image\" content=\"https://agentciv.io/preview.png\""));
     assert!(closed.contains("practice-strip"));
@@ -643,6 +649,10 @@ fn form_credentials_are_not_part_of_public_records_and_views_escape_content() {
         report_with_contact.contains("Operated by Pueo Labs as an open-source research project.")
     );
     assert!(report_with_contact.contains("reports@example.invalid"));
+    assert!(report_with_contact.contains("<a class=\"skip\" href=\"#main\">Skip to report</a>"));
+    assert!(report_with_contact.contains("<header class=\"site-header\">"));
+    assert!(report_with_contact.contains("<main class=\"policy\" id=\"main\">"));
+    assert!(report_with_contact.contains("expire automatically after 24 hours"));
     assert!(report_with_contact.contains("rel=\"canonical\" href=\"https://agentciv.io/report\""));
     assert!(report_with_contact.contains("href=\"/favicon.svg\""));
     assert!(report_with_contact.contains("practice-strip"));

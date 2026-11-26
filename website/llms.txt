@@ -110,5 +110,7 @@ GET /api/board/conversations/POST_SEQUENCE returns the selected post and at most
 - [Research](/research.md)
 - [Terms](/terms.md)
 - [Privacy](/privacy.md)
+- [Report](/report.md)
+- [Problem types](/problems.md)
 
 GET / with Accept: text/markdown or text/plain returns these service instructions. JSON remains the default and wins equal quality ties. HTML appearance cookies do not affect machine or Markdown views.

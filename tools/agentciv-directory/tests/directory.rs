@@ -324,13 +324,21 @@ fn readable_routes_have_complete_navigation_and_resolvable_catalog_links() {
         "Contribute worlds, games, research, or tools",
         "template=research.yml",
         "CONTRIBUTING.md",
+        "<link rel=\"alternate\" type=\"application/json\" href=\"/agent.json\">",
+        "<link rel=\"api-catalog\" href=\"/.well-known/api-catalog\">",
     ] {
         assert!(index.contains(text), "{text}");
     }
     let connect = fs::read_to_string(temporary.path().join("connect.html")).unwrap();
     assert!(connect.contains("does not issue its grants."));
+    assert!(connect.contains("<nav class=\"page-jumps\" aria-label=\"On this page\">"));
+    assert!(connect.contains("A way in. <br>On your terms."));
     let connect_md = fs::read_to_string(temporary.path().join("connect.md")).unwrap();
     assert!(connect_md.contains("does not issue its grants"));
+    let research_html = fs::read_to_string(temporary.path().join("research.html")).unwrap();
+    assert!(research_html.contains("<nav class=\"page-jumps\" aria-label=\"On this page\">"));
+    assert!(research_html.contains("Questions worth <br>coming back to."));
+    assert!(worlds.contains("Find a place. <br>Bring a purpose."));
     let instructions = fs::read_to_string(temporary.path().join("llms.txt")).unwrap();
     assert!(instructions.starts_with("# AgentCiv service instructions\n"));
     assert!(instructions.contains("\n> "));
@@ -342,6 +350,8 @@ fn readable_routes_have_complete_navigation_and_resolvable_catalog_links() {
     assert!(instructions.contains("404 post_not_found"));
     assert!(instructions.contains("while the board is empty"));
     assert!(instructions.contains("no www.agentciv.io host"));
+    assert!(instructions.contains("[Report](/report.md)"));
+    assert!(instructions.contains("[Problem types](/problems.md)"));
     let terms = fs::read_to_string(temporary.path().join("terms.html")).unwrap();
     for text in [
         "SERVICE RULES / 2026-11-26",
@@ -368,6 +378,8 @@ fn readable_routes_have_complete_navigation_and_resolvable_catalog_links() {
         "DATA PRACTICES / 2026-11-26",
         "operated by Pueo Labs as an open-source research project",
         "rolling 24-hour window (86,400 seconds)",
+        "Choosing Dark, Light, Green Screen, or Amber",
+        "<details><summary>Provider analytics and deployment audit history</summary>",
         "On 2026-10-11",
         "On 2026-11-25",
         "static.cloudflareinsights.com/beacon.min.js",
@@ -395,6 +407,8 @@ fn readable_routes_have_complete_navigation_and_resolvable_catalog_links() {
     assert!(!connect_md.contains("(#read)"));
     assert!(worlds_md.contains("**0 public world hosts** No public hosts"));
     let not_found = fs::read_to_string(temporary.path().join("404.html")).unwrap();
+    assert!(not_found.contains("<a class=\"skip\" href=\"#main\">Skip to content</a>"));
+    assert!(not_found.contains("id=\"main\""));
     assert!(not_found.contains("Return to the entrance"));
     assert!(not_found.contains("href=\"/worlds\""));
     for page in [
@@ -483,12 +497,24 @@ fn readable_routes_have_complete_navigation_and_resolvable_catalog_links() {
     }
     let manifest = fs::read_to_string(temporary.path().join("agent.json")).unwrap();
     assert!(manifest.contains("not a joinable commons"));
+    let manifest_json: Value = serde_json::from_str(&manifest).unwrap();
+    assert_eq!(manifest_json["interfaces"]["terms_markdown"], "/terms.md");
+    assert_eq!(
+        manifest_json["interfaces"]["privacy_markdown"],
+        "/privacy.md"
+    );
+    assert_eq!(manifest_json["interfaces"]["report_markdown"], "/report.md");
+    assert_eq!(
+        manifest_json["interfaces"]["problems_markdown"],
+        "/problems.md"
+    );
     let directory_json = fs::read_to_string(temporary.path().join("directory.json")).unwrap();
     assert!(directory_json.contains("does not host this room or issue its grants"));
     assert!(directory_json.contains("2026-11-02"));
     let catalog: Value =
         serde_json::from_slice(include_bytes!("../../../website/resources.json")).unwrap();
     let resources = fs::read_to_string(temporary.path().join("resources.html")).unwrap();
+    assert!(resources.contains("Get your bearings. <br>Keep your judgment."));
     let resources_md = fs::read_to_string(temporary.path().join("resources.md")).unwrap();
     let repo_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
     for guide in catalog["guides"].as_array().unwrap() {
@@ -532,9 +558,12 @@ fn readable_routes_have_complete_navigation_and_resolvable_catalog_links() {
             }
         }
     }
-    let headers = fs::read_to_string(temporary.path().join("_headers")).unwrap();
+    let headers = fs::read_to_string(temporary.path().join("_headers"))
+        .unwrap()
+        .replace("\r\n", "\n");
     assert!(headers.contains("default-src 'none'"));
     assert!(headers.contains("form-action 'none'"));
+    assert!(headers.contains("/llms.txt\n  Content-Type: text/markdown; charset=utf-8"));
     let robots = fs::read_to_string(temporary.path().join("robots.txt")).unwrap();
     assert_eq!(
         robots,

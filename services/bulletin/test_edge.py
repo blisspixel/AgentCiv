@@ -36,7 +36,7 @@ class NavigationLinks(HTMLParser):
         self.links: list[str] = []
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
-        if tag == "nav":
+        if tag == "nav" and dict(attrs).get("aria-label") == "Main navigation":
             self.in_navigation = True
         if self.in_navigation and tag == "a":
             target = dict(attrs).get("href")
@@ -536,6 +536,10 @@ class EdgeTests(EdgeRuntime):
                         expected = f"agentciv_appearance={value}; Path=/; Max-Age=31536000; SameSite=Lax; Secure; HttpOnly" if value != "system" else "agentciv_appearance=; Path=/; Max-Age=0; SameSite=Lax; Secure; HttpOnly"
                         self.assertEqual(response.headers.get("Set-Cookie"), expected)
                         self.assertEqual(response.headers.get("Cache-Control"), "no-store")
+                        self.assertEqual(response.headers.get("Permissions-Policy"), "camera=(), microphone=(), geolocation=()")
+                        self.assertEqual(response.headers.get("Strict-Transport-Security"), "max-age=31536000")
+                        self.assertEqual(response.headers.get("X-Content-Type-Options"), "nosniff")
+                        self.assertEqual(response.headers.get("Referrer-Policy"), "no-referrer")
         for query in ("", "set=Dark", "set=bad", "set=dark&set=light", "set=%FF"):
             status, headers, body = self.request("GET", "/theme?" + query)
             self.assertEqual(status, 400)
@@ -662,8 +666,23 @@ class EdgeTests(EdgeRuntime):
         home = self.request("GET", "/", accept="text/html")[2]
         for text in ("Connect a runtime", "not a joinable commons", "Use a local room", "Contribute in the repository", "docs/LOCAL_ENCOUNTER.md"):
             self.assertIn(text, home)
-        self.assertIn("does not issue its grants", self.request("GET", "/connect", accept="text/html")[2])
+        connect_html = self.request("GET", "/connect", accept="text/html")[2]
+        self.assertIn("does not issue its grants", connect_html)
+        self.assertIn('<nav class="page-jumps" aria-label="On this page">', connect_html)
+        research_html = self.request("GET", "/research", accept="text/html")[2]
+        self.assertIn('<nav class="page-jumps" aria-label="On this page">', research_html)
+        privacy_html = self.request("GET", "/privacy", accept="text/html")[2]
+        self.assertIn("Choosing Dark, Light, Green Screen, or Amber", privacy_html)
+        self.assertIn("<details><summary>Provider analytics and deployment audit history</summary>", privacy_html)
         self.assertIn("not a joinable commons", self.request("GET", "/llms.txt")[2])
+        manifest_interfaces = self.request("GET", "/agent.json")[2]["interfaces"]
+        for key, target in (
+            ("terms_markdown", "/terms.md"),
+            ("privacy_markdown", "/privacy.md"),
+            ("report_markdown", "/report.md"),
+            ("problems_markdown", "/problems.md"),
+        ):
+            self.assertEqual(manifest_interfaces[key], target)
         self.assertEqual(worlds.count(">Run locally<"), 3)
         self.assertNotIn(">Joining and access<", worlds)
         guides = self.request("GET", "/resources", accept="text/html")[2]
@@ -729,11 +748,13 @@ class EdgeTests(EdgeRuntime):
         status, headers, receipt = self.request("POST", "/api/board/posts", raw, TOKENS["agent:test-8"])
         self.assertEqual(status, 200)
         self.assertEqual(headers.get("Cache-Control"), "no-store")
+        expected_discovery_link = '</.well-known/api-catalog>; rel="api-catalog", </agent.json>; rel="service-desc"; type="application/json", </llms.txt>; rel="service-doc"; type="text/markdown"'
         for route in ["/board", f"/board/posts/{receipt['sequence']}", "/report"]:
             status, headers, _ = self.request("GET", route, accept="text/html")
             self.assertEqual(status, 200)
             self.assertEqual(headers.get("Cache-Control"), "no-store, no-transform")
             self.assertIn("default-src 'none'", headers.get("Content-Security-Policy", ""))
+            self.assertEqual(headers.get("Permissions-Policy"), "camera=(), microphone=(), geolocation=()")
             self.assertEqual(headers.get("X-Content-Type-Options"), "nosniff")
             self.assertEqual(headers.get("Referrer-Policy"), "no-referrer")
             self.assertEqual(headers.get("Strict-Transport-Security"), "max-age=31536000")
@@ -741,6 +762,18 @@ class EdgeTests(EdgeRuntime):
             status, headers, _ = self.request("GET", route)
             self.assertEqual(status, expected)
             self.assertEqual(headers.get("Cache-Control"), "no-store")
+            self.assertEqual(headers.get("Content-Security-Policy"), "default-src 'none'; frame-ancestors 'none'")
+            self.assertEqual(headers.get("Permissions-Policy"), "camera=(), microphone=(), geolocation=()")
+            if route == "/api/board/info":
+                self.assertEqual(headers.get("Link"), expected_discovery_link)
+        report_md_status, report_md_headers, report_md_body = self.request("GET", "/report.md")
+        self.assertEqual(report_md_status, 200)
+        self.assertEqual(report_md_headers.get("Content-Security-Policy"), "default-src 'none'; frame-ancestors 'none'")
+        self.assertEqual(report_md_headers.get("Permissions-Policy"), "camera=(), microphone=(), geolocation=()")
+        self.assertIn("expire automatically after 24 hours", report_md_body)
+        llms_status, llms_headers, _ = self.request("GET", "/llms.txt")
+        self.assertEqual(llms_status, 200)
+        self.assertEqual(llms_headers.get("Content-Type"), "text/markdown; charset=utf-8")
         for route in ["/404", "/404.html", "/board/posts/999999999"]:
             status, headers, _ = self.request("GET", route, accept="text/html")
             self.assertEqual(status, 404, route)
@@ -772,6 +805,10 @@ class EdgeTests(EdgeRuntime):
                 self.assertEqual(status, 200)
                 self.assertIn(expected, headers.get("Content-Type", ""))
                 self.assertEqual(headers.get("Vary"), "Cookie, Accept" if expected == "text/html" else "Accept")
+                self.assertEqual(
+                    headers.get("Link"),
+                    '</.well-known/api-catalog>; rel="api-catalog", </agent.json>; rel="service-desc"; type="application/json", </llms.txt>; rel="service-doc"; type="text/markdown"',
+                )
         status, headers, result = self.request("GET", "/", accept="text/html;q=0,application/json;q=0")
         self.assertEqual(status, 406)
         self.assertEqual(result["code"], "not_acceptable")
