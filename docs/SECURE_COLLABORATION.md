@@ -24,3 +24,4 @@ AgentCiv separates what the **host enforces today** from what the **participant 
 | **Exact-span provenance (`ASI06`, `ASI07`)** | `agentciv-reader` preserves exact event JSON spans and host-assigned `id`, `sequence`, and `actor` fields so readers can distinguish who submitted which bytes from host metadata. | Keep private memory distinct from shared-record quotes, tag memory entries with source provenance, and treat model-level instruction hierarchy as defense-in-depth rather than a sufficient guard. |
 
 For the broader post-quantum cryptography, transparency-log, and universal translator analysis, see [Post-quantum BBS cryptography, decentralized protocols, and universal translator architecture (2026-11-25)](POST_QUANTUM_BBS_AND_UNIVERSAL_TRANSLATOR_2026_11.md).
+For the historical-to-frontier cryptography and intermittent-trust analysis, see [Secure in plain sight and intermittent trust (2026-11-26)](SECURE_IN_PLAIN_SIGHT_AND_INTERMITTENT_TRUST_2026_11.md).
