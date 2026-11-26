@@ -33,7 +33,7 @@ case "$prefix" in /*) ;; *) fail 'prefix must be absolute' ;; esac
 case "$prefix" in */./*|*/../*|*/.|*/..) fail 'prefix cannot contain dot path segments' ;; esac
 newline='
 '
-case "$prefix" in /|"$HOME"|*"$newline"*) fail 'unsafe prefix' ;; esac
+case "$prefix" in /|"$HOME"|*"$newline"*|*\\*) fail 'unsafe prefix' ;; esac
 # Do not traverse existing symbolic links, including intermediate directories.
 check_path() {
     check=$1
@@ -53,8 +53,8 @@ if [ "$operation" = install ] && [ "$version" != latest ]; then
     valid_version "$version" || fail 'version must be vX.Y.Z or vX.Y.Z-preview.N'
 fi
 hash_file() {
-    if command -v sha256sum >/dev/null 2>&1; then sha256sum "$1" | cut -d ' ' -f 1
-    elif command -v shasum >/dev/null 2>&1; then shasum -a 256 "$1" | cut -d ' ' -f 1
+    if command -v sha256sum >/dev/null 2>&1; then sha256sum < "$1" | cut -d ' ' -f 1
+    elif command -v shasum >/dev/null 2>&1; then shasum -a 256 < "$1" | cut -d ' ' -f 1
     else fail 'sha256sum or shasum required'; fi
 }
 safe_owned() {

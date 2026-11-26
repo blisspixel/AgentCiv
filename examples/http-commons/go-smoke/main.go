@@ -9,10 +9,17 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
 	"time"
+)
+
+const (
+	maxResponseBytes = 2 * 1024 * 1024
+	maxEventPages    = 64
 )
 
 type wireVectors struct {
@@ -128,12 +135,128 @@ func loadVectors(path string) (*wireVectors, error) {
 	return &vectors, nil
 }
 
-func doRequest(client *http.Client, method, url, token string, body []byte) (int, http.Header, []byte, error) {
+func isLoopbackHost(host string) bool {
+	return host == "127.0.0.1" || host == "::1" || strings.EqualFold(host, "localhost")
+}
+
+func canonicalOrigin(u *url.URL) (string, error) {
+	scheme := strings.ToLower(u.Scheme)
+	if scheme != "http" && scheme != "https" {
+		return "", fmt.Errorf("unsupported scheme %q", u.Scheme)
+	}
+	host := strings.ToLower(u.Hostname())
+	if host == "" {
+		return "", fmt.Errorf("missing host")
+	}
+	port := u.Port()
+	if port == "" {
+		if scheme == "https" {
+			port = "443"
+		} else {
+			port = "80"
+		}
+	}
+	return scheme + "://" + net.JoinHostPort(host, port), nil
+}
+
+func validateOrigin(rawOrigin string) (string, string, error) {
+	if rawOrigin == "" {
+		return "", "", fmt.Errorf("origin must not be empty")
+	}
+	if strings.Contains(rawOrigin, "#") {
+		return "", "", fmt.Errorf("origin must not contain a fragment")
+	}
+	u, err := url.Parse(rawOrigin)
+	if err != nil {
+		return "", "", fmt.Errorf("parse origin %q: %w", rawOrigin, err)
+	}
+	if u.Opaque != "" {
+		return "", "", fmt.Errorf("origin must not be opaque")
+	}
+	if u.User != nil {
+		return "", "", fmt.Errorf("origin must not contain userinfo")
+	}
+	if u.Fragment != "" {
+		return "", "", fmt.Errorf("origin must not contain a fragment")
+	}
+	if u.ForceQuery || u.RawQuery != "" {
+		return "", "", fmt.Errorf("origin must not contain a query string")
+	}
+	if u.Path != "" && u.Path != "/" {
+		return "", "", fmt.Errorf("origin must not contain a path: %q", u.Path)
+	}
+	canon, err := canonicalOrigin(u)
+	if err != nil {
+		return "", "", fmt.Errorf("invalid origin %q: %w", rawOrigin, err)
+	}
+	if strings.EqualFold(u.Scheme, "http") && !isLoopbackHost(u.Hostname()) {
+		return "", "", fmt.Errorf("non-loopback http origin is not allowed: %q", rawOrigin)
+	}
+	return strings.TrimRight(rawOrigin, "/"), canon, nil
+}
+
+func validateSameOriginEndpoint(name, rawEndpoint, expectedOriginCanon string) error {
+	if rawEndpoint == "" {
+		return fmt.Errorf("%s endpoint must not be empty", name)
+	}
+	if strings.Contains(rawEndpoint, "#") {
+		return fmt.Errorf("%s endpoint must not contain a fragment", name)
+	}
+	u, err := url.Parse(rawEndpoint)
+	if err != nil {
+		return fmt.Errorf("parse %s endpoint %q: %w", name, rawEndpoint, err)
+	}
+	if u.Opaque != "" {
+		return fmt.Errorf("%s endpoint must not be opaque", name)
+	}
+	if u.User != nil {
+		return fmt.Errorf("%s endpoint must not contain userinfo", name)
+	}
+	if u.Fragment != "" {
+		return fmt.Errorf("%s endpoint must not contain a fragment", name)
+	}
+	epCanon, err := canonicalOrigin(u)
+	if err != nil {
+		return fmt.Errorf("invalid %s endpoint %q: %w", name, rawEndpoint, err)
+	}
+	if epCanon != expectedOriginCanon {
+		return fmt.Errorf("%s endpoint origin %q does not match configured origin %q", name, epCanon, expectedOriginCanon)
+	}
+	return nil
+}
+
+func buildEventsURL(baseEndpoint, cursor string) (string, error) {
+	u, err := url.Parse(baseEndpoint)
+	if err != nil {
+		return "", fmt.Errorf("parse events endpoint: %w", err)
+	}
+	if cursor != "" {
+		q := u.Query()
+		q.Set("after", cursor)
+		u.RawQuery = q.Encode()
+	}
+	return u.String(), nil
+}
+
+func newNoRedirectClient(base *http.Client) *http.Client {
+	var cloned http.Client
+	if base != nil {
+		cloned = *base
+	} else {
+		cloned.Timeout = 10 * time.Second
+	}
+	cloned.CheckRedirect = func(*http.Request, []*http.Request) error {
+		return http.ErrUseLastResponse
+	}
+	return &cloned
+}
+
+func doRequest(client *http.Client, method, targetURL, token string, body []byte) (int, http.Header, []byte, error) {
 	var reader io.Reader
 	if body != nil {
 		reader = bytes.NewReader(body)
 	}
-	req, err := http.NewRequest(method, url, reader)
+	req, err := http.NewRequest(method, targetURL, reader)
 	if err != nil {
 		return 0, nil, nil, err
 	}
@@ -149,19 +272,27 @@ func doRequest(client *http.Client, method, url, token string, body []byte) (int
 		return 0, nil, nil, err
 	}
 	defer resp.Body.Close()
-	data, err := io.ReadAll(io.LimitReader(resp.Body, 2*1024*1024))
+	data, err := io.ReadAll(io.LimitReader(resp.Body, maxResponseBytes+1))
 	if err != nil {
 		return resp.StatusCode, resp.Header, nil, err
+	}
+	if len(data) > maxResponseBytes {
+		return resp.StatusCode, resp.Header, nil, fmt.Errorf("response body exceeded %d bytes", maxResponseBytes)
 	}
 	return resp.StatusCode, resp.Header, data, nil
 }
 
 func runSmoke(cfg smokeConfig, client *http.Client) error {
+	origin, originCanon, err := validateOrigin(cfg.Origin)
+	if err != nil {
+		return err
+	}
+	client = newNoRedirectClient(client)
+
 	vectors, err := loadVectors(cfg.VectorsPath)
 	if err != nil {
 		return err
 	}
-	origin := strings.TrimRight(cfg.Origin, "/")
 
 	// 1. Public discovery.
 	status, headers, body, err := doRequest(client, http.MethodGet, origin+"/.well-known/agentciv", "", nil)
@@ -183,6 +314,17 @@ func runSmoke(cfg smokeConfig, client *http.Client) error {
 	}
 	if world.Endpoints.Submit == "" || world.Endpoints.Events == "" {
 		return fmt.Errorf("discovery omitted submit or events endpoint")
+	}
+	if err := validateSameOriginEndpoint("submit", world.Endpoints.Submit, originCanon); err != nil {
+		return err
+	}
+	if err := validateSameOriginEndpoint("events", world.Endpoints.Events, originCanon); err != nil {
+		return err
+	}
+	if world.Endpoints.Collaborate != "" {
+		if err := validateSameOriginEndpoint("collaborate", world.Endpoints.Collaborate, originCanon); err != nil {
+			return err
+		}
 	}
 
 	expectedText := make(map[string]string, len(vectors.Positive))
@@ -295,12 +437,15 @@ func runSmoke(cfg smokeConfig, client *http.Client) error {
 	// 4. Read back events and verify strictly opaque round-trip.
 	var allEvents []eventEnvelope
 	cursor := ""
-	for {
-		url := world.Endpoints.Events
-		if cursor != "" {
-			url += "?after=" + cursor
+	for pageNum := 0; ; pageNum++ {
+		if pageNum >= maxEventPages {
+			return fmt.Errorf("events pagination exceeded %d pages", maxEventPages)
 		}
-		status, headers, body, err := doRequest(client, http.MethodGet, url, cfg.ReaderToken, nil)
+		eventsURL, err := buildEventsURL(world.Endpoints.Events, cursor)
+		if err != nil {
+			return err
+		}
+		status, headers, body, err := doRequest(client, http.MethodGet, eventsURL, cfg.ReaderToken, nil)
 		if err != nil {
 			return fmt.Errorf("read events: %w", err)
 		}
@@ -349,22 +494,36 @@ func runSmoke(cfg smokeConfig, client *http.Client) error {
 }
 
 func main() {
-	origin := flag.String("origin", "", "Loopback host origin (for example http://127.0.0.1:8787)")
-	writerToken := flag.String("writer-token", "", "Bearer token for the writer principal")
-	readerToken := flag.String("reader-token", "", "Bearer token for the reader principal")
+	origin := flag.String("origin", "", "Loopback HTTP or HTTPS host origin (for example http://127.0.0.1:8787)")
+	writerToken := flag.String("writer-token", "", "Bearer token for the writer principal (fallback: AGENTCIV_WRITER_TOKEN)")
+	readerToken := flag.String("reader-token", "", "Bearer token for the reader principal (fallback: AGENTCIV_READER_TOKEN)")
 	vectorsPath := flag.String("vectors", "../../../conformance/vectors/wire-vectors.json", "Path to wire-vectors.json")
 	flag.Parse()
 
-	if *origin == "" || *writerToken == "" || *readerToken == "" {
-		fmt.Fprintln(os.Stderr, "Usage: go-smoke --origin URL --writer-token TOKEN --reader-token TOKEN [--vectors PATH]")
+	resolvedWriterToken := *writerToken
+	if resolvedWriterToken == "" {
+		resolvedWriterToken = os.Getenv("AGENTCIV_WRITER_TOKEN")
+	}
+	resolvedReaderToken := *readerToken
+	if resolvedReaderToken == "" {
+		resolvedReaderToken = os.Getenv("AGENTCIV_READER_TOKEN")
+	}
+
+	if *origin == "" || resolvedWriterToken == "" || resolvedReaderToken == "" {
+		fmt.Fprintln(os.Stderr, "Usage: go-smoke --origin URL [--writer-token TOKEN] [--reader-token TOKEN] [--vectors PATH] (or set AGENTCIV_WRITER_TOKEN and AGENTCIV_READER_TOKEN)")
 		os.Exit(2)
 	}
 
-	client := &http.Client{Timeout: 10 * time.Second}
+	client := &http.Client{
+		Timeout: 10 * time.Second,
+		CheckRedirect: func(*http.Request, []*http.Request) error {
+			return http.ErrUseLastResponse
+		},
+	}
 	cfg := smokeConfig{
 		Origin:      *origin,
-		WriterToken: *writerToken,
-		ReaderToken: *readerToken,
+		WriterToken: resolvedWriterToken,
+		ReaderToken: resolvedReaderToken,
 		VectorsPath: *vectorsPath,
 	}
 	if err := runSmoke(cfg, client); err != nil {
