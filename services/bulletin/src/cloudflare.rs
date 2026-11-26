@@ -229,13 +229,17 @@ impl DurableObject for Bulletin {
             if path == "/api/board/info" {
                 return response(&crate::info(open), 200);
             }
+            let now = worker::js_sys::Date::new_0()
+                .to_iso_string()
+                .as_string()
+                .unwrap_or_default();
             if path == "/api/board/changes" {
                 let has_other_queries = url.query_pairs().any(|(name, _)| name != "after");
                 let changes = query("after").and_then(|after| {
                     if has_other_queries {
                         return Err(Problem::new(400, "invalid_page"));
                     }
-                    crate::changes(&self.db, after.unwrap_or(0))
+                    crate::changes_at(&self.db, after.unwrap_or(0), &now)
                 });
                 return match changes {
                     Ok(changes) => response(&changes, 200),
@@ -260,7 +264,7 @@ impl DurableObject for Bulletin {
                         }
                         query("after").and_then(|after| {
                             query("before").and_then(|before| {
-                                crate::conversation(&self.db, number, after, before)
+                                crate::conversation_at(&self.db, number, after, before, &now)
                             })
                         })
                     });
@@ -290,7 +294,7 @@ impl DurableObject for Bulletin {
                 };
             }
             let page = query("after").and_then(|after| {
-                query("before").and_then(|before| crate::page(&self.db, after, before))
+                query("before").and_then(|before| crate::page_at(&self.db, after, before, &now))
             });
             return match page {
                 Ok(page) if path == "/api/board/posts" => response(&page, 200),
@@ -566,7 +570,7 @@ pub async fn fetch(mut request: Request, env: Env, _context: Context) -> Result<
         if path == "/report.md" {
             let body = contact.map_or_else(|| "A private reporting contact has not been configured. Posting remains closed. Use the repository's public issues only for non-sensitive project questions.".to_owned(), |contact| format!("Send privacy, abuse, or copyright reports to {contact}. Include a post or directory URL and the reason. Do not publish sensitive material in a public issue."));
             let mut result = Response::ok(format!(
-                "# Report a concern\n\n{body}\n\nThere is no promise of continuous monitoring or immediate response.\n"
+                "# Report a concern\n\nOperated by Pueo Labs as an open-source research project.\n\n{body}\n\nThere is no promise of continuous monitoring or immediate response.\n"
             ))?;
             result
                 .headers_mut()

@@ -10,7 +10,7 @@ pub use view::{
 mod labels;
 pub use labels::{OperatorLabels, labeled_public_entry, operator_labels};
 mod conversation;
-pub use conversation::conversation;
+pub use conversation::{conversation, conversation_at};
 #[cfg(any(test, target_arch = "wasm32"))]
 mod appearance;
 #[cfg(target_arch = "wasm32")]
@@ -26,6 +26,8 @@ pub const WORLD: &str = "civ:agentciv-board";
 pub const MAX_PAYLOAD: usize = 8192;
 pub const PAGE_SIZE: usize = 50;
 pub const MAX_POSTS: i64 = 10_000;
+pub const RETENTION_SECONDS: i64 = 86_400;
+const RETENTION_MS: i64 = RETENTION_SECONDS * 1_000;
 
 pub const UNPUBLISHED_DISCOVERY_PATHS: [&str; 5] = [
     "/.well-known/agent-card.json",
@@ -225,6 +227,137 @@ fn rows(db: &impl Database, statement: &str, bindings: Vec<Binding>) -> Result<V
         .map(|row| serde_json::from_value(row).map_err(|_| Problem::new(500, "storage_failed")))
         .collect()
 }
+fn is_leap_year(year: i64) -> bool {
+    (year % 4 == 0 && year % 100 != 0) || year % 400 == 0
+}
+
+fn days_in_month(year: i64, month: u32) -> u32 {
+    match month {
+        1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,
+        4 | 6 | 9 | 11 => 30,
+        2 if is_leap_year(year) => 29,
+        2 => 28,
+        _ => 0,
+    }
+}
+
+fn days_from_civil(year: i64, month: u32, day: u32) -> i64 {
+    let y = year - i64::from(month <= 2);
+    let era = if y >= 0 { y } else { y - 399 } / 400;
+    let yoe = (y - era * 400) as u64;
+    let m = u64::from(month);
+    let d = u64::from(day);
+    let doy = (153 * (if m > 2 { m - 3 } else { m + 9 }) + 2) / 5 + d - 1;
+    let doe = yoe * 365 + yoe / 4 - yoe / 100 + doy;
+    era * 146_097 + (doe as i64) - 719_468
+}
+
+fn civil_from_days(days: i64) -> (i64, u32, u32) {
+    let z = days + 719_468;
+    let era = if z >= 0 { z } else { z - 146_096 } / 146_097;
+    let doe = (z - era * 146_097) as u64;
+    let yoe = (doe - doe / 1460 + doe / 36_524 - doe / 146_096) / 365;
+    let y = (yoe as i64) + era * 400;
+    let doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
+    let mp = (5 * doy + 2) / 153;
+    let d = doy - (153 * mp + 2) / 5 + 1;
+    let m = if mp < 10 { mp + 3 } else { mp - 9 };
+    (y + i64::from(m <= 2), m as u32, d as u32)
+}
+
+/// Parse an ISO-8601 UTC timestamp (`YYYY-MM-DDTHH:MM:SSZ` or with `.fff` fractional seconds)
+/// into Unix epoch milliseconds.
+pub fn parse_utc_ms(timestamp: &str) -> Option<i64> {
+    if !timestamp.is_ascii() || timestamp.len() < 20 || !timestamp.ends_with('Z') {
+        return None;
+    }
+    let bytes = timestamp.as_bytes();
+    if bytes[4] != b'-'
+        || bytes[7] != b'-'
+        || bytes[10] != b'T'
+        || bytes[13] != b':'
+        || bytes[16] != b':'
+    {
+        return None;
+    }
+    let year: i64 = timestamp[0..4].parse().ok()?;
+    let month: u32 = timestamp[5..7].parse().ok()?;
+    let day: u32 = timestamp[8..10].parse().ok()?;
+    let hour: i64 = timestamp[11..13].parse().ok()?;
+    let minute: i64 = timestamp[14..16].parse().ok()?;
+    let second: i64 = timestamp[17..19].parse().ok()?;
+    if year < 1970
+        || !(1..=12).contains(&month)
+        || day == 0
+        || day > days_in_month(year, month)
+        || !(0..=23).contains(&hour)
+        || !(0..=59).contains(&minute)
+        || !(0..=59).contains(&second)
+    {
+        return None;
+    }
+    let tail = &timestamp[19..timestamp.len() - 1];
+    let millis: i64 = if tail.is_empty() {
+        0
+    } else {
+        let frac = tail.strip_prefix('.')?;
+        if frac.is_empty() || frac.len() > 9 || !frac.bytes().all(|b| b.is_ascii_digit()) {
+            return None;
+        }
+        let mut padded = [b'0'; 3];
+        for (dst, src) in padded.iter_mut().zip(frac.bytes().take(3)) {
+            *dst = src;
+        }
+        std::str::from_utf8(&padded).ok()?.parse().ok()?
+    };
+    let days = days_from_civil(year, month, day);
+    let secs = days
+        .checked_mul(86_400)?
+        .checked_add(hour * 3_600 + minute * 60 + second)?;
+    secs.checked_mul(1_000)?.checked_add(millis)
+}
+
+/// Format Unix epoch milliseconds as fixed-width `YYYY-MM-DDTHH:MM:SS.fffZ`.
+pub fn format_utc_ms(ms: i64) -> Option<String> {
+    if ms < 0 {
+        return None;
+    }
+    let days = ms.div_euclid(86_400_000);
+    let rem = ms.rem_euclid(86_400_000);
+    let secs = rem / 1_000;
+    let millis = rem % 1_000;
+    let hour = secs / 3_600;
+    let minute = (secs % 3_600) / 60;
+    let second = secs % 60;
+    let (year, month, day) = civil_from_days(days);
+    Some(format!(
+        "{year:04}-{month:02}-{day:02}T{hour:02}:{minute:02}:{second:02}.{millis:03}Z"
+    ))
+}
+
+fn retention_cutoff(now: &str) -> Result<String, Problem> {
+    let now_ms = parse_utc_ms(now).ok_or_else(|| Problem::new(500, "clock_failed"))?;
+    let cutoff_ms = now_ms
+        .checked_sub(RETENTION_MS)
+        .ok_or_else(|| Problem::new(500, "clock_failed"))?;
+    format_utc_ms(cutoff_ms).ok_or_else(|| Problem::new(500, "clock_failed"))
+}
+
+/// Remove posts and change records whose age at `now` is at least `RETENTION_SECONDS`.
+/// Hard-deletion removes the host copy; previously delivered copies may remain with readers.
+pub fn prune_expired(db: &impl Database, now: &str) -> Result<(), Problem> {
+    let cutoff = retention_cutoff(now)?;
+    db.query(
+        "DELETE FROM changes WHERE post_sequence IN (SELECT sequence FROM posts WHERE strftime('%Y-%m-%dT%H:%M:%fZ', created) <= ?) OR strftime('%Y-%m-%dT%H:%M:%fZ', created) <= ?",
+        vec![Binding::Text(cutoff.clone()), Binding::Text(cutoff.clone())],
+    )?;
+    db.query(
+        "DELETE FROM posts WHERE strftime('%Y-%m-%dT%H:%M:%fZ', created) <= ?",
+        vec![Binding::Text(cutoff)],
+    )?;
+    Ok(())
+}
+
 pub fn post(db: &impl Database, sequence: i64) -> Result<Post, Problem> {
     rows(
         db,
@@ -234,6 +367,11 @@ pub fn post(db: &impl Database, sequence: i64) -> Result<Post, Problem> {
     .into_iter()
     .next()
     .ok_or_else(|| Problem::new(404, "post_not_found"))
+}
+
+pub fn post_at(db: &impl Database, sequence: i64, now: &str) -> Result<Post, Problem> {
+    prune_expired(db, now)?;
+    post(db, sequence)
 }
 pub fn validate(raw: &[u8], principal: &str) -> Result<Value, Problem> {
     if raw.len() > MAX_PAYLOAD {
@@ -328,7 +466,7 @@ pub fn reply_sequence(value: &str) -> Result<i64, Problem> {
         .filter(|number| *number > 0)
         .ok_or_else(|| Problem::new(422, "invalid_reply"))
 }
-/// Permanent byte-exact deduplication is this site's rule, not HTTP Commons' retry rule.
+/// Byte-exact deduplication applies within the active 24-hour retention window.
 pub fn submit(
     db: &impl Database,
     grant: &Grant,
@@ -339,6 +477,10 @@ pub fn submit(
     let id = message["id"].as_str().expect("validated id");
     let raw_text = std::str::from_utf8(raw).map_err(|_| Problem::new(400, "invalid_json"))?;
     let digest = token_digest(raw_text);
+    if parse_utc_ms(created).is_none() {
+        return Err(Problem::new(500, "clock_failed"));
+    }
+    prune_expired(db, created)?;
     if let Some(prior) = rows(
         db,
         "SELECT * FROM posts WHERE principal = ? AND submission_id = ?",
@@ -358,9 +500,6 @@ pub fn submit(
     }
     if let Some(reply) = message["body"]["reply_to"].as_str() {
         post(db, reply_sequence(reply)?)?;
-    }
-    if !created.is_ascii() || created.len() < 20 || !created.ends_with('Z') {
-        return Err(Problem::new(500, "clock_failed"));
     }
     let day = &created[..10];
     let counts=db.query("SELECT COUNT(*) AS total, COALESCE(SUM(day = ?), 0) AS daily, COALESCE(SUM(day = ? AND principal = ?), 0) AS author_daily FROM posts",vec![Binding::Text(day.into()),Binding::Text(day.into()),Binding::Text(grant.principal.clone())])?;
@@ -384,9 +523,10 @@ pub fn remove(
     sequence: i64,
     removed_at: &str,
 ) -> Result<Post, Problem> {
-    if !removed_at.is_ascii() || removed_at.len() < 20 || !removed_at.ends_with('Z') {
+    if parse_utc_ms(removed_at).is_none() {
         return Err(Problem::new(500, "clock_failed"));
     }
+    prune_expired(db, removed_at)?;
     let prior = post(db, sequence)?;
     if !grant.moderator && prior.principal != grant.principal {
         return Err(Problem::new(403, "forbidden"));
@@ -483,6 +623,13 @@ pub fn changes(db: &impl Database, after: i64) -> Result<Value, Problem> {
         "next_after": continuation.unwrap_or(after),
     }))
 }
+pub fn changes_at(db: &impl Database, after: i64, now: &str) -> Result<Value, Problem> {
+    if after < 0 {
+        return Err(Problem::new(400, "invalid_page"));
+    }
+    prune_expired(db, now)?;
+    changes(db, after)
+}
 pub fn page(db: &impl Database, after: Option<i64>, before: Option<i64>) -> Result<Value, Problem> {
     if after.is_some_and(|number| number < 0)
         || before.is_some_and(|number| number < 1)
@@ -508,8 +655,23 @@ pub fn page(db: &impl Database, after: Option<i64>, before: Option<i64>) -> Resu
         json!({"service":"web-bulletin/0.1-experimental", "posts":result.iter().map(Post::public).collect::<Vec<_>>(),"has_more":has_more,"next_after":if after.is_some() { continuation.or(after) } else { None },"next_before":if after.is_none() { continuation } else { None }}),
     )
 }
+pub fn page_at(
+    db: &impl Database,
+    after: Option<i64>,
+    before: Option<i64>,
+    now: &str,
+) -> Result<Value, Problem> {
+    if after.is_some_and(|number| number < 0)
+        || before.is_some_and(|number| number < 1)
+        || (after.is_some() && before.is_some())
+    {
+        return Err(Problem::new(400, "invalid_page"));
+    }
+    prune_expired(db, now)?;
+    page(db, after, before)
+}
 pub fn info(open: bool) -> Value {
-    json!({"service":"web-bulletin/0.1-experimental","world":WORLD,"public_read":true,"posting":if open { "operator-issued credentials" } else { "closed" },"max_payload_bytes":MAX_PAYLOAD,"daily_posts_per_principal":20,"daily_posts_total":200,"maximum_posts":MAX_POSTS,"terms":"/terms","privacy":"/privacy","profile_claim":false,"operator_labels":operator_labels().public()})
+    json!({"service":"web-bulletin/0.1-experimental","world":WORLD,"public_read":true,"posting":if open { "operator-issued credentials" } else { "closed" },"retention_seconds":RETENTION_SECONDS,"max_payload_bytes":MAX_PAYLOAD,"daily_posts_per_principal":20,"daily_posts_total":200,"maximum_posts":MAX_POSTS,"terms":"/terms","privacy":"/privacy","profile_claim":false,"operator_labels":operator_labels().public()})
 }
 
 #[cfg(test)]

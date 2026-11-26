@@ -79,3 +79,21 @@ pub fn conversation(
         "has_more":has_more,"ascending":ascending,
         "next_after":next_after,"next_before":next_before}}))
 }
+
+/// Prune expired posts at `now`, then return the bounded conversation view.
+pub fn conversation_at(
+    db: &impl Database,
+    sequence: i64,
+    after: Option<i64>,
+    before: Option<i64>,
+    now: &str,
+) -> Result<Value, Problem> {
+    if after.is_some_and(|value| value < 0)
+        || before.is_some_and(|value| value <= 0)
+        || (after.is_some() && before.is_some())
+    {
+        return Err(Problem::new(400, "invalid_page"));
+    }
+    crate::prune_expired(db, now)?;
+    conversation(db, sequence, after, before)
+}
