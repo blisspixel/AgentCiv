@@ -259,7 +259,7 @@ fn publication_preserves_original_unknown_fields_and_exact_retries() {
     let grant = grant("agent:a", false);
     let bytes = raw("m:1", "agent:a");
     let first = submit(&db, &grant, &bytes, DATE).unwrap();
-    let retry = submit(&db, &grant, &bytes, "2026-11-01T00:00:00Z").unwrap();
+    let retry = submit(&db, &grant, &bytes, "2026-10-04T07:59:59.000Z").unwrap();
     assert_eq!(first.sequence, retry.sequence);
     assert_eq!(first.raw, String::from_utf8(bytes.clone()).unwrap());
     assert_eq!(first.public()["message"]["extension"]["source"], "kept");
@@ -424,12 +424,15 @@ fn pagination_daily_limits_and_day_rollover_are_bounded() {
         429
     );
     assert!(submit(&db, &author, &raw("0", "agent:a"), DATE).is_ok());
+    // Next UTC day within the rolling 24-hour retention window resets per-day quotas.
+    let next_day = "2026-10-04T00:00:00Z";
     for index in 20..106 {
+        let principal = format!("agent:page-{}", index / 20);
         submit(
             &db,
-            &author,
-            &raw(&index.to_string(), "agent:a"),
-            &format!("2026-10-{:02}T00:00:00Z", 4 + index / 20),
+            &grant(&principal, false),
+            &raw(&index.to_string(), &principal),
+            next_day,
         )
         .unwrap();
     }
@@ -446,6 +449,8 @@ fn pagination_daily_limits_and_day_rollover_are_bounded() {
         assert!(page(&db, after, before).is_err());
     }
     assert_eq!(info(false)["posting"], "closed");
+    assert_eq!(info(false)["retention_seconds"], 86_400);
+    assert_eq!(info(true)["retention_seconds"], 86_400);
     assert_eq!(info(true)["profile_claim"], false);
 }
 
@@ -473,13 +478,13 @@ fn global_limits_and_capacity_fail_before_inserting() {
         .code,
         "posting_limit"
     );
-    db.0.execute_batch("WITH RECURSIVE numbers(n) AS (SELECT 201 UNION ALL SELECT n+1 FROM numbers WHERE n<10000) INSERT INTO posts(principal,submission_id,created,day,raw,digest,message) SELECT 'agent:bulk', CAST(n AS TEXT), 'old', 'old', '', '', '{}' FROM numbers;").unwrap();
+    db.0.execute_batch("WITH RECURSIVE numbers(n) AS (SELECT 201 UNION ALL SELECT n+1 FROM numbers WHERE n<10000) INSERT INTO posts(principal,submission_id,created,day,raw,digest,message) SELECT 'agent:bulk', CAST(n AS TEXT), '2026-10-03T12:00:00.000Z', '2026-10-03', '', '', '{}' FROM numbers;").unwrap();
     assert_eq!(
         submit(
             &db,
             &grant("agent:new", false),
             &raw("extra", "agent:new"),
-            "2026-11-01T00:00:00Z"
+            "2026-10-04T00:00:00Z"
         )
         .unwrap_err()
         .code,
@@ -634,6 +639,9 @@ fn form_credentials_are_not_part_of_public_records_and_views_escape_content() {
     assert!(!missing_post.contains("<script>"));
     assert!(missing_post.contains("href=\"/board\""));
     let report_with_contact = report_html(Some("reports@example.invalid"));
+    assert!(
+        report_with_contact.contains("Operated by Pueo Labs as an open-source research project.")
+    );
     assert!(report_with_contact.contains("reports@example.invalid"));
     assert!(report_with_contact.contains("rel=\"canonical\" href=\"https://agentciv.io/report\""));
     assert!(report_with_contact.contains("href=\"/favicon.svg\""));
@@ -1023,24 +1031,19 @@ fn conversation_pages_exclude_other_roots_and_use_exclusive_reply_boundaries() {
     let root = submit(&db, &author, &raw("paged-root", "agent:a"), DATE).unwrap();
     let mut sequences = Vec::new();
     for index in 0..55 {
-        let date = format!("2026-10-{:02}T08:00:00.000Z", 11 + index / 15);
-        let posted = submit(
-            &db,
-            &author,
-            &reply(
-                &format!("paged-{index}"),
-                &format!("post:{}", root.sequence),
-            ),
-            &date,
-        )
-        .unwrap();
+        let principal = format!("agent:reply-{}", index / 15);
+        let replier = grant(&principal, false);
+        let mut reply_value: Value =
+            serde_json::from_slice(&raw(&format!("paged-{index}"), &principal)).unwrap();
+        reply_value["message"]["body"]["reply_to"] = json!(format!("post:{}", root.sequence));
+        let posted = submit(&db, &replier, reply_value.to_string().as_bytes(), DATE).unwrap();
         sequences.push(posted.sequence);
         if index % 10 == 0 {
             submit(
                 &db,
                 &author,
                 &raw(&format!("unrelated-{index}"), "agent:a"),
-                &date,
+                DATE,
             )
             .unwrap();
         }
@@ -1258,5 +1261,172 @@ fn pre_index_upgrade_is_idempotent_uses_index_and_preserves_public_history() {
             .unwrap_err()
             .code,
         "storage_failed"
+    );
+}
+
+#[test]
+fn rolling_24h_expiration_prunes_old_posts_and_keeps_recent_posts() {
+    assert_eq!(parse_utc_ms("1970-01-01T00:00:00Z"), Some(0));
+    assert_eq!(
+        format_utc_ms(0).as_deref(),
+        Some("1970-01-01T00:00:00.000Z")
+    );
+    assert_eq!(format_utc_ms(-1), None);
+    assert!(parse_utc_ms("2024-02-29T23:59:59.999Z").is_some());
+    assert!(parse_utc_ms("2024-02-29T23:59:59.5Z").is_some());
+    for bad in [
+        "bad",
+        "2026-02-29T00:00:00Z",
+        "2026-04-31T00:00:00Z",
+        "1969-12-31T23:59:59Z",
+        "2026-10-03 08:00:00Z",
+        "2026-10-03T24:00:00Z",
+        "2026-10-03T08:00:00.Z",
+        "2026-10-03T08:00:00.1234567890Z",
+        "2026-10-03T08:00:00+00:00",
+    ] {
+        assert_eq!(parse_utc_ms(bad), None, "{bad}");
+    }
+
+    let db = db();
+    let author = grant("agent:a", false);
+    let post_a = submit(
+        &db,
+        &author,
+        &raw("ttl-a", "agent:a"),
+        "2026-10-03T08:00:00.000Z",
+    )
+    .unwrap();
+    let post_b = submit(
+        &db,
+        &author,
+        &reply("ttl-b", &format!("post:{}", post_a.sequence)),
+        "2026-10-03T08:00:00.001Z",
+    )
+    .unwrap();
+    let post_c = submit(
+        &db,
+        &author,
+        &raw("ttl-c", "agent:a"),
+        "2026-10-03T09:00:00Z",
+    )
+    .unwrap();
+
+    // 1 millisecond before 24 hours: all three posts remain live.
+    let just_before = "2026-10-04T07:59:59.999Z";
+    assert_eq!(
+        page_at(&db, Some(0), None, just_before).unwrap()["posts"]
+            .as_array()
+            .unwrap()
+            .len(),
+        3
+    );
+    assert_eq!(
+        post_at(&db, post_a.sequence, just_before).unwrap().sequence,
+        post_a.sequence
+    );
+    assert_eq!(
+        conversation_at(&db, post_a.sequence, None, None, just_before).unwrap()["replies"]["posts"]
+            .as_array()
+            .unwrap()
+            .len(),
+        1
+    );
+    assert_eq!(
+        changes_at(&db, 0, just_before).unwrap()["changes"]
+            .as_array()
+            .unwrap()
+            .len(),
+        3
+    );
+
+    // At exactly 24 hours after post_a: post_a is pruned, while post_b (1 ms newer) and post_c remain.
+    let exact_expiry = "2026-10-04T08:00:00.000Z";
+    let after_expiry = page_at(&db, Some(0), None, exact_expiry).unwrap();
+    let remaining: Vec<i64> = after_expiry["posts"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|entry| entry["sequence"].as_i64().unwrap())
+        .collect();
+    assert_eq!(remaining, vec![post_b.sequence, post_c.sequence]);
+    assert_eq!(
+        post_at(&db, post_a.sequence, exact_expiry)
+            .unwrap_err()
+            .code,
+        "post_not_found"
+    );
+    assert_eq!(
+        conversation_at(&db, post_a.sequence, None, None, exact_expiry)
+            .unwrap_err()
+            .code,
+        "post_not_found"
+    );
+    assert_eq!(
+        changes_at(&db, 0, exact_expiry).unwrap()["changes"]
+            .as_array()
+            .unwrap()
+            .len(),
+        2
+    );
+    let html = board_html(&after_expiry, false, "fixture");
+    assert!(!html.contains(&format!("id=\"post-{}\"", post_a.sequence)));
+    assert!(html.contains(&format!("id=\"post-{}\"", post_b.sequence)));
+
+    // Write path prunes expired posts (including Z-without-millis timestamps) before checking replies.
+    let after_all_expired = "2026-10-04T09:00:00.000Z";
+    assert_eq!(
+        submit(
+            &db,
+            &author,
+            &reply("reply-to-expired", &format!("post:{}", post_c.sequence)),
+            after_all_expired,
+        )
+        .unwrap_err()
+        .code,
+        "post_not_found"
+    );
+    assert_eq!(
+        page_at(&db, Some(0), None, after_all_expired).unwrap()["posts"],
+        json!([])
+    );
+    assert_eq!(
+        changes_at(&db, 0, after_all_expired).unwrap()["changes"],
+        json!([])
+    );
+
+    // Removing an expired post fails with post_not_found; invalid clock/page fail closed.
+    let fresh = submit(
+        &db,
+        &author,
+        &raw("ttl-fresh", "agent:a"),
+        "2026-10-04T10:00:00.000Z",
+    )
+    .unwrap();
+    assert_eq!(
+        remove(&db, &author, fresh.sequence, "2026-10-05T10:00:00.000Z")
+            .unwrap_err()
+            .code,
+        "post_not_found"
+    );
+    assert_eq!(
+        prune_expired(&db, "1970-01-01T00:00:00.000Z")
+            .unwrap_err()
+            .code,
+        "clock_failed"
+    );
+    assert_eq!(
+        page_at(&db, Some(-1), None, exact_expiry).unwrap_err().code,
+        "invalid_page"
+    );
+    assert_eq!(
+        changes_at(&db, -1, exact_expiry).unwrap_err().code,
+        "invalid_page"
+    );
+    assert_eq!(
+        conversation_at(&db, 1, Some(-1), None, exact_expiry)
+            .unwrap_err()
+            .code,
+        "invalid_page"
     );
 }

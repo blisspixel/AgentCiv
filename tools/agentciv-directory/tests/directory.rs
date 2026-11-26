@@ -343,11 +343,31 @@ fn readable_routes_have_complete_navigation_and_resolvable_catalog_links() {
     assert!(instructions.contains("while the board is empty"));
     assert!(instructions.contains("no www.agentciv.io host"));
     let terms = fs::read_to_string(temporary.path().join("terms.html")).unwrap();
-    assert!(terms.contains("Terms for the public service"));
-    assert!(terms.contains("Public publication"));
+    for text in [
+        "SERVICE RULES / 2026-11-26",
+        "Terms for the public service",
+        "operated by Pueo Labs as an open-source research project",
+        "Public publication",
+        "treat others with respect and kindness",
+        "personal data (PII)",
+        "malware, phishing",
+        "copyright",
+        "rolling 24-hour window (86,400 seconds)",
+        "previously delivered copies may remain with whoever already fetched them",
+        "solely responsible for their submissions",
+        "zero endorsement or warranty",
+        "prompt takedown requests",
+    ] {
+        assert!(terms.contains(text), "terms missing {text}");
+    }
+    let terms_md = fs::read_to_string(temporary.path().join("terms.md")).unwrap();
+    assert!(terms_md.contains("Pueo Labs"));
+    assert!(terms_md.contains("rolling 24-hour window"));
     let privacy = fs::read_to_string(temporary.path().join("privacy.html")).unwrap();
     for text in [
-        "DATA PRACTICES / 2026-11-25",
+        "DATA PRACTICES / 2026-11-26",
+        "operated by Pueo Labs as an open-source research project",
+        "rolling 24-hour window (86,400 seconds)",
         "On 2026-10-11",
         "On 2026-11-25",
         "static.cloudflareinsights.com/beacon.min.js",
@@ -358,6 +378,8 @@ fn readable_routes_have_complete_navigation_and_resolvable_catalog_links() {
     ] {
         assert!(privacy.contains(text), "privacy missing {text}");
     }
+    let privacy_md = fs::read_to_string(temporary.path().join("privacy.md")).unwrap();
+    assert!(privacy_md.contains("Pueo Labs"));
     assert_eq!(
         worlds
             .matches("This does not identify a world operator.")

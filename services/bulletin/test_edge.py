@@ -192,6 +192,7 @@ class EdgeTests(EdgeRuntime):
 
     def test_operator_labels_cannot_be_claimed_in_submission(self) -> None:
         info = self.request("GET", "/api/board/info")[2]
+        self.assertEqual(info["retention_seconds"], 86400)
         self.assertEqual(info["operator_labels"], {
             "label": "maintainer-run", "principals": [], "source": "/agent.json",
             "meaning": "Operator-run relationship only; no authority, mind or identity classification.",
@@ -430,7 +431,18 @@ class EdgeTests(EdgeRuntime):
         self.assertEqual(self.request("GET", "/agent.json")[2]["interfaces"]["directory"], "/directory.json")
         self.assertEqual(self.request("GET", "/.well-known/agentciv-services")[2]["access"]["bulletin_read"], "public")
         self.assertEqual(self.request("GET", "/directory.json")[2]["schema_version"], 1)
-        for path, text in [("/", "Connect a runtime"), ("/board", "Connect an agent"), ("/terms", "public publication"), ("/privacy", "Privacy notice"), ("/report", "reports@example.invalid")]:
+        for path, text in [
+            ("/", "Connect a runtime"),
+            ("/board", "Connect an agent"),
+            ("/terms", "public publication"),
+            ("/terms", "operated by pueo labs as an open-source research project"),
+            ("/terms", "rolling 24-hour window"),
+            ("/privacy", "Privacy notice"),
+            ("/privacy", "operated by pueo labs as an open-source research project"),
+            ("/report", "reports@example.invalid"),
+            ("/report", "operated by pueo labs as an open-source research project"),
+            ("/report.md", "operated by pueo labs as an open-source research project"),
+        ]:
             status, _, content = self.request("GET", path, accept="text/html")
             self.assertEqual(status, 200, path)
             self.assertIn(text.lower(), content.lower(), path)
@@ -618,7 +630,7 @@ class EdgeTests(EdgeRuntime):
             ("/resources", "guides with original sources"),
             ("/research", "Questions worth"),
             ("/terms", "Terms for the public service"),
-            ("/privacy", "DATA PRACTICES / 2026-11-25"),
+            ("/privacy", "DATA PRACTICES / 2026-11-26"),
             ("/board", "Connect an agent"),
         ]:
             with self.subTest(path=path):
@@ -858,6 +870,61 @@ class EdgeTests(EdgeRuntime):
         self.assertEqual(self.request("GET", f"/api/board/changes?after={base_seq}")[2]["changes"], all_changes)
         self.assertEqual(self.request("GET", f"/api/board/changes?after={final_boundary}")[2]["changes"], [])
 
+    def test_rolling_24h_expiry_prunes_old_posts_and_keeps_recent_posts(self) -> None:
+        from datetime import datetime, timedelta, timezone
+        port = int(self.origin.rsplit(":", 1)[1])
+        base_change_seq = self.request("GET", "/api/board/changes?after=0")[2]["next_after"]
+        while True:
+            page_doc = self.request("GET", f"/api/board/changes?after={base_change_seq}")[2]
+            base_change_seq = page_doc["next_after"]
+            if not page_doc["has_more"]:
+                break
+        old_payload = json.loads(self.submission("ttl-expired-post", "agent:test-6"))
+        old_payload["message"]["body"]["text"] = "EXPIRED_TTL_SENTINEL"
+        fresh_payload = json.loads(self.submission("ttl-fresh-post", "agent:test-6"))
+        fresh_payload["message"]["body"]["text"] = "FRESH_TTL_SENTINEL"
+
+        status, _, old_receipt = self.request("POST", "/api/board/posts", json.dumps(old_payload).encode(), TOKENS["agent:test-6"])
+        self.assertEqual(status, 200)
+        status, _, fresh_receipt = self.request("POST", "/api/board/posts", json.dumps(fresh_payload).encode(), TOKENS["agent:test-6"])
+        self.assertEqual(status, 200)
+        old_seq = old_receipt["sequence"]
+        fresh_seq = fresh_receipt["sequence"]
+
+        expired_ts = (datetime.now(timezone.utc) - timedelta(seconds=86405)).strftime("%Y-%m-%dT%H:%M:%S.000Z")
+        self.stop()
+        self.fixture_sql(
+            f"UPDATE posts SET created = '{expired_ts}' WHERE sequence = {old_seq};"
+            f"UPDATE changes SET created = '{expired_ts}' WHERE post_sequence = {old_seq};"
+        )
+        self.start(port)
+
+        status, _, info = self.request("GET", "/api/board/info")
+        self.assertEqual(status, 200)
+        self.assertEqual(info["retention_seconds"], 86400)
+
+        posts_doc = self.request("GET", f"/api/board/posts?after={old_seq - 1}")[2]
+        sequences = [entry["sequence"] for entry in posts_doc["posts"]]
+        self.assertNotIn(old_seq, sequences)
+        self.assertIn(fresh_seq, sequences)
+        self.assertNotIn("EXPIRED_TTL_SENTINEL", json.dumps(posts_doc))
+
+        board_html = self.request("GET", "/board", accept="text/html")[2]
+        self.assertNotIn("EXPIRED_TTL_SENTINEL", board_html)
+        self.assertIn("FRESH_TTL_SENTINEL", board_html)
+
+        conv_status, _, conv_err = self.request("GET", f"/api/board/conversations/{old_seq}")
+        self.assertEqual((conv_status, conv_err["code"]), (404, "post_not_found"))
+        self.assertEqual(self.request("GET", f"/board/posts/{old_seq}", accept="text/html")[0], 404)
+
+        fresh_conv_status, _, fresh_conv = self.request("GET", f"/api/board/conversations/{fresh_seq}")
+        self.assertEqual(fresh_conv_status, 200)
+        self.assertEqual(fresh_conv["post"]["sequence"], fresh_seq)
+
+        changes_doc = self.request("GET", f"/api/board/changes?after={base_change_seq}")[2]
+        self.assertNotIn(old_seq, [entry["post_sequence"] for entry in changes_doc["changes"]])
+        self.assertIn(fresh_seq, [entry["post_sequence"] for entry in changes_doc["changes"]])
+
 
 
 class ConversationEdgeTests(EdgeRuntime):
@@ -977,7 +1044,10 @@ class LegacyEdgeTests(EdgeRuntime):
         # The wrapper and message are fixture data. SQL quoting stays separate from credentials.
         def quote(value: str) -> str:
             return "'" + value.replace("'", "''") + "'"
-        self.fixture_sql("INSERT INTO posts(principal, submission_id, created, day, raw, digest, message) VALUES ('agent:test-8', 'legacy-post', '2026-10-03T08:00:00.000Z', '2026-10-03', " + quote(legacy_raw.decode()) + ", " + quote(hashlib.sha256(legacy_raw).hexdigest()) + ", " + quote(json.dumps(message)) + ");")
+        from datetime import datetime, timezone
+        recent_ts = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.000Z")
+        recent_day = recent_ts[:10]
+        self.fixture_sql("INSERT INTO posts(principal, submission_id, created, day, raw, digest, message) VALUES ('agent:test-8', 'legacy-post', '" + recent_ts + "', '" + recent_day + "', " + quote(legacy_raw.decode()) + ", " + quote(hashlib.sha256(legacy_raw).hexdigest()) + ", " + quote(json.dumps(message)) + ");")
         self.start(port)
         self.assertEqual(self.request("GET", "/api/board/changes?after=0")[2]["changes"], [])
         posts = self.request("GET", "/api/board/posts?after=0")[2]["posts"]
