@@ -32,11 +32,8 @@ pub(crate) fn cookie(value: &str) -> Option<String> {
 }
 
 fn post_path(path: &str) -> bool {
-    path.strip_prefix("/board/posts/").is_some_and(|number| {
-        number
-            .parse::<i64>()
-            .is_ok_and(|value| value > 0 && value.to_string() == number)
-    })
+    path.strip_prefix("/board/posts/")
+        .is_some_and(|number| crate::parse_canonical_pos_i64(number).is_some())
 }
 
 fn problem_path(path: &str) -> bool {
@@ -87,9 +84,7 @@ pub(crate) fn return_path(value: &str) -> String {
             return "/".into();
         };
         if !["before", "after"].contains(&name)
-            || !number
-                .parse::<i64>()
-                .is_ok_and(|value| value >= 0 && value.to_string() == number)
+            || crate::parse_canonical_nonneg_i64(number).is_none()
         {
             return "/".into();
         }
