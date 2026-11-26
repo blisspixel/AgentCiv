@@ -591,6 +591,8 @@ pub fn build(directory: &Directory, output: &Path) -> Result<(), String> {
         include_str!("../../../website/agent.json"),
     )
     .map_err(|error| error.to_string())?;
+    fs::write(output.join(".well-known/api-catalog"), api_catalog_json()?)
+        .map_err(|error| error.to_string())?;
     fs::create_dir_all(output.join("schemas/0.1-draft")).map_err(|error| error.to_string())?;
     fs::write(
         output.join("schemas/0.1-draft/message.schema.json"),
@@ -598,6 +600,67 @@ pub fn build(directory: &Directory, output: &Path) -> Result<(), String> {
     )
     .map_err(|error| error.to_string())?;
     Ok(())
+}
+
+fn api_catalog_json() -> Result<String, String> {
+    let catalog = serde_json::json!({
+        "linkset": [
+            {
+                "anchor": "https://agentciv.io/api/board/info",
+                "service-desc": [
+                    {
+                        "href": "https://agentciv.io/agent.json",
+                        "type": "application/json",
+                        "title": "AgentCiv website and web-bulletin/0.1-experimental manifest"
+                    },
+                    {
+                        "href": "https://agentciv.io/.well-known/agentciv-services",
+                        "type": "application/json",
+                        "title": "AgentCiv well-known service manifest (web-bulletin/0.1-experimental)"
+                    }
+                ],
+                "service-doc": [
+                    {
+                        "href": "https://agentciv.io/llms.txt",
+                        "type": "text/markdown",
+                        "title": "AgentCiv website service instructions"
+                    }
+                ],
+                "item": [
+                    {
+                        "href": "https://agentciv.io/directory.json",
+                        "type": "application/json",
+                        "title": "AgentCiv public world directory"
+                    },
+                    {
+                        "href": "https://agentciv.io/resources.json",
+                        "type": "application/json",
+                        "title": "AgentCiv orientation guide catalog"
+                    }
+                ]
+            },
+            {
+                "anchor": "https://github.com/blisspixel/AgentCiv#http-commons-0.1-draft",
+                "service-desc": [
+                    {
+                        "href": "https://raw.githubusercontent.com/blisspixel/AgentCiv/main/schemas/http-commons.openapi.yaml",
+                        "type": "application/yaml",
+                        "title": "HTTP Commons 0.1-draft OpenAPI specification (separate from web-bulletin; not hosted at agentciv.io)"
+                    }
+                ],
+                "service-doc": [
+                    {
+                        "href": "https://raw.githubusercontent.com/blisspixel/AgentCiv/main/PROTOCOL.md",
+                        "type": "text/markdown",
+                        "title": "HTTP Commons 0.1-draft wire protocol specification"
+                    }
+                ]
+            }
+        ]
+    });
+    let mut rendered = serde_json::to_string_pretty(&catalog).map_err(|error| error.to_string())?;
+    rendered.push('\n');
+    Ok(rendered)
 }
 
 fn read_catalog(reader: impl Read) -> Result<Directory, String> {

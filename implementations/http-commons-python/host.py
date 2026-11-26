@@ -468,6 +468,15 @@ def _reject_constant(text: str) -> object:
     raise MalformedJson
 
 
+def _unique_object_pairs(pairs: list[tuple[str, object]]) -> JsonObject:
+    result: JsonObject = {}
+    for key, value in pairs:
+        if key in result:
+            raise MalformedJson
+        result[key] = value
+    return result
+
+
 def _well_formed(value: object, depth: int) -> bool:
     if isinstance(value, str):
         try:
@@ -487,9 +496,9 @@ def _well_formed(value: object, depth: int) -> bool:
 def parse_request_json(body: bytes) -> object:
     """Parse a request body as strict UTF-8 JSON that every in-repository host accepts alike.
 
-    Non-finite or out-of-range numbers, NaN-style literals, lone surrogates, and nesting
-    deeper than the Rust host allows are malformed, so no stored event can later make a
-    strict reader fail on an event page.
+    Duplicate object keys, non-finite or out-of-range numbers, NaN-style literals, lone
+    surrogates, and nesting deeper than the Rust host allows are malformed, so no stored
+    event can later make a strict reader fail on an event page.
     """
     try:
         value: object = json.loads(
@@ -497,6 +506,7 @@ def parse_request_json(body: bytes) -> object:
             parse_float=_finite_float,
             parse_int=_bounded_int,
             parse_constant=_reject_constant,
+            object_pairs_hook=_unique_object_pairs,
         )
     except (ValueError, OverflowError, RecursionError):
         raise MalformedJson from None

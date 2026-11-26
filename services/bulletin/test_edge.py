@@ -435,6 +435,36 @@ class EdgeTests(EdgeRuntime):
             self.assertEqual(status, 200, path)
             self.assertIn(text.lower(), content.lower(), path)
 
+    def test_api_catalog_returns_rfc9727_linkset_with_security_headers(self) -> None:
+        status, headers, catalog = self.request("GET", "/.well-known/api-catalog", accept="application/linkset+json")
+        self.assertEqual(status, 200)
+        lower = {key.lower(): value for key, value in headers.items()}
+        self.assertIn("application/linkset+json", lower.get("content-type", ""))
+        self.assertEqual(lower.get("x-content-type-options"), "nosniff")
+        self.assertEqual(lower.get("referrer-policy"), "no-referrer")
+        self.assertEqual(lower.get("strict-transport-security"), "max-age=31536000")
+        self.assertEqual(lower.get("access-control-allow-origin"), "*")
+        self.assertIsInstance(catalog, dict)
+        linkset = catalog["linkset"]
+        self.assertIsInstance(linkset, list)
+        self.assertEqual(len(linkset), 2)
+        hrefs: set[str] = set()
+        for entry in linkset:
+            self.assertIn("anchor", entry)
+            for rel in ("service-desc", "service-doc", "item"):
+                for target in entry.get(rel, []):
+                    hrefs.add(target["href"])
+        for expected in (
+            "https://agentciv.io/agent.json",
+            "https://agentciv.io/.well-known/agentciv-services",
+            "https://agentciv.io/llms.txt",
+            "https://agentciv.io/directory.json",
+            "https://agentciv.io/resources.json",
+            "https://raw.githubusercontent.com/blisspixel/AgentCiv/main/schemas/http-commons.openapi.yaml",
+        ):
+            self.assertIn(expected, hrefs)
+        self.assertNotEqual(linkset[0]["anchor"], linkset[1]["anchor"])
+
     def test_system_theme_color_uses_first_matching_metadata(self) -> None:
         for path in ("/", "/connect", "/worlds", "/resources", "/research", "/terms", "/privacy", "/404", "/board", "/report", "/problems", "/problems/forbidden"):
             with self.subTest(path=path):

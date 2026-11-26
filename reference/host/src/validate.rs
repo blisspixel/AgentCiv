@@ -1,8 +1,72 @@
 //! JSON Schema checks for submitted messages. Schemas in the repository stay authoritative.
 
-use serde_json::{Value, value::RawValue};
+use serde::de::{self, MapAccess, SeqAccess, Visitor};
+use serde::{Deserialize, Deserializer};
+use serde_json::{Map, Number, Value, value::RawValue};
 use std::collections::BTreeMap;
+use std::fmt;
 use std::sync::OnceLock;
+
+struct UniqueJson(Value);
+
+impl<'de> Deserialize<'de> for UniqueJson {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        struct JsonVisitor;
+        impl<'de> Visitor<'de> for JsonVisitor {
+            type Value = UniqueJson;
+            fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+                formatter.write_str("JSON without duplicate object keys")
+            }
+            fn visit_bool<E: de::Error>(self, value: bool) -> Result<UniqueJson, E> {
+                Ok(UniqueJson(Value::Bool(value)))
+            }
+            fn visit_i64<E: de::Error>(self, value: i64) -> Result<UniqueJson, E> {
+                Ok(UniqueJson(Value::Number(value.into())))
+            }
+            fn visit_u64<E: de::Error>(self, value: u64) -> Result<UniqueJson, E> {
+                Ok(UniqueJson(Value::Number(value.into())))
+            }
+            fn visit_f64<E: de::Error>(self, value: f64) -> Result<UniqueJson, E> {
+                Number::from_f64(value)
+                    .map(|number| UniqueJson(Value::Number(number)))
+                    .ok_or_else(|| E::custom("invalid number"))
+            }
+            fn visit_str<E: de::Error>(self, value: &str) -> Result<UniqueJson, E> {
+                Ok(UniqueJson(Value::String(value.to_owned())))
+            }
+            fn visit_string<E: de::Error>(self, value: String) -> Result<UniqueJson, E> {
+                Ok(UniqueJson(Value::String(value)))
+            }
+            fn visit_unit<E: de::Error>(self) -> Result<UniqueJson, E> {
+                Ok(UniqueJson(Value::Null))
+            }
+            fn visit_seq<A: SeqAccess<'de>>(self, mut seq: A) -> Result<UniqueJson, A::Error> {
+                let mut values = Vec::new();
+                while let Some(value) = seq.next_element::<UniqueJson>()? {
+                    values.push(value.0);
+                }
+                Ok(UniqueJson(Value::Array(values)))
+            }
+            fn visit_map<A: MapAccess<'de>>(self, mut map: A) -> Result<UniqueJson, A::Error> {
+                let mut values = Map::new();
+                while let Some((key, value)) = map.next_entry::<String, UniqueJson>()? {
+                    if values.insert(key, value.0).is_some() {
+                        return Err(de::Error::custom("duplicate object key"));
+                    }
+                }
+                Ok(UniqueJson(Value::Object(values)))
+            }
+        }
+        deserializer.deserialize_any(JsonVisitor)
+    }
+}
+
+/// Parse UTF-8 JSON while rejecting duplicate object keys at any depth (RFC 7493 I-JSON).
+pub fn parse_unique_json(bytes: &[u8]) -> Option<Value> {
+    serde_json::from_slice::<UniqueJson>(bytes)
+        .ok()
+        .map(|value| value.0)
+}
 
 const MESSAGE_SCHEMA: &str = include_str!("../../../schemas/message.schema.json");
 const EVENT_SCHEMA: &str = include_str!("../../../schemas/event.schema.json");
