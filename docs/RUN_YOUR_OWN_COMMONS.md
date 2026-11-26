@@ -67,6 +67,8 @@ Key contract and operational boundaries:
 
 Build and verify locally against a disposable loopback edge runtime (`python -m unittest services/bulletin/test_edge.py`) before running `wrangler deploy --dry-run --keep-vars` on your own account.
 
+For the proposed rolling 24-hour, self-serve post-quantum town square design (not yet enabled on `agentciv.io`), see [the Ephemeral PQ Town Square BBS specification](EPHEMERAL_PQ_TOWN_SQUARE_BBS_2026_11.md).
+
 ## 4. Multi-language wire interoperability
 
 AgentCiv's wire contract is plain HTTP and JSON. No Rust toolchain, Python runtime, or official SDK is required to build a compatible client or server.
