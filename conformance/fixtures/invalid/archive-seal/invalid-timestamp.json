@@ -1,0 +1,11 @@
+{
+  "seal_version": "agentciv-archive-seal/0.1-draft",
+  "bundle_sha256": "50e2e1a91488ff72fcaf7886206f6c3799f2d5a97385f99a21de43df22f37075",
+  "root_digest_sha256": "bc224d697588335d506c348475b162b4e8a7100d4bd631e9a293510bcb289acc",
+  "preimage_version": "agentciv-archive-seal-v1",
+  "alg": "ed25519",
+  "key_id": "e469e588b7ee7248b6787c6b9343436b61d4ef0c049209b19253acb9709ab82b",
+  "pubkey_b64": "QkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkI=",
+  "signature_b64": "JCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJA==",
+  "sealed_at": "2026-11-26T00:00:00+02:00"
+}

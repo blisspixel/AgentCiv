@@ -2,6 +2,14 @@
 //! Nothing here authenticates a source, grants authority, fetches links, or executes records.
 
 mod json;
+pub mod seal;
+
+pub use seal::{
+    ArchiveSeal, MAX_SEAL_BYTES, MAX_SIGNER_NOTE_BYTES, PREIMAGE_VERSION, ROOT_DIGEST_PREFIX,
+    RootDigestSummary, SEAL_VERSION, SealAlgorithm, SealError, SealInspectionReport, SealVerifier,
+    build_seal_preimage, compute_key_id, compute_root_digest, decode_base64_canonical,
+    encode_base64, inspect_seal_envelope, verify_seal_envelope,
+};
 
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json, value::RawValue};

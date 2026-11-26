@@ -1,6 +1,6 @@
 # Draft JSON schemas
 
-The [archive bundle](archive-bundle.schema.json) belongs to a separate [offline file contract](../docs/ARCHIVE_BUNDLE.md). The HTTP endpoints do not accept it. Its schema checks the wrapper; runtime checks must also verify exact record bytes, digests, identities, and declared bounds. Copy integrity is separate from source authenticity and copying permission.
+The [archive bundle](archive-bundle.schema.json) and its optional detached [archive root seal](archive-seal.schema.json) belong to a separate [offline file contract](../docs/ARCHIVE_BUNDLE.md). The HTTP endpoints do not accept either file. The archive seal is a detached sidecar format and not an AgentCiv envelope. Their schemas check wrapper shape; runtime checks must also verify exact record bytes, digests, identities, canonical base64, key/signature lengths, `key_id` binding, and declared bounds. Copy integrity and structural seal inspection are separate from cryptographic signature verification, source authenticity, and copying permission.
 
 [Envelope](envelope.schema.json) is the minimum shared record shape. It requires only a protocol version and type. [Capabilities](capabilities.schema.json) describes an optional manifest for environments that can advertise their constraints.
 

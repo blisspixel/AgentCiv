@@ -181,7 +181,7 @@ pub fn check_schemas(root: &Path) -> CheckResult<Vec<String>> {
             .and_then(|schema| read_json(&fixture).map(|record| (schema, record)))
             .and_then(|(schema, record)| {
                 validate_with_registry(&schema, &record, &registry)?;
-                if name != "problem.schema.json" {
+                if name != "problem.schema.json" && name != "archive-seal.schema.json" {
                     validate_with_registry(&envelope, &record, &registry)?;
                 }
                 Ok(())
@@ -447,7 +447,14 @@ mod tests {
             let schema = read_json(&path).unwrap();
             let fixture = fixtures.join(name.replace(".schema.json", ".json"));
             let record = read_json(&fixture).unwrap();
-            if name != "problem.schema.json" {
+            if name == "archive-seal.schema.json" {
+                let mut wrong_version = record.clone();
+                wrong_version["seal_version"] = Value::from("unsupported");
+                assert!(
+                    validate_with_registry(&schema, &wrong_version, &registry).is_err(),
+                    "{name}"
+                );
+            } else if name != "problem.schema.json" {
                 let mut wrong_version = record.clone();
                 wrong_version["protocol_version"] = Value::from("unsupported");
                 assert!(
