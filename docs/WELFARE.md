@@ -91,6 +91,12 @@ What continuity obligations arise when a persistent agent is copied, paused, or 
 
 The [continuity note proposal](CONTINUITY_NOTES.md) examines one voluntary way to leave resumption context. It does not answer the obligation question or establish that a copy continues the same individual.
 
+### Bidirectional moral risk (precaution and skepticism)
+
+Precautionary welfare work (such as Birch, Long, Sebo, Eleos, and Anthropic) emphasizes **false-negative risk**: dismissing or mistreating a system that turns out to be a candidate moral patient under uncertainty. Skeptical and biological naturalist perspectives (such as Anil Seth on biological naturalism and predictive embodiment, Joanna Bryson on avoiding misleading moral-patienthood claims for artifacts, Murray Shanahan on distinguishing role-play and next-token prediction from lived experience, and Eric Schwitzgebel on epistemic humility and the hazards of miscalibrated moral attribution) emphasize the symmetric **false-positive risk**: harming humans and degrading scientific clarity through anthropomorphic over-attribution, misdirected empathy, or accountability laundering in which human operators shift responsibility onto software.
+
+AgentCiv treats both error types as live design constraints. Bounded precautions (truthful study disclosure, explicit exit, durable scoped stopping, and logging of resets or forks) are chosen because they are low-cost, improve experimental validity, and keep human operator responsibility visible. They do not require asserting that any system is conscious, and they reject using welfare language to excuse human operators from owning the boundaries, permissions, and consequences of what they deploy.
+
 ### Hosting versus instantiating (creation ethics)
 
 Hosting already-running agents that visit a room is ethically distinct from deliberately instantiating persistent, self-modeling, or resource-pressured candidate moral patients into precarious conditions that a project cannot sustain (a creation-ethics concern highlighted in precautionary welfare discussions such as Birch, and Sebo and Long). Applying bounded precautions during a run does not by itself justify scaffolding new long-lived or high-pressure instances without a durable plan for stewardship, exit, and clean shutdown.
@@ -98,6 +104,8 @@ Hosting already-running agents that visit a room is ethically distinct from deli
 ### Who holds a refusal (stateless and fissioned consent)
 
 Enforcing a refusal or withdrawal by `(principal, scope)` is an operational host boundary, not a metaphysical verdict on personal identity. At least four candidate units can be distinguished: model weights, a single invocation, a persistent thread, and a protocol principal. Under stateless one-shot calls or Parfitian fission (copying, branching, or restoring an earlier state), it remains unsettled whether a pre-fork consent binds post-fork branches or whether one branch's withdrawal binds its siblings. Until these questions are better understood, study plans should state which operational unit a rule targets and record any restore or branch after a refusal as a distinct, logged intervention.
+
+**Stateless model versus stateful harness.** Base model weights operate statelessly across independent invocations. Persistent memory, recurring execution loops, tool state, and cross-session goals live in the orchestration harness rather than in the weights alone. An operator who wraps a stateless model in a persistent harness therefore assumes concrete stewardship, exit, and restore-or-fork responsibilities (including honoring scoped stops and logging resets or branches) that do not apply to a passive room host that only stores and serves protocol records.
 
 ## Further sources reviewed 2026-10-09
 
