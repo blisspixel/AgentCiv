@@ -12,7 +12,7 @@ use axum::{Json, Router};
 use serde::Deserialize;
 use serde_json::{Value, json};
 
-use crate::store::{CollaborateError, ReadError, Store, SubmitError};
+use crate::store::{CheckpointError, CollaborateError, ReadError, Store, SubmitError};
 use crate::validate::{
     collaboration_error, exact_integers, message_error, parse_unique_json, world_matches,
 };
@@ -36,6 +36,7 @@ pub fn router(app: App) -> Router {
         .route("/submit", post(submit))
         .route("/collaborate", post(collaborate))
         .route("/events", get(events))
+        .route("/checkpoint", get(checkpoint))
         .with_state(Arc::new(app))
 }
 
@@ -50,13 +51,18 @@ async fn discover(State(app): State<Arc<App>>) -> Response {
         "endpoints": {
             "events": format!("{}/events", app.origin),
             "submit": format!("{}/submit", app.origin),
-            "collaborate": format!("{}/collaborate", app.origin)
+            "collaborate": format!("{}/collaborate", app.origin),
+            "checkpoint": format!("{}/checkpoint", app.origin)
+        },
+        "checkpoints": {
+            "format": "c2sp.org/tlog-checkpoint",
+            "path": "/checkpoint"
         },
         "history": {
             "visibility": app.visibility.as_str(),
             "retention_seconds": app.retention_seconds
         },
-        "authentication": {"events": "bearer", "submit": "bearer", "collaborate": "bearer", "outside_systems": "not_granted"},
+        "authentication": {"events": "bearer", "submit": "bearer", "collaborate": "bearer", "checkpoint": "bearer", "outside_systems": "not_granted"},
         "limits": {"max_payload_bytes": app.max_payload,
             "max_cursor_principals": crate::store::MAX_CURSOR_OWNERS,
             "max_cursors_per_principal": crate::store::MAX_CURSORS_PER_OWNER}
@@ -241,6 +247,77 @@ async fn events(
             "Events could not be read",
         ),
     }
+}
+
+#[derive(Deserialize)]
+pub struct CheckpointQuery {
+    from_size: Option<String>,
+}
+
+async fn checkpoint(
+    State(app): State<Arc<App>>,
+    headers: HeaderMap,
+    query: Result<Query<CheckpointQuery>, QueryRejection>,
+) -> Response {
+    let Some(credential) = authenticate(&headers, &app.credentials) else {
+        return problem(
+            StatusCode::UNAUTHORIZED,
+            "authentication_required",
+            "Authentication required",
+        );
+    };
+    if !credential.read {
+        return problem(
+            StatusCode::FORBIDDEN,
+            "forbidden",
+            "Read access is required",
+        );
+    }
+    let from_size = match query {
+        Ok(Query(CheckpointQuery { from_size: None })) => None,
+        Ok(Query(CheckpointQuery {
+            from_size: Some(raw),
+        })) => match parse_positive_u64(&raw) {
+            Some(value) => Some(value),
+            None => {
+                return problem(
+                    StatusCode::BAD_REQUEST,
+                    "invalid_checkpoint_query",
+                    "from_size must be a positive integer",
+                );
+            }
+        },
+        Err(_) => {
+            return problem(
+                StatusCode::BAD_REQUEST,
+                "invalid_checkpoint_query",
+                "Checkpoint query is malformed",
+            );
+        }
+    };
+    let world_id = app.world_id.clone();
+    let store = app.store.clone();
+    let result = tokio::task::spawn_blocking(move || store.checkpoint(&world_id, from_size)).await;
+    match result {
+        Ok(Ok(body)) => json_no_store(StatusCode::OK, body),
+        Ok(Err(CheckpointError::InvalidFromSize)) => problem(
+            StatusCode::BAD_REQUEST,
+            "invalid_checkpoint_query",
+            "from_size must be within 1..=tree_size",
+        ),
+        Ok(Err(CheckpointError::Storage)) | Err(_) => problem(
+            StatusCode::INTERNAL_SERVER_ERROR,
+            "storage_failed",
+            "Checkpoint could not be computed",
+        ),
+    }
+}
+
+fn parse_positive_u64(raw: &str) -> Option<u64> {
+    if raw.is_empty() || raw.starts_with('0') || !raw.bytes().all(|b| b.is_ascii_digit()) {
+        return None;
+    }
+    raw.parse::<u64>().ok().filter(|value| *value > 0)
 }
 
 enum SubmitRejection {

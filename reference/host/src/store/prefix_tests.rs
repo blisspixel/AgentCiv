@@ -147,7 +147,7 @@ fn oversized_prefix_fails_without_disabling_base_reads_or_issuing_partial_proof(
         )
         .unwrap();
     let connection = store.conn.lock().unwrap();
-    connection.execute("WITH RECURSIVE n(x) AS (SELECT 2 UNION ALL SELECT x+1 FROM n WHERE x < 4097) INSERT INTO events SELECT x, 'event:extra-' || x, actor, json_set(event_json, '$.sequence', x, '$.id', 'event:extra-' || x), message_json FROM n, events WHERE sequence=1", []).unwrap();
+    connection.execute("WITH RECURSIVE n(x) AS (SELECT 2 UNION ALL SELECT x+1 FROM n WHERE x < 4097) INSERT INTO events (sequence, id, actor, event_json, message_json) SELECT x, 'event:extra-' || x, actor, json_set(event_json, '$.sequence', x, '$.id', 'event:extra-' || x), message_json FROM n, events WHERE sequence=1", []).unwrap();
     assert!(matches!(
         prefix_digest(&connection, "agent:a", Visibility::Members, 4097),
         Err(ReadError::PrefixUnavailable)

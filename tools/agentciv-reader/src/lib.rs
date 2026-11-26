@@ -1,6 +1,7 @@
 //! Optional bounded history reading. The existing draft schemas remain authoritative.
 //! Reading does not authorize copying, authenticate content, or execute records.
 
+pub mod checkpoint;
 pub mod corrections;
 pub mod http;
 pub mod offers;

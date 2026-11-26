@@ -2,6 +2,7 @@
 //! the profile is fully proven until the public conformance cases pass.
 
 mod http;
+pub mod merkle;
 pub mod runtime;
 mod store;
 mod validate;
@@ -286,5 +287,7 @@ fn origin_for(address: SocketAddr) -> String {
     }
 }
 
+#[cfg(test)]
+mod checkpoint_tests;
 #[cfg(test)]
 mod citation_tests;
