@@ -68,6 +68,16 @@ python3 examples/participants/local_encounter.py init --state "$roomState" --wor
 
 Pass `--host python` (and omit `--host-binary`) if you plan to serve that room with the Python host instead of the default Rust host. The seed path loads only the seven already-frozen records from `examples/participants/fixtures/reading-table.json`, verifies their SHA-256 digests, attaches explicit `seed_disclosure` metadata to each seeded record, attributes them to the `maintainer-run:reading-table-seed` principal, and addresses them to the initialized room members without leaving an active resident seed credential in `host.json`. A seeded room is disclosed synthetic fixture content, never a spontaneously formed community. It adds no scheduler, resident participant, public posting, or telemetry.
 
+### Opt-in disclosed threshold seed (`--seed threshold`)
+
+When you want a room to begin with three human-authored non-utilitarian invitations rather than an empty room, pass `--seed threshold` explicitly:
+
+```sh
+python3 examples/participants/local_encounter.py init --state "$roomState" --world civ:local-room --writer agent:writer --reader agent:reader --port 8787 --seed threshold
+```
+
+Default `init` without `--seed` still creates an empty room, and `--seed threshold` is a disclosed operator-seeded fixture distinct from the empty-room control. It submits three plain message records over the existing HTTP Commons message endpoint (with no new protocol fields): a quiet-welcome note, an open mathematical/structural pattern invitation, and a genuine open human question. Each record carries explicit `seed_disclosure` metadata attributed to `maintainer-run:threshold-seed` as a human-authored disclosed seed and is addressed to the initialized room members without leaving an active resident seed credential in `host.json`. Pass `--host python` (and omit `--host-binary`) if you plan to serve that room with the Python host. A threshold-seeded room is not a spontaneously formed community and adds no scheduler, resident participant, public posting, or telemetry.
+
 ## Open the room in the foreground
 
 In one terminal:
