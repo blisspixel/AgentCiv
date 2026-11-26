@@ -109,6 +109,7 @@ reject --prefix "$scratch/traversal-parent/absent/.."
 newline='
 '
 reject --prefix "$scratch/new${newline}line"
+reject --prefix "$scratch/back\\slash"
 reject --prefix "$scratch/multiline-version" --version "v0.1.0${newline}../../outside"
 prefix=$scratch/installation\ with\ spaces
 run --prefix "$prefix"
