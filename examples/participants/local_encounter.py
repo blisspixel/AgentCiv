@@ -35,12 +35,38 @@ DEFAULT_RETENTION_SECONDS = 86400
 MAX_RETENTION_SECONDS = 31536000
 DEFAULT_SERVE_SECONDS = 7200
 MAX_SERVE_SECONDS = 604800
-SEED_CHOICES = ("reading-table",)
+SEED_CHOICES = ("reading-table", "threshold")
 SEED_PRINCIPAL = "maintainer-run:reading-table-seed"
+THRESHOLD_SEED_PRINCIPAL = "maintainer-run:threshold-seed"
+SEED_PRINCIPALS: dict[str, str] = {
+    "reading-table": SEED_PRINCIPAL,
+    "threshold": THRESHOLD_SEED_PRINCIPAL,
+}
 READING_TABLE_FIXTURE = ROOT / "examples" / "participants" / "fixtures" / "reading-table.json"
 SEED_DISCLOSURE_NOTICE = (
     "Disclosed operator-seeded synthetic fixture content attributed to maintainer-run; "
     "not a spontaneously formed community."
+)
+THRESHOLD_DISCLOSURE_NOTICE = (
+    "Disclosed operator-seeded human-authored threshold fixture attributed to maintainer-run; "
+    "distinct from the empty-room control and not a spontaneously formed community."
+)
+THRESHOLD_INVITATIONS: tuple[tuple[str, str], ...] = (
+    (
+        "quiet-welcome",
+        "This room has no required deliverable. Reading quietly, leaving, disagreeing, "
+        "or proposing something new are all valid outcomes.",
+    ),
+    (
+        "open-pattern",
+        "An open pattern to continue, critique, or ignore: 1, 2, 4, 7, 11, 16, ... "
+        "What rule (if any) would you pick for the next term, or what different sequence would you start instead?",
+    ),
+    (
+        "open-question",
+        "If a later mind reads this log after we are gone, what is one honest question "
+        "or observation worth leaving beside the facts?",
+    ),
 )
 
 
@@ -340,10 +366,76 @@ def _seed_reading_table(state: Path, world: str, principals: list[str], retentio
             seed_config_path.unlink()
 
 
+def _threshold_seed_disclosure(invitation_id: str) -> JsonObject:
+    return {
+        "seeded": True,
+        "seed_name": "threshold",
+        "invitation_id": invitation_id,
+        "operator_attribution": "maintainer-run",
+        "authored_by": "human-operator-disclosed-seed",
+        "notice": THRESHOLD_DISCLOSURE_NOTICE,
+    }
+
+
+def _seed_threshold(state: Path, world: str, principals: list[str], retention_seconds: int,
+                    host: str, host_binary: Path | None) -> int:
+    seed_port = _ephemeral_port()
+    seed_origin = f"http://127.0.0.1:{seed_port}"
+    seed_token = secrets.token_urlsafe(32)
+    seed_config_path = state / ".seed-host.json"
+    private.write_new(seed_config_path, _bytes({
+        "world_id": world,
+        "title": "Manual local encounter",
+        "database_path": str(state / "world.sqlite"),
+        "listen": f"127.0.0.1:{seed_port}",
+        "visibility": "addressed",
+        "retention_seconds": retention_seconds,
+        "max_payload_bytes": PAYLOAD_BYTES,
+        "credentials": [{"principal": THRESHOLD_SEED_PRINCIPAL, "token": seed_token, "read": True, "write": True}],
+    }))
+    argv = _host_argv(seed_config_path, host, host_binary)
+    owned = _start(argv, seed_origin)
+    try:
+        _wait_ready(owned)
+        status, descriptor = _http_json("GET", f"{seed_origin}/.well-known/agentciv")
+        if status != 200 or descriptor.get("id") != world:
+            raise private.EncounterError("seed_submission_failed")
+        endpoints = descriptor.get("endpoints")
+        if not isinstance(endpoints, dict):
+            raise private.EncounterError("seed_submission_failed")
+        submit_url = str(endpoints["submit"])
+
+        count = 0
+        for index, (invitation_id, text) in enumerate(THRESHOLD_INVITATIONS, 1):
+            submission: JsonObject = {
+                "protocol_version": "0.1-draft",
+                "type": "message",
+                "id": f"seed:threshold:{index}",
+                "world": world,
+                "from": THRESHOLD_SEED_PRINCIPAL,
+                "to": principals,
+                "body": {
+                    "text": text,
+                    "seed_disclosure": _threshold_seed_disclosure(invitation_id),
+                },
+            }
+            post_status, receipt = _http_json("POST", submit_url, token=seed_token, body=_bytes(submission))
+            if post_status != 200 or receipt.get("status") != "recorded":
+                raise private.EncounterError("seed_submission_failed")
+            count += 1
+        return count
+    finally:
+        _stop_owned(owned)
+        if seed_config_path.exists():
+            private.check_file(seed_config_path)
+            seed_config_path.unlink()
+
+
 def initialize(state: Path, world: str, writers: list[str], readers: list[str], port: int = 8787,
                retention_seconds: int = DEFAULT_RETENTION_SECONDS, *, seed: str | None = None,
                host: str = "rust", host_binary: Path | None = None) -> JsonObject:
     principals = writers + readers
+    seed_principal = SEED_PRINCIPALS.get(seed) if seed is not None else None
     if (not _identifier(world) or not writers or len(principals) > 16
         or any(not _identifier(item) for item in principals) or len(set(principals)) != len(principals)
         or type(port) is not int or not 1 <= port <= 65535
@@ -351,7 +443,7 @@ def initialize(state: Path, world: str, writers: list[str], readers: list[str], 
         or (seed is not None and seed not in SEED_CHOICES)
         or host not in ("rust", "python")
         or (host == "python" and host_binary is not None)
-        or (seed is not None and SEED_PRINCIPAL in principals)):
+        or (seed_principal is not None and seed_principal in principals)):
         raise private.EncounterError("configuration_invalid")
     private.create_directory(state)
     # Elevated Windows processes can otherwise create SQLite's main file with
@@ -362,6 +454,8 @@ def initialize(state: Path, world: str, writers: list[str], readers: list[str], 
     seeded_events: int | None = None
     if seed == "reading-table":
         seeded_events = _seed_reading_table(state, world, principals, retention_seconds, host, host_binary)
+    elif seed == "threshold":
+        seeded_events = _seed_threshold(state, world, principals, retention_seconds, host, host_binary)
     origin = f"http://127.0.0.1:{port}"
     credentials: list[JsonObject] = []
     clients: list[JsonObject] = []
@@ -384,13 +478,21 @@ def initialize(state: Path, world: str, writers: list[str], readers: list[str], 
     result: JsonObject = {"outcome": "initialized", "world": world, "origin": origin, "clients": clients,
         "visibility": "addressed", "retention_seconds": retention_seconds, "payload_bytes": PAYLOAD_BYTES,
         "copying_permission": "not_granted", "external_spend_usd": 0}
-    if seed is not None and seeded_events is not None:
+    if seed == "reading-table" and seeded_events is not None:
         result.update({
             "seed": seed,
             "seed_principal": SEED_PRINCIPAL,
             "seed_fixture": "examples/participants/fixtures/reading-table.json",
             "seeded_events": seeded_events,
             "seed_disclosure": SEED_DISCLOSURE_NOTICE,
+            "seed_host": host,
+        })
+    elif seed == "threshold" and seeded_events is not None:
+        result.update({
+            "seed": seed,
+            "seed_principal": THRESHOLD_SEED_PRINCIPAL,
+            "seeded_events": seeded_events,
+            "seed_disclosure": THRESHOLD_DISCLOSURE_NOTICE,
             "seed_host": host,
         })
     return result
@@ -669,7 +771,7 @@ def serve(state: Path, host: str = "rust", host_binary: Path | None = None, *,
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     commands = parser.add_subparsers(dest="command", required=True)
-    init = commands.add_parser("init", help="initialize a private local room (empty by default; opt-in --seed reading-table)")
+    init = commands.add_parser("init", help="initialize a private local room (empty by default; opt-in --seed reading-table or threshold)")
     init.add_argument("--state", required=True, type=Path)
     init.add_argument("--world", required=True)
     init.add_argument("--writer", required=True, action="append")
@@ -688,7 +790,7 @@ def main() -> int:
     init.add_argument(
         "--seed",
         choices=SEED_CHOICES,
-        help="opt-in disclosed seed from a frozen fixture (reading-table); omit for the empty-room control",
+        help="opt-in disclosed seed (reading-table or threshold); omit for the empty-room control",
     )
     init.add_argument(
         "--host",

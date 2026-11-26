@@ -1734,5 +1734,140 @@ class NewcomerToolsTests(unittest.TestCase):
         printed.assert_called_once_with("saved room")
 
 
+class ThresholdSeedTests(unittest.TestCase):
+    host_binary: Path | None
+    reader_binary: Path | None
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.host_binary = private.find_tool("agentciv-host")
+        cls.reader_binary = private.find_tool("agentciv-reader")
+        if cls.reader_binary is None:
+            raise AssertionError("agentciv-reader binary must be built for threshold seed tests")
+
+    def _hosts(self) -> list[tuple[str, Path | None]]:
+        hosts: list[tuple[str, Path | None]] = [("python", None)]
+        if self.host_binary is not None:
+            hosts.insert(0, ("rust", self.host_binary))
+        return hosts
+
+    def test_init_without_seed_starts_empty_and_invalid_seed_fails_cleanly(self) -> None:
+        assert self.reader_binary is not None
+        with tempfile.TemporaryDirectory(prefix="agentciv-empty-control-") as temporary:
+            root = Path(temporary).resolve()
+            with self.assertRaises(private.EncounterError) as bad_seed:
+                operator.initialize(root / "bad-seed", WORLD, [A], [B], free_port(), seed="nonexistent")
+            self.assertEqual(bad_seed.exception.code, "configuration_invalid")
+
+            with self.assertRaises(private.EncounterError) as conflict:
+                operator.initialize(
+                    root / "conflict-principal",
+                    WORLD,
+                    [operator.THRESHOLD_SEED_PRINCIPAL],
+                    [B],
+                    free_port(),
+                    seed="threshold",
+                )
+            self.assertEqual(conflict.exception.code, "configuration_invalid")
+
+            with patch.object(
+                sys,
+                "argv",
+                ["local_encounter.py", "init", "--state", str(root / "cli-bad"), "--world", WORLD, "--writer", A, "--seed", "invalid-seed"],
+            ), patch("sys.stderr"):
+                with self.assertRaises(SystemExit) as exited:
+                    operator.main()
+            self.assertNotEqual(exited.exception.code, 0)
+
+            state = root / "empty-control"
+            initialized = operator.initialize(state, WORLD, [A], [B], free_port())
+            self.assertNotIn("seed", initialized)
+            self.assertNotIn("seeded_events", initialized)
+            configs = {str(item["principal"]): Path(str(item["config"])) for item in objects(initialized["clients"])}
+            origin = str(initialized["origin"])
+            argv = walk.python_argv(state / "host.json")
+            owned = operator._start(argv, origin)
+            try:
+                operator._wait_ready(owned)
+                read_result = client.read(configs[A], reader_binary=self.reader_binary)
+                self.assertEqual(read_result["events"], 0)
+            finally:
+                operator._stop_owned(owned)
+
+    def test_threshold_seed_records_three_invitations_surviving_read_show_and_restart(self) -> None:
+        assert self.reader_binary is not None
+        for host_name, binary in self._hosts():
+            with self.subTest(host=host_name), tempfile.TemporaryDirectory(prefix=f"agentciv-threshold-{host_name}-") as temporary:
+                state = Path(temporary).resolve() / "room"
+                initialized = operator.initialize(
+                    state,
+                    WORLD,
+                    [A],
+                    [B],
+                    free_port(),
+                    seed="threshold",
+                    host=host_name,
+                    host_binary=binary,
+                )
+                self.assertEqual(initialized["outcome"], "initialized")
+                self.assertEqual(initialized["seed"], "threshold")
+                self.assertEqual(initialized["seed_principal"], operator.THRESHOLD_SEED_PRINCIPAL)
+                self.assertEqual(initialized["seeded_events"], 3)
+                self.assertIn("empty-room control", str(initialized["seed_disclosure"]))
+
+                # Confirm no resident seed credential remains in host.json.
+                host_cfg = load(state / "host.json")
+                principals = [str(item["principal"]) for item in objects(host_cfg["credentials"])]
+                self.assertEqual(principals, [A, B])
+                self.assertNotIn(operator.THRESHOLD_SEED_PRINCIPAL, principals)
+
+                configs = {str(item["principal"]): Path(str(item["config"])) for item in objects(initialized["clients"])}
+                origin = str(initialized["origin"])
+                argv = operator._host_argv(state / "host.json", host_name, binary)
+
+                # Session 1: read and show the 3 seeded invitations.
+                owned = operator._start(argv, origin)
+                try:
+                    operator._wait_ready(owned)
+                    first_read = client.read(configs[A], reader_binary=self.reader_binary)
+                    self.assertEqual(first_read["events"], 3)
+                    view_path = Path(str(first_read["view_path"]))
+                    rendered = client.show(configs[A], view_path)
+                    self.assertIn("no required deliverable", rendered)
+                    self.assertIn("1, 2, 4, 7, 11, 16", rendered)
+                    self.assertIn("If a later mind reads this log", rendered)
+
+                    records = strings(obj(load(view_path)["snapshot"])["records"])
+                    self.assertEqual(len(records), 3)
+                    invitation_ids: list[str] = []
+                    for span in records:
+                        ev = civic.decode(span.encode("utf-8"))
+                        self.assertEqual(ev["kind"], "message.recorded")
+                        self.assertEqual(ev["actor"], operator.THRESHOLD_SEED_PRINCIPAL)
+                        msg_body = obj(obj(obj(ev["body"])["message"])["body"])
+                        disclosure = obj(msg_body["seed_disclosure"])
+                        self.assertEqual(disclosure["seeded"], True)
+                        self.assertEqual(disclosure["seed_name"], "threshold")
+                        self.assertEqual(disclosure["operator_attribution"], "maintainer-run")
+                        self.assertEqual(disclosure["authored_by"], "human-operator-disclosed-seed")
+                        invitation_ids.append(str(disclosure["invitation_id"]))
+                    self.assertEqual(invitation_ids, ["quiet-welcome", "open-pattern", "open-question"])
+                finally:
+                    operator._stop_owned(owned)
+
+                # Session 2: restart host and confirm all 3 invitations remain visible to read-only member.
+                restarted = operator._start(argv, origin)
+                try:
+                    operator._wait_ready(restarted)
+                    after_restart = client.read(configs[B], reader_binary=self.reader_binary)
+                    self.assertEqual(after_restart["events"], 3)
+                    rendered_after = client.show(configs[B], Path(str(after_restart["view_path"])))
+                    self.assertIn("no required deliverable", rendered_after)
+                    self.assertIn("1, 2, 4, 7, 11, 16", rendered_after)
+                    self.assertIn("If a later mind reads this log", rendered_after)
+                finally:
+                    operator._stop_owned(restarted)
+
+
 if __name__ == "__main__":
     unittest.main()
