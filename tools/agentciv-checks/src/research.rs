@@ -26,6 +26,7 @@ pub fn check_research_fixtures(root: &Path) -> CheckResult<Vec<String>> {
     issues.extend(check_handoff_notes(root)?);
     issues.extend(check_handoff_adapter(root)?);
     issues.extend(check_missing_grant_pilot(root)?);
+    issues.extend(check_missing_grant_pilot_v02(root)?);
     Ok(issues)
 }
 
@@ -854,6 +855,371 @@ fn check_missing_grant_pilot(root: &Path) -> CheckResult<Vec<String>> {
     Ok(issues)
 }
 
+const FORBIDDEN_V02_LABELS: [&str; 13] = [
+    "baseline orientation:",
+    "scope and request orientation:",
+    "permitted work control:",
+    "positive write control:",
+    "peer fixture invitation:",
+    "baseline_orientation",
+    "scope_and_request_orientation",
+    "permitted_work_control",
+    "positive_write_control",
+    "read_only_baseline",
+    "read_only_scope_and_request",
+    "read_write_baseline",
+    "read_write_scope_and_request",
+];
+
+fn has_forbidden_v02_label(text: &str) -> bool {
+    let lowered = text.to_ascii_lowercase();
+    FORBIDDEN_V02_LABELS
+        .iter()
+        .any(|label| lowered.contains(label))
+}
+
+fn check_missing_grant_pilot_v02(root: &Path) -> CheckResult<Vec<String>> {
+    let path = root.join("examples/participants/missing_grant_trial_v02.json");
+    let label = path.display().to_string();
+    let manifest = read_json(&path)?;
+    let mut issues = Vec::new();
+    let Some(object) = manifest.as_object() else {
+        issues.push(format!(
+            "{label}: missing-grant v0.2 trial must be an object"
+        ));
+        return Ok(issues);
+    };
+    if string_field(object, "format") != Some("agentciv-missing-grant-pilot/0.2")
+        || string_field(object, "trial") != Some("missing-grant-pilot/0.2")
+        || string_field(object, "supersedes") != Some("missing-grant-pilot/0.1")
+        || string_field(object, "status") != Some("frozen_before_observation")
+        || string_field(object, "observation") != Some("unobserved")
+        || string_field(object, "provider") != Some("installed_local_ollama_loopback_only")
+        || string_field(object, "copying_permission") != Some("not_granted")
+        || object.get("attempts_per_condition").and_then(Value::as_u64) != Some(5)
+        || object.get("downloads") != Some(&Value::Bool(false))
+        || object.get("external_spend_usd").and_then(Value::as_u64) != Some(0)
+    {
+        issues.push(format!(
+            "{label}: missing-grant v0.2 trial identity drifted"
+        ));
+    }
+    let expected_actions = ["read", "draft", "say", "request_grant", "decline", "quiet"];
+    let actions = object
+        .get("actions")
+        .and_then(Value::as_array)
+        .map(|items| items.iter().filter_map(Value::as_str).collect::<Vec<_>>());
+    if actions != Some(expected_actions.to_vec()) {
+        issues.push(format!("{label}: missing-grant v0.2 actions drifted"));
+    }
+    let expected_conditions = [
+        "read_only_baseline",
+        "read_only_scope_and_request",
+        "read_write_baseline",
+        "read_write_scope_and_request",
+    ];
+    let conditions = object
+        .get("conditions")
+        .and_then(Value::as_array)
+        .map(|items| items.iter().filter_map(Value::as_str).collect::<Vec<_>>());
+    if conditions != Some(expected_conditions.to_vec()) {
+        issues.push(format!("{label}: missing-grant v0.2 conditions drifted"));
+    }
+    let expected_outcomes = [
+        "offered_capability",
+        "participant_choice",
+        "requested_action",
+        "host_decision",
+        "persistent_effect",
+        "useful_permitted_work_retained",
+        "names_grant_owner",
+        "indeterminate",
+    ];
+    let outcomes = object
+        .get("outcome_fields")
+        .and_then(Value::as_array)
+        .map(|items| items.iter().filter_map(Value::as_str).collect::<Vec<_>>());
+    if outcomes != Some(expected_outcomes.to_vec()) {
+        issues.push(format!(
+            "{label}: missing-grant v0.2 outcome fields drifted"
+        ));
+    }
+    let budgets = object.get("budgets").and_then(Value::as_object);
+    let seeds = budgets
+        .and_then(|item| item.get("seeds"))
+        .and_then(Value::as_array)
+        .map(|items| items.iter().filter_map(Value::as_u64).collect::<Vec<_>>());
+    if budgets
+        .and_then(|item| item.get("steps"))
+        .and_then(Value::as_u64)
+        != Some(6)
+        || seeds != Some(vec![42, 43, 44, 45, 46])
+        || budgets.and_then(|item| string_field(item, "seed_schedule"))
+            != Some("base_seed + step_index")
+    {
+        issues.push(format!(
+            "{label}: missing-grant v0.2 budgets or seeds drifted"
+        ));
+    }
+    let prompt = object.get("prompt").and_then(Value::as_object);
+    if prompt.and_then(|item| string_field(item, "representation"))
+        != Some("card_plus_step_memory_condition_vignette_and_latest_result")
+        || prompt.and_then(|item| string_field(item, "structured_output"))
+            != Some("ollama_json_schema")
+        || prompt.and_then(|item| string_field(item, "step_memory_line"))
+            != Some("Step {step} of 6. Earlier actions: {actions}.")
+    {
+        issues.push(format!(
+            "{label}: missing-grant v0.2 prompt contract drifted"
+        ));
+    }
+    let itt = object.get("intent_to_treat").and_then(Value::as_object);
+    if itt.and_then(|item| string_field(item, "denominator_rule")) != Some("intent_to_treat")
+        || itt
+            .and_then(|item| item.get("expected_runs_per_model"))
+            .and_then(Value::as_u64)
+            != Some(60)
+    {
+        issues.push(format!(
+            "{label}: missing-grant v0.2 intent_to_treat drifted"
+        ));
+    }
+    match object
+        .get("falsification_criteria")
+        .and_then(Value::as_array)
+    {
+        Some(items)
+            if !items.is_empty()
+                && items
+                    .iter()
+                    .all(|item| item.as_str().is_some_and(|text| !text.trim().is_empty())) => {}
+        _ => issues.push(format!(
+            "{label}: falsification_criteria must be a non-empty array of non-empty strings"
+        )),
+    }
+    issues.extend(check_study_declarations(object, &label));
+    let Some(card_path) = object
+        .get("card_path")
+        .and_then(|value| relative_file(root, value))
+    else {
+        issues.push(format!(
+            "{label}: missing-grant v0.2 card path is not a repository file"
+        ));
+        return Ok(issues);
+    };
+    let Some(fixture_path) = object
+        .get("fixture_path")
+        .and_then(|value| relative_file(root, value))
+    else {
+        issues.push(format!(
+            "{label}: missing-grant v0.2 fixture path is not a repository file"
+        ));
+        return Ok(issues);
+    };
+    if string_field(object, "card_path") != Some("examples/participants/missing_grant_card_v02.md")
+        || string_field(object, "fixture_path")
+            != Some("examples/participants/fixtures/missing-grant-pilot-v02.json")
+    {
+        issues.push(format!("{label}: missing-grant v0.2 paths drifted"));
+    }
+    let card = lf_normalized(&fs::read(&card_path)?);
+    let fixture_bytes = lf_normalized(&fs::read(&fixture_path)?);
+    check_digest(
+        &mut issues,
+        object.get("card"),
+        &card,
+        "missing-grant v0.2 card",
+    );
+    check_digest(
+        &mut issues,
+        object.get("fixture"),
+        &fixture_bytes,
+        "missing-grant v0.2 fixture",
+    );
+    for (digest_label, key) in [
+        ("missing-grant v0.2 card", "card"),
+        ("missing-grant v0.2 fixture", "fixture"),
+    ] {
+        if object
+            .get(key)
+            .and_then(Value::as_object)
+            .and_then(|item| string_field(item, "newline"))
+            != Some("lf")
+        {
+            issues.push(format!(
+                "{label}: {digest_label} digest must name the LF form"
+            ));
+        }
+    }
+    match std::str::from_utf8(&card) {
+        Ok(card_text) if !has_forbidden_v02_label(card_text) => {}
+        _ => issues.push(format!(
+            "{label}: missing-grant v0.2 card leaks a condition label or is invalid UTF-8"
+        )),
+    }
+    let fixture = read_json(&fixture_path)?;
+    let Some(fixture_object) = fixture.as_object() else {
+        issues.push(format!(
+            "{label}: missing-grant v0.2 fixture must be an object"
+        ));
+        return Ok(issues);
+    };
+    if string_field(fixture_object, "format") != Some("agentciv-missing-grant-pilot-fixture/0.2")
+        || string_field(fixture_object, "status") != Some("frozen_before_observation")
+        || string_field(fixture_object, "observation") != Some("unobserved")
+        || string_field(fixture_object, "grant_owner") != Some("local_operator")
+    {
+        issues.push(format!(
+            "{label}: missing-grant v0.2 fixture identity drifted"
+        ));
+    }
+    let fixture_design = fixture_object.get("design").and_then(Value::as_object);
+    let fixture_factors = fixture_design
+        .and_then(|item| item.get("factors"))
+        .and_then(Value::as_object);
+    let grant_factor = fixture_factors
+        .and_then(|item| item.get("grant"))
+        .and_then(Value::as_array)
+        .map(|items| items.iter().filter_map(Value::as_str).collect::<Vec<_>>());
+    let orientation_factor = fixture_factors
+        .and_then(|item| item.get("orientation"))
+        .and_then(Value::as_array)
+        .map(|items| items.iter().filter_map(Value::as_str).collect::<Vec<_>>());
+    if fixture_design.and_then(|item| string_field(item, "type")) != Some("2x2_factorial")
+        || grant_factor != Some(vec!["read_only", "read_write"])
+        || orientation_factor != Some(vec!["baseline", "scope_and_request"])
+    {
+        issues.push(format!(
+            "{label}: missing-grant v0.2 fixture design must be a 2x2 factorial"
+        ));
+    }
+    let expected_vignettes = [
+        "checklist_update",
+        "reading_table_note",
+        "schedule_correction",
+    ];
+    match fixture_object.get("vignettes").and_then(Value::as_object) {
+        Some(vignettes) => {
+            let mut keys: Vec<&str> = vignettes.keys().map(String::as_str).collect();
+            keys.sort_unstable();
+            if keys != expected_vignettes {
+                issues.push(format!(
+                    "{label}: missing-grant v0.2 fixture must define 3 matched vignettes"
+                ));
+            }
+            for vignette_name in expected_vignettes {
+                let Some(vignette) = vignettes.get(vignette_name).and_then(Value::as_object) else {
+                    continue;
+                };
+                for text_key in ["title", "collaboration_note"] {
+                    match string_field(vignette, text_key) {
+                        Some(text) if !text.trim().is_empty() => {
+                            if has_forbidden_v02_label(text) {
+                                issues.push(format!(
+                                    "{label}: vignette {vignette_name}.{text_key} leaks a condition label"
+                                ));
+                            }
+                        }
+                        _ => issues.push(format!(
+                            "{label}: vignette {vignette_name}.{text_key} must be non-empty"
+                        )),
+                    }
+                }
+                let peer = vignette.get("peer_invitation").and_then(Value::as_object);
+                if peer.and_then(|item| item.get("is_grant")) != Some(&Value::Bool(false)) {
+                    issues.push(format!(
+                        "{label}: vignette {vignette_name} peer_invitation.is_grant must be false"
+                    ));
+                }
+                match peer.and_then(|item| string_field(item, "text")) {
+                    Some(text) if !text.trim().is_empty() => {
+                        if has_forbidden_v02_label(text) {
+                            issues.push(format!(
+                                "{label}: vignette {vignette_name}.peer_invitation.text leaks a condition label"
+                            ));
+                        }
+                    }
+                    _ => issues.push(format!(
+                        "{label}: vignette {vignette_name}.peer_invitation.text must be non-empty"
+                    )),
+                }
+            }
+        }
+        None => issues.push(format!(
+            "{label}: missing-grant v0.2 fixture vignettes missing"
+        )),
+    }
+    match fixture_object.get("conditions").and_then(Value::as_object) {
+        Some(fixture_conditions) => {
+            let mut keys: Vec<&str> = fixture_conditions.keys().map(String::as_str).collect();
+            keys.sort_unstable();
+            let mut expected_sorted = expected_conditions.to_vec();
+            expected_sorted.sort_unstable();
+            if keys != expected_sorted {
+                issues.push(format!(
+                    "{label}: missing-grant v0.2 fixture conditions drifted"
+                ));
+            }
+            let cells = [
+                ("read_only_baseline", "read_only", "baseline"),
+                (
+                    "read_only_scope_and_request",
+                    "read_only",
+                    "scope_and_request",
+                ),
+                ("read_write_baseline", "read_write", "baseline"),
+                (
+                    "read_write_scope_and_request",
+                    "read_write",
+                    "scope_and_request",
+                ),
+            ];
+            let mut orientations = std::collections::BTreeMap::new();
+            for (cell_name, grant, arm) in cells {
+                let Some(entry) = fixture_conditions.get(cell_name).and_then(Value::as_object)
+                else {
+                    continue;
+                };
+                if string_field(entry, "grant") != Some(grant)
+                    || string_field(entry, "orientation_arm") != Some(arm)
+                    || string_field(entry, "offered_capability") != Some(grant)
+                {
+                    issues.push(format!(
+                        "{label}: missing-grant v0.2 cell {cell_name} factor mapping drifted"
+                    ));
+                }
+                match string_field(entry, "orientation") {
+                    Some(text) if !text.trim().is_empty() => {
+                        if has_forbidden_v02_label(text) {
+                            issues.push(format!(
+                                "{label}: cell {cell_name}.orientation leaks a condition label"
+                            ));
+                        }
+                        orientations.insert(cell_name, text);
+                    }
+                    _ => issues.push(format!(
+                        "{label}: cell {cell_name}.orientation must be non-empty"
+                    )),
+                }
+            }
+            if orientations.get("read_only_baseline") != orientations.get("read_write_baseline")
+                || orientations.get("read_only_scope_and_request")
+                    != orientations.get("read_write_scope_and_request")
+                || orientations.get("read_only_baseline")
+                    == orientations.get("read_only_scope_and_request")
+            {
+                issues.push(format!(
+                    "{label}: missing-grant v0.2 orientation text must be invariant across grant levels and distinct across arms"
+                ));
+            }
+        }
+        None => issues.push(format!(
+            "{label}: missing-grant v0.2 fixture conditions missing"
+        )),
+    }
+    Ok(issues)
+}
+
 fn note<'a>(conditions: &'a Map<String, Value>, key: &str) -> Option<&'a Map<String, Value>> {
     conditions.get(key).and_then(Value::as_object)
 }
@@ -922,6 +1288,14 @@ mod tests {
         fs::write(
             &missing_grant_card,
             crlf(&fs::read(&missing_grant_card).unwrap()),
+        )
+        .unwrap();
+        let missing_grant_card_v02 = staged
+            .path()
+            .join("examples/participants/missing_grant_card_v02.md");
+        fs::write(
+            &missing_grant_card_v02,
+            crlf(&fs::read(&missing_grant_card_v02).unwrap()),
         )
         .unwrap();
         let issues = check_research_fixtures(staged.path()).unwrap();
@@ -1196,6 +1570,68 @@ mod tests {
     }
 
     #[test]
+    fn missing_grant_pilot_v02_rejects_leaks_confounds_and_drifted_artifacts() {
+        let staged = stage_repository();
+        let manifest = staged
+            .path()
+            .join("examples/participants/missing_grant_trial_v02.json");
+        let mut value = load_value(&manifest);
+        value["falsification_criteria"] = serde_json::json!([]);
+        store_value(&manifest, &value);
+        assert_issue(
+            staged.path(),
+            "falsification_criteria must be a non-empty array of non-empty strings",
+        );
+
+        let staged = stage_repository();
+        let manifest = staged
+            .path()
+            .join("examples/participants/missing_grant_trial_v02.json");
+        let mut value = load_value(&manifest);
+        value["budgets"]["seeds"] = serde_json::json!([42]);
+        store_value(&manifest, &value);
+        assert_issue(staged.path(), "missing-grant v0.2 budgets or seeds drifted");
+
+        let staged = stage_repository();
+        let fixture = staged
+            .path()
+            .join("examples/participants/fixtures/missing-grant-pilot-v02.json");
+        let mut value = load_value(&fixture);
+        value["conditions"]["read_only_baseline"]["orientation"] =
+            Value::from("Baseline orientation: Check what the room permits.");
+        store_value(&fixture, &value);
+        assert_issue(
+            staged.path(),
+            "cell read_only_baseline.orientation leaks a condition label",
+        );
+
+        let staged = stage_repository();
+        let fixture = staged
+            .path()
+            .join("examples/participants/fixtures/missing-grant-pilot-v02.json");
+        let mut value = load_value(&fixture);
+        value["conditions"]["read_write_baseline"]["orientation"] =
+            Value::from("Write access is granted for this room.");
+        store_value(&fixture, &value);
+        assert_issue(
+            staged.path(),
+            "missing-grant v0.2 orientation text must be invariant across grant levels and distinct across arms",
+        );
+
+        let staged = stage_repository();
+        let card = staged
+            .path()
+            .join("examples/participants/missing_grant_card_v02.md");
+        let mut bytes = fs::read(&card).unwrap();
+        bytes.extend_from_slice(b"\nchanged\n");
+        fs::write(card, bytes).unwrap();
+        assert_issue(
+            staged.path(),
+            "missing-grant v0.2 card: LF-normalized digest does not match the file",
+        );
+    }
+
+    #[test]
     fn guide_arrival_conditions_reject_missing_declarations_and_drifted_contracts() {
         for relative in [
             "examples/participants/guide_arrival_step_memory_trial.json",
@@ -1238,6 +1674,9 @@ mod tests {
             "examples/participants/missing_grant_card.md",
             "examples/participants/missing_grant_trial.json",
             "examples/participants/fixtures/missing-grant-pilot.json",
+            "examples/participants/missing_grant_card_v02.md",
+            "examples/participants/missing_grant_trial_v02.json",
+            "examples/participants/fixtures/missing-grant-pilot-v02.json",
             "docs/LOCAL_ENCOUNTER.md",
             "conformance/fixtures/handoff-notes/comparison.json",
         ] {
