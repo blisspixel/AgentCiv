@@ -562,6 +562,11 @@ pub async fn fetch(mut request: Request, env: Env, _context: Context) -> Result<
         return appearance_response(result, selected, &target, head).await;
     }
     if path == "/report" || path == "/report.md" {
+        if !matches!(request.method(), Method::Get | Method::Head) {
+            let mut result = failure(Problem::new(405, "method_not_allowed"))?;
+            result.headers_mut().set("Allow", "GET, HEAD")?;
+            return Ok(result);
+        }
         let contact = env
             .var("REPORT_EMAIL")
             .map(|value| value.to_string())

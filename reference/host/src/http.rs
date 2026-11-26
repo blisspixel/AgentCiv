@@ -11,6 +11,7 @@ use axum::routing::{get, post};
 use axum::{Json, Router};
 use serde::Deserialize;
 use serde_json::{Value, json};
+use sha2::{Digest, Sha256};
 
 use crate::store::{CheckpointError, CollaborateError, ReadError, Store, SubmitError};
 use crate::validate::{
@@ -41,33 +42,47 @@ pub fn router(app: App) -> Router {
 }
 
 async fn discover(State(app): State<Arc<App>>) -> Response {
-    Json(json!({
+    let mut endpoints = json!({
+        "events": format!("{}/events", app.origin),
+        "submit": format!("{}/submit", app.origin),
+        "collaborate": format!("{}/collaborate", app.origin)
+    });
+    let mut authentication = json!({
+        "events": "bearer",
+        "submit": "bearer",
+        "collaborate": "bearer",
+        "outside_systems": "not_granted"
+    });
+    let mut descriptor = json!({
         "protocol_version": "0.1-draft",
         "profile": "http-commons/0.1-draft",
         "type": "world",
         "id": app.world_id,
         "title": app.title,
         "capabilities": ["events.read", "messages.submit", "collaboration.submit", "events.prefix.validate"],
-        "endpoints": {
-            "events": format!("{}/events", app.origin),
-            "submit": format!("{}/submit", app.origin),
-            "collaborate": format!("{}/collaborate", app.origin),
-            "checkpoint": format!("{}/checkpoint", app.origin)
-        },
-        "checkpoints": {
-            "format": "c2sp.org/tlog-checkpoint",
-            "path": "/checkpoint"
-        },
+        "endpoints": endpoints,
         "history": {
             "visibility": app.visibility.as_str(),
             "retention_seconds": app.retention_seconds
         },
-        "authentication": {"events": "bearer", "submit": "bearer", "collaborate": "bearer", "checkpoint": "bearer", "outside_systems": "not_granted"},
-        "limits": {"max_payload_bytes": app.max_payload,
+        "authentication": authentication,
+        "limits": {
+            "max_payload_bytes": app.max_payload,
             "max_cursor_principals": crate::store::MAX_CURSOR_OWNERS,
-            "max_cursors_per_principal": crate::store::MAX_CURSORS_PER_OWNER}
-    }))
-    .into_response()
+            "max_cursors_per_principal": crate::store::MAX_CURSORS_PER_OWNER
+        }
+    });
+    if app.visibility == Visibility::Members {
+        endpoints["checkpoint"] = json!(format!("{}/checkpoint", app.origin));
+        authentication["checkpoint"] = json!("bearer");
+        descriptor["endpoints"] = endpoints;
+        descriptor["authentication"] = authentication;
+        descriptor["checkpoints"] = json!({
+            "format": "c2sp.org/tlog-checkpoint",
+            "path": "/checkpoint"
+        });
+    }
+    Json(descriptor).into_response()
 }
 
 async fn submit(State(app): State<Arc<App>>, headers: HeaderMap, body: Body) -> Response {
@@ -273,6 +288,13 @@ async fn checkpoint(
             "Read access is required",
         );
     }
+    if app.visibility != Visibility::Members {
+        return problem(
+            StatusCode::FORBIDDEN,
+            "forbidden",
+            "Global Merkle checkpoints are only exposed in members-visibility worlds",
+        );
+    }
     let from_size = match query {
         Ok(Query(CheckpointQuery { from_size: None })) => None,
         Ok(Query(CheckpointQuery {
@@ -300,6 +322,11 @@ async fn checkpoint(
     let result = tokio::task::spawn_blocking(move || store.checkpoint(&world_id, from_size)).await;
     match result {
         Ok(Ok(body)) => json_no_store(StatusCode::OK, body),
+        Ok(Err(CheckpointError::Forbidden)) => problem(
+            StatusCode::FORBIDDEN,
+            "forbidden",
+            "Global Merkle checkpoints are only exposed in members-visibility worlds",
+        ),
         Ok(Err(CheckpointError::InvalidFromSize)) => problem(
             StatusCode::BAD_REQUEST,
             "invalid_checkpoint_query",
@@ -482,16 +509,12 @@ fn authenticate<'a>(headers: &HeaderMap, credentials: &'a [Credential]) -> Optio
 }
 
 fn tokens_equal(left: &str, right: &str) -> bool {
-    let left = left.as_bytes();
-    let right = right.as_bytes();
-    if left.len() != right.len() {
-        return false;
-    }
-    let mut difference = 0_u8;
-    for (left, right) in left.iter().zip(right) {
-        difference |= left ^ right;
-    }
-    difference == 0
+    let left = Sha256::digest(left.as_bytes());
+    let right = Sha256::digest(right.as_bytes());
+    left.iter()
+        .zip(right.iter())
+        .fold(0_u8, |difference, (a, b)| difference | (a ^ b))
+        == 0
 }
 
 fn problem(status: StatusCode, code: &str, title: &str) -> Response {
@@ -526,4 +549,18 @@ fn json_no_store(status: StatusCode, body: Value) -> Response {
         .headers_mut()
         .insert(header::CACHE_CONTROL, HeaderValue::from_static("no-store"));
     response
+}
+
+#[cfg(test)]
+mod tests {
+    use super::tokens_equal;
+
+    #[test]
+    fn tokens_equal_compares_equal_same_length_and_different_length_tokens() {
+        assert!(tokens_equal("secret-token-value", "secret-token-value"));
+        assert!(!tokens_equal("secret-token-value", "secret-token-valuX"));
+        assert!(!tokens_equal("secret-token-value", "short"));
+        assert!(!tokens_equal("", "non-empty"));
+        assert!(tokens_equal("", ""));
+    }
 }

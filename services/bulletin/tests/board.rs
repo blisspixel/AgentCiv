@@ -1284,6 +1284,8 @@ fn rolling_24h_expiration_prunes_old_posts_and_keeps_recent_posts() {
         "2026-10-03T08:00:00.Z",
         "2026-10-03T08:00:00.1234567890Z",
         "2026-10-03T08:00:00+00:00",
+        "2026-+1-+1T+0:+0:+0Z",
+        "+026-01-01T00:00:00Z",
     ] {
         assert_eq!(parse_utc_ms(bad), None, "{bad}");
     }

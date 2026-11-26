@@ -1322,7 +1322,6 @@ class Handler(BaseHTTPRequestHandler):
         if path.path == "/collaborate":
             self._collaborate()
             return
-        self._discard_body()
         self._problem(404, "not_found", "Not found")
 
     def _events(self, query: str) -> None:
@@ -1367,14 +1366,16 @@ class Handler(BaseHTTPRequestHandler):
         server = self._commons()
         credential = authenticate(self.headers.get("Authorization"), server.config.credentials)
         if credential is None:
-            self._discard_body()
             self._problem(401, "authentication_required", "Authentication required")
             return
         if not credential.write:
-            self._discard_body()
             self._problem(403, "forbidden", "Write access is required")
             return
-        body, too_large = self._read_limited(server.config.max_payload_bytes)
+        try:
+            body, too_large = self._read_limited(server.config.max_payload_bytes)
+        except MalformedJson:
+            self._problem(400, "malformed_json", "JSON could not be parsed")
+            return
         if too_large or body is None:
             self._problem(413, "payload_too_large", "Body exceeds the published limit")
             return
@@ -1418,14 +1419,16 @@ class Handler(BaseHTTPRequestHandler):
         server = self._commons()
         credential = authenticate(self.headers.get("Authorization"), server.config.credentials)
         if credential is None:
-            self._discard_body()
             self._problem(401, "authentication_required", "Authentication required")
             return
         if not credential.write:
-            self._discard_body()
             self._problem(403, "forbidden", "Write access is required")
             return
-        body, too_large = self._read_limited(server.config.max_payload_bytes)
+        try:
+            body, too_large = self._read_limited(server.config.max_payload_bytes)
+        except MalformedJson:
+            self._problem(400, "malformed_json", "JSON could not be parsed")
+            return
         if too_large or body is None:
             self._problem(413, "payload_too_large", "Body exceeds the published limit")
             return
@@ -1472,23 +1475,22 @@ class Handler(BaseHTTPRequestHandler):
         self._json(200, receipt)
 
     def _read_limited(self, limit: int) -> tuple[bytes | None, bool]:
-        raw_length = self.headers.get("Content-Length")
+        lengths = self.headers.get_all("Content-Length") or []
         transfer = self.headers.get("Transfer-Encoding")
         if transfer is not None:
-            if raw_length is not None or transfer.strip().lower() != "chunked":
+            if lengths or transfer.strip().lower() != "chunked":
                 return b"", False
             return self._read_chunked(limit)
-        if raw_length is None:
+        if not lengths:
             # A request without Content-Length or Transfer-Encoding has no body.
             return b"", False
-        try:
-            length = int(raw_length)
-        except ValueError:
-            return b"", False
-        if length < 0:
-            return b"", False
+        if len(lengths) > 1:
+            raise MalformedJson
+        raw_length = lengths[0].strip()
+        if not raw_length or not raw_length.isascii() or not raw_length.isdigit():
+            raise MalformedJson
+        length = int(raw_length)
         if length > limit:
-            self._discard(min(length, 2_000_000))
             return None, True
         return self.rfile.read(length), False
 
@@ -1516,25 +1518,6 @@ class Handler(BaseHTTPRequestHandler):
             if len(chunk) != size or self.rfile.read(2) != b"\r\n":
                 return b"", False
             data.extend(chunk)
-
-    def _discard_body(self) -> None:
-        raw_length = self.headers.get("Content-Length")
-        if raw_length is None:
-            return
-        try:
-            length = int(raw_length)
-        except ValueError:
-            return
-        if 0 < length <= 2_000_000:
-            self._discard(length)
-
-    def _discard(self, length: int) -> None:
-        remaining = length
-        while remaining > 0:
-            chunk = self.rfile.read(min(65536, remaining))
-            if not chunk:
-                break
-            remaining -= len(chunk)
 
     def _json(self, status: int, body: JsonObject) -> None:
         self._bytes(status, json.dumps(body, ensure_ascii=False, separators=(",", ":"), allow_nan=False).encode("utf-8"), "application/json")

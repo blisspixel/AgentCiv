@@ -453,6 +453,7 @@ fn readable_routes_have_complete_navigation_and_resolvable_catalog_links() {
         "cursor_expired",
         "forbidden",
         "id_conflict",
+        "invalid_checkpoint_query",
         "invalid_cursor",
         "invalid_record",
         "malformed_json",

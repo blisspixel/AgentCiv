@@ -289,3 +289,117 @@ fn checkpoint_tombstone_invariance_and_consistency_over_http() {
     tampered[0][0] ^= 0x80;
     assert!(!verify_consistency_proof(3, 6, &root3, &root6, &tampered));
 }
+
+#[test]
+fn checkpoint_is_omitted_and_forbidden_in_restricted_visibility_worlds() {
+    for visibility in [Visibility::SenderOnly, Visibility::Addressed] {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let db_path = dir.path().join("world.sqlite");
+        let mut cfg = config_in(dir.path());
+        cfg.visibility = visibility;
+        let rt = tokio::runtime::Runtime::new().expect("runtime");
+        let host = rt.block_on(start_test_host(cfg)).expect("host");
+        let base = host
+            .discovery
+            .strip_suffix("/.well-known/agentciv")
+            .expect("base");
+        let client = Client::new();
+
+        let discovery = body_json(client.get(&host.discovery).send().expect("discover"));
+        assert!(
+            discovery["endpoints"].get("checkpoint").is_none(),
+            "endpoints.checkpoint must be omitted for {visibility:?}"
+        );
+        assert!(
+            discovery.get("checkpoints").is_none(),
+            "checkpoints must be omitted for {visibility:?}"
+        );
+        assert!(
+            discovery["authentication"].get("checkpoint").is_none(),
+            "authentication.checkpoint must be omitted for {visibility:?}"
+        );
+
+        let resp = client
+            .get(format!("{base}/checkpoint"))
+            .header("Authorization", "Bearer token-writer")
+            .send()
+            .expect("checkpoint");
+        assert_eq!(resp.status(), 403, "visibility={visibility:?}");
+        let body = body_json(resp);
+        assert_eq!(body["code"], "forbidden");
+
+        // Store-level defense-in-depth also refuses non-members worlds.
+        let store = Store::open(
+            &db_path,
+            "civ:merkle-test",
+            visibility,
+            3600,
+            &[
+                ("agent:writer".to_owned(), true, true),
+                ("agent:write-only".to_owned(), false, true),
+            ],
+        )
+        .expect("reopen store");
+        assert_eq!(
+            store.checkpoint("civ:merkle-test", None),
+            Err(crate::store::CheckpointError::Forbidden)
+        );
+    }
+}
+
+#[test]
+fn redact_event_preserves_addressed_visibility_for_recipients() {
+    let dir = tempfile::tempdir().expect("tempdir");
+    let store = Store::open(
+        &dir.path().join("world.sqlite"),
+        "civ:addressed-redact",
+        Visibility::Addressed,
+        3600,
+        &[
+            ("agent:writer".to_owned(), true, true),
+            ("agent:recipient".to_owned(), true, false),
+            ("agent:other".to_owned(), true, false),
+        ],
+    )
+    .expect("store");
+    let msg = json!({
+        "protocol_version": "0.1-draft",
+        "type": "message",
+        "id": "msg:addressed-1",
+        "world": "civ:addressed-redact",
+        "from": "agent:writer",
+        "to": ["agent:recipient"],
+        "body": { "text": "private note" }
+    });
+    store
+        .submit(
+            "agent:writer",
+            "civ:addressed-redact",
+            msg.to_string().as_bytes(),
+        )
+        .expect("submit");
+    assert!(store.redact_event(1).expect("redact"));
+
+    for visible_principal in ["agent:writer", "agent:recipient"] {
+        let page = store
+            .read_page(visible_principal, "civ:addressed-redact", None, true)
+            .expect("read");
+        let events = page["events"].as_array().expect("events");
+        assert_eq!(
+            events.len(),
+            1,
+            "tombstone must remain visible to {visible_principal}"
+        );
+        assert_eq!(events[0]["kind"], "event.redacted");
+        assert_eq!(events[0]["body"], json!({}));
+    }
+
+    let other_page = store
+        .read_page("agent:other", "civ:addressed-redact", None, true)
+        .expect("read other");
+    assert_eq!(
+        other_page["events"].as_array().expect("events").len(),
+        0,
+        "unaddressed principal must not see redacted tombstone"
+    );
+}

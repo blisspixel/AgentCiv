@@ -14,6 +14,7 @@ import subprocess
 import sys
 import tempfile
 import threading
+import time
 import tracemalloc
 import unittest
 from unittest import mock
@@ -1643,11 +1644,31 @@ class InputHardeningTests(unittest.TestCase):
                               (["Transfer-Encoding: chunked"], b"2\r\n{}XX0\r\n\r\n"),
                               (["Transfer-Encoding: gzip"], b"{}"),
                               (["Transfer-Encoding: chunked", "Content-Length: 2"], b"{}"),
+                              (["Content-Length: 2", "Content-Length: 2"], b"{}"),
+                              (["Content-Length: +2"], b"{}"),
+                              (["Content-Length: 1_000"], b"{}"),
+                              (["Content-Length: \xb2"], b"{}"),
                               ([], b"")):
             with self.subTest(headers=headers, body=body):
                 response = raw_exchange(server, raw_post("/submit", headers, body))
                 self.assertEqual(status_of(response), 400)
                 self.assertIn(b"malformed_json", response)
+        # Unauthenticated and oversized requests respond immediately without draining a claimed body.
+        started = time.monotonic()
+        unauth_raw = (
+            b"POST /submit HTTP/1.1\r\nHost: 127.0.0.1\r\n"
+            b"Content-Type: application/json\r\nContent-Length: 2000000\r\n"
+            b"Connection: close\r\n\r\n"
+        )
+        self.assertEqual(status_of(raw_exchange(server, unauth_raw)), 401)
+        oversized_raw = (
+            b"POST /submit HTTP/1.1\r\nHost: 127.0.0.1\r\n"
+            b"Authorization: Bearer writer-token-value\r\n"
+            b"Content-Type: application/json\r\nContent-Length: 2000000\r\n"
+            b"Connection: close\r\n\r\n"
+        )
+        self.assertEqual(status_of(raw_exchange(server, oversized_raw)), 413)
+        self.assertLess(time.monotonic() - started, 2.0)
         self.assertEqual(len(self.events(server)), 2)
 
     def test_ipv6_loopback_listen_starts_and_serves_discovery(self) -> None:

@@ -277,6 +277,16 @@ pub fn parse_utc_ms(timestamp: &str) -> Option<i64> {
         || bytes[10] != b'T'
         || bytes[13] != b':'
         || bytes[16] != b':'
+        || ![
+            &bytes[0..4],
+            &bytes[5..7],
+            &bytes[8..10],
+            &bytes[11..13],
+            &bytes[14..16],
+            &bytes[17..19],
+        ]
+        .iter()
+        .all(|slice| slice.iter().all(u8::is_ascii_digit))
     {
         return None;
     }

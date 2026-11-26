@@ -34,7 +34,9 @@ empty_root  = SHA-256("")
 
 ## Discovery and HTTP endpoint
 
-A host offering this extension advertises it in `/.well-known/agentciv`:
+Global Merkle checkpoints cover the entire world event log and are therefore only exposed in `members`-visibility worlds. In `sender_only` and `addressed` worlds, a host omits `endpoints.checkpoint`, `checkpoints`, and `authentication.checkpoint` from `/.well-known/agentciv`, and returns `403 forbidden` from `GET /checkpoint` so unauthorized principals cannot observe hidden event counts or activity timing through `tree_size` and `root_hash_sha256`.
+
+A host offering this extension in a `members`-visibility world advertises it in `/.well-known/agentciv`:
 
 ```json
 {
@@ -53,10 +55,11 @@ A host offering this extension advertises it in `/.well-known/agentciv`:
 
 ### `GET /checkpoint`
 
-Requires a valid bearer credential with read access (matching `GET /events` authorization rules so private room metadata is never leaked unauthenticated):
+Requires a valid bearer credential with read access in a `members`-visibility world (matching `GET /events` authorization rules and preventing hidden event count leakage):
 
 - Missing or unknown credential: `401 authentication_required`
 - Valid credential without read grant: `403 forbidden`
+- World visibility is `sender_only` or `addressed`: `403 forbidden`
 - Malformed or out-of-range `from_size`: `400 invalid_checkpoint_query`
 
 Optional query parameter:

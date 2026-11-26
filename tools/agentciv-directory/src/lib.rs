@@ -149,7 +149,14 @@ fn https_url(value: &str) -> Result<(), String> {
 
 fn date(value: &str) -> bool {
     let parts: Vec<_> = value.split('-').collect();
-    if parts.len() != 3 || parts[0].len() != 4 || parts[1].len() != 2 || parts[2].len() != 2 {
+    if parts.len() != 3
+        || parts[0].len() != 4
+        || parts[1].len() != 2
+        || parts[2].len() != 2
+        || !parts
+            .iter()
+            .all(|part| part.bytes().all(|b| b.is_ascii_digit()))
+    {
         return false;
     }
     let numbers: Result<Vec<u32>, _> = parts.iter().map(|part| part.parse()).collect();
@@ -770,5 +777,12 @@ mod tests {
             }
         }
         assert_eq!(read_catalog(Broken).unwrap_err(), "unavailable input");
+    }
+
+    #[test]
+    fn date_rejects_leading_plus_signs() {
+        assert!(date("2026-01-01"));
+        assert!(!date("+026-+1-+1"));
+        assert!(!date("2026-+1-+1"));
     }
 }
