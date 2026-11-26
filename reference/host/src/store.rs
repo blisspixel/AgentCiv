@@ -55,6 +55,12 @@ pub enum ReadError {
     Storage,
 }
 
+#[derive(Debug)]
+pub enum CheckpointError {
+    InvalidFromSize,
+    Storage,
+}
+
 #[derive(Clone)]
 pub struct Store {
     conn: Arc<Mutex<Connection>>,
@@ -119,11 +125,12 @@ impl Store {
                WHERE json_extract(message_json, '$.type') = 'artifact_revision';",
         )
         .map_err(|_| StoreError::Storage)?;
-        // Additive migration preserves legacy opaque cursors and their quota.
+        // Additive migration preserves legacy opaque cursors, their quota, and legacy events.
         for (table, column, kind) in [
             ("cursors", "prefix_sha256", "TEXT"),
             ("cursor_owners", "view_revision", "INTEGER"),
             ("cursor_owners", "view_fingerprint", "TEXT"),
+            ("events", "original_record_sha256", "TEXT"),
         ] {
             let mut statement = conn
                 .prepare(&format!("PRAGMA table_info({table})"))
@@ -270,6 +277,61 @@ impl Store {
         self.with_write(|conn| read_page_tx(conn, principal, world_id, after, true))
     }
 
+    /// Compute a tombstone-compatible `c2sp.org/tlog-checkpoint` and optional RFC 9162
+    /// consistency proof in one SQLite snapshot transaction.
+    pub fn checkpoint(
+        &self,
+        world_id: &str,
+        from_size: Option<u64>,
+    ) -> Result<Value, CheckpointError> {
+        self.with_write(|conn| checkpoint_tx(conn, world_id, from_size))
+    }
+
+    /// Replace an event's body with an `event.redacted` tombstone at its original sequence
+    /// while preserving `id`, `sequence`, `timestamp`, and `original_record_sha256` so
+    /// append-only Merkle consistency proofs remain valid.
+    #[cfg(test)]
+    pub fn redact_event(&self, sequence: i64) -> Result<bool, StoreError> {
+        self.with_write(|conn| {
+            conn.execute_batch("BEGIN IMMEDIATE")
+                .map_err(|_| StoreError::Storage)?;
+            let outcome = (|| {
+                let row: Option<String> = conn
+                    .query_row(
+                        "SELECT event_json FROM events WHERE sequence = ?1",
+                        params![sequence],
+                        |row| row.get(0),
+                    )
+                    .optional()
+                    .map_err(|_| StoreError::Storage)?;
+                let Some(event_json) = row else {
+                    return Ok(false);
+                };
+                let mut event: Value =
+                    serde_json::from_str(&event_json).map_err(|_| StoreError::Storage)?;
+                event["kind"] = json!("event.redacted");
+                event["body"] = json!({});
+                conn.execute(
+                    "UPDATE events SET event_json = ?1, message_json = '{}' WHERE sequence = ?2",
+                    params![event.to_string(), sequence],
+                )
+                .map_err(|_| StoreError::Storage)?;
+                Ok(true)
+            })();
+            match outcome {
+                Ok(changed) => {
+                    conn.execute_batch("COMMIT")
+                        .map_err(|_| StoreError::Storage)?;
+                    Ok(changed)
+                }
+                Err(error) => {
+                    let _ = conn.execute_batch("ROLLBACK");
+                    Err(error)
+                }
+            }
+        })
+    }
+
     fn sync_policy(
         &self,
         visibility: Visibility,
@@ -392,6 +454,16 @@ impl From<StoreError> for ReadError {
     }
 }
 
+impl From<StoreError> for CheckpointError {
+    fn from(error: StoreError) -> Self {
+        match error {
+            StoreError::Storage | StoreError::WorldMismatch | StoreError::CursorOwnersFull => {
+                Self::Storage
+            }
+        }
+    }
+}
+
 fn submit_tx(
     conn: &mut Connection,
     principal: &str,
@@ -481,9 +553,17 @@ fn insert_event(
         "actor": principal,
         "body": {"message": message}
     });
+    let original_sha256 = crate::merkle::encode_hex(&crate::merkle::sha256_bytes(bytes));
     conn.execute(
-        "INSERT INTO events (sequence, id, actor, event_json, message_json) VALUES (?1, ?2, ?3, ?4, ?5)",
-        params![sequence, id, principal, event.to_string(), message.to_string()],
+        "INSERT INTO events (sequence, id, actor, event_json, message_json, original_record_sha256) VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+        params![
+            sequence,
+            id,
+            principal,
+            event.to_string(),
+            message.to_string(),
+            original_sha256
+        ],
     )
     .map_err(|_| StoreError::Storage)?;
     let receipt = json!({
@@ -574,6 +654,7 @@ fn collaborate_tx(
                     principal,
                     world_id,
                     &stored,
+                    bytes,
                     "artifact.recorded",
                     now,
                 )?;
@@ -589,8 +670,9 @@ fn collaborate_tx(
                 } else {
                     "decline.recorded"
                 };
-                let receipt =
-                    insert_collaboration(conn, principal, world_id, &record, event_kind, now)?;
+                let receipt = insert_collaboration(
+                    conn, principal, world_id, &record, bytes, event_kind, now,
+                )?;
                 save_retry(conn, principal, &record_id, bytes, &receipt, now)?;
                 receipt
             }
@@ -784,6 +866,7 @@ fn insert_collaboration(
     principal: &str,
     world_id: &str,
     record: &Value,
+    original_bytes: &[u8],
     kind: &str,
     now: i64,
 ) -> Result<Value, CollaborateError> {
@@ -819,9 +902,17 @@ fn insert_collaboration(
         "actor": principal,
         "body": Value::Object(body)
     });
+    let original_sha256 = crate::merkle::encode_hex(&crate::merkle::sha256_bytes(original_bytes));
     conn.execute(
-        "INSERT INTO events (sequence, id, actor, event_json, message_json) VALUES (?1, ?2, ?3, ?4, ?5)",
-        params![sequence, id, principal, event.to_string(), record.to_string()],
+        "INSERT INTO events (sequence, id, actor, event_json, message_json, original_record_sha256) VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+        params![
+            sequence,
+            id,
+            principal,
+            event.to_string(),
+            record.to_string(),
+            original_sha256
+        ],
     )
     .map_err(|_| CollaborateError::Storage)?;
     Ok(json!({
@@ -1047,6 +1138,76 @@ fn read_page_tx(
             Err(error)
         }
     }
+}
+
+fn checkpoint_tx(
+    conn: &mut Connection,
+    world_id: &str,
+    from_size: Option<u64>,
+) -> Result<Value, CheckpointError> {
+    conn.execute_batch("BEGIN DEFERRED")
+        .map_err(|_| CheckpointError::Storage)?;
+    let outcome = (|| {
+        let mut statement = conn
+            .prepare(
+                "SELECT sequence, id, event_json, message_json, original_record_sha256
+                 FROM events ORDER BY sequence ASC",
+            )
+            .map_err(|_| CheckpointError::Storage)?;
+        let rows = statement
+            .query_map([], |row| {
+                Ok((
+                    row.get::<_, i64>(0)?,
+                    row.get::<_, String>(1)?,
+                    row.get::<_, String>(2)?,
+                    row.get::<_, String>(3)?,
+                    row.get::<_, Option<String>>(4)?,
+                ))
+            })
+            .map_err(|_| CheckpointError::Storage)?;
+        let mut leaves = Vec::new();
+        for row in rows {
+            let (sequence, id, event_json, message_json, orig_hex) =
+                row.map_err(|_| CheckpointError::Storage)?;
+            let seq = u64::try_from(sequence).map_err(|_| CheckpointError::Storage)?;
+            let event: Value =
+                serde_json::from_str(&event_json).map_err(|_| CheckpointError::Storage)?;
+            let timestamp = event["timestamp"]
+                .as_str()
+                .ok_or(CheckpointError::Storage)?;
+            let orig_hash = match orig_hex {
+                Some(hex) => crate::merkle::decode_hex(&hex).ok_or(CheckpointError::Storage)?,
+                None => crate::merkle::sha256_bytes(message_json.as_bytes()),
+            };
+            leaves.push(crate::merkle::leaf_hash(&id, seq, timestamp, &orig_hash));
+        }
+        drop(statement);
+        let tree_size = leaves.len() as u64;
+        let root = crate::merkle::root_hash(&leaves);
+        let origin = crate::merkle::checkpoint_origin(world_id);
+        let note = crate::merkle::format_c2sp_checkpoint(&origin, tree_size, &root);
+        let mut body = json!({
+            "format": "c2sp.org/tlog-checkpoint",
+            "world_id": world_id,
+            "origin": origin,
+            "tree_size": tree_size,
+            "root_hash_sha256": crate::merkle::encode_hex(&root),
+            "checkpoint": note,
+        });
+        if let Some(m) = from_size {
+            if m == 0 || m > tree_size {
+                return Err(CheckpointError::InvalidFromSize);
+            }
+            let m_usize = usize::try_from(m).map_err(|_| CheckpointError::InvalidFromSize)?;
+            let proof = crate::merkle::consistency_proof(&leaves, m_usize)
+                .ok_or(CheckpointError::InvalidFromSize)?;
+            let hex_proof: Vec<String> = proof.iter().map(crate::merkle::encode_hex).collect();
+            body["consistency_proof"] = json!(hex_proof);
+        }
+        Ok(body)
+    })();
+    let _ = conn.execute_batch("ROLLBACK");
+    outcome
 }
 
 fn prefix_digest(
@@ -1301,7 +1462,8 @@ mod growth_tests {
         for count in [100, 100_000] {
             conn.execute("WITH RECURSIVE padding(n) AS (
                 SELECT COALESCE(MAX(sequence), 0) + 1 FROM events UNION ALL SELECT n + 1 FROM padding WHERE n < ?1)
-                INSERT INTO events SELECT n, 'event:padding-' || n, 'agent:other',
+                INSERT INTO events (sequence, id, actor, event_json, message_json)
+                SELECT n, 'event:padding-' || n, 'agent:other',
                   json_object('kind', 'message.recorded', 'sequence', n),
                   json_object('type', 'message', 'id', 'message:padding-' || n, 'body', json_object('text', 'padding'))
                 FROM padding", params![count]).expect("padding");

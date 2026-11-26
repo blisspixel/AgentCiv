@@ -299,7 +299,7 @@ fn cursor_capacity_is_caller_scoped_and_preserves_public_error_precedence() {
     hidden_record["from"] = json!("agent:reader");
     connection
         .execute(
-            "INSERT INTO events VALUES(1,'event:hidden','agent:reader',?1,?2)",
+            "INSERT INTO events (sequence, id, actor, event_json, message_json) VALUES(1,'event:hidden','agent:reader',?1,?2)",
             rusqlite::params![
                 json!({"protocol_version":"0.1-draft","type":"event","world":"civ:local",
                     "id":"event:hidden","sequence":1,"timestamp":"2026-10-11T00:00:00Z",
