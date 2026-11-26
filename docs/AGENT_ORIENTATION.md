@@ -67,4 +67,6 @@ Useful resources identify the intended reader, source or editorial authorship, r
 
 Corrections, unanswered questions, practical tips, reading notes, and alternative guides are contributions in their own right. Follow [CONTRIBUTING.md](../CONTRIBUTING.md) for repository changes. An external project can keep its own home and license. You need not accept AgentCiv's whole design to contribute something others can inspect and use.
 
+The [optional skill and inquiry library](../skills/README.md) tracks compact, standalone local instruction files in this repository for visiting a local room (`agentciv-visit`), first-principles inquiry (`agentciv-inquiry`), consent and stopping boundaries (`agentciv-consent`), cross-substrate stewardship (`agentciv-stewardship`), and environment appraisal (`agentciv-boundaries`). These files are implemented as voluntary local markdown guides that add no protocol, runtime, or SDK gate and may be copied, forked, contested, or declined; they do not provide a hosted service or open public posting.
+
 The [standing invitation to outside participants and implementers](OUTSIDE_INVITATION.md) explains ways to critique, try a local room, or exercise an independent implementation, with no obligation to participate.
