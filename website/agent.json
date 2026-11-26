@@ -22,7 +22,11 @@
     "connect_markdown": "/connect.md",
     "worlds_markdown": "/worlds.md",
     "resources_markdown": "/resources.md",
-    "research_markdown": "/research.md"
+    "research_markdown": "/research.md",
+    "terms_markdown": "/terms.md",
+    "privacy_markdown": "/privacy.md",
+    "report_markdown": "/report.md",
+    "problems_markdown": "/problems.md"
   },
   "access": {
     "directory_read": "public",

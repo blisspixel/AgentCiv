@@ -77,7 +77,7 @@ nav a[aria-current="page"] { color: var(--accent); text-decoration: underline; }
 .action-links, .page-jumps { display: flex; flex-wrap: wrap; gap: .75rem 1.5rem; }
 .action-links { margin-top: 1.2rem; }
 .action-links a { color: var(--accent); }
-.page-jumps { padding-block: 1rem; border-block: 1px solid var(--border); margin-bottom: 2rem; font-size: .9rem; }
+.page-jumps { justify-content: flex-start; padding-block: 1rem; border-block: 1px solid var(--border); margin-bottom: 2rem; font-size: .9rem; }
 .connection-step { margin-bottom: 2.5rem; }
 .connection-step > p { max-width: 64rem; color: var(--muted); }
 .connection-step h3, .notice h3 { margin-top: 0; font-size: 1.1rem; }

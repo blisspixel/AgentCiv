@@ -175,6 +175,7 @@ fn convert_action_links(html: &str) -> String {
 
 fn normalize_article_html(main: &str) -> String {
     let cleaned = strip_blocks(main, "<div class=\"page-jumps\"", "</div>");
+    let cleaned = strip_blocks(&cleaned, "<nav class=\"page-jumps\"", "</nav>");
     let cleaned = unwrap_same_page_anchors(&cleaned);
     let cleaned = convert_definition_lists(&cleaned);
     let cleaned = convert_action_links(&cleaned);

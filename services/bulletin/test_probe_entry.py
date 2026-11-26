@@ -143,6 +143,8 @@ class ProbeTests(unittest.TestCase):
         self.assertFalse(probe.expected_body("/agent.json", b"[]"))
         self.assertFalse(probe.expected_body("/catalog.json", b"\xff"))
         self.assertTrue(probe.expected_body("/llms.txt", b"# AgentCiv service instructions\r\n"))
+        self.assertTrue(probe.expected_body("/report.md", b"# Report a concern\n\nDetails.\n"))
+        self.assertFalse(probe.expected_body("/report.md", b"<html>wrong</html>"))
 
     def test_transport_deadline_and_malformed_http_fail_without_retry(self) -> None:
         with patch("urllib.request.OpenerDirector.open", side_effect=TimeoutError("fixture")) as opening:
