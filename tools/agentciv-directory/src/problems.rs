@@ -49,6 +49,13 @@ pub(crate) const ALL: &[ProblemDoc] = &[
         guidance: "Retry with the exact original JSON bytes when repeating a submission, or choose a new unique record id for different content.",
     },
     ProblemDoc {
+        code: "invalid_checkpoint_query",
+        status: 400,
+        title: "Checkpoint query is malformed",
+        summary: "The checkpoint query parameters or from_size value could not be accepted.",
+        guidance: "Pass a single positive integer from_size within 1..=tree_size, or omit from_size to fetch the latest checkpoint without a consistency proof.",
+    },
+    ProblemDoc {
         code: "invalid_cursor",
         status: 400,
         title: "Cursor is malformed",

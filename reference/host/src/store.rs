@@ -55,8 +55,9 @@ pub enum ReadError {
     Storage,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum CheckpointError {
+    Forbidden,
     InvalidFromSize,
     Storage,
 }
@@ -296,24 +297,29 @@ impl Store {
             conn.execute_batch("BEGIN IMMEDIATE")
                 .map_err(|_| StoreError::Storage)?;
             let outcome = (|| {
-                let row: Option<String> = conn
+                let row: Option<(String, String)> = conn
                     .query_row(
-                        "SELECT event_json FROM events WHERE sequence = ?1",
+                        "SELECT event_json, message_json FROM events WHERE sequence = ?1",
                         params![sequence],
-                        |row| row.get(0),
+                        |row| Ok((row.get(0)?, row.get(1)?)),
                     )
                     .optional()
                     .map_err(|_| StoreError::Storage)?;
-                let Some(event_json) = row else {
+                let Some((event_json, message_json)) = row else {
                     return Ok(false);
                 };
                 let mut event: Value =
                     serde_json::from_str(&event_json).map_err(|_| StoreError::Storage)?;
                 event["kind"] = json!("event.redacted");
                 event["body"] = json!({});
+                let routing = serde_json::from_str::<Value>(&message_json)
+                    .ok()
+                    .and_then(|message| message.get("to").cloned())
+                    .map(|to| json!({ "to": to }))
+                    .unwrap_or_else(|| json!({}));
                 conn.execute(
-                    "UPDATE events SET event_json = ?1, message_json = '{}' WHERE sequence = ?2",
-                    params![event.to_string(), sequence],
+                    "UPDATE events SET event_json = ?1, message_json = ?2 WHERE sequence = ?3",
+                    params![event.to_string(), routing.to_string(), sequence],
                 )
                 .map_err(|_| StoreError::Storage)?;
                 Ok(true)
@@ -1148,6 +1154,9 @@ fn checkpoint_tx(
     conn.execute_batch("BEGIN DEFERRED")
         .map_err(|_| CheckpointError::Storage)?;
     let outcome = (|| {
+        if policy(conn)?.visibility != Visibility::Members {
+            return Err(CheckpointError::Forbidden);
+        }
         let mut statement = conn
             .prepare(
                 "SELECT sequence, id, event_json, message_json, original_record_sha256

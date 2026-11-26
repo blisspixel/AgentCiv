@@ -156,7 +156,9 @@ pub fn format_checkpoint(
 pub fn parse_checkpoint(note: &str) -> Result<Checkpoint, CheckpointError> {
     let body = match note.split_once("\n\n") {
         Some((head, _sigs)) => head,
-        None => note.strip_suffix('\n').unwrap_or(note),
+        None => note
+            .strip_suffix('\n')
+            .ok_or(CheckpointError::InvalidFormat)?,
     };
     let mut lines = body.split('\n');
     let origin = lines.next().ok_or(CheckpointError::InvalidFormat)?;
@@ -185,7 +187,7 @@ pub fn parse_checkpoint(note: &str) -> Result<Checkpoint, CheckpointError> {
 
 fn valid_origin(origin: &str) -> bool {
     !origin.is_empty()
-        && !origin.bytes().any(|b| b.is_ascii_control() || b == b' ')
+        && !origin.chars().any(|c| c.is_control() || c.is_whitespace())
         && origin.len() <= 1024
 }
 
@@ -285,6 +287,9 @@ pub fn verify_consistency(
             observed_size: second_size,
         });
     }
+    if first_size == 0 && cached.root_hash != empty_root_hash() {
+        return Err(CheckpointError::Equivocation { tree_size: 0 });
+    }
     if second_size == first_size {
         if cached.root_hash != fresh.root_hash {
             return Err(CheckpointError::Equivocation {
@@ -297,9 +302,6 @@ pub fn verify_consistency(
         return Ok(());
     }
     if first_size == 0 {
-        if cached.root_hash != empty_root_hash() {
-            return Err(CheckpointError::Equivocation { tree_size: 0 });
-        }
         if !proof.is_empty() {
             return Err(CheckpointError::InvalidProof);
         }
@@ -512,6 +514,49 @@ mod tests {
                 "agentciv/civ:test\n1\n47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFV=\n"
             ),
             Err(CheckpointError::InvalidFormat)
+        );
+        // Missing mandatory trailing newline.
+        assert_eq!(
+            parse_checkpoint("agentciv/civ:test\n0\n47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU="),
+            Err(CheckpointError::InvalidFormat)
+        );
+        // Unicode whitespace and control characters in origin.
+        for bad_origin in [
+            "agentciv/civ:\u{00a0}test",
+            "agentciv/civ:\u{2003}test",
+            "agentciv/civ:\u{0085}test",
+        ] {
+            assert_eq!(
+                format_checkpoint(bad_origin, 0, &root),
+                Err(CheckpointError::InvalidFormat)
+            );
+            let raw = format!("{bad_origin}\n0\n47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=\n");
+            assert_eq!(parse_checkpoint(&raw), Err(CheckpointError::InvalidFormat));
+        }
+    }
+
+    #[test]
+    fn zero_size_consistency_rejects_forged_empty_root() {
+        let mut forged = empty_root_hash();
+        forged[0] ^= 0xff;
+        let forged_cp = Checkpoint {
+            origin: "agentciv/civ:test".to_owned(),
+            tree_size: 0,
+            root_hash: forged,
+        };
+        let valid_cp = Checkpoint {
+            origin: "agentciv/civ:test".to_owned(),
+            tree_size: 0,
+            root_hash: empty_root_hash(),
+        };
+        assert_eq!(verify_consistency(&valid_cp, &valid_cp, &[]), Ok(()));
+        assert_eq!(
+            verify_consistency(&forged_cp, &forged_cp, &[]),
+            Err(CheckpointError::Equivocation { tree_size: 0 })
+        );
+        assert_eq!(
+            verify_consistency(&valid_cp, &forged_cp, &[]),
+            Err(CheckpointError::Equivocation { tree_size: 0 })
         );
     }
 

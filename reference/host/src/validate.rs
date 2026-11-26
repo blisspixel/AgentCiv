@@ -107,6 +107,39 @@ fn registry() -> &'static jsonschema::Registry<'static> {
     })
 }
 
+fn compile_validator(source: &str) -> jsonschema::Validator {
+    jsonschema::options()
+        .with_registry(registry())
+        .should_validate_formats(true)
+        .build(&serde_json::from_str::<Value>(source).expect("bundled schema parses"))
+        .expect("bundled schema compiles")
+}
+
+fn message_validator() -> &'static jsonschema::Validator {
+    static VALIDATOR: OnceLock<jsonschema::Validator> = OnceLock::new();
+    VALIDATOR.get_or_init(|| compile_validator(MESSAGE_SCHEMA))
+}
+
+fn artifact_validator() -> &'static jsonschema::Validator {
+    static VALIDATOR: OnceLock<jsonschema::Validator> = OnceLock::new();
+    VALIDATOR.get_or_init(|| compile_validator(ARTIFACT_SCHEMA))
+}
+
+fn objection_validator() -> &'static jsonschema::Validator {
+    static VALIDATOR: OnceLock<jsonschema::Validator> = OnceLock::new();
+    VALIDATOR.get_or_init(|| compile_validator(OBJECTION_SCHEMA))
+}
+
+fn decline_validator() -> &'static jsonschema::Validator {
+    static VALIDATOR: OnceLock<jsonschema::Validator> = OnceLock::new();
+    VALIDATOR.get_or_init(|| compile_validator(DECLINE_SCHEMA))
+}
+
+fn withdrawal_validator() -> &'static jsonschema::Validator {
+    static VALIDATOR: OnceLock<jsonschema::Validator> = OnceLock::new();
+    VALIDATOR.get_or_init(|| compile_validator(WITHDRAWAL_SCHEMA))
+}
+
 pub fn message_error(record: &Value) -> Option<&'static str> {
     let Some(object) = record.as_object() else {
         return Some("invalid_record");
@@ -121,14 +154,7 @@ pub fn message_error(record: &Value) -> Option<&'static str> {
     {
         return Some("unsupported_record_type");
     }
-    if jsonschema::options()
-        .with_registry(registry())
-        .should_validate_formats(true)
-        .build(&serde_json::from_str::<Value>(MESSAGE_SCHEMA).expect("message schema parses"))
-        .expect("message schema compiles")
-        .validate(record)
-        .is_err()
-    {
+    if message_validator().validate(record).is_err() {
         return Some("invalid_record");
     }
     None
@@ -149,21 +175,14 @@ pub fn collaboration_error(record: &Value, bytes: &[u8]) -> Option<&'static str>
     let Some(kind) = object.get("type").and_then(Value::as_str) else {
         return Some("invalid_record");
     };
-    let schema = match kind {
-        "artifact_revision" => ARTIFACT_SCHEMA,
-        "objection" => OBJECTION_SCHEMA,
-        "decline" => DECLINE_SCHEMA,
-        "withdrawal" => WITHDRAWAL_SCHEMA,
+    let validator = match kind {
+        "artifact_revision" => artifact_validator(),
+        "objection" => objection_validator(),
+        "decline" => decline_validator(),
+        "withdrawal" => withdrawal_validator(),
         _ => return Some("unsupported_record_type"),
     };
-    if jsonschema::options()
-        .with_registry(registry())
-        .should_validate_formats(true)
-        .build(&serde_json::from_str::<Value>(schema).expect("collaboration schema parses"))
-        .expect("collaboration schema compiles")
-        .validate(record)
-        .is_err()
-    {
+    if validator.validate(record).is_err() {
         return Some("invalid_record");
     }
     if kind == "artifact_revision" && object.contains_key("revision") {

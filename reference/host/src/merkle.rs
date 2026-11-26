@@ -228,11 +228,14 @@ pub fn verify_consistency_proof(
     if first_size > second_size {
         return false;
     }
+    if first_size == 0 && *first_root != empty_root_hash() {
+        return false;
+    }
     if first_size == second_size {
         return proof.is_empty() && first_root == second_root;
     }
     if first_size == 0 {
-        return proof.is_empty() && *first_root == empty_root_hash();
+        return proof.is_empty();
     }
     if proof.is_empty() {
         return false;
@@ -370,5 +373,16 @@ mod tests {
             note,
             "agentciv/civ:test\n0\n47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=\n"
         );
+    }
+
+    #[test]
+    fn zero_size_consistency_rejects_forged_empty_root() {
+        let empty = empty_root_hash();
+        let mut forged = empty;
+        forged[0] ^= 0xff;
+        assert!(verify_consistency_proof(0, 0, &empty, &empty, &[]));
+        assert!(!verify_consistency_proof(0, 0, &forged, &forged, &[]));
+        assert!(!verify_consistency_proof(0, 0, &empty, &forged, &[]));
+        assert!(!verify_consistency_proof(0, 0, &forged, &empty, &[]));
     }
 }
