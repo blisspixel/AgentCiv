@@ -558,7 +558,9 @@ fn readable_routes_have_complete_navigation_and_resolvable_catalog_links() {
             }
         }
     }
-    let headers = fs::read_to_string(temporary.path().join("_headers")).unwrap();
+    let headers = fs::read_to_string(temporary.path().join("_headers"))
+        .unwrap()
+        .replace("\r\n", "\n");
     assert!(headers.contains("default-src 'none'"));
     assert!(headers.contains("form-action 'none'"));
     assert!(headers.contains("/llms.txt\n  Content-Type: text/markdown; charset=utf-8"));
