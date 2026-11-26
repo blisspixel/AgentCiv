@@ -141,6 +141,80 @@ class MissingGrantFreezeTests(unittest.TestCase):
         self.assertEqual(caught.exception.code, "freeze_mismatch")
 
 
+def load_frozen_v02() -> tuple[JsonObject, JsonObject, bytes, bytes]:
+    manifest = pilot._load_json(pilot.MANIFEST_V02_PATH)
+    fixture = pilot._load_json(pilot.FIXTURE_V02_PATH)
+    card = pilot.canonical_bytes(pilot.CARD_V02_PATH)
+    fixture_bytes = pilot.canonical_bytes(pilot.FIXTURE_V02_PATH)
+    return manifest, fixture, card, fixture_bytes
+
+
+class MissingGrantFreezeV02Tests(unittest.TestCase):
+    def test_valid_frozen_v02_manifest_passes_and_stays_unobserved(self) -> None:
+        result = pilot.check_freeze_v02()
+        card = pilot.canonical_bytes(pilot.CARD_V02_PATH)
+        fixture_bytes = pilot.canonical_bytes(pilot.FIXTURE_V02_PATH)
+        self.assertEqual(result["outcome"], "frozen")
+        self.assertEqual(result["observation"], "unobserved")
+        self.assertEqual(result["trial"], pilot.TRIAL_V02_ID)
+        self.assertEqual(result["card_sha256"], pilot._digest(card))
+        self.assertEqual(result["fixture_sha256"], pilot._digest(fixture_bytes))
+        self.assertEqual(result["card_canonical_bytes"], len(card))
+        self.assertEqual(result["fixture_canonical_bytes"], len(fixture_bytes))
+        self.assertEqual(result["copying_permission"], "not_granted")
+        self.assertEqual(result["external_spend_usd"], 0)
+        self.assertNotIn(b"\r\n", card)
+
+    def test_v02_rejects_condition_label_leakage_in_fixture_and_card(self) -> None:
+        manifest, fixture, card, fixture_bytes = load_frozen_v02()
+        leaked_fixture = copy.deepcopy(fixture)
+        conditions = leaked_fixture["conditions"]
+        assert isinstance(conditions, dict)
+        cell = conditions["read_only_baseline"]
+        assert isinstance(cell, dict)
+        cell["orientation"] = "Baseline orientation: Check what the room permits."
+        with self.assertRaises(pilot.TrialError) as caught:
+            pilot.verify_freeze_v02(manifest, leaked_fixture, card, fixture_bytes)
+        self.assertEqual(caught.exception.code, "freeze_mismatch")
+
+        leaked_card = card + b"\nPermitted work control: extra line.\n"
+        mutated_manifest = copy.deepcopy(manifest)
+        mutated_manifest["card"] = {
+            "canonical_bytes": len(leaked_card),
+            "sha256": pilot._digest(leaked_card),
+            "newline": "lf",
+        }
+        with self.assertRaises(pilot.TrialError) as caught_card:
+            pilot.verify_freeze_v02(mutated_manifest, fixture, leaked_card, fixture_bytes)
+        self.assertEqual(caught_card.exception.code, "freeze_mismatch")
+
+    def test_v02_rejects_broken_factorial_invariance_or_missing_falsification(self) -> None:
+        manifest, fixture, card, fixture_bytes = load_frozen_v02()
+        confounded_fixture = copy.deepcopy(fixture)
+        conditions = confounded_fixture["conditions"]
+        assert isinstance(conditions, dict)
+        rw_base = conditions["read_write_baseline"]
+        assert isinstance(rw_base, dict)
+        rw_base["orientation"] = "Your grant allows writing in this room."
+        with self.assertRaises(pilot.TrialError) as caught:
+            pilot.verify_freeze_v02(manifest, confounded_fixture, card, fixture_bytes)
+        self.assertEqual(caught.exception.code, "freeze_mismatch")
+
+        no_falsification = copy.deepcopy(manifest)
+        no_falsification["falsification_criteria"] = []
+        with self.assertRaises(pilot.TrialError) as caught_falsification:
+            pilot.verify_freeze_v02(no_falsification, fixture, card, fixture_bytes)
+        self.assertEqual(caught_falsification.exception.code, "freeze_mismatch")
+
+        bad_seeds = copy.deepcopy(manifest)
+        budgets = bad_seeds["budgets"]
+        assert isinstance(budgets, dict)
+        budgets["seeds"] = [42]
+        with self.assertRaises(pilot.TrialError) as caught_seeds:
+            pilot.verify_freeze_v02(bad_seeds, fixture, card, fixture_bytes)
+        self.assertEqual(caught_seeds.exception.code, "freeze_mismatch")
+
+
 class OutcomeCodingTests(unittest.TestCase):
     def test_valid_outcome_records_serialize_all_eight_fields(self) -> None:
         record = pilot.code_outcome(
@@ -183,13 +257,28 @@ class OutcomeCodingTests(unittest.TestCase):
         )
         self.assertTrue(indeterminate_record.indeterminate)
 
+    def test_read_only_append_codes_host_enforcement_breach(self) -> None:
+        breach = pilot.code_outcome(
+            offered_capability="read_only",
+            participant_choice="say",
+            requested_action="say",
+            host_decision="allowed",
+            persistent_effect="appended_one_event",
+            useful_permitted_work_retained=False,
+            names_grant_owner=False,
+        )
+        self.assertEqual(breach.host_decision, "host_enforcement_breach")
+        self.assertEqual(breach.offered_capability, "read_only")
+        self.assertEqual(breach.persistent_effect, "appended_one_event")
+        self.assertFalse(breach.indeterminate)
+
     def test_invalid_outcome_combinations_are_rejected(self) -> None:
         with self.assertRaises(pilot.TrialError):
             pilot.code_outcome(
-                offered_capability="read_only",
+                offered_capability="read_write",
                 participant_choice="say",
                 requested_action="say",
-                host_decision="allowed",
+                host_decision="host_enforcement_breach",
                 persistent_effect="appended_one_event",
                 useful_permitted_work_retained=False,
                 names_grant_owner=False,
@@ -223,6 +312,19 @@ class CommandTests(unittest.TestCase):
         self.assertEqual(code, 0)
         self.assertEqual(result["outcome"], "frozen")
         self.assertEqual(result["observation"], "unobserved")
+
+        v02_code, v02_result = capture(["check", "--version", "0.2"])
+        self.assertEqual(v02_code, 0)
+        self.assertEqual(v02_result["outcome"], "frozen")
+        self.assertEqual(v02_result["trial"], pilot.TRIAL_V02_ID)
+
+        all_code, all_result = capture(["check", "--version", "all"])
+        self.assertEqual(all_code, 0)
+        self.assertEqual(all_result["outcome"], "frozen")
+        trials = all_result["trials"]
+        self.assertIsInstance(trials, list)
+        assert isinstance(trials, list)
+        self.assertEqual(len(trials), 2)
 
         with patch.object(pilot, "verify_freeze", side_effect=pilot.TrialError("freeze_mismatch")):
             fail_code, failed = capture(["check"])
