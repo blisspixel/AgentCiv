@@ -13,7 +13,9 @@ use serde::Deserialize;
 use serde_json::{Value, json};
 
 use crate::store::{CollaborateError, ReadError, Store, SubmitError};
-use crate::validate::{collaboration_error, exact_integers, message_error, world_matches};
+use crate::validate::{
+    collaboration_error, exact_integers, message_error, parse_unique_json, world_matches,
+};
 use crate::{Credential, Visibility};
 
 #[derive(Clone)]
@@ -258,7 +260,7 @@ fn reject(status: StatusCode, code: &'static str, title: &'static str) -> Submit
     }
 }
 
-/// Parse a request body, refusing integers serde_json would round so stored fields stay exact.
+/// Parse a request body, refusing duplicate keys and integers serde_json would round so stored fields stay exact.
 fn parse_request(bytes: &[u8]) -> Result<Value, SubmitRejection> {
     let malformed = || {
         reject(
@@ -267,7 +269,7 @@ fn parse_request(bytes: &[u8]) -> Result<Value, SubmitRejection> {
             "JSON could not be parsed",
         )
     };
-    let record: Value = serde_json::from_slice(bytes).map_err(|_| malformed())?;
+    let record = parse_unique_json(bytes).ok_or_else(malformed)?;
     if !exact_integers(bytes) {
         return Err(malformed());
     }

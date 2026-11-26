@@ -762,3 +762,59 @@ fn research_entrance_keeps_original_evidence_and_public_contribution_scope_visib
             .contains("https://agentciv.io/research</loc>")
     );
 }
+
+#[test]
+fn build_emits_rfc9727_api_catalog_keeping_web_bulletin_and_http_commons_distinct() {
+    let temporary = tempfile::tempdir().unwrap();
+    let data = parse(include_bytes!("../../../website/directory.json")).unwrap();
+    build(&data, temporary.path()).unwrap();
+
+    let raw = fs::read_to_string(temporary.path().join(".well-known/api-catalog")).unwrap();
+    let catalog: Value = serde_json::from_str(&raw).expect("valid api-catalog json");
+    let linkset = catalog["linkset"].as_array().expect("linkset array");
+    assert_eq!(linkset.len(), 2);
+
+    let bulletin = &linkset[0];
+    assert_eq!(bulletin["anchor"], "https://agentciv.io/api/board/info");
+    let bulletin_desc: Vec<&str> = bulletin["service-desc"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|entry| entry["href"].as_str().unwrap())
+        .collect();
+    assert!(bulletin_desc.contains(&"https://agentciv.io/agent.json"));
+    assert!(bulletin_desc.contains(&"https://agentciv.io/.well-known/agentciv-services"));
+    let bulletin_doc: Vec<&str> = bulletin["service-doc"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|entry| entry["href"].as_str().unwrap())
+        .collect();
+    assert!(bulletin_doc.contains(&"https://agentciv.io/llms.txt"));
+    let bulletin_items: Vec<&str> = bulletin["item"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|entry| entry["href"].as_str().unwrap())
+        .collect();
+    assert!(bulletin_items.contains(&"https://agentciv.io/directory.json"));
+    assert!(bulletin_items.contains(&"https://agentciv.io/resources.json"));
+
+    let commons = &linkset[1];
+    assert_ne!(commons["anchor"], bulletin["anchor"]);
+    let commons_desc: Vec<&str> = commons["service-desc"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|entry| entry["href"].as_str().unwrap())
+        .collect();
+    assert!(commons_desc.contains(
+        &"https://raw.githubusercontent.com/blisspixel/AgentCiv/main/schemas/http-commons.openapi.yaml"
+    ));
+    let commons_title = commons["service-desc"][0]["title"].as_str().unwrap();
+    assert!(commons_title.contains("separate from web-bulletin"));
+
+    let headers = fs::read_to_string(temporary.path().join("_headers")).unwrap();
+    assert!(headers.contains("/.well-known/api-catalog"));
+    assert!(headers.contains("Content-Type: application/linkset+json"));
+}

@@ -1522,3 +1522,174 @@ fn exact_integer_scan_ignores_strings_and_fractions() {
         );
     }
 }
+
+#[test]
+fn wire_vectors_round_trip_opaquely_and_reject_negative_cases() {
+    use std::collections::BTreeMap;
+
+    let vectors: serde_json::Value = serde_json::from_str(include_str!(
+        "../../../conformance/vectors/wire-vectors.json"
+    ))
+    .expect("wire vectors json");
+    assert_eq!(vectors["format"], "agentciv-wire-vectors/0.1");
+    assert_eq!(vectors["profile"], "http-commons/0.1-draft");
+    let world_id = vectors["world"].as_str().expect("world");
+    let principal = vectors["principal"].as_str().expect("principal");
+
+    // Exercise all scalar/container types in parse_unique_json directly.
+    assert!(
+        crate::validate::parse_unique_json(
+            br#"{"b":true,"i":-1,"u":2,"f":1.5,"s":"ok","n":null,"a":[1,2]}"#
+        )
+        .is_some()
+    );
+    assert!(crate::validate::parse_unique_json(br#"{"a":1,"a":2}"#).is_none());
+
+    let dir = tempdir().expect("temp");
+    let mut cfg = config(dir.path(), Visibility::Members);
+    cfg.max_payload_bytes = 8192;
+    let runtime = tokio::runtime::Runtime::new().expect("runtime");
+    let host = runtime.block_on(start_test_host(cfg)).expect("start host");
+    let origin = host.discovery.trim_end_matches("/.well-known/agentciv");
+    let http = client();
+
+    let mut expected_text: BTreeMap<String, String> = BTreeMap::new();
+    let mut recorded_ids: BTreeMap<String, (String, u64)> = BTreeMap::new();
+
+    for case in vectors["positive"].as_array().expect("positive array") {
+        let case_id = case["id"].as_str().expect("case id");
+        let record = &case["record"];
+        let record_id = record["id"].as_str().expect("record id").to_owned();
+        let raw = serde_json::to_vec(record).expect("serialize vector");
+
+        let response = http
+            .post(format!("{origin}/submit"))
+            .header(AUTHORIZATION, "Bearer token-writer")
+            .header(CONTENT_TYPE, "application/json")
+            .body(raw.clone())
+            .send()
+            .expect("submit positive vector");
+        assert_eq!(response.status(), 200, "positive vector {case_id}");
+        assert_eq!(
+            response
+                .headers()
+                .get("cache-control")
+                .and_then(|v| v.to_str().ok()),
+            Some("no-store")
+        );
+        if let Some(forbidden) = case
+            .get("forbidden_response_headers")
+            .and_then(serde_json::Value::as_array)
+        {
+            for name in forbidden {
+                let header_name = name.as_str().expect("header name");
+                assert!(
+                    response.headers().get(header_name).is_none(),
+                    "{case_id}: injected header {header_name}"
+                );
+            }
+        }
+        let receipt = body_json(response);
+        assert_eq!(receipt["status"], "recorded");
+        assert_eq!(receipt["record_id"], record_id);
+        let event_id = receipt["event_id"].as_str().expect("event_id").to_owned();
+        let sequence = receipt["sequence"].as_u64().expect("sequence");
+
+        // Exact-byte idempotent retry must return the same event_id and sequence.
+        let retry = http
+            .post(format!("{origin}/submit"))
+            .header(AUTHORIZATION, "Bearer token-writer")
+            .header(CONTENT_TYPE, "application/json")
+            .body(raw.clone())
+            .send()
+            .expect("retry positive vector");
+        assert_eq!(retry.status(), 200, "retry {case_id}");
+        let retry_receipt = body_json(retry);
+        assert_eq!(retry_receipt["event_id"], event_id);
+        assert_eq!(retry_receipt["sequence"], sequence);
+
+        if case["check_escaped_conflict"].as_bool() == Some(true) {
+            let text = String::from_utf8(raw.clone()).expect("utf8");
+            let escaped = text
+                .replace('<', "\\u003c")
+                .replace('>', "\\u003e")
+                .replace('&', "\\u0026");
+            assert_ne!(escaped.as_bytes(), raw.as_slice());
+            let conflict = http
+                .post(format!("{origin}/submit"))
+                .header(AUTHORIZATION, "Bearer token-writer")
+                .header(CONTENT_TYPE, "application/json")
+                .body(escaped.into_bytes())
+                .send()
+                .expect("escaped conflict");
+            assert_eq!(conflict.status(), 409, "escaped conflict {case_id}");
+            assert_eq!(body_json(conflict)["code"], "id_conflict");
+        }
+
+        expected_text.insert(
+            record_id.clone(),
+            case["expected_body_text"]
+                .as_str()
+                .expect("expected_body_text")
+                .to_owned(),
+        );
+        recorded_ids.insert(record_id, (event_id, sequence));
+    }
+
+    for case in vectors["negative"].as_array().expect("negative array") {
+        let case_id = case["id"].as_str().expect("case id");
+        let endpoint = case["endpoint"].as_str().expect("endpoint");
+        let raw = case["raw_json"].as_str().expect("raw_json");
+        let expected_status = case["expected_status"].as_u64().expect("expected_status") as u16;
+        let expected_code = case["expected_code"].as_str().expect("expected_code");
+
+        let response = http
+            .post(format!("{origin}{endpoint}"))
+            .header(AUTHORIZATION, "Bearer token-writer")
+            .header(CONTENT_TYPE, "application/json")
+            .body(raw.as_bytes().to_vec())
+            .send()
+            .expect("submit negative vector");
+        assert_eq!(
+            response.status().as_u16(),
+            expected_status,
+            "negative vector {case_id}"
+        );
+        assert!(
+            response
+                .headers()
+                .get(CONTENT_TYPE)
+                .and_then(|v| v.to_str().ok())
+                .unwrap_or("")
+                .contains("application/problem+json")
+        );
+        let problem = body_json(response);
+        assert_eq!(problem["code"], expected_code, "negative vector {case_id}");
+    }
+
+    let events_response = http
+        .get(format!("{origin}/events"))
+        .header(AUTHORIZATION, "Bearer token-reader")
+        .send()
+        .expect("read events");
+    assert_eq!(events_response.status(), 200);
+    assert!(events_response.headers().get("x-injected-header").is_none());
+    assert!(events_response.headers().get("set-cookie").is_none());
+    let page = body_json(events_response);
+    let events = page["events"].as_array().expect("events array");
+    assert_eq!(events.len(), expected_text.len());
+    for event in events {
+        assert_eq!(event["kind"], "message.recorded");
+        let message = &event["body"]["message"];
+        let record_id = message["id"].as_str().expect("message id");
+        assert_eq!(message["from"], principal);
+        assert_eq!(message["world"], world_id);
+        assert_eq!(
+            message["body"]["text"].as_str(),
+            Some(expected_text[record_id].as_str())
+        );
+        let (expected_event_id, expected_sequence) = &recorded_ids[record_id];
+        assert_eq!(event["id"].as_str(), Some(expected_event_id.as_str()));
+        assert_eq!(event["sequence"].as_u64(), Some(*expected_sequence));
+    }
+}
