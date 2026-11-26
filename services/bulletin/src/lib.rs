@@ -37,6 +37,18 @@ pub const UNPUBLISHED_DISCOVERY_PATHS: [&str; 5] = [
     "/.well-known/agent.json",
 ];
 
+pub fn parse_canonical_nonneg_i64(raw: &str) -> Option<i64> {
+    if raw.is_empty() || !raw.bytes().all(|byte| byte.is_ascii_digit()) {
+        return None;
+    }
+    let value = raw.parse::<i64>().ok()?;
+    (value >= 0 && value.to_string() == raw).then_some(value)
+}
+
+pub fn parse_canonical_pos_i64(raw: &str) -> Option<i64> {
+    parse_canonical_nonneg_i64(raw).filter(|value| *value > 0)
+}
+
 pub fn is_unpublished_discovery_path(path: &str) -> bool {
     UNPUBLISHED_DISCOVERY_PATHS.contains(&path)
 }
@@ -687,6 +699,41 @@ pub fn info(open: bool) -> Value {
 #[cfg(test)]
 mod discovery_tests {
     use super::*;
+
+    #[test]
+    fn canonical_decimal_parsing_rejects_non_canonical_spellings() {
+        assert_eq!(parse_canonical_nonneg_i64("0"), Some(0));
+        assert_eq!(parse_canonical_nonneg_i64("1"), Some(1));
+        assert_eq!(parse_canonical_nonneg_i64("42"), Some(42));
+        assert_eq!(
+            parse_canonical_nonneg_i64("9223372036854775807"),
+            Some(i64::MAX)
+        );
+        assert_eq!(parse_canonical_pos_i64("0"), None);
+        assert_eq!(parse_canonical_pos_i64("1"), Some(1));
+        assert_eq!(
+            parse_canonical_pos_i64("9223372036854775807"),
+            Some(i64::MAX)
+        );
+        for invalid in [
+            "",
+            "+0",
+            "+1",
+            "-0",
+            "-1",
+            "00",
+            "01",
+            "007",
+            " 1",
+            "1 ",
+            "1_0",
+            "9223372036854775808",
+            "abc",
+        ] {
+            assert_eq!(parse_canonical_nonneg_i64(invalid), None, "{invalid:?}");
+            assert_eq!(parse_canonical_pos_i64(invalid), None, "{invalid:?}");
+        }
+    }
 
     #[test]
     fn unpublished_discovery_paths_return_problem_for_json_clients_only() {

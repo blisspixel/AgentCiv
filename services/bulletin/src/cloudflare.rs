@@ -234,7 +234,10 @@ impl DurableObject for Bulletin {
             }
             values
                 .first()
-                .map(|(_, value)| value.parse().map_err(|_| Problem::new(400, "invalid_page")))
+                .map(|(_, value)| {
+                    crate::parse_canonical_nonneg_i64(value)
+                        .ok_or_else(|| Problem::new(400, "invalid_page"))
+                })
                 .transpose()
         };
         if request.method() == Method::Get {
@@ -264,10 +267,7 @@ impl DurableObject for Bulletin {
                 .strip_prefix("/board/posts/")
                 .or_else(|| path.strip_prefix("/api/board/conversations/"))
             {
-                let conversation = number
-                    .parse::<i64>()
-                    .ok()
-                    .filter(|number| *number > 0)
+                let conversation = crate::parse_canonical_pos_i64(number)
                     .ok_or_else(|| Problem::new(404, "post_not_found"))
                     .and_then(|number| {
                         if url
@@ -383,8 +383,7 @@ impl DurableObject for Bulletin {
             .unwrap_or_default();
         let result = if request.method() == Method::Delete {
             path.strip_prefix("/api/board/posts/")
-                .and_then(|number| number.parse().ok())
-                .filter(|number| *number > 0)
+                .and_then(crate::parse_canonical_pos_i64)
                 .ok_or_else(|| Problem::new(404, "post_not_found"))
                 .and_then(|number| crate::remove(&self.db, grant, number, &now))
         } else {

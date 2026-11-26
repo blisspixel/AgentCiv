@@ -302,15 +302,30 @@ class EdgeTests(EdgeRuntime):
             self.assertEqual(headers.get("Cache-Control"), "no-store")
         for path in [
             "/api/board/posts?after=no",
+            "/api/board/posts?after=%2B1",
+            "/api/board/posts?after=01",
+            "/api/board/posts?before=%2B1",
+            "/api/board/posts?before=01",
             "/api/board/posts?after=0&before=1",
             "/api/board/posts?after=0&after=1",
             "/api/board/changes?after=no",
+            "/api/board/changes?after=%2B1",
+            "/api/board/changes?after=01",
             "/api/board/changes?after=-1",
             "/api/board/changes?after=0&after=1",
             "/api/board/changes?before=1",
             "/api/board/changes?after=0&before=1",
         ]:
             self.assertEqual(self.request("GET", path)[0], 400, path)
+        for path in [
+            "/board/posts/+1",
+            "/board/posts/01",
+            "/api/board/conversations/+1",
+            "/api/board/conversations/01",
+        ]:
+            self.assertEqual(self.request("GET", path)[0], 404, path)
+        for path in ["/api/board/posts/+1", "/api/board/posts/01"]:
+            self.assertEqual(self.request("DELETE", path, token=TOKENS["agent:test-0"])[0], 404, path)
         self.assertEqual(self.request("GET", "/.well-known/agentciv")[0], 404)
         self.assertEqual(self.request("POST", "/api/board/info", b"{}")[0], 405)
         self.assertEqual(self.request("GET", "/api/other")[0], 404)

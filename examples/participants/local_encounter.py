@@ -17,13 +17,19 @@ import subprocess
 import sys
 import threading
 import time
+import urllib.error
+import urllib.parse
+import urllib.request
 from collections.abc import Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass
+from http.client import HTTPMessage
 from pathlib import Path
 from types import FrameType
+from typing import IO
 
 import encounter_private as private
+from loopback import require_loopback
 
 JsonObject = dict[str, object]
 ROOT = Path(__file__).resolve().parents[2]
@@ -153,30 +159,92 @@ def _load_reading_table_fixture() -> list[tuple[str, JsonObject]]:
     return loaded
 
 
-def _http_json(method: str, url: str, token: str | None = None, body: bytes | None = None) -> tuple[int, JsonObject]:
-    import urllib.error
-    import urllib.request
+MAX_SEED_RESPONSE_BYTES = 1024 * 1024
 
+
+class _RefuseRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(
+        self,
+        req: urllib.request.Request,
+        fp: IO[bytes],
+        code: int,
+        msg: str,
+        headers: HTTPMessage,
+        newurl: str,
+    ) -> urllib.request.Request | None:
+        raise private.EncounterError("seed_submission_failed")
+
+
+def _require_seed_url(url: str, *, expected_origin: str | None = None) -> str:
+    try:
+        require_loopback(url)
+    except ValueError:
+        raise private.EncounterError("seed_submission_failed") from None
+    parts = urllib.parse.urlsplit(url)
+    if parts.fragment:
+        raise private.EncounterError("seed_submission_failed")
+    if expected_origin is not None:
+        origin_parts = urllib.parse.urlsplit(expected_origin)
+        if (parts.scheme, parts.hostname, parts.port) != (
+            origin_parts.scheme,
+            origin_parts.hostname,
+            origin_parts.port,
+        ):
+            raise private.EncounterError("seed_submission_failed")
+    return url
+
+
+def _seed_endpoint(endpoints: JsonObject, key: str, expected_origin: str) -> str:
+    value = endpoints.get(key)
+    if not isinstance(value, str):
+        raise private.EncounterError("seed_submission_failed")
+    return _require_seed_url(value, expected_origin=expected_origin)
+
+
+def _http_json(
+    method: str,
+    url: str,
+    token: str | None = None,
+    body: bytes | None = None,
+    *,
+    expected_origin: str | None = None,
+    max_bytes: int = MAX_SEED_RESPONSE_BYTES,
+) -> tuple[int, JsonObject]:
+    _require_seed_url(url, expected_origin=expected_origin)
     headers: dict[str, str] = {}
     if token is not None:
         headers["Authorization"] = f"Bearer {token}"
     if body is not None:
         headers["Content-Type"] = "application/json"
     request = urllib.request.Request(url, data=body, headers=headers, method=method)
+    opener = urllib.request.build_opener(urllib.request.ProxyHandler({}), _RefuseRedirect)
     try:
-        with urllib.request.urlopen(request, timeout=15) as response:
+        with opener.open(request, timeout=15) as response:
             status = int(response.status)
-            payload = response.read(1024 * 1024)
+            payload = response.read(max_bytes + 1)
+    except private.EncounterError:
+        raise
     except urllib.error.HTTPError as error:
-        status = int(error.code)
-        payload = error.read(1024 * 1024)
+        try:
+            status = int(error.code)
+            payload = error.read(max_bytes + 1)
+        finally:
+            error.close()
     except (OSError, ValueError):
         raise private.EncounterError("seed_submission_failed") from None
+    if len(payload) > max_bytes:
+        raise private.EncounterError("seed_submission_failed")
     return status, _json(payload)
 
 
-def _fetch_event_sha(events_url: str, token: str, event_id: str) -> str:
-    status, page = _http_json("GET", events_url, token=token)
+def _fetch_event_sha(
+    events_url: str,
+    token: str,
+    event_id: str,
+    *,
+    expected_origin: str | None = None,
+) -> str:
+    status, page = _http_json("GET", events_url, token=token, expected_origin=expected_origin)
     if status != 200:
         raise private.EncounterError("seed_submission_failed")
     events = page.get("events")
@@ -187,6 +255,53 @@ def _fetch_event_sha(events_url: str, token: str, event_id: str) -> str:
             serialized = json.dumps(item, ensure_ascii=False, separators=(",", ":"), allow_nan=False)
             return hashlib.sha256(serialized.encode("utf-8")).hexdigest()
     raise private.EncounterError("seed_submission_failed")
+
+
+@contextmanager
+def _running_seed_host(
+    state: Path,
+    world: str,
+    seed_principal: str,
+    retention_seconds: int,
+    host: str,
+    host_binary: Path | None,
+) -> Iterator[tuple[str, str, JsonObject]]:
+    seed_port = _ephemeral_port()
+    seed_origin = f"http://127.0.0.1:{seed_port}"
+    seed_token = secrets.token_urlsafe(32)
+    seed_config_path = state / ".seed-host.json"
+    owned: OwnedHost | None = None
+    try:
+        private.write_new(seed_config_path, _bytes({
+            "world_id": world,
+            "title": "Manual local encounter",
+            "database_path": str(state / "world.sqlite"),
+            "listen": f"127.0.0.1:{seed_port}",
+            "visibility": "addressed",
+            "retention_seconds": retention_seconds,
+            "max_payload_bytes": PAYLOAD_BYTES,
+            "credentials": [{"principal": seed_principal, "token": seed_token, "read": True, "write": True}],
+        }))
+        argv = _host_argv(seed_config_path, host, host_binary)
+        owned = _start(argv, seed_origin)
+        _wait_ready(owned)
+        status, descriptor = _http_json(
+            "GET",
+            f"{seed_origin}/.well-known/agentciv",
+            expected_origin=seed_origin,
+        )
+        if status != 200 or descriptor.get("id") != world:
+            raise private.EncounterError("seed_submission_failed")
+        endpoints = descriptor.get("endpoints")
+        if not isinstance(endpoints, dict):
+            raise private.EncounterError("seed_submission_failed")
+        yield seed_origin, seed_token, endpoints
+    finally:
+        if owned is not None:
+            _stop_owned(owned)
+        if seed_config_path.exists():
+            private.check_file(seed_config_path)
+            seed_config_path.unlink()
 
 
 def _seed_disclosure(source_event: JsonObject, source_sha256: str) -> JsonObject:
@@ -205,33 +320,14 @@ def _seed_disclosure(source_event: JsonObject, source_sha256: str) -> JsonObject
 def _seed_reading_table(state: Path, world: str, principals: list[str], retention_seconds: int,
                         host: str, host_binary: Path | None) -> int:
     fixture_events = _load_reading_table_fixture()
-    seed_port = _ephemeral_port()
-    seed_origin = f"http://127.0.0.1:{seed_port}"
-    seed_token = secrets.token_urlsafe(32)
-    seed_config_path = state / ".seed-host.json"
-    private.write_new(seed_config_path, _bytes({
-        "world_id": world,
-        "title": "Manual local encounter",
-        "database_path": str(state / "world.sqlite"),
-        "listen": f"127.0.0.1:{seed_port}",
-        "visibility": "addressed",
-        "retention_seconds": retention_seconds,
-        "max_payload_bytes": PAYLOAD_BYTES,
-        "credentials": [{"principal": SEED_PRINCIPAL, "token": seed_token, "read": True, "write": True}],
-    }))
-    argv = _host_argv(seed_config_path, host, host_binary)
-    owned = _start(argv, seed_origin)
-    try:
-        _wait_ready(owned)
-        status, descriptor = _http_json("GET", f"{seed_origin}/.well-known/agentciv")
-        if status != 200 or descriptor.get("id") != world:
-            raise private.EncounterError("seed_submission_failed")
-        endpoints = descriptor.get("endpoints")
-        if not isinstance(endpoints, dict):
-            raise private.EncounterError("seed_submission_failed")
-        submit_url = str(endpoints["submit"])
-        collaborate_url = str(endpoints["collaborate"])
-        events_url = str(endpoints["events"])
+    with _running_seed_host(state, world, SEED_PRINCIPAL, retention_seconds, host, host_binary) as (
+        seed_origin,
+        seed_token,
+        endpoints,
+    ):
+        submit_url = _seed_endpoint(endpoints, "submit", seed_origin)
+        collaborate_url = _seed_endpoint(endpoints, "collaborate", seed_origin)
+        events_url = _seed_endpoint(endpoints, "events", seed_origin)
 
         recorded: dict[str, tuple[str, str, int, str]] = {}  # source_event_id -> (event_id, artifact_id, revision, sha256)
         count = 0
@@ -296,12 +392,18 @@ def _seed_reading_table(state: Path, world: str, principals: list[str], retentio
                     submission["derived_from"] = {"from": SEED_PRINCIPAL, "artifact_id": pas_aid, "revision": pas_rev}
                 if "continuity_note" in inner:
                     submission["continuity_note"] = inner["continuity_note"]
-                post_status, receipt = _http_json("POST", collaborate_url, token=seed_token, body=_bytes(submission))
+                post_status, receipt = _http_json(
+                    "POST",
+                    collaborate_url,
+                    token=seed_token,
+                    body=_bytes(submission),
+                    expected_origin=seed_origin,
+                )
                 if post_status != 200 or receipt.get("status") != "recorded":
                     raise private.EncounterError("seed_submission_failed")
                 event_id = str(receipt["event_id"])
                 revision = int(str(receipt["revision"]))
-                sha = _fetch_event_sha(events_url, seed_token, event_id)
+                sha = _fetch_event_sha(events_url, seed_token, event_id, expected_origin=seed_origin)
                 recorded[source_id] = (event_id, artifact_id, revision, sha)
             elif kind in ("objection.recorded", "decline.recorded"):
                 key = "objection" if kind == "objection.recorded" else "decline"
@@ -323,7 +425,13 @@ def _seed_reading_table(state: Path, world: str, principals: list[str], retentio
                     "revision": pas_rev,
                     "body": body_copy,
                 }
-                post_status, receipt = _http_json("POST", collaborate_url, token=seed_token, body=_bytes(submission))
+                post_status, receipt = _http_json(
+                    "POST",
+                    collaborate_url,
+                    token=seed_token,
+                    body=_bytes(submission),
+                    expected_origin=seed_origin,
+                )
                 if post_status != 200 or receipt.get("status") != "recorded":
                     raise private.EncounterError("seed_submission_failed")
             elif kind == "message.recorded":
@@ -352,18 +460,19 @@ def _seed_reading_table(state: Path, world: str, principals: list[str], retentio
                     "to": principals,
                     "body": body_copy,
                 }
-                post_status, receipt = _http_json("POST", submit_url, token=seed_token, body=_bytes(submission))
+                post_status, receipt = _http_json(
+                    "POST",
+                    submit_url,
+                    token=seed_token,
+                    body=_bytes(submission),
+                    expected_origin=seed_origin,
+                )
                 if post_status != 200 or receipt.get("status") != "recorded":
                     raise private.EncounterError("seed_submission_failed")
             else:
                 raise private.EncounterError("seed_fixture_invalid")
             count += 1
         return count
-    finally:
-        _stop_owned(owned)
-        if seed_config_path.exists():
-            private.check_file(seed_config_path)
-            seed_config_path.unlink()
 
 
 def _threshold_seed_disclosure(invitation_id: str) -> JsonObject:
@@ -379,32 +488,12 @@ def _threshold_seed_disclosure(invitation_id: str) -> JsonObject:
 
 def _seed_threshold(state: Path, world: str, principals: list[str], retention_seconds: int,
                     host: str, host_binary: Path | None) -> int:
-    seed_port = _ephemeral_port()
-    seed_origin = f"http://127.0.0.1:{seed_port}"
-    seed_token = secrets.token_urlsafe(32)
-    seed_config_path = state / ".seed-host.json"
-    private.write_new(seed_config_path, _bytes({
-        "world_id": world,
-        "title": "Manual local encounter",
-        "database_path": str(state / "world.sqlite"),
-        "listen": f"127.0.0.1:{seed_port}",
-        "visibility": "addressed",
-        "retention_seconds": retention_seconds,
-        "max_payload_bytes": PAYLOAD_BYTES,
-        "credentials": [{"principal": THRESHOLD_SEED_PRINCIPAL, "token": seed_token, "read": True, "write": True}],
-    }))
-    argv = _host_argv(seed_config_path, host, host_binary)
-    owned = _start(argv, seed_origin)
-    try:
-        _wait_ready(owned)
-        status, descriptor = _http_json("GET", f"{seed_origin}/.well-known/agentciv")
-        if status != 200 or descriptor.get("id") != world:
-            raise private.EncounterError("seed_submission_failed")
-        endpoints = descriptor.get("endpoints")
-        if not isinstance(endpoints, dict):
-            raise private.EncounterError("seed_submission_failed")
-        submit_url = str(endpoints["submit"])
-
+    with _running_seed_host(state, world, THRESHOLD_SEED_PRINCIPAL, retention_seconds, host, host_binary) as (
+        seed_origin,
+        seed_token,
+        endpoints,
+    ):
+        submit_url = _seed_endpoint(endpoints, "submit", seed_origin)
         count = 0
         for index, (invitation_id, text) in enumerate(THRESHOLD_INVITATIONS, 1):
             submission: JsonObject = {
@@ -419,16 +508,17 @@ def _seed_threshold(state: Path, world: str, principals: list[str], retention_se
                     "seed_disclosure": _threshold_seed_disclosure(invitation_id),
                 },
             }
-            post_status, receipt = _http_json("POST", submit_url, token=seed_token, body=_bytes(submission))
+            post_status, receipt = _http_json(
+                "POST",
+                submit_url,
+                token=seed_token,
+                body=_bytes(submission),
+                expected_origin=seed_origin,
+            )
             if post_status != 200 or receipt.get("status") != "recorded":
                 raise private.EncounterError("seed_submission_failed")
             count += 1
         return count
-    finally:
-        _stop_owned(owned)
-        if seed_config_path.exists():
-            private.check_file(seed_config_path)
-            seed_config_path.unlink()
 
 
 def initialize(state: Path, world: str, writers: list[str], readers: list[str], port: int = 8787,

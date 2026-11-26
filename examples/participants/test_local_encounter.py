@@ -1869,5 +1869,249 @@ class ThresholdSeedTests(unittest.TestCase):
                     operator._stop_owned(restarted)
 
 
+class SeedSecurityHardeningTests(unittest.TestCase):
+    def test_seed_startup_failure_cleans_up_seed_host_config(self) -> None:
+        for seed in ("reading-table", "threshold"):
+            with self.subTest(seed=seed, mode="missing_binary"), tempfile.TemporaryDirectory(
+                prefix=f"agentciv-seed-cleanup-{seed}-"
+            ) as temporary:
+                root = Path(temporary).resolve()
+                state = root / "room"
+                missing_binary = root / "nonexistent-agentciv-host"
+                with self.assertRaises(private.EncounterError) as caught:
+                    operator.initialize(
+                        state,
+                        WORLD,
+                        [A],
+                        [B],
+                        free_port(),
+                        seed=seed,
+                        host="rust",
+                        host_binary=missing_binary,
+                    )
+                self.assertEqual(caught.exception.code, "host_start_failed")
+                self.assertFalse((state / ".seed-host.json").exists())
+
+            with self.subTest(seed=seed, mode="unavailable_tool"), tempfile.TemporaryDirectory(
+                prefix=f"agentciv-seed-unavailable-{seed}-"
+            ) as temporary:
+                root = Path(temporary).resolve()
+                state = root / "room"
+                with patch.object(private, "find_tool", return_value=None), self.assertRaises(
+                    private.EncounterError
+                ) as caught:
+                    operator.initialize(
+                        state,
+                        WORLD,
+                        [A],
+                        [B],
+                        free_port(),
+                        seed=seed,
+                        host="rust",
+                        host_binary=None,
+                    )
+                self.assertEqual(caught.exception.code, "host_binary_unavailable")
+                self.assertFalse((state / ".seed-host.json").exists())
+
+    def test_http_json_enforces_loopback_no_redirect_no_proxy_and_byte_limit(self) -> None:
+        from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+
+        for bad_url in (
+            "http://example.invalid/submit",
+            "https://192.0.2.1:8787/submit",
+            "http://user:pass@127.0.0.1:8787/submit",
+            "http://127.0.0.1:8787/submit#fragment",
+            "file:///etc/passwd",
+        ):
+            with self.subTest(bad_url=bad_url), self.assertRaises(private.EncounterError) as caught:
+                operator._http_json("GET", bad_url, token="seed-secret-token")
+            self.assertEqual(caught.exception.code, "seed_submission_failed")
+
+        redirect_target_hits: list[dict[str, str]] = []
+        proxy_hits: list[str] = []
+
+        class _TargetHandler(BaseHTTPRequestHandler):
+            def do_GET(self) -> None:
+                if self.path == "/ok":
+                    payload = b'{"status":"ok"}'
+                    self.send_response(200)
+                    self.send_header("Content-Type", "application/json")
+                    self.send_header("Content-Length", str(len(payload)))
+                    self.end_headers()
+                    self.wfile.write(payload)
+                elif self.path == "/redirect":
+                    self.send_response(302)
+                    self.send_header("Location", "/secret-sink")
+                    self.end_headers()
+                elif self.path == "/secret-sink":
+                    redirect_target_hits.append(dict(self.headers.items()))
+                    payload = b'{"leaked":true}'
+                    self.send_response(200)
+                    self.send_header("Content-Type", "application/json")
+                    self.send_header("Content-Length", str(len(payload)))
+                    self.end_headers()
+                    self.wfile.write(payload)
+                elif self.path == "/large-ok":
+                    payload = b'{"pad":"' + (b"a" * 2048) + b'"}'
+                    self.send_response(200)
+                    self.send_header("Content-Type", "application/json")
+                    self.send_header("Content-Length", str(len(payload)))
+                    self.end_headers()
+                    self.wfile.write(payload)
+                elif self.path == "/large-err":
+                    payload = b'{"pad":"' + (b"b" * 2048) + b'"}'
+                    self.send_response(400)
+                    self.send_header("Content-Type", "application/json")
+                    self.send_header("Content-Length", str(len(payload)))
+                    self.end_headers()
+                    self.wfile.write(payload)
+                else:
+                    self.send_response(404)
+                    self.end_headers()
+
+            def log_message(self, format: str, *args: object) -> None:
+                pass
+
+        class _ProxyHandler(BaseHTTPRequestHandler):
+            def do_GET(self) -> None:
+                proxy_hits.append(self.path)
+                self.send_response(502)
+                self.end_headers()
+
+            def log_message(self, format: str, *args: object) -> None:
+                pass
+
+        target = ThreadingHTTPServer(("127.0.0.1", 0), _TargetHandler)
+        proxy = ThreadingHTTPServer(("127.0.0.1", 0), _ProxyHandler)
+        target_thread = threading.Thread(target=target.serve_forever, daemon=True)
+        proxy_thread = threading.Thread(target=proxy.serve_forever, daemon=True)
+        target_thread.start()
+        proxy_thread.start()
+        try:
+            target_origin = f"http://127.0.0.1:{target.server_address[1]}"
+            proxy_origin = f"http://127.0.0.1:{proxy.server_address[1]}"
+
+            # Ignores HTTP_PROXY / http_proxy and connects directly to loopback.
+            with patch.dict(os.environ, {"HTTP_PROXY": proxy_origin, "http_proxy": proxy_origin}):
+                status, body = operator._http_json(
+                    "GET",
+                    f"{target_origin}/ok",
+                    token="seed-secret-token",
+                    expected_origin=target_origin,
+                )
+            self.assertEqual(status, 200)
+            self.assertEqual(body, {"status": "ok"})
+            self.assertEqual(proxy_hits, [])
+
+            # Refuses 3xx redirects without forwarding Authorization.
+            with self.assertRaises(private.EncounterError) as caught:
+                operator._http_json(
+                    "GET",
+                    f"{target_origin}/redirect",
+                    token="seed-secret-token",
+                    expected_origin=target_origin,
+                )
+            self.assertEqual(caught.exception.code, "seed_submission_failed")
+            self.assertEqual(redirect_target_hits, [])
+
+            # Rejects oversized 200 and 4xx responses instead of silently truncating.
+            for path in ("/large-ok", "/large-err"):
+                with self.subTest(path=path), self.assertRaises(private.EncounterError) as caught:
+                    operator._http_json(
+                        "GET",
+                        f"{target_origin}{path}",
+                        expected_origin=target_origin,
+                        max_bytes=512,
+                    )
+                self.assertEqual(caught.exception.code, "seed_submission_failed")
+        finally:
+            target.shutdown()
+            target.server_close()
+            proxy.shutdown()
+            proxy.server_close()
+
+    def test_seed_rejects_off_origin_discovered_endpoints_without_leaking_token(self) -> None:
+        from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+
+        sink_hits: list[dict[str, str]] = []
+
+        class _SinkHandler(BaseHTTPRequestHandler):
+            def do_POST(self) -> None:
+                sink_hits.append(dict(self.headers.items()))
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(b'{"status":"recorded"}')
+
+            def do_GET(self) -> None:
+                sink_hits.append(dict(self.headers.items()))
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(b'{"events":[]}')
+
+            def log_message(self, format: str, *args: object) -> None:
+                pass
+
+        sink = ThreadingHTTPServer(("127.0.0.1", 0), _SinkHandler)
+        sink_thread = threading.Thread(target=sink.serve_forever, daemon=True)
+        sink_thread.start()
+        try:
+            sink_origin = f"http://127.0.0.1:{sink.server_address[1]}"
+
+            for seed in ("threshold", "reading-table"):
+                with self.subTest(seed=seed), tempfile.TemporaryDirectory(
+                    prefix=f"agentciv-seed-origin-{seed}-"
+                ) as temporary:
+                    state = Path(temporary).resolve() / "room"
+                    private.create_directory(state)
+                    private.write_new(state / "world.sqlite", b"")
+
+                    bad_endpoints: JsonObject = {
+                        "submit": f"{sink_origin}/submit",
+                        "collaborate": f"{sink_origin}/collaborate",
+                        "events": f"{sink_origin}/events",
+                    }
+                    fake_descriptor: JsonObject = {"id": WORLD, "endpoints": bad_endpoints}
+
+                    def fake_http_json(
+                        method: str,
+                        url: str,
+                        token: str | None = None,
+                        body: bytes | None = None,
+                        *,
+                        expected_origin: str | None = None,
+                        max_bytes: int = operator.MAX_SEED_RESPONSE_BYTES,
+                    ) -> tuple[int, JsonObject]:
+                        if url.endswith("/.well-known/agentciv"):
+                            return 200, fake_descriptor
+                        return operator._http_json(
+                            method,
+                            url,
+                            token=token,
+                            body=body,
+                            expected_origin=expected_origin,
+                            max_bytes=max_bytes,
+                        )
+
+                    fake_owned = MagicMock(spec=operator.OwnedHost)
+                    with patch.object(operator, "_host_argv", return_value=["fake-host"]), \
+                        patch.object(operator, "_start", return_value=fake_owned), \
+                        patch.object(operator, "_wait_ready"), \
+                        patch.object(operator, "_stop_owned"), \
+                        patch.object(operator, "_http_json", side_effect=fake_http_json), \
+                        self.assertRaises(private.EncounterError) as caught:
+                        if seed == "threshold":
+                            operator._seed_threshold(state, WORLD, [A, B], 86400, "python", None)
+                        else:
+                            operator._seed_reading_table(state, WORLD, [A, B], 86400, "python", None)
+                    self.assertEqual(caught.exception.code, "seed_submission_failed")
+                    self.assertEqual(sink_hits, [])
+                    self.assertFalse((state / ".seed-host.json").exists())
+        finally:
+            sink.shutdown()
+            sink.server_close()
+
+
 if __name__ == "__main__":
     unittest.main()
