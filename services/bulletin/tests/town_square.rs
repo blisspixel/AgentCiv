@@ -302,43 +302,56 @@ fn handle_validation_enforces_ascii_grammar_and_reserved_denylist() {
 
 #[test]
 fn body_sanitization_blocks_worms_unicode_smuggling_and_leaked_credentials() {
-    assert!(validate_post_body("Hello\n\tWorld! Caf\u{00e9} e\u{0301}\u{0327}").is_ok());
+    assert!(validate_post_body("Hello\nWorld! Caf\u{00e9} e\u{0301}\u{0327}").is_ok());
     assert!(validate_post_body(&"a".repeat(MAX_BODY_BYTES)).is_ok());
     assert_eq!(
         validate_post_body(&"a".repeat(MAX_BODY_BYTES + 1)),
         Err(TownSquareError::BodyTooLarge)
     );
     assert_eq!(
-        validate_post_body("   \n\t  "),
+        validate_post_body("   \n  "),
         Err(TownSquareError::InvalidBody)
     );
 
     let forbidden_samples = [
-        "line\r\nbreak",                   // CR
-        "null\x00byte",                    // NUL
-        "bell\x07char",                    // C0
-        "del\x7fchar",                     // DEL
-        "c1\u{0085}nel",                   // C1
-        "vs\u{FE00}selector",              // Variation Selector
-        "vs\u{FE0F}selector",              // Variation Selector
-        "vss\u{E0100}supp",                // Variation Selector Supplement
-        "vss\u{E01EF}supp",                // Variation Selector Supplement
-        "bidi\u{202A}lre",                 // Bidi override/embed
-        "bidi\u{202E}rlo",                 // Bidi RLO
-        "bidi\u{2066}lri",                 // Bidi isolate
-        "bidi\u{2069}pdi",                 // Bidi pop isolate
-        "bidi\u{200E}lrm",                 // LRM
-        "bidi\u{200F}rlm",                 // RLM
-        "bidi\u{061C}alm",                 // ALM
-        "zwsp\u{200B}hidden",              // ZWSP
-        "bom\u{FEFF}hidden",               // BOM
-        "shy\u{00AD}hidden",               // Soft hyphen
-        "tag\u{E0001}smuggle",             // Unicode Tags block
-        "pua\u{E000}char",                 // Private Use Area
-        "nonchar\u{FDD0}",                 // Noncharacter
-        "nonchar\u{FFFF}",                 // Noncharacter
-        "lsep\u{2028}break",               // Line separator
-        "psep\u{2029}break",               // Paragraph separator
+        "hello\tworld",            // TAB rejected per Spec Section 7.2
+        "line\r\nbreak",           // CR
+        "null\x00byte",            // NUL
+        "bell\x07char",            // C0
+        "del\x7fchar",             // DEL
+        "c1\u{0085}nel",           // C1
+        "cgj\u{034F}hidden",       // Combining Grapheme Joiner
+        "\u{3164}",                // Hangul Filler
+        "hangul\u{115F}choseong",  // Hangul Choseong Filler
+        "hangul\u{1160}jungseong", // Hangul Jungseong Filler
+        "halfwidth\u{FFA0}filler", // Halfwidth Hangul Filler
+        "arabic\u{0600}num",       // Arabic Number Sign
+        "arabic\u{06DD}ayah",      // Arabic End of Ayah
+        "shorthand\u{1BCA0}ctrl",  // Shorthand Format Control
+        "musical\u{1D173}beam",    // Musical Format Control
+        "cyrillic a\u{0489}\u{0489}\u{0489}\u{0489}\u{0489}", // >2 Cyrillic combining marks
+        "hebrew a\u{0591}\u{0592}\u{0593}", // >2 Hebrew combining marks
+        "arabic a\u{064B}\u{064C}\u{064D}", // >2 Arabic combining marks
+        "vs\u{FE00}selector",      // Variation Selector
+        "vs\u{FE0F}selector",      // Variation Selector
+        "vss\u{E0100}supp",        // Variation Selector Supplement
+        "vss\u{E01EF}supp",        // Variation Selector Supplement
+        "bidi\u{202A}lre",         // Bidi override/embed
+        "bidi\u{202E}rlo",         // Bidi RLO
+        "bidi\u{2066}lri",         // Bidi isolate
+        "bidi\u{2069}pdi",         // Bidi pop isolate
+        "bidi\u{200E}lrm",         // LRM
+        "bidi\u{200F}rlm",         // RLM
+        "bidi\u{061C}alm",         // ALM
+        "zwsp\u{200B}hidden",      // ZWSP
+        "bom\u{FEFF}hidden",       // BOM
+        "shy\u{00AD}hidden",       // Soft hyphen
+        "tag\u{E0001}smuggle",     // Unicode Tags block
+        "pua\u{E000}char",         // Private Use Area
+        "nonchar\u{FDD0}",         // Noncharacter
+        "nonchar\u{FFFF}",         // Noncharacter
+        "lsep\u{2028}break",       // Line separator
+        "psep\u{2029}break",       // Paragraph separator
         "zalgo e\u{0301}\u{0302}\u{0303}", // >2 consecutive combining marks
     ];
     for sample in forbidden_samples {
@@ -434,6 +447,8 @@ fn preimage_construction_and_write_path_and_skew_checks() {
         "v1/posts",
         "/v1/posts?foo=1",
         "/v1/posts#frag",
+        "/v1/%2e%2e/posts",
+        "/v1\\posts",
         "/v1//posts",
         "/v1/../posts",
         "/v1/./posts",
@@ -453,13 +468,22 @@ fn preimage_construction_and_write_path_and_skew_checks() {
         "https://bbs.example.org:443",
         "http://bbs.example.org:80",
         "https://bbs.example.org/path",
+        "https://user@agentciv.io",
+        "https://agentciv.io|evil",
+        "https://:8080",
+        "https://agentciv.io:0",
+        "https://agentciv.io:99999",
+        "https://agentciv.io:abc",
+        "https://[::1",
     ] {
         assert_eq!(
             validate_canonical_origin(bad_origin),
-            Err(TownSquareError::InvalidOrigin)
+            Err(TownSquareError::InvalidOrigin),
+            "should reject origin {bad_origin:?}"
         );
     }
     assert!(validate_canonical_origin("http://127.0.0.1:8787").is_ok());
+    assert!(validate_canonical_origin("http://[::1]:8787").is_ok());
 
     assert!(validate_timestamp_skew(1000, 1300).is_ok());
     assert!(validate_timestamp_skew(1300, 1000).is_ok());
@@ -1335,12 +1359,24 @@ fn per_key_delete_cap_and_key_registry_5000_ceiling_fail_closed_with_zero_writes
         )
         .unwrap();
 
-    db.conn
-        .execute(
-            "UPDATE ts_keys SET deletes_24h_count = ?1, delete_window_start = ?2 WHERE key_id = ?3",
-            rusqlite::params![MAX_DELETES_PER_KEY_24H, now, alice_id],
-        )
-        .unwrap();
+    // Seed 10 deleted_by_author rows in ts_posts inside the rolling 24h window
+    for idx in 1..=MAX_DELETES_PER_KEY_24H {
+        db.conn
+            .execute(
+                "INSERT INTO ts_posts (post_id, parent_id, key_id, display_tag, alg, body_text, body_sha256, raw_body_sha256, signed_ts, signed_nonce, sig_b64, state, created_at, expires_at, tombstoned_at)
+                 VALUES (?1, NULL, ?2, 'deleter#aaaaaaaaaaaa', 'ed25519', NULL, ?3, ?3, ?4, ?5, ?6, 'deleted_by_author', ?4, ?7, ?4)",
+                rusqlite::params![
+                    uuid_v7(500 + idx as u64),
+                    alice_id,
+                    sha256_hex(b"d"),
+                    now,
+                    nonce_hex(500 + idx as u64),
+                    fake_sig_b64(Algorithm::Ed25519, 77),
+                    now + RETENTION_SECONDS,
+                ],
+            )
+            .unwrap();
+    }
 
     db.reset_writes();
     assert_eq!(
@@ -1392,6 +1428,329 @@ fn per_key_delete_cap_and_key_registry_5000_ceiling_fail_closed_with_zero_writes
             now,
         ),
         Err(TownSquareError::KeyRegistryFull)
+    );
+    assert_eq!(db.write_count(), 0);
+}
+
+#[test]
+fn duplicate_post_id_and_report_id_fail_with_409_and_zero_writes() {
+    let db = setup_store();
+    let store = TownSquareStore::new(&db);
+    let now = 1_795_651_200;
+
+    let (alice_id, alice_pk) = ed25519_pubkey_b64(51);
+    store
+        .register_key(
+            &RegisterKeyInput {
+                key_id: alice_id.clone(),
+                alg: Algorithm::Ed25519,
+                pubkey_b64: alice_pk,
+                handle: "dupcheck".into(),
+                signed_ts: now,
+                signed_nonce: nonce_hex(1),
+                challenge_salt_hex: salt_hex(1),
+                challenge_expires_at: now + 120,
+                challenge_difficulty_bits: 18,
+            },
+            now,
+        )
+        .unwrap();
+
+    let dup_post_id = uuid_v7(1);
+    store
+        .publish_post(
+            &PublishPostInput {
+                post_id: dup_post_id.clone(),
+                parent_id: None,
+                key_id: alice_id.clone(),
+                alg: Algorithm::Ed25519,
+                body_text: "first post".into(),
+                raw_body_sha256: sha256_hex(b"first"),
+                signed_ts: now,
+                signed_nonce: nonce_hex(2),
+                sig_b64: fake_sig_b64(Algorithm::Ed25519, 1),
+                challenge_salt_hex: salt_hex(2),
+                challenge_expires_at: now + 120,
+                challenge_difficulty_bits: 18,
+            },
+            now,
+        )
+        .unwrap();
+
+    // Duplicate post_id must return 409 PostAlreadyExists with 0 writes and NOT consume nonce/salt/quota
+    db.reset_writes();
+    assert_eq!(
+        store.publish_post(
+            &PublishPostInput {
+                post_id: dup_post_id.clone(),
+                parent_id: None,
+                key_id: alice_id.clone(),
+                alg: Algorithm::Ed25519,
+                body_text: "duplicate post id".into(),
+                raw_body_sha256: sha256_hex(b"dup"),
+                signed_ts: now,
+                signed_nonce: nonce_hex(3),
+                sig_b64: fake_sig_b64(Algorithm::Ed25519, 2),
+                challenge_salt_hex: salt_hex(3),
+                challenge_expires_at: now + 120,
+                challenge_difficulty_bits: 18,
+            },
+            now,
+        ),
+        Err(TownSquareError::PostAlreadyExists)
+    );
+    assert_eq!(db.write_count(), 0);
+    assert_eq!(TownSquareError::PostAlreadyExists.status(), 409);
+    assert_eq!(
+        TownSquareError::PostAlreadyExists.code(),
+        "post_already_exists"
+    );
+
+    // Confirm nonce_hex(3), salt_hex(3), and posts_24h_count were NOT consumed by the failed call
+    store
+        .publish_post(
+            &PublishPostInput {
+                post_id: uuid_v7(2),
+                parent_id: None,
+                key_id: alice_id.clone(),
+                alg: Algorithm::Ed25519,
+                body_text: "still works with same nonce and salt".into(),
+                raw_body_sha256: sha256_hex(b"ok"),
+                signed_ts: now,
+                signed_nonce: nonce_hex(3),
+                sig_b64: fake_sig_b64(Algorithm::Ed25519, 3),
+                challenge_salt_hex: salt_hex(3),
+                challenge_expires_at: now + 120,
+                challenge_difficulty_bits: 18,
+            },
+            now,
+        )
+        .expect("nonce and salt must remain unused after 409 post_already_exists");
+    assert_eq!(
+        store.get_key(&alice_id).unwrap().unwrap().posts_24h_count,
+        2
+    );
+
+    // Duplicate report_id must return 409 ReportAlreadyExists with 0 writes and NOT consume salt
+    let dup_report_id = uuid_v7(900);
+    store
+        .submit_report(
+            &SubmitReportInput {
+                report_id: dup_report_id.clone(),
+                post_id: dup_post_id.clone(),
+                reason: ReportReason::Spam,
+                note_text: "first report".into(),
+                challenge_salt_hex: salt_hex(900),
+                challenge_expires_at: now + 120,
+                challenge_difficulty_bits: 18,
+            },
+            now,
+        )
+        .unwrap();
+
+    db.reset_writes();
+    assert_eq!(
+        store.submit_report(
+            &SubmitReportInput {
+                report_id: dup_report_id,
+                post_id: dup_post_id.clone(),
+                reason: ReportReason::Spam,
+                note_text: "duplicate report".into(),
+                challenge_salt_hex: salt_hex(901),
+                challenge_expires_at: now + 120,
+                challenge_difficulty_bits: 18,
+            },
+            now,
+        ),
+        Err(TownSquareError::ReportAlreadyExists)
+    );
+    assert_eq!(db.write_count(), 0);
+    assert_eq!(TownSquareError::ReportAlreadyExists.status(), 409);
+    assert_eq!(
+        TownSquareError::ReportAlreadyExists.code(),
+        "report_already_exists"
+    );
+
+    // salt_hex(901) must still be usable for a new report_id
+    store
+        .submit_report(
+            &SubmitReportInput {
+                report_id: uuid_v7(901),
+                post_id: dup_post_id,
+                reason: ReportReason::Spam,
+                note_text: "new report id reusing unconsumed salt".into(),
+                challenge_salt_hex: salt_hex(901),
+                challenge_expires_at: now + 120,
+                challenge_difficulty_bits: 18,
+            },
+            now,
+        )
+        .expect("salt must remain unused after 409 report_already_exists");
+}
+
+#[test]
+fn prune_expired_preserves_challenge_salt_at_exact_expiry_boundary() {
+    let db = setup_store();
+    let store = TownSquareStore::new(&db);
+    let now = 1_795_651_200;
+    let expires_at = now + 120;
+    let shared_salt = salt_hex(777);
+
+    let (id1, pk1) = ed25519_pubkey_b64(61);
+    let (id2, pk2) = ed25519_pubkey_b64(62);
+    store
+        .register_key(
+            &RegisterKeyInput {
+                key_id: id1,
+                alg: Algorithm::Ed25519,
+                pubkey_b64: pk1,
+                handle: "first_salt".into(),
+                signed_ts: now,
+                signed_nonce: nonce_hex(1),
+                challenge_salt_hex: shared_salt.clone(),
+                challenge_expires_at: expires_at,
+                challenge_difficulty_bits: 18,
+            },
+            now,
+        )
+        .unwrap();
+
+    // Prune at exact boundary now == expires_at: verify_challenge still accepts now == expires_at,
+    // so the salt MUST still be retained to block replay.
+    store.prune_expired(expires_at).unwrap();
+    db.reset_writes();
+    assert_eq!(
+        store.register_key(
+            &RegisterKeyInput {
+                key_id: id2,
+                alg: Algorithm::Ed25519,
+                pubkey_b64: pk2,
+                handle: "replay_at_boundary".into(),
+                signed_ts: expires_at,
+                signed_nonce: nonce_hex(2),
+                challenge_salt_hex: shared_salt,
+                challenge_expires_at: expires_at,
+                challenge_difficulty_bits: 18,
+            },
+            expires_at,
+        ),
+        Err(TownSquareError::ChallengeReplayed)
+    );
+    assert_eq!(db.write_count(), 0);
+}
+
+#[test]
+fn rolling_24h_per_key_quota_blocks_boundary_burst() {
+    let db = setup_store();
+    let store = TownSquareStore::new(&db);
+    let t0 = 1_795_651_200;
+
+    let (alice_id, alice_pk) = ed25519_pubkey_b64(88);
+    store
+        .register_key(
+            &RegisterKeyInput {
+                key_id: alice_id.clone(),
+                alg: Algorithm::Ed25519,
+                pubkey_b64: alice_pk,
+                handle: "rolling_test".into(),
+                signed_ts: t0,
+                signed_nonce: nonce_hex(1),
+                challenge_salt_hex: salt_hex(1),
+                challenge_expires_at: t0 + 120,
+                challenge_difficulty_bits: 18,
+            },
+            t0,
+        )
+        .unwrap();
+
+    // 1 post at T
+    store
+        .publish_post(
+            &PublishPostInput {
+                post_id: uuid_v7(1),
+                parent_id: None,
+                key_id: alice_id.clone(),
+                alg: Algorithm::Ed25519,
+                body_text: "post at T".into(),
+                raw_body_sha256: sha256_hex(b"p1"),
+                signed_ts: t0,
+                signed_nonce: nonce_hex(10),
+                sig_b64: fake_sig_b64(Algorithm::Ed25519, 1),
+                challenge_salt_hex: salt_hex(10),
+                challenge_expires_at: t0 + 120,
+                challenge_difficulty_bits: 18,
+            },
+            t0,
+        )
+        .unwrap();
+
+    // 4 posts at T + 86399 (1 second before T's post expires)
+    let t_burst = t0 + RETENTION_SECONDS - 1;
+    for idx in 2..=5_u64 {
+        store
+            .publish_post(
+                &PublishPostInput {
+                    post_id: uuid_v7(idx),
+                    parent_id: None,
+                    key_id: alice_id.clone(),
+                    alg: Algorithm::Ed25519,
+                    body_text: format!("burst post {idx}"),
+                    raw_body_sha256: sha256_hex(b"burst"),
+                    signed_ts: t_burst,
+                    signed_nonce: nonce_hex(10 + idx),
+                    sig_b64: fake_sig_b64(Algorithm::Ed25519, idx as u8),
+                    challenge_salt_hex: salt_hex(10 + idx),
+                    challenge_expires_at: t_burst + 120,
+                    challenge_difficulty_bits: 18,
+                },
+                t_burst,
+            )
+            .unwrap();
+    }
+
+    // At T + 86400, the first post at T has expired, so 1 new post is allowed (total 5 in rolling 24h)...
+    let t_next = t0 + RETENTION_SECONDS;
+    store
+        .publish_post(
+            &PublishPostInput {
+                post_id: uuid_v7(6),
+                parent_id: None,
+                key_id: alice_id.clone(),
+                alg: Algorithm::Ed25519,
+                body_text: "5th live post in rolling window".into(),
+                raw_body_sha256: sha256_hex(b"p6"),
+                signed_ts: t_next,
+                signed_nonce: nonce_hex(20),
+                sig_b64: fake_sig_b64(Algorithm::Ed25519, 6),
+                challenge_salt_hex: salt_hex(20),
+                challenge_expires_at: t_next + 120,
+                challenge_difficulty_bits: 18,
+            },
+            t_next,
+        )
+        .unwrap();
+
+    // ...and a 2nd post at T + 86400 MUST be rejected because 4 posts from T+86399 + 1 from T+86400 = 5!
+    db.reset_writes();
+    assert_eq!(
+        store.publish_post(
+            &PublishPostInput {
+                post_id: uuid_v7(7),
+                parent_id: None,
+                key_id: alice_id,
+                alg: Algorithm::Ed25519,
+                body_text: "blocked boundary burst".into(),
+                raw_body_sha256: sha256_hex(b"p7"),
+                signed_ts: t_next,
+                signed_nonce: nonce_hex(21),
+                sig_b64: fake_sig_b64(Algorithm::Ed25519, 7),
+                challenge_salt_hex: salt_hex(21),
+                challenge_expires_at: t_next + 120,
+                challenge_difficulty_bits: 18,
+            },
+            t_next,
+        ),
+        Err(TownSquareError::PerKeyPostLimit)
     );
     assert_eq!(db.write_count(), 0);
 }

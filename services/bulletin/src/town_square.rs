@@ -117,6 +117,7 @@ pub enum TownSquareError {
     KeyAlreadyRegistered,
     KeyNotFound,
     AlgMismatch,
+    PostAlreadyExists,
     PostNotFound,
     PostAlreadyTombstoned,
     Forbidden,
@@ -125,6 +126,7 @@ pub enum TownSquareError {
     PerKeyPostLimit,
     BoardFull24h,
     PerKeyDeleteLimit,
+    ReportAlreadyExists,
     ReportLimitReached,
     InvalidReportReason,
     InvalidReportNote,
@@ -162,7 +164,9 @@ impl TownSquareError {
             | Self::ChallengeReplayed
             | Self::ReplayDetected
             | Self::KeyAlreadyRegistered
-            | Self::PostAlreadyTombstoned => 409,
+            | Self::PostAlreadyExists
+            | Self::PostAlreadyTombstoned
+            | Self::ReportAlreadyExists => 409,
             Self::BodyTooLarge => 413,
             Self::InvalidHandle
             | Self::ReservedHandle
@@ -218,6 +222,7 @@ impl TownSquareError {
             Self::KeyAlreadyRegistered => "key_already_registered",
             Self::KeyNotFound => "key_not_found",
             Self::AlgMismatch => "alg_mismatch",
+            Self::PostAlreadyExists => "post_already_exists",
             Self::PostNotFound => "post_not_found",
             Self::PostAlreadyTombstoned => "post_already_tombstoned",
             Self::Forbidden => "forbidden",
@@ -226,6 +231,7 @@ impl TownSquareError {
             Self::PerKeyPostLimit => "per_key_post_limit",
             Self::BoardFull24h => "board_full_24h",
             Self::PerKeyDeleteLimit => "per_key_delete_limit",
+            Self::ReportAlreadyExists => "report_already_exists",
             Self::ReportLimitReached => "report_limit_reached",
             Self::InvalidReportReason => "invalid_report_reason",
             Self::InvalidReportNote => "invalid_report_note",
@@ -563,22 +569,37 @@ pub fn validate_uuid_v4_or_v7(raw: &str) -> Result<(), TownSquareError> {
 
 fn is_forbidden_text_char(ch: char) -> bool {
     let cp = ch as u32;
-    // C0 controls except LF (\n) and TAB (\t)
-    if cp <= 0x001F && cp != 0x000A && cp != 0x0009 {
+    // C0 controls except LF (\n) per Spec Section 7.2
+    if cp <= 0x001F && cp != 0x000A {
         return true;
     }
     // DEL and C1 controls
     if (0x007F..=0x009F).contains(&cp) {
         return true;
     }
-    // Soft hyphen, Arabic letter mark, Syriac abbreviation, Mongolian vowel separator, etc.
+    // Invisible Cf / format / filler / bidi / separator characters
     if matches!(
         cp,
-        0x00AD | 0x061C | 0x070F | 0x180E | 0x200B
-            ..=0x200F | 0x2028
-            ..=0x202E | 0x2060
-            ..=0x206F | 0xFEFF | 0xFFF9
-            ..=0xFFFB
+        0x00AD
+            | 0x034F
+            | 0x0600..=0x0605
+            | 0x061C
+            | 0x06DD
+            | 0x070F
+            | 0x0890..=0x0891
+            | 0x08E2
+            | 0x115F
+            | 0x1160
+            | 0x180E
+            | 0x200B..=0x200F
+            | 0x2028..=0x202E
+            | 0x2060..=0x206F
+            | 0x3164
+            | 0xFEFF
+            | 0xFFA0
+            | 0xFFF9..=0xFFFB
+            | 0x1BCA0..=0x1BCA3
+            | 0x1D173..=0x1D17A
     ) {
         return true;
     }
@@ -606,11 +627,36 @@ fn is_forbidden_text_char(ch: char) -> bool {
 
 fn is_combining_mark(ch: char) -> bool {
     let cp = ch as u32;
-    (0x0300..=0x036F).contains(&cp)
-        || (0x1AB0..=0x1AFF).contains(&cp)
-        || (0x1DC0..=0x1DFF).contains(&cp)
-        || (0x20D0..=0x20FF).contains(&cp)
-        || (0xFE20..=0xFE2F).contains(&cp)
+    matches!(
+        cp,
+        0x0300..=0x036F
+            | 0x0483..=0x0489
+            | 0x0591..=0x05BD
+            | 0x05BF
+            | 0x05C1..=0x05C2
+            | 0x05C4..=0x05C5
+            | 0x05C7
+            | 0x0610..=0x061A
+            | 0x064B..=0x065F
+            | 0x0670
+            | 0x06D6..=0x06ED
+            | 0x0900..=0x0903
+            | 0x093A..=0x094F
+            | 0x0951..=0x0957
+            | 0x0962..=0x0963
+            | 0x0E31
+            | 0x0E34..=0x0E3A
+            | 0x0E47..=0x0E4E
+            | 0x1AB0..=0x1AFF
+            | 0x1DC0..=0x1DFF
+            | 0x20D0..=0x20FF
+            | 0xFE20..=0xFE2F
+            | 0x1D165..=0x1D169
+            | 0x1D16D..=0x1D172
+            | 0x1D17B..=0x1D182
+            | 0x1D185..=0x1D18B
+            | 0x1D1AA..=0x1D1AD
+    )
 }
 
 fn contains_leaked_credential_pattern(text: &str) -> bool {
@@ -693,13 +739,15 @@ pub fn validate_report_note(note_text: &str) -> Result<(), TownSquareError> {
         .map_err(|_| TownSquareError::InvalidReportNote)
 }
 
-/// Validate write-route path hygiene (reject `?`, `#`, `//`, `..`, `/.`, non-ASCII).
+/// Validate write-route path hygiene (reject `?`, `#`, `%`, `\`, `//`, `..`, `/.`, non-ASCII).
 pub fn validate_write_path(path: &str) -> Result<(), TownSquareError> {
     if !path.starts_with('/')
         || !path.is_ascii()
         || path.bytes().any(|b| b <= 0x20 || b == 0x7F)
         || path.contains('?')
         || path.contains('#')
+        || path.contains('%')
+        || path.contains('\\')
         || path.contains("//")
         || path.contains("..")
         || path == "/."
@@ -717,6 +765,8 @@ pub fn validate_canonical_origin(origin: &str) -> Result<(), TownSquareError> {
         || origin.ends_with('/')
         || origin.contains('?')
         || origin.contains('#')
+        || origin.contains('@')
+        || origin.contains('|')
         || origin.bytes().any(|b| b <= 0x20 || b == 0x7F)
     {
         return Err(TownSquareError::InvalidOrigin);
@@ -728,13 +778,38 @@ pub fn validate_canonical_origin(origin: &str) -> Result<(), TownSquareError> {
     } else {
         return Err(TownSquareError::InvalidOrigin);
     };
-    if rest.is_empty()
-        || rest.contains('/')
-        || rest.bytes().any(|b| b.is_ascii_uppercase())
-        || (scheme == "https" && rest.ends_with(":443"))
-        || (scheme == "http" && rest.ends_with(":80"))
-    {
+    if rest.is_empty() || rest.contains('/') || rest.bytes().any(|b| b.is_ascii_uppercase()) {
         return Err(TownSquareError::InvalidOrigin);
+    }
+    let (host, port_opt) = if let Some(bracketed) = rest.strip_prefix('[') {
+        let Some((ipv6, after)) = bracketed.split_once(']') else {
+            return Err(TownSquareError::InvalidOrigin);
+        };
+        if after.is_empty() {
+            (ipv6, None)
+        } else if let Some(port_str) = after.strip_prefix(':') {
+            (ipv6, Some(port_str))
+        } else {
+            return Err(TownSquareError::InvalidOrigin);
+        }
+    } else if let Some((host, port_str)) = rest.split_once(':') {
+        if port_str.contains(':') {
+            return Err(TownSquareError::InvalidOrigin);
+        }
+        (host, Some(port_str))
+    } else {
+        (rest, None)
+    };
+    if host.is_empty() {
+        return Err(TownSquareError::InvalidOrigin);
+    }
+    if let Some(port_str) = port_opt {
+        let port = crate::parse_canonical_pos_i64(port_str)
+            .filter(|&p| p <= 65_535)
+            .ok_or(TownSquareError::InvalidOrigin)?;
+        if (scheme == "https" && port == 443) || (scheme == "http" && port == 80) {
+            return Err(TownSquareError::InvalidOrigin);
+        }
     }
     Ok(())
 }
@@ -1362,6 +1437,7 @@ impl<'a, D: Database> TownSquareStore<'a, D> {
             )",
             "CREATE INDEX IF NOT EXISTS idx_ts_posts_expires ON ts_posts(expires_at)",
             "CREATE INDEX IF NOT EXISTS idx_ts_posts_created ON ts_posts(created_at)",
+            "CREATE INDEX IF NOT EXISTS idx_ts_posts_key_created ON ts_posts(key_id, created_at)",
             "CREATE TABLE IF NOT EXISTS ts_changes (
                 change_seq      INTEGER PRIMARY KEY AUTOINCREMENT,
                 post_id         TEXT NOT NULL,
@@ -1570,18 +1646,35 @@ impl<'a, D: Database> TownSquareStore<'a, D> {
             return Err(TownSquareError::AlgMismatch);
         }
 
+        let existing_post = self.exec(
+            "SELECT 1 AS found FROM ts_posts WHERE post_id = ?1",
+            vec![Binding::Text(req.post_id.clone())],
+        )?;
+        if !existing_post.is_empty() {
+            return Err(TownSquareError::PostAlreadyExists);
+        }
+
         let global_posts_24h = self.current_posts_24h_count(now)?;
         let required_bits = required_difficulty_bits(global_posts_24h)?;
         check_difficulty_monotonicity(req.challenge_difficulty_bits, required_bits)?;
 
-        let (new_posts_count, new_window_start) =
-            if key.window_start == 0 || now.saturating_sub(key.window_start) >= RETENTION_SECONDS {
-                (1, now)
-            } else if key.posts_24h_count >= MAX_POSTS_PER_KEY_24H {
-                return Err(TownSquareError::PerKeyPostLimit);
-            } else {
-                (key.posts_24h_count + 1, key.window_start)
-            };
+        let window_cutoff = now.saturating_sub(RETENTION_SECONDS);
+        let key_post_rows = self.exec(
+            "SELECT COUNT(*) AS cnt FROM ts_posts WHERE key_id = ?1 AND created_at > ?2 AND expires_at > ?3",
+            vec![
+                Binding::Text(req.key_id.clone()),
+                Binding::Integer(window_cutoff),
+                Binding::Integer(now),
+            ],
+        )?;
+        let key_posts_24h = key_post_rows
+            .first()
+            .and_then(|row| row["cnt"].as_i64())
+            .ok_or(TownSquareError::StorageFailed)?;
+        if key_posts_24h >= MAX_POSTS_PER_KEY_24H {
+            return Err(TownSquareError::PerKeyPostLimit);
+        }
+        let (new_posts_count, new_window_start) = (key_posts_24h + 1, now);
 
         if let Some(parent_id) = req.parent_id.as_deref() {
             let parent_rows = self.exec(
@@ -1720,15 +1813,22 @@ impl<'a, D: Database> TownSquareStore<'a, D> {
             return Err(TownSquareError::PostAlreadyTombstoned);
         }
 
-        let (new_delete_count, new_delete_window) = if key.delete_window_start == 0
-            || now.saturating_sub(key.delete_window_start) >= RETENTION_SECONDS
-        {
-            (1, now)
-        } else if key.deletes_24h_count >= MAX_DELETES_PER_KEY_24H {
+        let window_cutoff = now.saturating_sub(RETENTION_SECONDS);
+        let key_delete_rows = self.exec(
+            "SELECT COUNT(*) AS cnt FROM ts_posts WHERE key_id = ?1 AND state = 'deleted_by_author' AND tombstoned_at IS NOT NULL AND tombstoned_at > ?2",
+            vec![
+                Binding::Text(req.key_id.clone()),
+                Binding::Integer(window_cutoff),
+            ],
+        )?;
+        let key_deletes_24h = key_delete_rows
+            .first()
+            .and_then(|row| row["cnt"].as_i64())
+            .ok_or(TownSquareError::StorageFailed)?;
+        if key_deletes_24h >= MAX_DELETES_PER_KEY_24H {
             return Err(TownSquareError::PerKeyDeleteLimit);
-        } else {
-            (key.deletes_24h_count + 1, key.delete_window_start)
-        };
+        }
+        let (new_delete_count, new_delete_window) = (key_deletes_24h + 1, now);
 
         self.check_nonce_unused(&req.key_id, &req.signed_nonce)?;
 
@@ -1829,6 +1929,14 @@ impl<'a, D: Database> TownSquareStore<'a, D> {
         }
         check_difficulty_monotonicity(req.challenge_difficulty_bits, DIFFICULTY_REPORT_BITS)?;
 
+        let existing_report = self.exec(
+            "SELECT 1 AS found FROM ts_reports WHERE report_id = ?1",
+            vec![Binding::Text(req.report_id.clone())],
+        )?;
+        if !existing_report.is_empty() {
+            return Err(TownSquareError::ReportAlreadyExists);
+        }
+
         let post_rows = self.exec(
             "SELECT 1 AS found FROM ts_posts WHERE post_id = ?1 AND state = 'live' AND expires_at > ?2",
             vec![
@@ -1898,7 +2006,7 @@ impl<'a, D: Database> TownSquareStore<'a, D> {
             vec![Binding::Integer(now)],
         )?;
         self.exec(
-            "DELETE FROM ts_challenge_salts WHERE expires_at <= ?1",
+            "DELETE FROM ts_challenge_salts WHERE expires_at < ?1",
             vec![Binding::Integer(now)],
         )?;
         self.exec(
