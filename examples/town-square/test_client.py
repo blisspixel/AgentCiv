@@ -158,7 +158,7 @@ class CryptoParityTests(unittest.TestCase):
 
 class _MockTownSquareState:
     def __init__(self) -> None:
-        self.difficulty_bits = 8
+        self.difficulty_bits: Any = 8
         self.keys: dict[str, dict[str, Any]] = {}
         self.posts: list[dict[str, Any]] = []
         self.changes: list[dict[str, Any]] = []
@@ -680,6 +680,62 @@ class LoopbackLifecycleTests(unittest.TestCase):
             meta_file.write_text(json.dumps(tampered), encoding="utf-8")
             with self.assertRaises(client.ClientError):
                 client.load_key_metadata(key_dir)
+
+    def test_security_regressions_bool_symlink_and_path_traversal(self) -> None:
+        # 1. Python bool subclass bypass rejected everywhere integers are required.
+        self.state.difficulty_bits = True
+        with self.assertRaises(client.ClientError) as ch_err:
+            client.fetch_challenge(self.origin, "register")
+        self.assertIn("malformed challenge response", str(ch_err.exception))
+
+        self.assertFalse(client.verify_hashcash_pow("tok", "bind", "0", True))
+        with self.assertRaises(client.ClientError):
+            client.solve_hashcash_pow("tok", "bind", True)
+        with self.assertRaises(ValueError):
+            client.solve_hashcash_pow("tok", "bind", 8, max_pow_bits=True)
+        with self.assertRaises(ValueError):
+            client.build_preimage(
+                method="POST",
+                canonical_origin="https://agentciv.io",
+                path="/v1/posts",
+                key_id="a" * 64,
+                alg="ed25519",
+                unix_ts=True,
+                nonce_hex="b" * 32,
+                raw_body_sha256="c" * 64,
+            )
+
+        # 2. private_key_file path traversal and absolute paths rejected.
+        with tempfile.TemporaryDirectory(prefix="ts-sec-") as tmp:
+            tmp_path = Path(tmp)
+            key_dir = tmp_path / "keys"
+            client.generate_keypair("ed25519", key_dir)
+            meta_file = key_dir / "key.json"
+            base_meta = json.loads(meta_file.read_text(encoding="utf-8"))
+            for bad_rel in ("../escape.pem", "/etc/passwd", "sub/private.pem", "..", ""):
+                bad_meta = dict(base_meta)
+                bad_meta["private_key_file"] = bad_rel
+                meta_file.write_text(json.dumps(bad_meta), encoding="utf-8")
+                with self.assertRaises(client.ClientError):
+                    client.load_key_metadata(key_dir)
+
+            # 3. Symlink at private.pem is rejected on POSIX (no symlink follow).
+            if os.name == "posix":
+                sym_dir = tmp_path / "sym-keys"
+                sym_dir.mkdir(mode=0o700)
+                victim = tmp_path / "victim.txt"
+                victim.write_text("DO_NOT_OVERWRITE", encoding="utf-8")
+                (sym_dir / "private.pem").symlink_to(victim)
+                with self.assertRaises(client.ClientError):
+                    client.generate_keypair("ed25519", sym_dir, force=True)
+                self.assertEqual(victim.read_text(encoding="utf-8"), "DO_NOT_OVERWRITE")
+
+            # 4. Node backend with dash-prefixed directory name uses "--" safely.
+            if shutil.which("node") is not None:
+                dash_dir = tmp_path / "-dash-keydir"
+                meta = client.generate_keypair("ed25519", dash_dir, backend="node")
+                sig = client.sign_preimage(dash_dir, meta, b"agentciv-bbs-v1\ntest")
+                self.assertEqual(len(sig), 64)
 
 
 if __name__ == "__main__":

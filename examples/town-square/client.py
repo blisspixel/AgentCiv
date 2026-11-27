@@ -244,7 +244,12 @@ def verify_hashcash_pow(
         or any(ord(ch) <= 0x20 or ord(ch) == 0x7F or ch == ":" for ch in pow_nonce)
     ):
         return False
-    if required_bits < 1 or required_bits > 256:
+    if (
+        isinstance(required_bits, bool)
+        or not isinstance(required_bits, int)
+        or required_bits < 1
+        or required_bits > 256
+    ):
         return False
     digest = hashlib.sha256(
         f"{challenge_token}:{binding_id}:{pow_nonce}".encode("ascii")
@@ -261,11 +266,20 @@ def solve_hashcash_pow(
     max_iterations: int | None = None,
 ) -> str:
     """Solve SHA-256 Hashcash PoW while enforcing a local CPU work ceiling."""
-    if max_pow_bits < 1 or max_pow_bits > MAX_ALLOWED_POW_BITS:
+    if (
+        isinstance(max_pow_bits, bool)
+        or not isinstance(max_pow_bits, int)
+        or max_pow_bits < 1
+        or max_pow_bits > MAX_ALLOWED_POW_BITS
+    ):
         raise ValueError(
             f"max_pow_bits must be between 1 and {MAX_ALLOWED_POW_BITS}"
         )
-    if not isinstance(difficulty_bits, int) or difficulty_bits < 1:
+    if (
+        isinstance(difficulty_bits, bool)
+        or not isinstance(difficulty_bits, int)
+        or difficulty_bits < 1
+    ):
         raise ClientError(f"invalid server difficulty_bits: {difficulty_bits!r}")
     if difficulty_bits > max_pow_bits:
         raise ClientError(
@@ -314,7 +328,7 @@ def build_preimage(
         raise ValueError("key_id must be 64 lowercase hex characters")
     if alg not in SUPPORTED_ALGS:
         raise ValueError(f"unsupported algorithm: {alg}")
-    if unix_ts <= 0:
+    if isinstance(unix_ts, bool) or not isinstance(unix_ts, int) or unix_ts <= 0:
         raise ValueError("unix_ts must be a positive integer")
     if not _HEX32_RE.match(nonce_hex):
         raise ValueError("nonce_hex must be 32 lowercase hex characters")
@@ -372,14 +386,42 @@ def _chmod_owner_only(path: Path, mode: int) -> None:
 
 def _write_private_bytes(path: Path, data: bytes) -> None:
     flags = os.O_WRONLY | os.O_CREAT | os.O_TRUNC
+    flags |= getattr(os, "O_NOFOLLOW", 0)
     if hasattr(os, "O_BINARY"):
         flags |= getattr(os, "O_BINARY")
-    fd = os.open(path, flags, 0o600)
     try:
-        os.write(fd, data)
+        fd = os.open(path, flags, 0o600)
+    except OSError as exc:
+        raise ClientError(f"failed to open private file {path}: {exc}") from exc
+    try:
+        if os.name == "posix" and hasattr(os, "fchmod"):
+            os.fchmod(fd, 0o600)
+        with os.fdopen(fd, "wb") as handle:
+            fd = -1
+            handle.write(data)
     finally:
-        os.close(fd)
+        if fd >= 0:
+            os.close(fd)
     _chmod_owner_only(path, 0o600)
+
+
+def _resolve_private_key_path(key_dir: Path, private_key_file: str) -> Path:
+    resolved_dir = key_dir.resolve()
+    rel = Path(private_key_file)
+    if (
+        not private_key_file
+        or rel.is_absolute()
+        or rel.name != private_key_file
+        or private_key_file in (".", "..")
+    ):
+        raise ClientError(f"invalid private_key_file path: {private_key_file!r}")
+    candidate = resolved_dir / private_key_file
+    if candidate.is_symlink():
+        raise ClientError(f"refusing symlink private key file: {candidate}")
+    priv_path = candidate.resolve()
+    if priv_path.parent != resolved_dir or not priv_path.is_file():
+        raise ClientError(f"private key file missing or outside key_dir: {priv_path}")
+    return priv_path
 
 
 def generate_keypair(
@@ -394,14 +436,20 @@ def generate_keypair(
         raise ValueError(f"unsupported algorithm: {alg}")
 
     selected_backend = backend if backend is not None else _probe_backend(alg)
-    out_dir.mkdir(parents=True, exist_ok=True)
-    _chmod_owner_only(out_dir, 0o700)
+    resolved_out = out_dir.resolve()
+    resolved_out.mkdir(parents=True, exist_ok=True, mode=0o700)
+    _chmod_owner_only(resolved_out, 0o700)
 
-    priv_path = out_dir / "private.pem"
-    meta_path = out_dir / "key.json"
-    if not force and (priv_path.exists() or meta_path.exists()):
+    priv_path = resolved_out / "private.pem"
+    meta_path = resolved_out / "key.json"
+    if not force and (
+        priv_path.exists()
+        or priv_path.is_symlink()
+        or meta_path.exists()
+        or meta_path.is_symlink()
+    ):
         raise ClientError(
-            f"key files already exist in {out_dir}; pass --force to overwrite"
+            f"key files already exist in {resolved_out}; pass --force to overwrite"
         )
 
     pk_len = PUBKEY_LENGTHS[alg]
@@ -421,7 +469,15 @@ def generate_keypair(
             )
         _write_private_bytes(priv_path, gen.stdout)
         pub_proc = subprocess.run(
-            [openssl, "pkey", "-in", str(priv_path), "-pubout", "-outform", "DER"],
+            [
+                openssl,
+                "pkey",
+                "-in",
+                str(priv_path.resolve()),
+                "-pubout",
+                "-outform",
+                "DER",
+            ],
             check=False,
             capture_output=True,
         )
@@ -444,7 +500,7 @@ def generate_keypair(
             'process.stdout.write(JSON.stringify({ pem, pubkey_b64: raw.toString("base64") }));'
         )
         proc = subprocess.run(
-            [node, "-e", script, alg, str(pk_len)],
+            [node, "-e", script, "--", alg, str(pk_len)],
             check=False,
             capture_output=True,
         )
@@ -487,7 +543,8 @@ def generate_keypair(
 
 def load_key_metadata(key_dir: Path) -> KeyMetadata:
     """Load and verify `key.json` metadata from `key_dir`."""
-    meta_path = key_dir / "key.json"
+    resolved_dir = key_dir.resolve()
+    meta_path = resolved_dir / "key.json"
     if not meta_path.is_file():
         raise ClientError(f"key metadata not found: {meta_path}")
     raw = json.loads(meta_path.read_text(encoding="utf-8"))
@@ -508,9 +565,7 @@ def load_key_metadata(key_dir: Path) -> KeyMetadata:
     if compute_short_fp(alg, pubkey_bytes) != short_fp:
         raise ClientError("short_fp in key.json does not match pubkey_b64")
 
-    priv_path = (key_dir / private_key_file).resolve()
-    if priv_path.parent != key_dir.resolve() or not priv_path.is_file():
-        raise ClientError(f"private key file missing or outside key_dir: {priv_path}")
+    _resolve_private_key_path(resolved_dir, private_key_file)
 
     return KeyMetadata(
         alg=alg,
@@ -524,12 +579,16 @@ def load_key_metadata(key_dir: Path) -> KeyMetadata:
 
 def sign_preimage(key_dir: Path, meta: KeyMetadata, preimage: bytes) -> bytes:
     """Sign `preimage` using the private key stored in `key_dir`."""
-    priv_path = key_dir / meta.private_key_file
-    fd, tmp_name = tempfile.mkstemp(prefix="ts-msg-", dir=str(key_dir))
-    msg_path = Path(tmp_name)
+    resolved_dir = key_dir.resolve()
+    priv_path = _resolve_private_key_path(resolved_dir, meta.private_key_file)
+    fd, tmp_name = tempfile.mkstemp(prefix="ts-msg-", dir=str(resolved_dir))
+    msg_path = Path(tmp_name).resolve()
     try:
-        os.write(fd, preimage)
-        os.close(fd)
+        if os.name == "posix" and hasattr(os, "fchmod"):
+            os.fchmod(fd, 0o600)
+        with os.fdopen(fd, "wb") as handle:
+            fd = -1
+            handle.write(preimage)
         _chmod_owner_only(msg_path, 0o600)
 
         if meta.backend == "openssl":
@@ -568,7 +627,7 @@ def sign_preimage(key_dir: Path, meta: KeyMetadata, preimage: bytes) -> bytes:
                 'process.stdout.write(sig);'
             )
             proc = subprocess.run(
-                [node, "-e", script, str(priv_path), str(msg_path)],
+                [node, "-e", script, "--", str(priv_path), str(msg_path)],
                 check=False,
                 capture_output=True,
             )
@@ -580,6 +639,8 @@ def sign_preimage(key_dir: Path, meta: KeyMetadata, preimage: bytes) -> bytes:
         else:
             raise ClientError(f"unsupported key backend: {meta.backend}")
     finally:
+        if fd >= 0:
+            os.close(fd)
         msg_path.unlink(missing_ok=True)
 
     expected_sig_len = SIG_LENGTHS[meta.alg]
@@ -746,7 +807,12 @@ def fetch_challenge(
         raise ClientError("board is full for the current 24-hour window", status=429, payload=doc)
     token = doc.get("challenge_token")
     bits = doc.get("difficulty_bits")
-    if not isinstance(token, str) or not token or not isinstance(bits, int):
+    if (
+        not isinstance(token, str)
+        or not token
+        or isinstance(bits, bool)
+        or not isinstance(bits, int)
+    ):
         raise ClientError("malformed challenge response from server", status=status, payload=doc)
     return token, bits
 
