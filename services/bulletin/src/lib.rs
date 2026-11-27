@@ -16,6 +16,7 @@ mod appearance;
 #[cfg(target_arch = "wasm32")]
 mod cloudflare;
 mod negotiation;
+pub mod town_square;
 
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
