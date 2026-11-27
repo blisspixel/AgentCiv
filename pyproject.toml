@@ -9,6 +9,7 @@ files = [
     "examples/http-commons",
     "examples/participants",
     "examples/inheritance",
+    "examples/town-square",
     "services/bulletin/test_edge.py",
     "services/bulletin/probe_entry.py",
     "services/bulletin/test_probe_entry.py",
@@ -16,7 +17,7 @@ files = [
 ]
 
 [tool.coverage.run]
-source = ["implementations/http-commons-python", "examples/http-commons", "examples/participants", "examples/inheritance", "services/bulletin"]
+source = ["implementations/http-commons-python", "examples/http-commons", "examples/participants", "examples/inheritance", "examples/town-square", "services/bulletin"]
 omit = ["*/test_*.py"]
 patch = ["subprocess"]
 sigterm = true
