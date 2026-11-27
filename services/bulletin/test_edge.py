@@ -1204,23 +1204,73 @@ def _solve_hashcash(challenge_token: str, binding_id: str, difficulty_bits: int)
     raise RuntimeError("failed to solve hashcash within iteration bound")
 
 
-class _OpenSslKeypair:
-    def __init__(self, workdir: Path, alg: str) -> None:
-        self.alg = alg
-        openssl_alg = "ED25519" if alg == "ed25519" else "ML-DSA-65"
-        pk_len = 32 if alg == "ed25519" else 1952
-        self.key_path = workdir / f"ts-{alg}-{uuid.uuid4().hex}.pem"
-        subprocess.run(
-            ["openssl", "genpkey", "-algorithm", openssl_alg, "-out", str(self.key_path)],
-            check=True,
+def _probe_ml_dsa_65_backend() -> str | None:
+    if shutil.which("openssl") is not None:
+        probe_ssl = subprocess.run(
+            ["openssl", "genpkey", "-algorithm", "ML-DSA-65"],
+            check=False,
             capture_output=True,
         )
-        der = subprocess.run(
-            ["openssl", "pkey", "-in", str(self.key_path), "-pubout", "-outform", "DER"],
-            check=True,
-            capture_output=True,
-        ).stdout
-        self.pubkey_bytes = der[-pk_len:]
+        if probe_ssl.returncode == 0:
+            return "openssl"
+    if _node_supports_ml_dsa_65():
+        return "node"
+    return None
+
+
+def _node_supports_ml_dsa_65() -> bool:
+    node = shutil.which("node")
+    if node is None:
+        return False
+    probe_node = subprocess.run(
+        [node, "-e", 'require("crypto").generateKeyPairSync("ml-dsa-65")'],
+        check=False,
+        capture_output=True,
+    )
+    return probe_node.returncode == 0
+
+
+class _OpenSslKeypair:
+    def __init__(self, workdir: Path, alg: str, backend: str = "openssl") -> None:
+        self.alg = alg
+        self.backend = backend
+        pk_len = 32 if alg == "ed25519" else 1952
+        self.key_path = workdir / f"ts-{alg}-{backend}-{uuid.uuid4().hex}.pem"
+        if backend == "openssl":
+            openssl_alg = "ED25519" if alg == "ed25519" else "ML-DSA-65"
+            subprocess.run(
+                ["openssl", "genpkey", "-algorithm", openssl_alg, "-out", str(self.key_path)],
+                check=True,
+                capture_output=True,
+            )
+            der = subprocess.run(
+                ["openssl", "pkey", "-in", str(self.key_path), "-pubout", "-outform", "DER"],
+                check=True,
+                capture_output=True,
+            ).stdout
+            self.pubkey_bytes = der[-pk_len:]
+        elif backend == "node":
+            node = shutil.which("node")
+            if node is None:
+                raise RuntimeError("node executable not found for ML-DSA-65 fallback")
+            script = (
+                'const crypto = require("crypto");'
+                'const fs = require("fs");'
+                'const [keyPath, alg, pkLenStr] = process.argv.slice(1);'
+                'const { publicKey, privateKey } = crypto.generateKeyPairSync(alg);'
+                'fs.writeFileSync(keyPath, privateKey.export({ type: "pkcs8", format: "pem" }));'
+                'const spki = publicKey.export({ type: "spki", format: "der" });'
+                'const raw = spki.subarray(spki.length - Number(pkLenStr));'
+                'process.stdout.write(raw.toString("base64"));'
+            )
+            b64_out = subprocess.run(
+                [node, "-e", script, str(self.key_path), alg, str(pk_len)],
+                check=True,
+                capture_output=True,
+            ).stdout.decode("ascii")
+            self.pubkey_bytes = base64.b64decode(b64_out)
+        else:
+            raise ValueError(f"unsupported keypair backend: {backend}")
         self.pubkey_b64 = base64.b64encode(self.pubkey_bytes).decode("ascii")
         self.key_id = hashlib.sha256(f"{alg}:".encode("ascii") + self.pubkey_bytes).hexdigest()
 
@@ -1228,8 +1278,25 @@ class _OpenSslKeypair:
         msg_path = self.key_path.with_suffix(".msg")
         msg_path.write_bytes(preimage)
         try:
+            if self.backend == "openssl":
+                return subprocess.run(
+                    ["openssl", "pkeyutl", "-sign", "-inkey", str(self.key_path), "-rawin", "-in", str(msg_path)],
+                    check=True,
+                    capture_output=True,
+                ).stdout
+            node = shutil.which("node")
+            if node is None:
+                raise RuntimeError("node executable not found for ML-DSA-65 signing")
+            script = (
+                'const crypto = require("crypto");'
+                'const fs = require("fs");'
+                'const [keyPath, msgPath] = process.argv.slice(1);'
+                'const key = crypto.createPrivateKey(fs.readFileSync(keyPath));'
+                'const sig = crypto.sign(null, fs.readFileSync(msgPath), key);'
+                'process.stdout.write(sig);'
+            )
             return subprocess.run(
-                ["openssl", "pkeyutl", "-sign", "-inkey", str(self.key_path), "-rawin", "-in", str(msg_path)],
+                [node, "-e", script, str(self.key_path), str(msg_path)],
                 check=True,
                 capture_output=True,
             ).stdout
@@ -1278,8 +1345,8 @@ class TownSquareEdgeTests(EdgeRuntime):
         (cls.workspace / ".dev.vars").write_text(dev_vars, encoding="utf-8")
         cls.start(port, ready_path="/v1/info")
 
-    def _run_crypto_lifecycle(self, alg: str, handle: str) -> None:
-        kp = _OpenSslKeypair(self.workspace, alg)
+    def _run_crypto_lifecycle(self, alg: str, handle: str, backend: str = "openssl") -> None:
+        kp = _OpenSslKeypair(self.workspace, alg, backend=backend)
 
         ch_status, _, reg_ch = self.request("GET", "/v1/challenge?action=register")
         self.assertEqual(ch_status, 200, reg_ch)
@@ -1421,9 +1488,13 @@ class TownSquareEdgeTests(EdgeRuntime):
         self.assertTrue(info["writes_enabled"])
         self.assertIn("ed25519", info["supported_algs"])
 
-        self._run_crypto_lifecycle("ed25519", "edge_ed")
+        self._run_crypto_lifecycle("ed25519", "edge_ed", backend="openssl")
         if "ml-dsa-65" in info["supported_algs"]:
-            self._run_crypto_lifecycle("ml-dsa-65", "edge_pq")
+            backend = _probe_ml_dsa_65_backend()
+            if backend is not None:
+                self._run_crypto_lifecycle("ml-dsa-65", "edge_pq", backend=backend)
+                if backend != "node" and _node_supports_ml_dsa_65():
+                    self._run_crypto_lifecycle("ml-dsa-65", "edge_pq_node", backend="node")
 
 
 if __name__ == "__main__":
