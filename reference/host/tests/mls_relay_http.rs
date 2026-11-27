@@ -554,6 +554,35 @@ fn adversarial_inputs_content_type_body_limits_duplicate_keys_and_ttl_prune() {
         "unsupported_media_type",
     );
 
+    // 1b. Duplicate Content-Type headers -> 415 unsupported_media_type.
+    let mut dup_ct_headers = reqwest::header::HeaderMap::new();
+    dup_ct_headers.append(
+        reqwest::header::CONTENT_TYPE,
+        reqwest::header::HeaderValue::from_static("application/json"),
+    );
+    dup_ct_headers.append(
+        reqwest::header::CONTENT_TYPE,
+        reqwest::header::HeaderValue::from_static("text/plain"),
+    );
+    let dup_ct = http
+        .post(server.url("/mls/v1/groups"))
+        .headers(dup_ct_headers)
+        .body(json!({ "group_id": "grp:dupct", "ciphersuite": PQ_SUITE }).to_string())
+        .send()
+        .expect("duplicate content-type");
+    assert_problem_json(
+        dup_ct,
+        StatusCode::UNSUPPORTED_MEDIA_TYPE,
+        "unsupported_media_type",
+    );
+
+    // 1c. Invalid UTF-8 path parameter -> 400 invalid_input application/problem+json.
+    let bad_utf8_path = http
+        .get(server.url("/mls/v1/groups/%FF"))
+        .send()
+        .expect("invalid utf-8 path");
+    assert_problem_json(bad_utf8_path, StatusCode::BAD_REQUEST, "invalid_input");
+
     // 2. Unknown JSON field -> 400 invalid_input.
     let unknown_field = http
         .post(server.url("/mls/v1/groups"))

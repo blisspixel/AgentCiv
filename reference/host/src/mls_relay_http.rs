@@ -7,7 +7,7 @@
 use std::sync::{Arc, Mutex};
 
 use axum::body::Body;
-use axum::extract::rejection::QueryRejection;
+use axum::extract::rejection::{PathRejection, QueryRejection};
 use axum::extract::{DefaultBodyLimit, Path, Query, Request, State};
 use axum::http::{HeaderMap, HeaderName, HeaderValue, StatusCode, header};
 use axum::middleware::{self, Next};
@@ -293,7 +293,14 @@ async fn create_group(
     }
 }
 
-async fn get_group(State(state): State<MlsRelayState>, Path(group_id): Path<String>) -> Response {
+async fn get_group(
+    State(state): State<MlsRelayState>,
+    path: Result<Path<String>, PathRejection>,
+) -> Response {
+    let group_id = match extract_path_param(path) {
+        Ok(id) => id,
+        Err(response) => return *response,
+    };
     let now = state.now();
     let result = state
         .run_store(move |store| {
@@ -309,10 +316,14 @@ async fn get_group(State(state): State<MlsRelayState>, Path(group_id): Path<Stri
 
 async fn submit_commit(
     State(state): State<MlsRelayState>,
-    Path(group_id): Path<String>,
+    path: Result<Path<String>, PathRejection>,
     headers: HeaderMap,
     body: Body,
 ) -> Response {
+    let group_id = match extract_path_param(path) {
+        Ok(id) => id,
+        Err(response) => return *response,
+    };
     let req: SubmitCommitRequest =
         match read_strict_json(&headers, body, MAX_COMMIT_BODY_BYTES).await {
             Ok(req) => req,
@@ -346,10 +357,14 @@ async fn submit_commit(
 
 async fn submit_message(
     State(state): State<MlsRelayState>,
-    Path(group_id): Path<String>,
+    path: Result<Path<String>, PathRejection>,
     headers: HeaderMap,
     body: Body,
 ) -> Response {
+    let group_id = match extract_path_param(path) {
+        Ok(id) => id,
+        Err(response) => return *response,
+    };
     let req: SubmitMessageRequest =
         match read_strict_json(&headers, body, MAX_JSON_BODY_BYTES).await {
             Ok(req) => req,
@@ -369,9 +384,13 @@ async fn submit_message(
 
 async fn fetch_envelopes(
     State(state): State<MlsRelayState>,
-    Path(group_id): Path<String>,
+    path: Result<Path<String>, PathRejection>,
     query: Result<Query<PaginationQuery>, QueryRejection>,
 ) -> Response {
+    let group_id = match extract_path_param(path) {
+        Ok(id) => id,
+        Err(response) => return *response,
+    };
     let (after_seq, limit) = match parse_pagination_query(query) {
         Ok(parsed) => parsed,
         Err(response) => return *response,
@@ -401,9 +420,13 @@ async fn fetch_envelopes(
 
 async fn fetch_welcomes(
     State(state): State<MlsRelayState>,
-    Path(recipient_id): Path<String>,
+    path: Result<Path<String>, PathRejection>,
     query: Result<Query<PaginationQuery>, QueryRejection>,
 ) -> Response {
+    let recipient_id = match extract_path_param(path) {
+        Ok(id) => id,
+        Err(response) => return *response,
+    };
     let (after_seq, limit) = match parse_pagination_query(query) {
         Ok(parsed) => parsed,
         Err(response) => return *response,
@@ -433,9 +456,13 @@ async fn fetch_welcomes(
 
 async fn checkpoint(
     State(state): State<MlsRelayState>,
-    Path(group_id): Path<String>,
+    path: Result<Path<String>, PathRejection>,
     query: Result<Query<CheckpointQuery>, QueryRejection>,
 ) -> Response {
+    let group_id = match extract_path_param(path) {
+        Ok(id) => id,
+        Err(response) => return *response,
+    };
     let old_size = match query {
         Ok(Query(CheckpointQuery { old_size: None })) => None,
         Ok(Query(CheckpointQuery {
@@ -475,12 +502,12 @@ async fn prune_expired(
     headers: HeaderMap,
     body: Body,
 ) -> Response {
-    if !is_json_content_type(headers.get(header::CONTENT_TYPE)) {
+    if !is_json_content_type(&headers) {
         return problem(
             StatusCode::UNSUPPORTED_MEDIA_TYPE,
             "unsupported_media_type",
             "Unsupported media type",
-            "Content-Type must be application/json",
+            "Content-Type must be a single application/json header",
         );
     }
     let bytes = match read_bounded_body(body, MAX_JSON_BODY_BYTES).await {
@@ -537,17 +564,29 @@ async fn apply_security_headers(request: Request, next: Next) -> Response {
     response
 }
 
+fn extract_path_param(path: Result<Path<String>, PathRejection>) -> Result<String, Box<Response>> {
+    match path {
+        Ok(Path(value)) => Ok(value),
+        Err(_) => Err(Box::new(problem(
+            StatusCode::BAD_REQUEST,
+            "invalid_input",
+            "Invalid path parameter",
+            "Path parameter must be valid UTF-8",
+        ))),
+    }
+}
+
 async fn read_strict_json<T: DeserializeOwned>(
     headers: &HeaderMap,
     body: Body,
     limit: usize,
 ) -> Result<T, Box<Response>> {
-    if !is_json_content_type(headers.get(header::CONTENT_TYPE)) {
+    if !is_json_content_type(headers) {
         return Err(Box::new(problem(
             StatusCode::UNSUPPORTED_MEDIA_TYPE,
             "unsupported_media_type",
             "Unsupported media type",
-            "Content-Type must be application/json",
+            "Content-Type must be a single application/json header",
         )));
     }
     let bytes = read_bounded_body(body, limit).await?;
@@ -585,8 +624,15 @@ fn parse_strict_json<T: DeserializeOwned>(bytes: &[u8]) -> Result<T, Box<Respons
     })
 }
 
-fn is_json_content_type(value: Option<&HeaderValue>) -> bool {
-    let Some(raw) = value.and_then(|v| v.to_str().ok()) else {
+fn is_json_content_type(headers: &HeaderMap) -> bool {
+    let mut values = headers.get_all(header::CONTENT_TYPE).iter();
+    let Some(first) = values.next() else {
+        return false;
+    };
+    if values.next().is_some() {
+        return false;
+    }
+    let Some(raw) = first.to_str().ok() else {
         return false;
     };
     let media = raw.split(';').next().unwrap_or("").trim();
@@ -751,14 +797,35 @@ mod tests {
     }
 
     #[test]
-    fn json_content_type_accepts_charset_and_rejects_non_json() {
-        let json_plain = HeaderValue::from_static("application/json");
-        let json_utf8 = HeaderValue::from_static("application/json; charset=utf-8");
-        let text_plain = HeaderValue::from_static("text/plain");
-        assert!(is_json_content_type(Some(&json_plain)));
-        assert!(is_json_content_type(Some(&json_utf8)));
-        assert!(!is_json_content_type(Some(&text_plain)));
-        assert!(!is_json_content_type(None));
+    fn json_content_type_accepts_charset_and_rejects_non_json_or_duplicates() {
+        let mut plain = HeaderMap::new();
+        plain.insert(
+            header::CONTENT_TYPE,
+            HeaderValue::from_static("application/json"),
+        );
+        assert!(is_json_content_type(&plain));
+
+        let mut utf8 = HeaderMap::new();
+        utf8.insert(
+            header::CONTENT_TYPE,
+            HeaderValue::from_static("application/json; charset=utf-8"),
+        );
+        assert!(is_json_content_type(&utf8));
+
+        let mut text = HeaderMap::new();
+        text.insert(header::CONTENT_TYPE, HeaderValue::from_static("text/plain"));
+        assert!(!is_json_content_type(&text));
+
+        let empty = HeaderMap::new();
+        assert!(!is_json_content_type(&empty));
+
+        let mut duplicate = HeaderMap::new();
+        duplicate.append(
+            header::CONTENT_TYPE,
+            HeaderValue::from_static("application/json"),
+        );
+        duplicate.append(header::CONTENT_TYPE, HeaderValue::from_static("text/plain"));
+        assert!(!is_json_content_type(&duplicate));
     }
 
     #[test]
