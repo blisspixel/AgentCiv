@@ -3,6 +3,7 @@
 
 mod http;
 pub mod merkle;
+pub mod mls_relay;
 pub mod runtime;
 mod store;
 mod validate;
