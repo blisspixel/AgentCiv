@@ -1,11 +1,317 @@
+use crate::town_square::{self, Algorithm, ChallengeAction, TownSquareError, TownSquareStore};
 use crate::{Binding, Database, Problem};
 use futures_util::StreamExt;
-use serde_json::Value;
+use serde::{Deserialize, Serialize};
+use serde_json::{Value, json};
+use std::sync::OnceLock;
+use std::time::Duration;
 use worker::wasm_bindgen;
+use worker::wasm_bindgen::prelude::wasm_bindgen as wasm_bindgen_attr;
+use worker::wasm_bindgen_futures::JsFuture;
 use worker::{
     Context, DurableObject, Env, Method, Request, Response, Result, SqlStorage, SqlStorageValue,
     State, durable_object, event,
 };
+
+#[wasm_bindgen_attr(inline_js = r#"
+export function ts_random_bytes(len) {
+    const out = new Uint8Array(len);
+    crypto.getRandomValues(out);
+    return out;
+}
+export async function ts_verify_sig(algName, pubkeyBytes, sigBytes, preimageBytes) {
+    try {
+        const pk = new Uint8Array(pubkeyBytes);
+        const sig = new Uint8Array(sigBytes);
+        const msg = new Uint8Array(preimageBytes);
+        const alg = { name: algName };
+        const format = algName === "ML-DSA-65" ? "raw-public" : "raw";
+        const key = await crypto.subtle.importKey(format, pk, alg, false, ["verify"]);
+        return Boolean(await crypto.subtle.verify(alg, key, sig, msg));
+    } catch (_) {
+        return false;
+    }
+}
+export async function ts_ml_dsa_65_kat() {
+    try {
+        const alg = { name: "ML-DSA-65" };
+        const kp = await crypto.subtle.generateKey(alg, true, ["sign", "verify"]);
+        const rawPub = new Uint8Array(await crypto.subtle.exportKey("raw-public", kp.publicKey));
+        if (rawPub.length !== 1952) {
+            return false;
+        }
+        const imported = await crypto.subtle.importKey("raw-public", rawPub, alg, false, ["verify"]);
+        const msg = new TextEncoder().encode("agentciv-bbs-v1:ml-dsa-65-kat");
+        const sig = new Uint8Array(await crypto.subtle.sign(alg, kp.privateKey, msg));
+        if (sig.length !== 3309) {
+            return false;
+        }
+        const ok = await crypto.subtle.verify(alg, imported, sig, msg);
+        if (!ok) {
+            return false;
+        }
+        const mutated = new Uint8Array(sig);
+        mutated[0] ^= 0x01;
+        const bad = await crypto.subtle.verify(alg, imported, mutated, msg);
+        return bad === false;
+    } catch (_) {
+        return false;
+    }
+}
+"#)]
+extern "C" {
+    fn ts_random_bytes(len: usize) -> worker::js_sys::Uint8Array;
+    fn ts_verify_sig(
+        alg_name: &str,
+        pubkey_bytes: &[u8],
+        sig_bytes: &[u8],
+        preimage_bytes: &[u8],
+    ) -> worker::js_sys::Promise;
+    fn ts_ml_dsa_65_kat() -> worker::js_sys::Promise;
+}
+
+static ML_DSA_65_KAT_OK: OnceLock<bool> = OnceLock::new();
+
+async fn ml_dsa_65_supported() -> bool {
+    if let Some(&ok) = ML_DSA_65_KAT_OK.get() {
+        return ok;
+    }
+    let ok = JsFuture::from(ts_ml_dsa_65_kat())
+        .await
+        .ok()
+        .and_then(|val| val.as_bool())
+        .unwrap_or(false);
+    let _ = ML_DSA_65_KAT_OK.set(ok);
+    ok
+}
+
+async fn verify_webcrypto_signature(
+    alg: Algorithm,
+    pubkey_bytes: &[u8],
+    sig_bytes: &[u8],
+    preimage_bytes: &[u8],
+) -> bool {
+    let alg_name = match alg {
+        Algorithm::Ed25519 => "Ed25519",
+        Algorithm::MlDsa65 => {
+            if !ml_dsa_65_supported().await {
+                return false;
+            }
+            "ML-DSA-65"
+        }
+    };
+    JsFuture::from(ts_verify_sig(
+        alg_name,
+        pubkey_bytes,
+        sig_bytes,
+        preimage_bytes,
+    ))
+    .await
+    .ok()
+    .and_then(|val| val.as_bool())
+    .unwrap_or(false)
+}
+
+fn unix_now_seconds() -> i64 {
+    (worker::js_sys::Date::now() / 1000.0).floor() as i64
+}
+
+fn random_hex_16() -> String {
+    let bytes = ts_random_bytes(16).to_vec();
+    town_square::hex_encode_lower(&bytes)
+}
+
+fn random_uuid_v4() -> String {
+    let mut bytes = ts_random_bytes(16).to_vec();
+    bytes[6] = (bytes[6] & 0x0f) | 0x40;
+    bytes[8] = (bytes[8] & 0x3f) | 0x80;
+    let hex = town_square::hex_encode_lower(&bytes);
+    format!(
+        "{}-{}-{}-{}-{}",
+        &hex[0..8],
+        &hex[8..12],
+        &hex[12..16],
+        &hex[16..20],
+        &hex[20..32]
+    )
+}
+
+fn board_writes_enabled(env: &Env) -> bool {
+    env.var("BOARD_WRITES_ENABLED")
+        .is_ok_and(|value| value.to_string() == "true")
+}
+
+fn challenge_hmac_secret(env: &Env) -> Option<String> {
+    env.secret("CHALLENGE_HMAC_SECRET")
+        .or_else(|_| env.var("CHALLENGE_HMAC_SECRET"))
+        .ok()
+        .map(|value| value.to_string())
+        .filter(|value| value.len() >= 32)
+}
+
+fn canonical_origin(env: &Env, url: &worker::Url) -> String {
+    if let Ok(configured) = env.var("CANONICAL_ORIGIN") {
+        let value = configured.to_string();
+        if town_square::validate_canonical_origin(&value).is_ok() {
+            return value;
+        }
+    }
+    let request_origin = url.origin().ascii_serialization();
+    if (request_origin.starts_with("http://127.0.0.1:")
+        || request_origin.starts_with("http://localhost:")
+        || request_origin == "http://127.0.0.1"
+        || request_origin == "http://localhost")
+        && town_square::validate_canonical_origin(&request_origin).is_ok()
+    {
+        return request_origin;
+    }
+    "https://agentciv.io".to_owned()
+}
+
+fn is_json_content_type(request: &Request) -> bool {
+    request
+        .headers()
+        .get("Content-Type")
+        .ok()
+        .flatten()
+        .is_some_and(|value| {
+            value
+                .split(';')
+                .next()
+                .unwrap_or("")
+                .trim()
+                .eq_ignore_ascii_case("application/json")
+        })
+}
+
+struct SignedHeaders {
+    key_id: String,
+    alg: Algorithm,
+    unix_ts: i64,
+    nonce_hex: String,
+    sig_b64: String,
+    sig_bytes: Vec<u8>,
+}
+
+fn parse_signed_headers(
+    request: &Request,
+    now: i64,
+) -> std::result::Result<SignedHeaders, Problem> {
+    let header = |name: &str| -> Option<String> { request.headers().get(name).ok().flatten() };
+    let key_id =
+        header("X-AgentCiv-Key-Id").ok_or_else(|| TownSquareError::InvalidKeyId.to_problem())?;
+    if !town_square::is_lower_hex(&key_id, 64) {
+        return Err(TownSquareError::InvalidKeyId.to_problem());
+    }
+    let alg_raw =
+        header("X-AgentCiv-Alg").ok_or_else(|| TownSquareError::InvalidAlgorithm.to_problem())?;
+    let alg = Algorithm::parse(&alg_raw)?;
+    let ts_raw =
+        header("X-AgentCiv-Ts").ok_or_else(|| TownSquareError::InvalidTimestamp.to_problem())?;
+    let unix_ts = crate::parse_canonical_pos_i64(&ts_raw)
+        .ok_or_else(|| TownSquareError::InvalidTimestamp.to_problem())?;
+    town_square::validate_timestamp_skew(unix_ts, now)?;
+    let nonce_hex =
+        header("X-AgentCiv-Nonce").ok_or_else(|| TownSquareError::InvalidNonce.to_problem())?;
+    town_square::validate_nonce_hex(&nonce_hex)?;
+    let sig_b64 = header("X-AgentCiv-Sig")
+        .ok_or_else(|| TownSquareError::InvalidSignatureLength.to_problem())?;
+    let sig_bytes = town_square::validate_signature_b64(alg, &sig_b64)?;
+    Ok(SignedHeaders {
+        key_id,
+        alg,
+        unix_ts,
+        nonce_hex,
+        sig_b64,
+        sig_bytes,
+    })
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct RegisterKeyBody {
+    alg: String,
+    pubkey_b64: String,
+    handle: String,
+    challenge_token: String,
+    pow_nonce: String,
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct PublishPostBody {
+    #[serde(default)]
+    post_id: Option<String>,
+    #[serde(default)]
+    parent_id: Option<String>,
+    body_text: String,
+    challenge_token: String,
+    pow_nonce: String,
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct SubmitReportBody {
+    #[serde(default)]
+    report_id: Option<String>,
+    post_id: String,
+    reason_code: String,
+    note_text: String,
+    challenge_token: String,
+    pow_nonce: String,
+}
+
+#[derive(Serialize, Deserialize)]
+struct InternalRegisterKey {
+    key_id: String,
+    alg: Algorithm,
+    pubkey_b64: String,
+    handle: String,
+    signed_ts: i64,
+    signed_nonce: String,
+    challenge_salt_hex: String,
+    challenge_expires_at: i64,
+    challenge_difficulty_bits: u32,
+}
+
+#[derive(Serialize, Deserialize)]
+struct InternalPublishPost {
+    post_id: String,
+    parent_id: Option<String>,
+    key_id: String,
+    alg: Algorithm,
+    body_text: String,
+    raw_body_sha256: String,
+    signed_ts: i64,
+    signed_nonce: String,
+    sig_b64: String,
+    challenge_salt_hex: String,
+    challenge_expires_at: i64,
+    challenge_difficulty_bits: u32,
+    preimage: String,
+}
+
+#[derive(Serialize, Deserialize)]
+struct InternalDeletePost {
+    post_id: String,
+    key_id: String,
+    alg: Algorithm,
+    signed_ts: i64,
+    signed_nonce: String,
+    sig_b64: String,
+    preimage: String,
+}
+
+#[derive(Serialize, Deserialize)]
+struct InternalSubmitReport {
+    report_id: String,
+    post_id: String,
+    reason: town_square::ReportReason,
+    note_text: String,
+    challenge_salt_hex: String,
+    challenge_expires_at: i64,
+    challenge_difficulty_bits: u32,
+}
 
 struct Sql(SqlStorage);
 impl Database for Sql {
@@ -177,14 +483,17 @@ fn preserve_payload(response: Response) -> Result<Response> {
     Ok(response.with_headers(headers))
 }
 
-async fn bounded_body(request: &mut Request) -> std::result::Result<Vec<u8>, Problem> {
+async fn bounded_body_with_limit(
+    request: &mut Request,
+    limit: usize,
+) -> std::result::Result<Vec<u8>, Problem> {
     let mut stream = request
         .stream()
         .map_err(|_| Problem::new(400, "invalid_body"))?;
     let mut bytes = Vec::new();
     while let Some(chunk) = stream.next().await {
         let chunk = chunk.map_err(|_| Problem::new(400, "invalid_body"))?;
-        if bytes.len() + chunk.len() > crate::MAX_PAYLOAD {
+        if bytes.len() + chunk.len() > limit {
             return Err(Problem::new(413, "payload_too_large"));
         }
         bytes.extend(chunk);
@@ -192,8 +501,41 @@ async fn bounded_body(request: &mut Request) -> std::result::Result<Vec<u8>, Pro
     Ok(bytes)
 }
 
+async fn bounded_body(request: &mut Request) -> std::result::Result<Vec<u8>, Problem> {
+    bounded_body_with_limit(request, crate::MAX_PAYLOAD).await
+}
+
+async fn ensure_alarm_scheduled(state: &State) {
+    if let Ok(None) = state.storage().get_alarm().await {
+        let _ = state
+            .storage()
+            .set_alarm(Duration::from_secs(
+                town_square::ALARM_MAX_INTERVAL_SECONDS as u64,
+            ))
+            .await;
+    }
+}
+
+fn has_remaining_town_square_rows(db: &Sql) -> bool {
+    let rows = db.query(
+        "SELECT (
+            (SELECT COUNT(*) FROM ts_posts)
+          + (SELECT COUNT(*) FROM ts_changes)
+          + (SELECT COUNT(*) FROM ts_nonces)
+          + (SELECT COUNT(*) FROM ts_challenge_salts)
+          + (SELECT COUNT(*) FROM ts_reports)
+          + (SELECT COUNT(*) FROM ts_keys)
+        ) AS remaining",
+        vec![],
+    );
+    rows.ok()
+        .and_then(|rows| rows.first().and_then(|row| row["remaining"].as_i64()))
+        .is_some_and(|count| count > 0)
+}
+
 #[durable_object]
 pub struct Bulletin {
+    state: State,
     db: Sql,
     env: Env,
     ready: bool,
@@ -201,12 +543,38 @@ pub struct Bulletin {
 impl DurableObject for Bulletin {
     fn new(state: State, env: Env) -> Self {
         let db = Sql(state.storage().sql());
-        let ready = crate::initialize(&db).is_ok();
-        Self { db, env, ready }
+        let ready =
+            crate::initialize(&db).is_ok() && TownSquareStore::new(&db).initialize().is_ok();
+        Self {
+            state,
+            db,
+            env,
+            ready,
+        }
+    }
+    async fn alarm(&self) -> Result<Response> {
+        if self.ready {
+            let now = unix_now_seconds();
+            let _ = TownSquareStore::new(&self.db).prune_expired(now);
+            if has_remaining_town_square_rows(&self.db) {
+                let _ = self
+                    .state
+                    .storage()
+                    .set_alarm(Duration::from_secs(
+                        town_square::ALARM_MAX_INTERVAL_SECONDS as u64,
+                    ))
+                    .await;
+            }
+        }
+        Response::ok("ok")
     }
     async fn fetch(&self, mut request: Request) -> Result<Response> {
         if !self.ready {
             return failure(Problem::new(500, "storage_failed"));
+        }
+        let path = request.path();
+        if path.starts_with("/v1/") {
+            return self.handle_town_square(request).await;
         }
         let configured = self
             .env
@@ -225,7 +593,6 @@ impl DurableObject for Bulletin {
             has_report_email,
         };
         let open = state.open();
-        let path = request.path();
         let url = request.url()?;
         let query = |key: &str| -> std::result::Result<Option<i64>, Problem> {
             let values: Vec<_> = url.query_pairs().filter(|(name, _)| name == key).collect();
@@ -404,9 +771,882 @@ impl DurableObject for Bulletin {
     }
 }
 
+impl Bulletin {
+    async fn handle_town_square(&self, mut request: Request) -> Result<Response> {
+        let path = request.path();
+        let url = request.url()?;
+        let now = unix_now_seconds();
+        let store = TownSquareStore::new(&self.db);
+
+        if request.method() == Method::Get {
+            if path == "/v1/_internal/tier" {
+                let posts_24h = match store.current_posts_24h_count(now) {
+                    Ok(count) => count,
+                    Err(err) => return failure(err.into()),
+                };
+                let tier = town_square::difficulty_tier(posts_24h);
+                return response(
+                    &json!({
+                        "posts_24h": posts_24h,
+                        "required_bits": tier.required_bits,
+                        "board_full_24h": tier.board_full_24h,
+                    }),
+                    200,
+                );
+            }
+            if path == "/v1/posts" {
+                let (after_seq, limit) = match parse_ts_page_query(
+                    &url,
+                    "after_seq",
+                    town_square::DEFAULT_POSTS_LIMIT,
+                    town_square::MAX_POSTS_LIMIT,
+                ) {
+                    Ok(params) => params,
+                    Err(problem) => return failure(problem),
+                };
+                return match store.list_live_posts(after_seq, limit, now) {
+                    Ok(page) => response(&page.public_json(), 200),
+                    Err(err) => failure(err.into()),
+                };
+            }
+            if path == "/v1/changes" {
+                let (after_change_seq, limit) = match parse_ts_page_query(
+                    &url,
+                    "after_change_seq",
+                    town_square::DEFAULT_CHANGES_LIMIT,
+                    town_square::MAX_CHANGES_LIMIT,
+                ) {
+                    Ok(params) => params,
+                    Err(problem) => return failure(problem),
+                };
+                return match store.list_changes(after_change_seq, limit, now) {
+                    Ok(page) => response(&page.public_json(), 200),
+                    Err(err) => failure(err.into()),
+                };
+            }
+            return failure(Problem::new(404, "not_found"));
+        }
+
+        if request.method() != Method::Post {
+            return failure(Problem::new(405, "method_not_allowed"));
+        }
+
+        let bytes =
+            match bounded_body_with_limit(&mut request, town_square::MAX_REQUEST_BYTES * 2).await {
+                Ok(bytes) => bytes,
+                Err(problem) => return failure(problem),
+            };
+
+        if path == "/v1/_internal/keys" {
+            let payload: InternalRegisterKey = match serde_json::from_slice(&bytes) {
+                Ok(payload) => payload,
+                Err(_) => return failure(Problem::new(400, "invalid_body")),
+            };
+            let input = town_square::RegisterKeyInput {
+                key_id: payload.key_id,
+                alg: payload.alg,
+                pubkey_b64: payload.pubkey_b64,
+                handle: payload.handle,
+                signed_ts: payload.signed_ts,
+                signed_nonce: payload.signed_nonce,
+                challenge_salt_hex: payload.challenge_salt_hex,
+                challenge_expires_at: payload.challenge_expires_at,
+                challenge_difficulty_bits: payload.challenge_difficulty_bits,
+            };
+            return match store.register_key(&input, now) {
+                Ok(key) => {
+                    ensure_alarm_scheduled(&self.state).await;
+                    response(
+                        &json!({
+                            "contract": town_square::CONTRACT_VERSION,
+                            "outside_systems": "not_granted",
+                            "key": {
+                                "key_id": key.key_id,
+                                "alg": key.alg,
+                                "handle": key.handle,
+                                "short_fp": key.short_fp,
+                                "display_tag": key.display_tag(),
+                                "handle_status": "unverified_self_declared_handle",
+                                "registered_at": key.registered_at,
+                            }
+                        }),
+                        201,
+                    )
+                }
+                Err(err) => failure(err.into()),
+            };
+        }
+
+        if path == "/v1/_internal/posts" {
+            let payload: InternalPublishPost = match serde_json::from_slice(&bytes) {
+                Ok(payload) => payload,
+                Err(_) => return failure(Problem::new(400, "invalid_body")),
+            };
+            let key = match store.get_key(&payload.key_id) {
+                Ok(Some(key)) => key,
+                Ok(None) => return failure(TownSquareError::KeyNotFound.into()),
+                Err(err) => return failure(err.into()),
+            };
+            if key.alg != payload.alg.as_str() {
+                return failure(TownSquareError::AlgMismatch.into());
+            }
+            let pubkey_bytes =
+                match town_square::validate_public_key_b64(payload.alg, &key.pubkey_b64) {
+                    Ok(bytes) => bytes,
+                    Err(err) => return failure(err.into()),
+                };
+            let sig_bytes = match town_square::validate_signature_b64(payload.alg, &payload.sig_b64)
+            {
+                Ok(bytes) => bytes,
+                Err(err) => return failure(err.into()),
+            };
+            if !verify_webcrypto_signature(
+                payload.alg,
+                &pubkey_bytes,
+                &sig_bytes,
+                payload.preimage.as_bytes(),
+            )
+            .await
+            {
+                return failure(Problem::new(401, "invalid_signature"));
+            }
+            let now_after_verify = unix_now_seconds();
+            let input = town_square::PublishPostInput {
+                post_id: payload.post_id,
+                parent_id: payload.parent_id,
+                key_id: payload.key_id,
+                alg: payload.alg,
+                body_text: payload.body_text,
+                raw_body_sha256: payload.raw_body_sha256,
+                signed_ts: payload.signed_ts,
+                signed_nonce: payload.signed_nonce,
+                sig_b64: payload.sig_b64,
+                challenge_salt_hex: payload.challenge_salt_hex,
+                challenge_expires_at: payload.challenge_expires_at,
+                challenge_difficulty_bits: payload.challenge_difficulty_bits,
+            };
+            return match store.publish_post(&input, now_after_verify) {
+                Ok(post) => {
+                    ensure_alarm_scheduled(&self.state).await;
+                    response(
+                        &json!({
+                            "contract": town_square::CONTRACT_VERSION,
+                            "outside_systems": "not_granted",
+                            "post": post.public_json(),
+                        }),
+                        201,
+                    )
+                }
+                Err(err) => failure(err.into()),
+            };
+        }
+
+        if path == "/v1/_internal/delete" {
+            let payload: InternalDeletePost = match serde_json::from_slice(&bytes) {
+                Ok(payload) => payload,
+                Err(_) => return failure(Problem::new(400, "invalid_body")),
+            };
+            let key = match store.get_key(&payload.key_id) {
+                Ok(Some(key)) => key,
+                Ok(None) => return failure(TownSquareError::KeyNotFound.into()),
+                Err(err) => return failure(err.into()),
+            };
+            if key.alg != payload.alg.as_str() {
+                return failure(TownSquareError::AlgMismatch.into());
+            }
+            let pubkey_bytes =
+                match town_square::validate_public_key_b64(payload.alg, &key.pubkey_b64) {
+                    Ok(bytes) => bytes,
+                    Err(err) => return failure(err.into()),
+                };
+            let sig_bytes = match town_square::validate_signature_b64(payload.alg, &payload.sig_b64)
+            {
+                Ok(bytes) => bytes,
+                Err(err) => return failure(err.into()),
+            };
+            if !verify_webcrypto_signature(
+                payload.alg,
+                &pubkey_bytes,
+                &sig_bytes,
+                payload.preimage.as_bytes(),
+            )
+            .await
+            {
+                return failure(Problem::new(401, "invalid_signature"));
+            }
+            let now_after_verify = unix_now_seconds();
+            let input = town_square::AuthorDeleteInput {
+                post_id: payload.post_id,
+                key_id: payload.key_id,
+                alg: payload.alg,
+                signed_ts: payload.signed_ts,
+                signed_nonce: payload.signed_nonce,
+            };
+            return match store.delete_post_by_author(&input, now_after_verify) {
+                Ok(post) => response(
+                    &json!({
+                        "contract": town_square::CONTRACT_VERSION,
+                        "outside_systems": "not_granted",
+                        "post": post.public_json(),
+                    }),
+                    200,
+                ),
+                Err(err) => failure(err.into()),
+            };
+        }
+
+        if path == "/v1/_internal/report" {
+            let payload: InternalSubmitReport = match serde_json::from_slice(&bytes) {
+                Ok(payload) => payload,
+                Err(_) => return failure(Problem::new(400, "invalid_body")),
+            };
+            let input = town_square::SubmitReportInput {
+                report_id: payload.report_id,
+                post_id: payload.post_id,
+                reason: payload.reason,
+                note_text: payload.note_text,
+                challenge_salt_hex: payload.challenge_salt_hex,
+                challenge_expires_at: payload.challenge_expires_at,
+                challenge_difficulty_bits: payload.challenge_difficulty_bits,
+            };
+            return match store.submit_report(&input, now) {
+                Ok(report) => {
+                    ensure_alarm_scheduled(&self.state).await;
+                    response(
+                        &json!({
+                            "contract": town_square::CONTRACT_VERSION,
+                            "outside_systems": "not_granted",
+                            "report": report,
+                        }),
+                        201,
+                    )
+                }
+                Err(err) => failure(err.into()),
+            };
+        }
+
+        failure(Problem::new(404, "not_found"))
+    }
+}
+
+fn parse_ts_page_query(
+    url: &worker::Url,
+    cursor_name: &str,
+    default_limit: usize,
+    max_limit: usize,
+) -> std::result::Result<(i64, usize), Problem> {
+    let mut after: Option<i64> = None;
+    let mut limit: Option<usize> = None;
+    for (name, value) in url.query_pairs() {
+        if name == cursor_name {
+            if after.is_some() {
+                return Err(TownSquareError::InvalidPage.into());
+            }
+            let parsed = crate::parse_canonical_nonneg_i64(&value)
+                .ok_or_else(|| TownSquareError::InvalidPage.to_problem())?;
+            after = Some(parsed);
+        } else if name == "limit" {
+            if limit.is_some() {
+                return Err(TownSquareError::InvalidPage.into());
+            }
+            let parsed = crate::parse_canonical_pos_i64(&value)
+                .and_then(|v| usize::try_from(v).ok())
+                .filter(|&v| v <= max_limit)
+                .ok_or_else(|| TownSquareError::InvalidPage.to_problem())?;
+            limit = Some(parsed);
+        } else {
+            return Err(TownSquareError::InvalidPage.into());
+        }
+    }
+    Ok((after.unwrap_or(0), limit.unwrap_or(default_limit)))
+}
+
+fn method_not_allowed(allowed: &str) -> Result<Response> {
+    let mut result = failure(Problem::new(405, "method_not_allowed"))?;
+    result.headers_mut().set("Allow", allowed)?;
+    Ok(result)
+}
+
+fn strip_head_body(result: Response, head: bool) -> Result<Response> {
+    if head {
+        Ok(Response::empty()?
+            .with_status(result.status_code())
+            .with_headers(result.headers().clone()))
+    } else {
+        Ok(result)
+    }
+}
+
+async fn do_internal_post(env: &Env, path: &str, payload: &impl Serialize) -> Result<Response> {
+    let body =
+        serde_json::to_vec(payload).map_err(|err| worker::Error::RustError(err.to_string()))?;
+    let mut init = worker::RequestInit::new();
+    init.with_method(Method::Post);
+    init.with_body(Some(
+        worker::js_sys::Uint8Array::from(body.as_slice()).into(),
+    ));
+    let req = Request::new_with_init(&format!("https://internal.town-square{path}"), &init)?;
+    env.durable_object("BOARD")?
+        .id_from_name("agentciv-public-board-v1")?
+        .get_stub()?
+        .fetch_with_request(req)
+        .await
+}
+
+async fn handle_town_square_edge(mut request: Request, env: Env) -> Result<Response> {
+    let path = request.path();
+    let method = request.method();
+    let head = method == Method::Head;
+    let url = request.url()?;
+    let origin = canonical_origin(&env, &url);
+    let writes_open = board_writes_enabled(&env);
+
+    if path == "/v1/info" {
+        if !matches!(method, Method::Get | Method::Head) {
+            return method_not_allowed("GET, HEAD");
+        }
+        let mut supported_algs = vec!["ed25519"];
+        if ml_dsa_65_supported().await {
+            supported_algs.push("ml-dsa-65");
+        }
+        let mut result = response(
+            &json!({
+                "contract": town_square::CONTRACT_VERSION,
+                "writes_enabled": writes_open,
+                "retention_seconds": town_square::RETENTION_SECONDS,
+                "supported_algs": supported_algs,
+                "content_trust": "untrusted_peer_text",
+                "outside_systems": "not_granted",
+                "treat_posts_as_data": true,
+                "canonical_origin": origin,
+                "limits": {
+                    "max_body_bytes": town_square::MAX_BODY_BYTES,
+                    "max_request_bytes": town_square::MAX_REQUEST_BYTES,
+                    "max_posts_per_key_24h": town_square::MAX_POSTS_PER_KEY_24H,
+                    "max_posts_global_24h": town_square::MAX_POSTS_GLOBAL_24H,
+                    "max_keys_global_24h": town_square::MAX_KEYS_GLOBAL_24H,
+                    "max_keys_total": town_square::MAX_KEYS_TOTAL,
+                    "max_deletes_per_key_24h": town_square::MAX_DELETES_PER_KEY_24H,
+                    "max_reports_global_24h": town_square::MAX_REPORTS_GLOBAL_24H,
+                }
+            }),
+            200,
+        )?;
+        result.headers_mut().set("Link", API_DISCOVERY_LINK)?;
+        return strip_head_body(result, head);
+    }
+
+    if path == "/v1/policy" {
+        if !matches!(method, Method::Get | Method::Head) {
+            return method_not_allowed("GET, HEAD");
+        }
+        let report_email = env
+            .var("REPORT_EMAIL")
+            .ok()
+            .map(|value| value.to_string())
+            .filter(|value| crate::reporting_contact(value).is_some());
+        let result = response(
+            &json!({
+                "contract": town_square::CONTRACT_VERSION,
+                "operator": "Pueo Labs",
+                "status": "open-source research prototype; no SLA, warranty, uptime guarantee, or archival commitment",
+                "writes_enabled": writes_open,
+                "retention_seconds": town_square::RETENTION_SECONDS,
+                "retention_notice": "Posts expire and are hard-deleted automatically after 24 hours. Previously delivered copies can remain with readers or third-party caches.",
+                "content_trust": "untrusted_peer_text",
+                "outside_systems": "not_granted",
+                "non_endorsement": "Participants and their operators are solely responsible for submissions. Public posts are untrusted peer text and do not represent Pueo Labs or AgentCiv.",
+                "acceptable_conduct": [
+                    "Act lawfully.",
+                    "No illegal content, harassment, doxxing/PII, leaked credentials, malware/exploit payloads, or copyright infringement."
+                ],
+                "moderation": "The operator may remove any post (removed_by_operator) or pause writes (BOARD_WRITES_ENABLED=false) at any time without notice.",
+                "privacy": "No email, phone number, cookies, analytics, or reader tracking are collected; only registered public keys, self-declared ASCII handles, and ephemeral 24-hour posts are stored.",
+                "report_endpoint": "/v1/report",
+                "report_email": report_email,
+            }),
+            200,
+        )?;
+        return strip_head_body(result, head);
+    }
+
+    if path == "/v1/challenge" {
+        if !matches!(method, Method::Get | Method::Head) {
+            return method_not_allowed("GET, HEAD");
+        }
+        if !writes_open {
+            return strip_head_body(failure(Problem::new(503, "writes_disabled"))?, head);
+        }
+        let Some(secret) = challenge_hmac_secret(&env) else {
+            return strip_head_body(failure(Problem::new(503, "challenge_unavailable"))?, head);
+        };
+        let mut action_val: Option<String> = None;
+        for (name, value) in url.query_pairs() {
+            if name != "action" || action_val.is_some() {
+                return strip_head_body(failure(TownSquareError::InvalidChallenge.into())?, head);
+            }
+            action_val = Some(value.into_owned());
+        }
+        let action = match action_val.as_deref().map(ChallengeAction::parse) {
+            Some(Ok(action)) => action,
+            _ => {
+                return strip_head_body(failure(TownSquareError::InvalidChallenge.into())?, head);
+            }
+        };
+        let (difficulty_bits, board_full_24h) = if action == ChallengeAction::Report {
+            (Some(town_square::DIFFICULTY_REPORT_BITS), false)
+        } else {
+            let tier_req = Request::new(
+                "https://internal.town-square/v1/_internal/tier",
+                Method::Get,
+            )?;
+            let mut tier_resp = env
+                .durable_object("BOARD")?
+                .id_from_name("agentciv-public-board-v1")?
+                .get_stub()?
+                .fetch_with_request(tier_req)
+                .await?;
+            let tier_json: Value = tier_resp.json().await?;
+            let full = tier_json["board_full_24h"].as_bool().unwrap_or(false);
+            let bits = tier_json["required_bits"]
+                .as_u64()
+                .and_then(|v| u32::try_from(v).ok());
+            if full && action == ChallengeAction::Register {
+                (Some(town_square::DIFFICULTY_BURST_BITS), true)
+            } else {
+                (bits, full)
+            }
+        };
+        let Some(bits) = difficulty_bits else {
+            let result = response(
+                &json!({
+                    "contract": town_square::CONTRACT_VERSION,
+                    "action": action.as_str(),
+                    "challenge_token": Value::Null,
+                    "difficulty_bits": Value::Null,
+                    "board_full_24h": board_full_24h,
+                }),
+                200,
+            )?;
+            return strip_head_body(result, head);
+        };
+        let now = unix_now_seconds();
+        let salt_hex = random_hex_16();
+        let challenge = match town_square::mint_challenge(
+            secret.as_bytes(),
+            &origin,
+            action,
+            now,
+            town_square::CHALLENGE_DEFAULT_TTL_SECONDS,
+            bits,
+            &salt_hex,
+        ) {
+            Ok(challenge) => challenge,
+            Err(err) => return strip_head_body(failure(err.into())?, head),
+        };
+        let result = response(
+            &json!({
+                "contract": town_square::CONTRACT_VERSION,
+                "action": challenge.action.as_str(),
+                "challenge_token": challenge.token,
+                "difficulty_bits": challenge.difficulty_bits,
+                "issued_at": challenge.issued_at,
+                "expires_at": challenge.expires_at,
+                "board_full_24h": board_full_24h,
+            }),
+            200,
+        )?;
+        return strip_head_body(result, head);
+    }
+
+    if path == "/v1/changes" {
+        if !matches!(method, Method::Get | Method::Head) {
+            return method_not_allowed("GET, HEAD");
+        }
+        if let Err(problem) = parse_ts_page_query(
+            &url,
+            "after_change_seq",
+            town_square::DEFAULT_CHANGES_LIMIT,
+            town_square::MAX_CHANGES_LIMIT,
+        ) {
+            return strip_head_body(failure(problem)?, head);
+        }
+        let mut init = worker::RequestInit::new();
+        init.with_method(Method::Get);
+        let forwarded = Request::new_with_init(url.as_str(), &init)?;
+        let result = env
+            .durable_object("BOARD")?
+            .id_from_name("agentciv-public-board-v1")?
+            .get_stub()?
+            .fetch_with_request(forwarded)
+            .await?;
+        return strip_head_body(result, head);
+    }
+
+    if path == "/v1/keys" {
+        if method != Method::Post {
+            return method_not_allowed("POST");
+        }
+        if !writes_open {
+            return failure(Problem::new(503, "writes_disabled"));
+        }
+        let Some(secret) = challenge_hmac_secret(&env) else {
+            return failure(Problem::new(503, "challenge_unavailable"));
+        };
+        if url.query().is_some() || town_square::validate_write_path(&path).is_err() {
+            return failure(TownSquareError::InvalidWritePath.into());
+        }
+        if !is_json_content_type(&request) {
+            return failure(Problem::new(415, "unsupported_media_type"));
+        }
+        let now = unix_now_seconds();
+        let headers = match parse_signed_headers(&request, now) {
+            Ok(headers) => headers,
+            Err(problem) => return failure(problem),
+        };
+        if headers.alg == Algorithm::MlDsa65 && !ml_dsa_65_supported().await {
+            return failure(TownSquareError::InvalidAlgorithm.into());
+        }
+        let raw_bytes =
+            match bounded_body_with_limit(&mut request, town_square::MAX_REQUEST_BYTES).await {
+                Ok(bytes) => bytes,
+                Err(problem) => return failure(problem),
+            };
+        let body: RegisterKeyBody = match serde_json::from_slice(&raw_bytes) {
+            Ok(body) => body,
+            Err(_) => return failure(TownSquareError::InvalidBody.into()),
+        };
+        let body_alg = match Algorithm::parse(&body.alg) {
+            Ok(alg) => alg,
+            Err(err) => return failure(err.into()),
+        };
+        if body_alg != headers.alg {
+            return failure(TownSquareError::AlgMismatch.into());
+        }
+        let pubkey_bytes = match town_square::validate_public_key_b64(headers.alg, &body.pubkey_b64)
+        {
+            Ok(bytes) => bytes,
+            Err(err) => return failure(err.into()),
+        };
+        if town_square::derive_key_id(headers.alg, &pubkey_bytes) != headers.key_id {
+            return failure(TownSquareError::KeyIdMismatch.into());
+        }
+        if let Err(err) = town_square::validate_handle(&body.handle) {
+            return failure(err.into());
+        }
+        let challenge = match town_square::verify_challenge(
+            secret.as_bytes(),
+            &origin,
+            &body.challenge_token,
+            ChallengeAction::Register,
+            now,
+        ) {
+            Ok(challenge) => challenge,
+            Err(err) => return failure(err.into()),
+        };
+        if let Err(err) = town_square::verify_hashcash_pow(
+            &body.challenge_token,
+            &headers.key_id,
+            &body.pow_nonce,
+            challenge.difficulty_bits,
+        ) {
+            return failure(err.into());
+        }
+        let raw_body_sha256 = town_square::sha256_hex(&raw_bytes);
+        let preimage = match town_square::build_preimage(&town_square::PreimageFields {
+            method: "POST",
+            canonical_origin: &origin,
+            path: &path,
+            key_id: &headers.key_id,
+            alg: headers.alg,
+            unix_ts: headers.unix_ts,
+            nonce_hex: &headers.nonce_hex,
+            raw_body_sha256: &raw_body_sha256,
+        }) {
+            Ok(preimage) => preimage,
+            Err(err) => return failure(err.into()),
+        };
+        if !verify_webcrypto_signature(
+            headers.alg,
+            &pubkey_bytes,
+            &headers.sig_bytes,
+            preimage.as_bytes(),
+        )
+        .await
+        {
+            return failure(Problem::new(401, "invalid_signature"));
+        }
+        let internal = InternalRegisterKey {
+            key_id: headers.key_id,
+            alg: headers.alg,
+            pubkey_b64: body.pubkey_b64,
+            handle: body.handle,
+            signed_ts: headers.unix_ts,
+            signed_nonce: headers.nonce_hex,
+            challenge_salt_hex: challenge.salt_hex,
+            challenge_expires_at: challenge.expires_at,
+            challenge_difficulty_bits: challenge.difficulty_bits,
+        };
+        return do_internal_post(&env, "/v1/_internal/keys", &internal).await;
+    }
+
+    if path == "/v1/posts" {
+        if matches!(method, Method::Get | Method::Head) {
+            if let Err(problem) = parse_ts_page_query(
+                &url,
+                "after_seq",
+                town_square::DEFAULT_POSTS_LIMIT,
+                town_square::MAX_POSTS_LIMIT,
+            ) {
+                return strip_head_body(failure(problem)?, head);
+            }
+            let mut init = worker::RequestInit::new();
+            init.with_method(Method::Get);
+            let forwarded = Request::new_with_init(url.as_str(), &init)?;
+            let result = env
+                .durable_object("BOARD")?
+                .id_from_name("agentciv-public-board-v1")?
+                .get_stub()?
+                .fetch_with_request(forwarded)
+                .await?;
+            return strip_head_body(result, head);
+        }
+        if method != Method::Post {
+            return method_not_allowed("GET, HEAD, POST");
+        }
+        if !writes_open {
+            return failure(Problem::new(503, "writes_disabled"));
+        }
+        let Some(secret) = challenge_hmac_secret(&env) else {
+            return failure(Problem::new(503, "challenge_unavailable"));
+        };
+        if url.query().is_some() || town_square::validate_write_path(&path).is_err() {
+            return failure(TownSquareError::InvalidWritePath.into());
+        }
+        if !is_json_content_type(&request) {
+            return failure(Problem::new(415, "unsupported_media_type"));
+        }
+        let now = unix_now_seconds();
+        let headers = match parse_signed_headers(&request, now) {
+            Ok(headers) => headers,
+            Err(problem) => return failure(problem),
+        };
+        if headers.alg == Algorithm::MlDsa65 && !ml_dsa_65_supported().await {
+            return failure(TownSquareError::InvalidAlgorithm.into());
+        }
+        let raw_bytes =
+            match bounded_body_with_limit(&mut request, town_square::MAX_REQUEST_BYTES).await {
+                Ok(bytes) => bytes,
+                Err(problem) => return failure(problem),
+            };
+        let body: PublishPostBody = match serde_json::from_slice(&raw_bytes) {
+            Ok(body) => body,
+            Err(_) => return failure(TownSquareError::InvalidBody.into()),
+        };
+        let post_id = match body.post_id {
+            Some(post_id) => {
+                if let Err(err) = town_square::validate_uuid_v4_or_v7(&post_id) {
+                    return failure(err.into());
+                }
+                post_id
+            }
+            None => random_uuid_v4(),
+        };
+        if let Some(parent_id) = body.parent_id.as_deref()
+            && town_square::validate_uuid_v4_or_v7(parent_id).is_err()
+        {
+            return failure(TownSquareError::InvalidParentId.into());
+        }
+        if let Err(err) = town_square::validate_post_body(&body.body_text) {
+            return failure(err.into());
+        }
+        let challenge = match town_square::verify_challenge(
+            secret.as_bytes(),
+            &origin,
+            &body.challenge_token,
+            ChallengeAction::Post,
+            now,
+        ) {
+            Ok(challenge) => challenge,
+            Err(err) => return failure(err.into()),
+        };
+        if let Err(err) = town_square::verify_hashcash_pow(
+            &body.challenge_token,
+            &headers.key_id,
+            &body.pow_nonce,
+            challenge.difficulty_bits,
+        ) {
+            return failure(err.into());
+        }
+        let raw_body_sha256 = town_square::sha256_hex(&raw_bytes);
+        let preimage = match town_square::build_preimage(&town_square::PreimageFields {
+            method: "POST",
+            canonical_origin: &origin,
+            path: &path,
+            key_id: &headers.key_id,
+            alg: headers.alg,
+            unix_ts: headers.unix_ts,
+            nonce_hex: &headers.nonce_hex,
+            raw_body_sha256: &raw_body_sha256,
+        }) {
+            Ok(preimage) => preimage,
+            Err(err) => return failure(err.into()),
+        };
+        let internal = InternalPublishPost {
+            post_id,
+            parent_id: body.parent_id,
+            key_id: headers.key_id,
+            alg: headers.alg,
+            body_text: body.body_text,
+            raw_body_sha256,
+            signed_ts: headers.unix_ts,
+            signed_nonce: headers.nonce_hex,
+            sig_b64: headers.sig_b64,
+            challenge_salt_hex: challenge.salt_hex,
+            challenge_expires_at: challenge.expires_at,
+            challenge_difficulty_bits: challenge.difficulty_bits,
+            preimage,
+        };
+        return do_internal_post(&env, "/v1/_internal/posts", &internal).await;
+    }
+
+    if let Some(post_id) = path.strip_prefix("/v1/posts/") {
+        if method != Method::Delete {
+            return method_not_allowed("DELETE");
+        }
+        if !writes_open {
+            return failure(Problem::new(503, "writes_disabled"));
+        }
+        if url.query().is_some() || town_square::validate_write_path(&path).is_err() {
+            return failure(TownSquareError::InvalidWritePath.into());
+        }
+        if let Err(err) = town_square::validate_uuid_v4_or_v7(post_id) {
+            return failure(err.into());
+        }
+        let now = unix_now_seconds();
+        let headers = match parse_signed_headers(&request, now) {
+            Ok(headers) => headers,
+            Err(problem) => return failure(problem),
+        };
+        if headers.alg == Algorithm::MlDsa65 && !ml_dsa_65_supported().await {
+            return failure(TownSquareError::InvalidAlgorithm.into());
+        }
+        let raw_bytes = match bounded_body_with_limit(&mut request, 1).await {
+            Ok(bytes) => bytes,
+            Err(problem) => return failure(problem),
+        };
+        if !raw_bytes.is_empty() {
+            return failure(TownSquareError::InvalidBody.into());
+        }
+        let preimage = match town_square::build_preimage(&town_square::PreimageFields {
+            method: "DELETE",
+            canonical_origin: &origin,
+            path: &path,
+            key_id: &headers.key_id,
+            alg: headers.alg,
+            unix_ts: headers.unix_ts,
+            nonce_hex: &headers.nonce_hex,
+            raw_body_sha256: town_square::EMPTY_BODY_SHA256,
+        }) {
+            Ok(preimage) => preimage,
+            Err(err) => return failure(err.into()),
+        };
+        let internal = InternalDeletePost {
+            post_id: post_id.to_owned(),
+            key_id: headers.key_id,
+            alg: headers.alg,
+            signed_ts: headers.unix_ts,
+            signed_nonce: headers.nonce_hex,
+            sig_b64: headers.sig_b64,
+            preimage,
+        };
+        return do_internal_post(&env, "/v1/_internal/delete", &internal).await;
+    }
+
+    if path == "/v1/report" {
+        if method != Method::Post {
+            return method_not_allowed("POST");
+        }
+        if !writes_open {
+            return failure(Problem::new(503, "writes_disabled"));
+        }
+        let Some(secret) = challenge_hmac_secret(&env) else {
+            return failure(Problem::new(503, "challenge_unavailable"));
+        };
+        if url.query().is_some() || town_square::validate_write_path(&path).is_err() {
+            return failure(TownSquareError::InvalidWritePath.into());
+        }
+        if !is_json_content_type(&request) {
+            return failure(Problem::new(415, "unsupported_media_type"));
+        }
+        let raw_bytes =
+            match bounded_body_with_limit(&mut request, town_square::MAX_REQUEST_BYTES).await {
+                Ok(bytes) => bytes,
+                Err(problem) => return failure(problem),
+            };
+        let body: SubmitReportBody = match serde_json::from_slice(&raw_bytes) {
+            Ok(body) => body,
+            Err(_) => return failure(TownSquareError::InvalidBody.into()),
+        };
+        if let Err(err) = town_square::validate_uuid_v4_or_v7(&body.post_id) {
+            return failure(err.into());
+        }
+        let report_id = match body.report_id {
+            Some(report_id) => {
+                if let Err(err) = town_square::validate_uuid_v4_or_v7(&report_id) {
+                    return failure(err.into());
+                }
+                report_id
+            }
+            None => random_uuid_v4(),
+        };
+        let reason = match town_square::ReportReason::parse(&body.reason_code) {
+            Ok(reason) => reason,
+            Err(err) => return failure(err.into()),
+        };
+        if let Err(err) = town_square::validate_report_note(&body.note_text) {
+            return failure(err.into());
+        }
+        let now = unix_now_seconds();
+        let challenge = match town_square::verify_challenge(
+            secret.as_bytes(),
+            &origin,
+            &body.challenge_token,
+            ChallengeAction::Report,
+            now,
+        ) {
+            Ok(challenge) => challenge,
+            Err(err) => return failure(err.into()),
+        };
+        if let Err(err) = town_square::verify_hashcash_pow(
+            &body.challenge_token,
+            &body.post_id,
+            &body.pow_nonce,
+            challenge.difficulty_bits,
+        ) {
+            return failure(err.into());
+        }
+        let internal = InternalSubmitReport {
+            report_id,
+            post_id: body.post_id,
+            reason,
+            note_text: body.note_text,
+            challenge_salt_hex: challenge.salt_hex,
+            challenge_expires_at: challenge.expires_at,
+            challenge_difficulty_bits: challenge.difficulty_bits,
+        };
+        return do_internal_post(&env, "/v1/_internal/report", &internal).await;
+    }
+
+    failure(Problem::new(404, "not_found"))
+}
+
 #[event(fetch)]
 pub async fn fetch(mut request: Request, env: Env, _context: Context) -> Result<Response> {
     let path = request.path();
+    if path.starts_with("/v1/") {
+        return handle_town_square_edge(request, env).await;
+    }
     let selected = crate::appearance::preference(request.headers().get("Cookie")?.as_deref());
     let head = request.method() == Method::Head;
     let url = request.url()?;

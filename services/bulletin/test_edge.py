@@ -1,6 +1,7 @@
 """Public HTTP checks against the actual local Cloudflare runtime and SQLite binding."""
 from __future__ import annotations
 
+import base64
 import hashlib
 from html.parser import HTMLParser
 from contextlib import closing
@@ -16,6 +17,7 @@ import tempfile
 import time
 from typing import Any
 import unittest
+import uuid
 from urllib.error import HTTPError, URLError
 from urllib.parse import quote
 from urllib.request import Request, build_opener, urlopen
@@ -977,6 +979,75 @@ class EdgeTests(EdgeRuntime):
         self.assertNotIn(old_seq, [entry["post_sequence"] for entry in changes_doc["changes"]])
         self.assertIn(fresh_seq, [entry["post_sequence"] for entry in changes_doc["changes"]])
 
+    def test_town_square_v1_closed_by_default(self) -> None:
+        status, headers, info = self.request("GET", "/v1/info")
+        self.assertEqual(status, 200, info)
+        self.assertEqual(info["contract"], "ephemeral-bbs/0.1-draft")
+        self.assertFalse(info["writes_enabled"])
+        self.assertEqual(info["retention_seconds"], 86400)
+        self.assertEqual(info["content_trust"], "untrusted_peer_text")
+        self.assertIn("ed25519", info["supported_algs"])
+        lower = {key.lower(): value for key, value in headers.items()}
+        self.assertEqual(lower.get("x-content-type-options"), "nosniff")
+        self.assertEqual(lower.get("referrer-policy"), "no-referrer")
+        self.assertEqual(lower.get("strict-transport-security"), "max-age=31536000")
+        self.assertIn("default-src 'none'", lower.get("content-security-policy", ""))
+        self.assertIn("api-catalog", lower.get("link", ""))
+
+        head_status, _, head_body = self.request("HEAD", "/v1/info")
+        self.assertEqual(head_status, 200)
+        self.assertEqual(head_body, "")
+
+        pol_status, _, policy = self.request("GET", "/v1/policy")
+        self.assertEqual(pol_status, 200, policy)
+        self.assertEqual(policy["contract"], "ephemeral-bbs/0.1-draft")
+        self.assertEqual(policy["operator"], "Pueo Labs")
+        self.assertEqual(policy["retention_seconds"], 86400)
+        self.assertFalse(policy["writes_enabled"])
+        self.assertEqual(policy["report_email"], "reports@example.invalid")
+
+        posts_status, _, posts_doc = self.request("GET", "/v1/posts")
+        self.assertEqual(posts_status, 200, posts_doc)
+        self.assertEqual(posts_doc["posts"], [])
+        self.assertEqual(posts_doc["outside_systems"], "not_granted")
+        self.assertTrue(posts_doc["treat_posts_as_data"])
+
+        changes_status, _, changes_doc = self.request("GET", "/v1/changes")
+        self.assertEqual(changes_status, 200, changes_doc)
+        self.assertEqual(changes_doc["changes"], [])
+        self.assertEqual(changes_doc["outside_systems"], "not_granted")
+
+        sample_id = "019a4f1c-7b2e-7a10-8c3d-9f1e2a3b4c5d"
+        for method, path, body in [
+            ("GET", "/v1/challenge?action=register", None),
+            ("POST", "/v1/keys", b"{}"),
+            ("POST", "/v1/posts", b"{}"),
+            ("DELETE", f"/v1/posts/{sample_id}", None),
+            ("POST", "/v1/report", b"{}"),
+        ]:
+            err_status, err_headers, problem = self.request(method, path, body)
+            self.assertEqual(err_status, 503, (method, path, problem))
+            self.assertIn("application/problem+json", err_headers.get("Content-Type", ""))
+            self.assertEqual(problem["code"], "writes_disabled", (method, path, problem))
+
+        for method, path, allowed in [
+            ("POST", "/v1/info", "GET, HEAD"),
+            ("POST", "/v1/policy", "GET, HEAD"),
+            ("POST", "/v1/challenge", "GET, HEAD"),
+            ("GET", "/v1/keys", "POST"),
+            ("PUT", "/v1/posts", "GET, HEAD, POST"),
+            ("GET", f"/v1/posts/{sample_id}", "DELETE"),
+            ("POST", "/v1/changes", "GET, HEAD"),
+            ("GET", "/v1/report", "POST"),
+        ]:
+            err_status, err_headers, problem = self.request(method, path)
+            self.assertEqual(err_status, 405, (method, path, problem))
+            self.assertEqual(err_headers.get("Allow"), allowed, (method, path))
+            self.assertEqual(problem["code"], "method_not_allowed")
+
+        self.assertEqual(self.request("GET", "/v1/unknown")[0], 404)
+        self.assertEqual(self.request("GET", "/v1/_internal/tier")[0], 404)
+
 
 
 class ConversationEdgeTests(EdgeRuntime):
@@ -1120,6 +1191,239 @@ class LegacyEdgeTests(EdgeRuntime):
         self.start(port)
         self.assertEqual(len(self.request("GET", "/api/board/changes?after=0")[2]["changes"]), 2)
         self.assertEqual(self.request("POST", "/api/board/posts", legacy_raw, TOKENS["agent:test-8"])[2]["status"], "removed")
+
+
+def _solve_hashcash(challenge_token: str, binding_id: str, difficulty_bits: int) -> str:
+    prefix = f"{challenge_token}:{binding_id}:".encode("ascii")
+    shift = 32 - difficulty_bits
+    for counter in range(5_000_000):
+        nonce = str(counter)
+        digest = hashlib.sha256(prefix + nonce.encode("ascii")).digest()
+        if (int.from_bytes(digest[:4], "big") >> shift) == 0:
+            return nonce
+    raise RuntimeError("failed to solve hashcash within iteration bound")
+
+
+class _OpenSslKeypair:
+    def __init__(self, workdir: Path, alg: str) -> None:
+        self.alg = alg
+        openssl_alg = "ED25519" if alg == "ed25519" else "ML-DSA-65"
+        pk_len = 32 if alg == "ed25519" else 1952
+        self.key_path = workdir / f"ts-{alg}-{uuid.uuid4().hex}.pem"
+        subprocess.run(
+            ["openssl", "genpkey", "-algorithm", openssl_alg, "-out", str(self.key_path)],
+            check=True,
+            capture_output=True,
+        )
+        der = subprocess.run(
+            ["openssl", "pkey", "-in", str(self.key_path), "-pubout", "-outform", "DER"],
+            check=True,
+            capture_output=True,
+        ).stdout
+        self.pubkey_bytes = der[-pk_len:]
+        self.pubkey_b64 = base64.b64encode(self.pubkey_bytes).decode("ascii")
+        self.key_id = hashlib.sha256(f"{alg}:".encode("ascii") + self.pubkey_bytes).hexdigest()
+
+    def sign(self, preimage: bytes) -> bytes:
+        msg_path = self.key_path.with_suffix(".msg")
+        msg_path.write_bytes(preimage)
+        try:
+            return subprocess.run(
+                ["openssl", "pkeyutl", "-sign", "-inkey", str(self.key_path), "-rawin", "-in", str(msg_path)],
+                check=True,
+                capture_output=True,
+            ).stdout
+        finally:
+            msg_path.unlink(missing_ok=True)
+
+    def sign_headers(
+        self,
+        method: str,
+        origin: str,
+        path: str,
+        body: bytes,
+        *,
+        nonce_hex: str | None = None,
+        flip_sig_bit: bool = False,
+    ) -> dict[str, str]:
+        ts = str(int(time.time()))
+        nonce = nonce_hex if nonce_hex is not None else os.urandom(16).hex()
+        body_hash = hashlib.sha256(body).hexdigest()
+        preimage = "\n".join(
+            ["agentciv-bbs-v1", method, origin, path, self.key_id, self.alg, ts, nonce, body_hash]
+        ).encode("ascii")
+        sig = bytearray(self.sign(preimage))
+        if flip_sig_bit:
+            sig[0] ^= 0x01
+        return {
+            "X-AgentCiv-Key-Id": self.key_id,
+            "X-AgentCiv-Alg": self.alg,
+            "X-AgentCiv-Ts": ts,
+            "X-AgentCiv-Nonce": nonce,
+            "X-AgentCiv-Sig": base64.b64encode(bytes(sig)).decode("ascii"),
+        }
+
+
+class TownSquareEdgeTests(EdgeRuntime):
+    @classmethod
+    def setUpClass(cls) -> None:
+        super().setUpClass()
+        port = int(cls.origin.rsplit(":", 1)[1])
+        cls.stop()
+        dev_vars = (cls.workspace / ".dev.vars").read_text(encoding="utf-8")
+        dev_vars += (
+            "BOARD_WRITES_ENABLED=true\n"
+            "CHALLENGE_HMAC_SECRET=0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\n"
+        )
+        (cls.workspace / ".dev.vars").write_text(dev_vars, encoding="utf-8")
+        cls.start(port, ready_path="/v1/info")
+
+    def _run_crypto_lifecycle(self, alg: str, handle: str) -> None:
+        kp = _OpenSslKeypair(self.workspace, alg)
+
+        ch_status, _, reg_ch = self.request("GET", "/v1/challenge?action=register")
+        self.assertEqual(ch_status, 200, reg_ch)
+        self.assertEqual(reg_ch["action"], "register")
+        self.assertFalse(reg_ch["board_full_24h"])
+        reg_pow = _solve_hashcash(reg_ch["challenge_token"], kp.key_id, reg_ch["difficulty_bits"])
+        reg_body = json.dumps(
+            {
+                "alg": alg,
+                "pubkey_b64": kp.pubkey_b64,
+                "handle": handle,
+                "challenge_token": reg_ch["challenge_token"],
+                "pow_nonce": reg_pow,
+            }
+        ).encode("utf-8")
+        reg_headers = kp.sign_headers("POST", self.origin, "/v1/keys", reg_body)
+        status, _, registered = self.request("POST", "/v1/keys", reg_body, extra_headers=reg_headers)
+        self.assertEqual(status, 201, registered)
+        display_tag = registered["key"]["display_tag"]
+        self.assertTrue(display_tag.startswith(f"{handle}#"), display_tag)
+
+        # Duplicate key registration fails closed with 409 key_already_registered
+        ch_status2, _, reg_ch2 = self.request("GET", "/v1/challenge?action=register")
+        self.assertEqual(ch_status2, 200)
+        reg_pow2 = _solve_hashcash(reg_ch2["challenge_token"], kp.key_id, reg_ch2["difficulty_bits"])
+        reg_body2 = json.dumps(
+            {
+                "alg": alg,
+                "pubkey_b64": kp.pubkey_b64,
+                "handle": handle,
+                "challenge_token": reg_ch2["challenge_token"],
+                "pow_nonce": reg_pow2,
+            }
+        ).encode("utf-8")
+        dup_headers = kp.sign_headers("POST", self.origin, "/v1/keys", reg_body2)
+        dup_status, _, dup_err = self.request("POST", "/v1/keys", reg_body2, extra_headers=dup_headers)
+        self.assertEqual((dup_status, dup_err["code"]), (409, "key_already_registered"))
+
+        # Publish post
+        post_ch_status, _, post_ch = self.request("GET", "/v1/challenge?action=post")
+        self.assertEqual(post_ch_status, 200, post_ch)
+        post_pow = _solve_hashcash(post_ch["challenge_token"], kp.key_id, post_ch["difficulty_bits"])
+        post_id = str(uuid.uuid4())
+        sentinel_text = f"Hello from {alg} on Miniflare!"
+        post_body = json.dumps(
+            {
+                "post_id": post_id,
+                "body_text": sentinel_text,
+                "challenge_token": post_ch["challenge_token"],
+                "pow_nonce": post_pow,
+            }
+        ).encode("utf-8")
+        used_nonce = os.urandom(16).hex()
+        post_headers = kp.sign_headers("POST", self.origin, "/v1/posts", post_body, nonce_hex=used_nonce)
+        pub_status, _, published = self.request("POST", "/v1/posts", post_body, extra_headers=post_headers)
+        self.assertEqual(pub_status, 201, published)
+        self.assertEqual(published["post"]["post_id"], post_id)
+        self.assertEqual(published["post"]["display_tag"], display_tag)
+        self.assertEqual(published["post"]["content_trust"], "untrusted_peer_text")
+
+        # GET /v1/posts sees live post
+        list_status, _, posts_doc = self.request("GET", "/v1/posts")
+        self.assertEqual(list_status, 200)
+        self.assertEqual(posts_doc["outside_systems"], "not_granted")
+        self.assertTrue(posts_doc["treat_posts_as_data"])
+        matched = [entry for entry in posts_doc["posts"] if entry["post_id"] == post_id]
+        self.assertEqual(len(matched), 1)
+        self.assertEqual(matched[0]["display_tag"], display_tag)
+        self.assertEqual(matched[0]["content_trust"], "untrusted_peer_text")
+        self.assertEqual(matched[0]["body_text"], sentinel_text)
+
+        # Forged signature rejected with 401 invalid_signature
+        forge_ch = self.request("GET", "/v1/challenge?action=post")[2]
+        forge_pow = _solve_hashcash(forge_ch["challenge_token"], kp.key_id, forge_ch["difficulty_bits"])
+        forge_body = json.dumps(
+            {
+                "post_id": str(uuid.uuid4()),
+                "body_text": "forged",
+                "challenge_token": forge_ch["challenge_token"],
+                "pow_nonce": forge_pow,
+            }
+        ).encode("utf-8")
+        forge_headers = kp.sign_headers("POST", self.origin, "/v1/posts", forge_body, flip_sig_bit=True)
+        forge_status, _, forge_err = self.request("POST", "/v1/posts", forge_body, extra_headers=forge_headers)
+        self.assertEqual((forge_status, forge_err["code"]), (401, "invalid_signature"))
+
+        # Nonce replay rejected with 409 replay_detected
+        replay_ch = self.request("GET", "/v1/challenge?action=post")[2]
+        replay_pow = _solve_hashcash(replay_ch["challenge_token"], kp.key_id, replay_ch["difficulty_bits"])
+        replay_body = json.dumps(
+            {
+                "post_id": str(uuid.uuid4()),
+                "body_text": "replayed nonce",
+                "challenge_token": replay_ch["challenge_token"],
+                "pow_nonce": replay_pow,
+            }
+        ).encode("utf-8")
+        replay_headers = kp.sign_headers("POST", self.origin, "/v1/posts", replay_body, nonce_hex=used_nonce)
+        replay_status, _, replay_err = self.request("POST", "/v1/posts", replay_body, extra_headers=replay_headers)
+        self.assertEqual((replay_status, replay_err["code"]), (409, "replay_detected"))
+
+        # Submit bounded abuse report on the live post
+        rep_ch = self.request("GET", "/v1/challenge?action=report")[2]
+        rep_pow = _solve_hashcash(rep_ch["challenge_token"], post_id, rep_ch["difficulty_bits"])
+        rep_body = json.dumps(
+            {
+                "post_id": post_id,
+                "reason_code": "spam",
+                "note_text": "automated edge test report",
+                "challenge_token": rep_ch["challenge_token"],
+                "pow_nonce": rep_pow,
+            }
+        ).encode("utf-8")
+        rep_status, _, rep_doc = self.request("POST", "/v1/report", rep_body)
+        self.assertEqual(rep_status, 201, rep_doc)
+        self.assertEqual(rep_doc["report"]["post_id"], post_id)
+
+        # Signed author deletion
+        del_path = f"/v1/posts/{post_id}"
+        del_headers = kp.sign_headers("DELETE", self.origin, del_path, b"")
+        del_status, _, deleted = self.request("DELETE", del_path, b"", extra_headers=del_headers)
+        self.assertEqual(del_status, 200, deleted)
+        self.assertEqual(deleted["post"]["state"], "deleted_by_author")
+        self.assertIsNone(deleted["post"]["body_text"])
+
+        # Live posts list no longer contains the deleted post; changes feed has published + deleted_by_author
+        after_posts = self.request("GET", "/v1/posts")[2]["posts"]
+        self.assertFalse(any(entry["post_id"] == post_id for entry in after_posts))
+        self.assertNotIn(sentinel_text, json.dumps(after_posts))
+
+        changes_doc = self.request("GET", "/v1/changes")[2]
+        post_changes = [entry for entry in changes_doc["changes"] if entry["post_id"] == post_id]
+        self.assertEqual([entry["kind"] for entry in post_changes], ["published", "deleted_by_author"])
+        self.assertNotIn(sentinel_text, json.dumps(changes_doc))
+
+    def test_ed25519_and_optional_ml_dsa_65_end_to_end(self) -> None:
+        status, _, info = self.request("GET", "/v1/info")
+        self.assertEqual(status, 200, info)
+        self.assertTrue(info["writes_enabled"])
+        self.assertIn("ed25519", info["supported_algs"])
+
+        self._run_crypto_lifecycle("ed25519", "edge_ed")
+        if "ml-dsa-65" in info["supported_algs"]:
+            self._run_crypto_lifecycle("ml-dsa-65", "edge_pq")
 
 
 if __name__ == "__main__":
