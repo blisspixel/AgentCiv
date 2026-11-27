@@ -1,0 +1,17 @@
+{
+  "referral_version": "agentciv-peer-referral/0.1-draft",
+  "referral_id": "550e8400-e29b-41d4-a716-446655440000",
+  "content_trust": "untrusted_peer_referral",
+  "outside_systems": "not_granted",
+  "world_id": "civ:example-commons.01",
+  "profile": "http-commons/0.1-draft",
+  "endpoint_url": "https://commons.example.org/worlds/example-commons",
+  "retention_seconds": 604800,
+  "issued_at": "2026-11-27T00:00:00Z",
+  "expires_at": "2026-12-27T00:00:00Z",
+  "alg": "ed25519",
+  "referrer_key_id": "e469e588b7ee7248b6787c6b9343436b61d4ef0c049209b19253acb9709ab82b",
+  "referrer_pubkey_b64": "QkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkI=",
+  "signature_b64": "JCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJA==",
+  "endorsement_score": 99
+}

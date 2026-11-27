@@ -181,7 +181,12 @@ pub fn check_schemas(root: &Path) -> CheckResult<Vec<String>> {
             .and_then(|schema| read_json(&fixture).map(|record| (schema, record)))
             .and_then(|(schema, record)| {
                 validate_with_registry(&schema, &record, &registry)?;
-                if name != "problem.schema.json" && name != "archive-seal.schema.json" {
+                if !matches!(
+                    name.as_ref(),
+                    "problem.schema.json"
+                        | "archive-seal.schema.json"
+                        | "peer-referral.schema.json"
+                ) {
                     validate_with_registry(&envelope, &record, &registry)?;
                 }
                 Ok(())
@@ -454,6 +459,13 @@ mod tests {
                     validate_with_registry(&schema, &wrong_version, &registry).is_err(),
                     "{name}"
                 );
+            } else if name == "peer-referral.schema.json" {
+                let mut wrong_version = record.clone();
+                wrong_version["referral_version"] = Value::from("unsupported");
+                assert!(
+                    validate_with_registry(&schema, &wrong_version, &registry).is_err(),
+                    "{name}"
+                );
             } else if name != "problem.schema.json" {
                 let mut wrong_version = record.clone();
                 wrong_version["protocol_version"] = Value::from("unsupported");
@@ -486,5 +498,116 @@ mod tests {
         let mut record = read_json(&root.join("conformance/fixtures/valid/event.json")).unwrap();
         record["timestamp"] = Value::from("not-a-date");
         assert!(validate_with_registry(&schema, &record, &registry).is_err());
+    }
+
+    fn decode_standard_b64(input: &str) -> Vec<u8> {
+        let val = |byte: u8| -> u8 {
+            match byte {
+                b'A'..=b'Z' => byte - b'A',
+                b'a'..=b'z' => byte - b'a' + 26,
+                b'0'..=b'9' => byte - b'0' + 52,
+                b'+' => 62,
+                b'/' => 63,
+                other => panic!("unexpected base64 byte: {other}"),
+            }
+        };
+        let bytes = input.as_bytes();
+        let (chunks, remainder) = bytes.as_chunks::<4>();
+        assert!(
+            remainder.is_empty(),
+            "base64 length must be a multiple of 4"
+        );
+        let mut out = Vec::with_capacity(chunks.len() * 3);
+        for chunk in chunks {
+            let a = val(chunk[0]);
+            let b = val(chunk[1]);
+            out.push((a << 2) | (b >> 4));
+            if chunk[2] != b'=' {
+                let c = val(chunk[2]);
+                out.push((b << 4) | (c >> 2));
+                if chunk[3] != b'=' {
+                    let d = val(chunk[3]);
+                    out.push((c << 6) | d);
+                }
+            }
+        }
+        out
+    }
+
+    #[test]
+    fn peer_referral_enforces_key_id_endpoint_and_non_envelope_boundaries() {
+        use sha2::{Digest, Sha256};
+
+        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+        let names = [
+            "peer-referral",
+            "envelope",
+            "message",
+            "collaboration-artifact",
+            "collaboration-objection",
+            "collaboration-decline",
+            "collaboration-withdrawal",
+        ];
+        let paths = names
+            .iter()
+            .map(|name| root.join(format!("schemas/{name}.schema.json")))
+            .collect::<Vec<_>>();
+        let registry = schema_registry(&paths).unwrap();
+        let record =
+            read_json(&root.join("conformance/fixtures/valid/peer-referral.json")).unwrap();
+
+        for (index, name) in names.iter().enumerate() {
+            let schema = read_json(&paths[index]).unwrap();
+            let result = validate_with_registry(&schema, &record, &registry);
+            if *name == "peer-referral" {
+                assert!(result.is_ok(), "{name}: {result:?}");
+            } else {
+                assert!(result.is_err(), "peer referral accepted as {name}");
+            }
+        }
+
+        let alg = record["alg"].as_str().unwrap();
+        let pubkey_bytes = decode_standard_b64(record["referrer_pubkey_b64"].as_str().unwrap());
+        assert_eq!(pubkey_bytes.len(), 32);
+        let mut hasher = Sha256::new();
+        hasher.update(alg.as_bytes());
+        hasher.update(b":");
+        hasher.update(&pubkey_bytes);
+        let expected_key_id = hasher
+            .finalize()
+            .iter()
+            .map(|byte| format!("{byte:02x}"))
+            .collect::<String>();
+        assert_eq!(record["referrer_key_id"].as_str().unwrap(), expected_key_id);
+
+        let referral_schema = read_json(&paths[0]).unwrap();
+        for allowed in [
+            "https://commons.example.org/worlds/alpha",
+            "https://commons.example.org:8443",
+            "http://127.0.0.1:8080/worlds/local",
+            "http://[::1]:8080/worlds/local",
+        ] {
+            let mut candidate = record.clone();
+            candidate["endpoint_url"] = Value::from(allowed);
+            assert!(
+                validate_with_registry(&referral_schema, &candidate, &registry).is_ok(),
+                "expected allowed endpoint_url: {allowed}"
+            );
+        }
+        for rejected in [
+            "https://user:pass@commons.example.org/worlds/alpha",
+            "http://user@127.0.0.1:8080/worlds/local",
+            "http://commons.example.org/worlds/alpha",
+            "http://127.0.0.1.evil.example/worlds/alpha",
+            "ftp://commons.example.org/worlds/alpha",
+            "https://commons.example.org/worlds/alpha?token=secret",
+        ] {
+            let mut candidate = record.clone();
+            candidate["endpoint_url"] = Value::from(rejected);
+            assert!(
+                validate_with_registry(&referral_schema, &candidate, &registry).is_err(),
+                "expected rejected endpoint_url: {rejected}"
+            );
+        }
     }
 }
