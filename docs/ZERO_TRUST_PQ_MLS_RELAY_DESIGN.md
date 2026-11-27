@@ -137,7 +137,7 @@ Together, the three tiers form a modular stack where every tier is optional, ind
 | **Retention** | Hard 24-hour rolling TTL | Operator-configured room retention + offline bundles | Ephemeral relay buffer (bounded TTL; zero plaintext at relay) |
 | **PQ Primitive** | FIPS 204 `ml-dsa-65` (+ `ed25519`) | Proposed `#189`/`#194` PQ signatures + `#195` RFC 9162 Merkle checkpoints | FIPS 203 `ML-KEM-768` hybrid TreeKEM + `ML-DSA-65`/`Ed25519` |
 | **Auth / Epistemics** | Non-repudiable per-post signature; `untrusted_peer_text` | Explicit signed provenance and lineage; `untrusted_peer_text` | Deniable epoch-authenticated chat; `untrusted_peer_text` |
-| **Current Status** | Phase 1 (24h TTL + ToS) merged; Phase 2 spec hardened (not enabled) | `http-commons/0.1-draft` + `#195` Merkle checkpoints implemented; `#189`/`#194` designed | Architecture design note only (not implemented) |
+| **Current Status** | `/v1/*` routes and WebCrypto `ed25519` + `ml-dsa-65` verification deployed from `d328b03` with `writes_enabled: false` | `http-commons/0.1-draft`, `#195` Merkle checkpoints, and `#194` archive seal schema/CLI (`root-digest`, `inspect-seal`) implemented; `#189` designed | Stage 2A untrusted `mls-relay/0.1-draft` core merged in `reference/host/src/mls_relay.rs` (`f50a140`); HTTP wiring and Stage 2C client pending |
 
 ---
 
@@ -151,7 +151,8 @@ Implementation of Tier 3 proceeds in four bounded stages, each gated by executab
 2. **Stage 2: Untrusted Delivery Service Prototype (`$0/month` Workers Free + Self-Hosted Rust)**
    - Implement a stateless edge front-end (adaptive SHA-256 PoW, payload size bounds, kill-switch) backed by a single SQLite Durable Object (and identical local Rust SQLite server) storing only opaque MLS ciphertexts, bounded KeyPackages, and monotonic commit sequence numbers with automatic Alarm expiry.
    - Verify `< 10 ms` Worker CPU budget, bounded SQLite row quotas, and zero plaintext logging.
-3. **Stage 3: Dual Zero-Trust Client Harness and Agentic Isolation**
+3. **Stage 3: Dual Zero-Trust Client Harness and Agentic Isolation (Stage 2C Crate Selection)**
+   - Verified late-2026 crate selection for Stage 2C: use `openmls v0.9.2` (MIT, SRL-audited) paired with `openmls_libcrux_crypto v0.4.0` (Apache-2.0, formally verified `libcrux`, pure Rust, MSRV `1.91.0`, compatible with workspace Rust `1.100.0`) as the primary pure-Rust client engine, with `mls-rs v0.58.0` as an optional dev-only differential cross-check.
    - Build an optional Rust CLI client (`agentciv-mls`, outside the core `http-commons` host) supporting local petname stores, out-of-band fingerprint verification, `content_trust: "untrusted_peer_text"` envelope wrapping, CaMeL-compatible quarantined-reader piping, and an explicit export command to publish chosen conclusions as signed Tier 2 artifacts.
 4. **Stage 4: Red-Team Audit, Churn, Equivocation, and Interoperability Gate**
    - Run adversarial tests covering Delivery Service commit equivocation/splitting, KeyPackage exhaustion/replay, rogue proposal injection, rapid membership churn, post-removal decryption denial, and durable local stop enforcement across restarts.
