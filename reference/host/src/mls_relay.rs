@@ -35,6 +35,9 @@ pub const MAX_GROUPS: usize = 256;
 /// Maximum number of Welcome envelopes attached to a single Commit transaction.
 pub const MAX_WELCOMES_PER_COMMIT: usize = 128;
 
+/// Maximum total envelopes (`commit`, `private_message`, `welcome`) retained per group.
+pub const MAX_ENVELOPES_PER_GROUP: usize = 4_096;
+
 /// Default page limit when fetching envelopes or welcomes.
 pub const DEFAULT_FETCH_LIMIT: usize = 100;
 
@@ -314,7 +317,7 @@ impl MlsRelayStore {
              );
              CREATE TABLE IF NOT EXISTS mls_envelopes (
                seq INTEGER PRIMARY KEY AUTOINCREMENT,
-               group_id TEXT NOT NULL,
+               group_id TEXT NOT NULL REFERENCES mls_groups(group_id) ON DELETE CASCADE,
                kind TEXT NOT NULL CHECK (kind IN ('commit', 'private_message', 'welcome')),
                epoch INTEGER NOT NULL,
                recipient_id TEXT,
@@ -479,13 +482,13 @@ impl MlsRelayStore {
             return Ok(None);
         };
 
-        let updated = tx
+        let deleted = tx
             .execute(
-                "UPDATE mls_key_packages SET consumed = 1 WHERE kp_id = ?1 AND consumed = 0",
+                "DELETE FROM mls_key_packages WHERE kp_id = ?1 AND consumed = 0",
                 params![record.kp_id],
             )
-            .map_err(|err| RelayError::Storage(format!("kp consume update failed: {err}")))?;
-        if updated != 1 {
+            .map_err(|err| RelayError::Storage(format!("kp consume delete failed: {err}")))?;
+        if deleted != 1 {
             return Err(RelayError::Storage(
                 "key package consumption race detected".to_owned(),
             ));
@@ -638,23 +641,21 @@ impl MlsRelayStore {
             ));
         }
 
-        let expires_at = compute_expires_at(now, self.config.retention_seconds)?;
-
         let tx = self
             .conn
             .transaction_with_behavior(TransactionBehavior::Immediate)
             .map_err(|err| RelayError::Storage(format!("begin immediate failed: {err}")))?;
 
-        let current_epoch_i64: Option<i64> = tx
+        let group_row: Option<(i64, i64)> = tx
             .query_row(
-                "SELECT current_epoch FROM mls_groups WHERE group_id = ?1 AND expires_at > ?2",
+                "SELECT current_epoch, expires_at FROM mls_groups WHERE group_id = ?1 AND expires_at > ?2",
                 params![group_id, now],
-                |row| row.get(0),
+                |row| Ok((row.get(0)?, row.get(1)?)),
             )
             .optional()
             .map_err(|err| RelayError::Storage(format!("group epoch lookup failed: {err}")))?;
 
-        let Some(current_epoch_i64) = current_epoch_i64 else {
+        let Some((current_epoch_i64, group_expires_at)) = group_row else {
             return Err(RelayError::NotFound(format!("group not found: {group_id}")));
         };
         let current_epoch = u64::try_from(current_epoch_i64)
@@ -662,6 +663,22 @@ impl MlsRelayStore {
 
         if current_epoch != expected_epoch {
             return Err(RelayError::EpochConflict { current_epoch });
+        }
+
+        let existing_envelopes: i64 = tx
+            .query_row(
+                "SELECT COUNT(*) FROM mls_envelopes WHERE group_id = ?1",
+                params![group_id],
+                |row| row.get(0),
+            )
+            .map_err(|err| RelayError::Storage(format!("envelope count failed: {err}")))?;
+        let existing_count = usize::try_from(existing_envelopes)
+            .map_err(|_| RelayError::Storage("negative envelope count".to_owned()))?;
+        let inserted_count = 1usize.saturating_add(prepared_welcomes.len());
+        if existing_count.saturating_add(inserted_count) > MAX_ENVELOPES_PER_GROUP {
+            return Err(RelayError::QuotaExceeded(format!(
+                "group {group_id} would exceed {MAX_ENVELOPES_PER_GROUP} envelope limit"
+            )));
         }
 
         let new_epoch = current_epoch
@@ -690,7 +707,7 @@ impl MlsRelayStore {
                 commit_blob_b64,
                 commit_sha256,
                 now,
-                expires_at
+                group_expires_at
             ],
         )
         .map_err(|err| RelayError::Storage(format!("commit envelope insert failed: {err}")))?;
@@ -710,7 +727,7 @@ impl MlsRelayStore {
                     blob_b64,
                     blob_sha256,
                     now,
-                    expires_at
+                    group_expires_at
                 ],
             )
             .map_err(|err| RelayError::Storage(format!("welcome envelope insert failed: {err}")))?;
@@ -744,23 +761,21 @@ impl MlsRelayStore {
         validate_identifier("group_id", group_id)?;
         let decoded = decode_canonical_base64(blob_b64)?;
         let blob_sha256 = merkle::encode_hex(&merkle::sha256_bytes(&decoded));
-        let expires_at = compute_expires_at(now, self.config.retention_seconds)?;
-
         let tx = self
             .conn
             .transaction_with_behavior(TransactionBehavior::Immediate)
             .map_err(|err| RelayError::Storage(format!("begin immediate failed: {err}")))?;
 
-        let current_epoch_i64: Option<i64> = tx
+        let group_row: Option<(i64, i64)> = tx
             .query_row(
-                "SELECT current_epoch FROM mls_groups WHERE group_id = ?1 AND expires_at > ?2",
+                "SELECT current_epoch, expires_at FROM mls_groups WHERE group_id = ?1 AND expires_at > ?2",
                 params![group_id, now],
-                |row| row.get(0),
+                |row| Ok((row.get(0)?, row.get(1)?)),
             )
             .optional()
             .map_err(|err| RelayError::Storage(format!("group epoch lookup failed: {err}")))?;
 
-        let Some(current_epoch_i64) = current_epoch_i64 else {
+        let Some((current_epoch_i64, group_expires_at)) = group_row else {
             return Err(RelayError::NotFound(format!("group not found: {group_id}")));
         };
         let current_epoch = u64::try_from(current_epoch_i64)
@@ -768,6 +783,21 @@ impl MlsRelayStore {
 
         if current_epoch != epoch {
             return Err(RelayError::EpochConflict { current_epoch });
+        }
+
+        let existing_envelopes: i64 = tx
+            .query_row(
+                "SELECT COUNT(*) FROM mls_envelopes WHERE group_id = ?1",
+                params![group_id],
+                |row| row.get(0),
+            )
+            .map_err(|err| RelayError::Storage(format!("envelope count failed: {err}")))?;
+        let existing_count = usize::try_from(existing_envelopes)
+            .map_err(|_| RelayError::Storage("negative envelope count".to_owned()))?;
+        if existing_count.saturating_add(1) > MAX_ENVELOPES_PER_GROUP {
+            return Err(RelayError::QuotaExceeded(format!(
+                "group {group_id} would exceed {MAX_ENVELOPES_PER_GROUP} envelope limit"
+            )));
         }
 
         tx.execute(
@@ -780,7 +810,7 @@ impl MlsRelayStore {
                 blob_b64,
                 blob_sha256,
                 now,
-                expires_at
+                group_expires_at
             ],
         )
         .map_err(|err| RelayError::Storage(format!("private_message insert failed: {err}")))?;
@@ -799,7 +829,7 @@ impl MlsRelayStore {
             blob_b64: blob_b64.to_owned(),
             blob_sha256,
             created_at: now,
-            expires_at,
+            expires_at: group_expires_at,
         })
     }
 
@@ -1909,5 +1939,206 @@ mod tests {
             assert!(!err.error_code().is_empty());
             assert!(err.status_code() >= 400);
         }
+    }
+
+    #[test]
+    fn envelope_expiry_bound_to_group_and_cascade_prune_leaves_zero_orphans() {
+        let mut store = enabled_store();
+        let group = store
+            .create_group("grp:cascade", PQ_SUITE, T0)
+            .expect("create group");
+        let group_expiry = T0 + DEFAULT_RETENTION_SECONDS;
+        assert_eq!(group.expires_at, group_expiry);
+
+        // Submit commit, welcome, and private message well after group creation.
+        let later = T0 + 3_600;
+        store
+            .submit_commit(
+                "grp:cascade",
+                0,
+                &b64(b"commit-later"),
+                &[WelcomeSubmission {
+                    recipient_id: "bob#22".to_owned(),
+                    blob_b64: b64(b"welcome-later"),
+                }],
+                later,
+            )
+            .expect("commit");
+        let pm = store
+            .submit_private_message("grp:cascade", 1, &b64(b"pm-later"), later + 10)
+            .expect("pm");
+        assert_eq!(pm.expires_at, group_expiry);
+
+        let envs = store
+            .fetch_envelopes("grp:cascade", 0, 10, later + 20)
+            .expect("fetch envelopes");
+        assert_eq!(envs.len(), 2);
+        assert!(envs.iter().all(|e| e.expires_at == group_expiry));
+        let welcomes = store
+            .fetch_welcomes("bob#22", 0, 10, later + 20)
+            .expect("fetch welcomes");
+        assert_eq!(welcomes.len(), 1);
+        assert_eq!(welcomes[0].expires_at, group_expiry);
+
+        // At group_expiry, prune_expired removes the group and all envelopes (zero orphans).
+        let report = store.prune_expired(group_expiry).expect("prune");
+        assert_eq!(report.groups_deleted, 1);
+        assert_eq!(report.envelopes_deleted, 3);
+
+        let remaining_envelopes: i64 = store
+            .conn
+            .query_row(
+                "SELECT COUNT(*) FROM mls_envelopes WHERE group_id = ?1",
+                params!["grp:cascade"],
+                |row| row.get(0),
+            )
+            .expect("count remaining envelopes");
+        assert_eq!(remaining_envelopes, 0);
+
+        // Recreating the same group_id starts cleanly with empty log and tree_size == 0.
+        let recreated = store
+            .create_group("grp:cascade", PQ_SUITE, group_expiry + 1)
+            .expect("recreate group");
+        assert_eq!(recreated.current_epoch, 0);
+        assert!(
+            store
+                .fetch_envelopes("grp:cascade", 0, 10, group_expiry + 1)
+                .expect("empty envelopes")
+                .is_empty()
+        );
+        let cp = store
+            .checkpoint("grp:cascade", None, group_expiry + 1)
+            .expect("recreated checkpoint");
+        assert_eq!(cp.tree_size, 0);
+        assert!(
+            store
+                .fetch_welcomes("bob#22", 0, 10, group_expiry + 1)
+                .expect("no stale welcomes")
+                .is_empty()
+        );
+    }
+
+    #[test]
+    fn consumed_key_package_is_hard_deleted_immediately() {
+        let mut store = enabled_store();
+        store
+            .publish_key_package("kp:purge", "alice#11", PQ_SUITE, &b64(b"secret-kp"), T0)
+            .expect("publish");
+
+        let fetched = store
+            .fetch_and_consume_key_package("alice#11", T0 + 1)
+            .expect("consume")
+            .expect("kp returned");
+        assert_eq!(fetched.kp_id, "kp:purge");
+        assert!(fetched.consumed);
+
+        // Row must be completely absent from mls_key_packages immediately after consumption.
+        let row_count: i64 = store
+            .conn
+            .query_row(
+                "SELECT COUNT(*) FROM mls_key_packages WHERE kp_id = ?1",
+                params!["kp:purge"],
+                |row| row.get(0),
+            )
+            .expect("count kp rows");
+        assert_eq!(row_count, 0);
+
+        // Second fetch returns None.
+        assert!(
+            store
+                .fetch_and_consume_key_package("alice#11", T0 + 2)
+                .expect("second fetch")
+                .is_none()
+        );
+    }
+
+    #[test]
+    fn per_group_envelope_cap_rejects_commit_and_private_message_with_zero_writes() {
+        let mut store = enabled_store();
+        let group = store
+            .create_group("grp:cap", PQ_SUITE, T0)
+            .expect("create group");
+
+        // Pre-populate MAX_ENVELOPES_PER_GROUP - 1 envelopes in one fast SQLite transaction.
+        let prefill = MAX_ENVELOPES_PER_GROUP - 1;
+        let payload_b64 = b64(b"x");
+        let payload_sha256 = merkle::encode_hex(&merkle::sha256_bytes(b"x"));
+        {
+            let tx = store
+                .conn
+                .transaction_with_behavior(TransactionBehavior::Immediate)
+                .expect("begin prefill");
+            let mut stmt = tx
+                .prepare(
+                    "INSERT INTO mls_envelopes
+                       (group_id, kind, epoch, recipient_id, blob_b64, blob_sha256, created_at, expires_at)
+                     VALUES (?1, 'private_message', 0, NULL, ?2, ?3, ?4, ?5)",
+                )
+                .expect("prepare prefill");
+            for _ in 0..prefill {
+                stmt.execute(params![
+                    "grp:cap",
+                    payload_b64,
+                    payload_sha256,
+                    T0,
+                    group.expires_at
+                ])
+                .expect("insert prefill");
+            }
+            drop(stmt);
+            tx.commit().expect("commit prefill");
+        }
+
+        // A Commit with 1 Welcome needs 2 slots (4095 + 2 > 4096) -> must fail with 429 and zero writes.
+        let commit_over = store
+            .submit_commit(
+                "grp:cap",
+                0,
+                &b64(b"commit-over"),
+                &[WelcomeSubmission {
+                    recipient_id: "bob#22".to_owned(),
+                    blob_b64: b64(b"welcome-over"),
+                }],
+                T0 + 1,
+            )
+            .expect_err("commit + welcome exceeding cap must fail");
+        assert_eq!(commit_over.status_code(), 429);
+        assert_eq!(commit_over.error_code(), "quota_exceeded");
+        assert_eq!(
+            store
+                .get_group("grp:cap", T0 + 1)
+                .expect("get")
+                .expect("present")
+                .current_epoch,
+            0
+        );
+
+        // Filling the exact final slot (4095 -> 4096) succeeds.
+        store
+            .submit_private_message("grp:cap", 0, &b64(b"final-slot"), T0 + 2)
+            .expect("final slot succeeds");
+
+        // Any further PrivateMessage or Commit (even with 0 welcomes) fails with 429.
+        let pm_over = store
+            .submit_private_message("grp:cap", 0, &b64(b"overflow-pm"), T0 + 3)
+            .expect_err("pm exceeding cap must fail");
+        assert_eq!(pm_over.status_code(), 429);
+        assert_eq!(pm_over.error_code(), "quota_exceeded");
+
+        let commit_no_welcome_over = store
+            .submit_commit("grp:cap", 0, &b64(b"overflow-commit"), &[], T0 + 3)
+            .expect_err("commit exceeding cap must fail");
+        assert_eq!(commit_no_welcome_over.status_code(), 429);
+        assert_eq!(commit_no_welcome_over.error_code(), "quota_exceeded");
+
+        let total_rows: i64 = store
+            .conn
+            .query_row(
+                "SELECT COUNT(*) FROM mls_envelopes WHERE group_id = ?1",
+                params!["grp:cap"],
+                |row| row.get(0),
+            )
+            .expect("count total rows");
+        assert_eq!(total_rows as usize, MAX_ENVELOPES_PER_GROUP);
     }
 }
