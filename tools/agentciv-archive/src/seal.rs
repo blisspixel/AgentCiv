@@ -338,6 +338,9 @@ pub fn compute_root_digest(
 ///
 /// Format:
 /// `agentciv-archive-seal-v1\n<bundle_sha256>\n<root_digest_sha256>\n<alg>\n<key_id>\n<sealed_at>\n`
+///
+/// Callers must pass validated single-line fields (no embedded CR or LF), as enforced by
+/// `inspect_seal_envelope` and `verify_seal_envelope`.
 pub fn build_seal_preimage(
     bundle_sha256: &str,
     root_digest_sha256: &str,

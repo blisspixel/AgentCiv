@@ -328,7 +328,9 @@ fn custom_seal_verifier_accepts_and_rejects_cleanly() {
 
 #[test]
 fn checked_in_positive_seal_fixture_matches_positive_bundle_fixture() {
-    let report = inspect_seal_envelope(FIXTURE_BUNDLE, FIXTURE_SEAL).unwrap();
+    // Normalize CRLF to LF so Windows git autocrlf checkouts match the canonical LF fixture hash.
+    let normalized_bundle = FIXTURE_BUNDLE.replace("\r\n", "\n");
+    let report = inspect_seal_envelope(&normalized_bundle, FIXTURE_SEAL).unwrap();
     assert!(report.valid);
     assert_eq!(report.alg, SealAlgorithm::Ed25519);
     assert_eq!(report.verification_scope, "structural_and_digest_only");
