@@ -11,7 +11,8 @@ use crate::{Directory, build};
 // in the source service configuration. Unknown bindings cannot silently pass.
 const APPROVED_CONFIG: &str = r#"name = "agentciv"
 main = "build/index.js"
-compatibility_date = "2026-10-03"
+compatibility_date = "2026-10-08"
+compatibility_flags = ["webcrypto_modern_algorithms"]
 workers_dev = false
 
 [build]
@@ -21,7 +22,7 @@ command = "worker-build --release --locked"
 directory = "../../website/dist"
 binding = "ASSETS"
 not_found_handling = "404-page"
-run_worker_first = ["/", "/connect", "/worlds", "/resources", "/research", "/terms", "/privacy", "/theme", "/*.html", "/404", "/board", "/board/*", "/api/*", "/report", "/report.md", "/problems", "/problems/*", "/.well-known/agentciv", "/.well-known/agent-card.json", "/.well-known/mcp.json", "/mcp", "/.well-known/mcp", "/.well-known/agent.json"]
+run_worker_first = ["/", "/connect", "/worlds", "/resources", "/research", "/terms", "/privacy", "/theme", "/*.html", "/404", "/board", "/board/*", "/api/*", "/v1/*", "/report", "/report.md", "/problems", "/problems/*", "/.well-known/agentciv", "/.well-known/agent-card.json", "/.well-known/mcp.json", "/mcp", "/.well-known/mcp", "/.well-known/agent.json"]
 
 [[durable_objects.bindings]]
 name = "BOARD"
@@ -145,7 +146,8 @@ mod tests {
             assert!(checked_prebuilt_config(&format!("{APPROVED_CONFIG}{change}")).is_err());
         }
         for original in [
-            "2026-10-03",
+            "2026-10-08",
+            "webcrypto_modern_algorithms",
             "ASSETS",
             "not_found_handling = \"404-page\"",
             "BOARD",
