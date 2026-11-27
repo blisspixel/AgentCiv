@@ -583,7 +583,9 @@ mod tests {
         let referral_schema = read_json(&paths[0]).unwrap();
         for allowed in [
             "https://commons.example.org/worlds/alpha",
+            "https://commons.example.org:1",
             "https://commons.example.org:8443",
+            "https://commons.example.org:65535/worlds/alpha",
             "http://127.0.0.1:8080/worlds/local",
             "http://[::1]:8080/worlds/local",
         ] {
@@ -601,6 +603,13 @@ mod tests {
             "http://127.0.0.1.evil.example/worlds/alpha",
             "ftp://commons.example.org/worlds/alpha",
             "https://commons.example.org/worlds/alpha?token=secret",
+            "https://commons.example.org:0/worlds/alpha",
+            "https://commons.example.org:99999/worlds/alpha",
+            "http://127.0.0.1:0/worlds/local",
+            "http://127.0.0.1:65536/worlds/local",
+            "https://commons.example.org/worlds\\alpha",
+            "https://commons.example.org/worlds/\u{0000}alpha",
+            "https://commons.example.org/worlds/caf\u{00e9}",
         ] {
             let mut candidate = record.clone();
             candidate["endpoint_url"] = Value::from(rejected);
