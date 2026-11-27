@@ -530,7 +530,7 @@ fn has_remaining_town_square_rows(db: &Sql) -> bool {
     );
     rows.ok()
         .and_then(|rows| rows.first().and_then(|row| row["remaining"].as_i64()))
-        .is_some_and(|count| count > 0)
+        .is_none_or(|count| count > 0)
 }
 
 #[durable_object]
@@ -553,18 +553,21 @@ impl DurableObject for Bulletin {
         }
     }
     async fn alarm(&self) -> Result<Response> {
-        if self.ready {
-            let now = unix_now_seconds();
-            let _ = TownSquareStore::new(&self.db).prune_expired(now);
-            if has_remaining_town_square_rows(&self.db) {
-                let _ = self
-                    .state
-                    .storage()
-                    .set_alarm(Duration::from_secs(
-                        town_square::ALARM_MAX_INTERVAL_SECONDS as u64,
-                    ))
-                    .await;
-            }
+        if !self.ready {
+            return Err(worker::Error::RustError("alarm_prune_failed".into()));
+        }
+        let now = unix_now_seconds();
+        TownSquareStore::new(&self.db)
+            .prune_expired(now)
+            .map_err(|_| worker::Error::RustError("alarm_prune_failed".into()))?;
+        if has_remaining_town_square_rows(&self.db) {
+            let _ = self
+                .state
+                .storage()
+                .set_alarm(Duration::from_secs(
+                    town_square::ALARM_MAX_INTERVAL_SECONDS as u64,
+                ))
+                .await;
         }
         Response::ok("ok")
     }
@@ -775,6 +778,9 @@ impl Bulletin {
     async fn handle_town_square(&self, mut request: Request) -> Result<Response> {
         let path = request.path();
         let url = request.url()?;
+        if path.starts_with("/v1/_internal/") && url.host_str() != Some("internal.town-square") {
+            return failure(Problem::new(404, "not_found"));
+        }
         let now = unix_now_seconds();
         let store = TownSquareStore::new(&self.db);
 
@@ -983,14 +989,17 @@ impl Bulletin {
                 signed_nonce: payload.signed_nonce,
             };
             return match store.delete_post_by_author(&input, now_after_verify) {
-                Ok(post) => response(
-                    &json!({
-                        "contract": town_square::CONTRACT_VERSION,
-                        "outside_systems": "not_granted",
-                        "post": post.public_json(),
-                    }),
-                    200,
-                ),
+                Ok(post) => {
+                    ensure_alarm_scheduled(&self.state).await;
+                    response(
+                        &json!({
+                            "contract": town_square::CONTRACT_VERSION,
+                            "outside_systems": "not_granted",
+                            "post": post.public_json(),
+                        }),
+                        200,
+                    )
+                }
                 Err(err) => failure(err.into()),
             };
         }
@@ -1206,7 +1215,15 @@ async fn handle_town_square_edge(mut request: Request, env: Env) -> Result<Respo
                 .get_stub()?
                 .fetch_with_request(tier_req)
                 .await?;
-            let tier_json: Value = tier_resp.json().await?;
+            if tier_resp.status_code() != 200 {
+                return strip_head_body(failure(Problem::new(500, "storage_failed"))?, head);
+            }
+            let tier_json: Value = match tier_resp.json().await {
+                Ok(value) => value,
+                Err(_) => {
+                    return strip_head_body(failure(Problem::new(500, "storage_failed"))?, head);
+                }
+            };
             let full = tier_json["board_full_24h"].as_bool().unwrap_or(false);
             let bits = tier_json["required_bits"]
                 .as_u64()
