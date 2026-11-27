@@ -1,22 +1,33 @@
-use agentciv_archive::{MAX_INPUT_BYTES, Result, export, inspect, validate};
+use agentciv_archive::{
+    MAX_INPUT_BYTES, MAX_SEAL_BYTES, Result, SealError, compute_root_digest, export, inspect,
+    inspect_seal_envelope, validate,
+};
 use serde_json::{Value, json};
 use std::fs::File;
 use std::io::{Read, Write};
 use std::process::ExitCode;
 
-const USAGE: &str = "usage: agentciv-archive export SNAPSHOT PERMIT | validate BUNDLE | inspect BUNDLE | demo\nOptions: --help, --version";
+const USAGE: &str = "usage: agentciv-archive export SNAPSHOT PERMIT | validate BUNDLE | inspect BUNDLE | root-digest BUNDLE | inspect-seal BUNDLE SEAL | demo\nOptions: --help, --version";
 
-fn read(path: &str) -> Result<String> {
+fn read_bounded(path: &str, max_bytes: usize, too_large: &'static str) -> Result<String> {
     let mut bytes = Vec::new();
     File::open(path)
         .map_err(|_| "input_unreadable")?
-        .take((MAX_INPUT_BYTES + 1) as u64)
+        .take((max_bytes + 1) as u64)
         .read_to_end(&mut bytes)
         .map_err(|_| "input_unreadable")?;
-    if bytes.len() > MAX_INPUT_BYTES {
-        return Err("input_too_large");
+    if bytes.len() > max_bytes {
+        return Err(too_large);
     }
     String::from_utf8(bytes).map_err(|_| "invalid_utf8")
+}
+
+fn read(path: &str) -> Result<String> {
+    read_bounded(path, MAX_INPUT_BYTES, "input_too_large")
+}
+
+fn read_seal(path: &str) -> Result<String> {
+    read_bounded(path, MAX_SEAL_BYTES, SealError::SealTooLarge.code())
 }
 
 fn run(args: &[String]) -> Result<Value> {
@@ -33,6 +44,15 @@ fn run(args: &[String]) -> Result<Value> {
             )
         }
         [command, input] if command == "inspect" => inspect(&read(input)?),
+        [command, input] if command == "root-digest" => {
+            let summary = compute_root_digest(&read(input)?).map_err(SealError::code)?;
+            serde_json::to_value(summary).map_err(|_| "serialization_failed")
+        }
+        [command, bundle, seal] if command == "inspect-seal" => {
+            let report = inspect_seal_envelope(&read(bundle)?, &read_seal(seal)?)
+                .map_err(SealError::code)?;
+            serde_json::to_value(report).map_err(|_| "serialization_failed")
+        }
         [command] if command == "demo" => {
             let mut report = inspect(include_str!(
                 "../../../conformance/fixtures/valid/archive-bundle.json"

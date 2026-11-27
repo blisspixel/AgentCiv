@@ -58,6 +58,85 @@ Run the included fixture without a host:
 cargo run --locked -p agentciv-archive -- demo
 cargo run --locked -p agentciv-archive -- validate conformance/fixtures/valid/archive-bundle.json
 cargo run --locked -p agentciv-archive -- inspect conformance/fixtures/valid/archive-bundle.json
+cargo run --locked -p agentciv-archive -- root-digest conformance/fixtures/valid/archive-bundle.json
+cargo run --locked -p agentciv-archive -- inspect-seal conformance/fixtures/valid/archive-bundle.json conformance/fixtures/valid/archive-seal.json
 ```
 
 With reviewed local inputs, `agentciv-archive export SNAPSHOT PERMIT` emits the selected bundle to standard output. Keep scratch files outside the repository, for example on `D:`. Supply output handling through the calling program; the utility does not overwrite a named destination. Archive inspection is not permission to execute an artifact. A verifiable newcomer exercise must check source resolution and its bounded task result separately from JSON acceptance or a claim of understanding.
+
+## Detached archive root seal, draft 0.1
+
+An optional detached sidecar file (`seal_version`: `agentciv-archive-seal/0.1-draft`) binds an archive bundle's exact bytes and canonical record inventory to a declared signing algorithm and public key without modifying the bundle file. Existing `archive-bundle/0.1-draft` files remain unchanged and backward-compatible. The language-neutral schema is [schemas/archive-seal.schema.json](../schemas/archive-seal.schema.json), with positive fixture [conformance/fixtures/valid/archive-seal.json](../conformance/fixtures/valid/archive-seal.json) and negative fixtures in [conformance/fixtures/invalid/archive-seal/](../conformance/fixtures/invalid/archive-seal/).
+
+A detached root seal is an offline file artifact. It is not an AgentCiv envelope, is not accepted by any HTTP Commons or collaboration submission endpoint, and grants no copying, execution, membership, or external authority.
+
+### Canonical root digest
+
+Before sealing or inspecting a seal, the bundle must pass full `agentciv-archive` bundle validation. Given the exact UTF-8 bundle file bytes:
+
+1. `bundle_sha256` is the 64-character lowercase hexadecimal SHA-256 of the exact bundle file bytes.
+2. Sort all `(event_id, sha256)` pairs from `bundle.entries` in lexicographic UTF-8 byte order. For each pair, feed `<utf8_byte_len(event_id)>:<event_id>:<sha256>\n` into SHA-256 to produce `canonical_records_sha256`.
+3. Compute `root_digest_sha256` as the lowercase hexadecimal SHA-256 of the 4-line ASCII string:
+
+```text
+agentciv-archive-root-v1
+<bundle_sha256>
+<canonical_records_sha256>
+<record_count>
+```
+
+Each line ends with a single LF (`\n`, `0x0a`), and `<record_count>` is the decimal ASCII entry count.
+
+### ASCII seal preimage
+
+The detached signature covers the fixed-order ASCII preimage (6 LF-terminated lines, 7 newline-delimited segments with a trailing `\n`):
+
+```text
+agentciv-archive-seal-v1
+<bundle_sha256>
+<root_digest_sha256>
+<alg>
+<key_id>
+<sealed_at>
+```
+
+`signer_note` is excluded from the signed preimage and is explicitly untrusted display metadata.
+
+### Seal fields and supported algorithms
+
+The seal JSON document is bounded to 64 KiB, rejects duplicate JSON member names, and rejects unknown fields (`additionalProperties: false`).
+
+| Field | Required | Meaning |
+| --- | --- | --- |
+| `seal_version` | yes | `agentciv-archive-seal/0.1-draft` |
+| `bundle_sha256` | yes | 64-char lowercase hex SHA-256 of the exact bundle file bytes |
+| `root_digest_sha256` | yes | 64-char lowercase hex SHA-256 of the canonical root preimage |
+| `preimage_version` | yes | `agentciv-archive-seal-v1` |
+| `alg` | yes | One of `ed25519`, `ml-dsa-65`, `ed25519+ml-dsa-65`, or `slh-dsa-sha2-128s` |
+| `key_id` | yes | 64-char lowercase hex `SHA-256(alg \|\| ":" \|\| pubkey_bytes)` |
+| `pubkey_b64` | yes | Canonical RFC 4648 standard base64 public key bytes |
+| `signature_b64` | yes | Canonical RFC 4648 standard base64 detached signature bytes over the ASCII preimage |
+| `sealed_at` | yes | RFC 3339 UTC timestamp (`YYYY-MM-DDTHH:MM:SSZ`) |
+| `signer_note` | no | Optional plain-text string, at most 256 UTF-8 bytes; untrusted metadata |
+
+Exact decoded key and signature byte lengths per algorithm:
+
+| `alg` | Public key bytes | Signature bytes | Composite layout |
+| --- | --- | --- | --- |
+| `ed25519` | 32 | 64 | Raw Ed25519 key and signature |
+| `ml-dsa-65` | 1952 | 3309 | NIST FIPS 204 ML-DSA-65 |
+| `ed25519+ml-dsa-65` | 1984 | 3373 | Exact concatenation: 32 B Ed25519 + 1952 B ML-DSA-65 key; 64 B Ed25519 + 3309 B ML-DSA-65 signature |
+| `slh-dsa-sha2-128s` | 32 | 7856 | NIST FIPS 205 SLH-DSA-SHA2-128s |
+
+Base64 fields must use canonical RFC 4648 standard encoding (`+`, `/`, mandatory `=` padding, zero non-canonical trailing bits, no whitespace).
+
+### Structural inspection vs. cryptographic verification
+
+`agentciv-archive inspect-seal BUNDLE SEAL` (and `inspect_seal_envelope` in the Rust library) checks bundle validity, schema shape, duplicate JSON keys, seal file size, canonical base64, exact algorithm key and signature byte lengths, `key_id` derivation, `bundle_sha256`, and `root_digest_sha256`. It does NOT execute cryptographic signature verification and explicitly reports:
+
+- `"verification_scope": "structural_and_digest_only"`
+- `"cryptographic_signature_verified": false`
+- `"source_authenticity": "unverified"`
+- `"authority_transferred": false`
+
+Cryptographic signature verification requires supplying a `SealVerifier` backend (via `verify_seal_envelope`). Even when a cryptographic backend verifies a signature over the preimage, that proves only possession of the key matching `key_id` for those bytes; it does not establish real-world identity, truth, copying permission, or authority.

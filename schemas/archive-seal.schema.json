@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agentciv.io/schemas/0.1-draft/archive-seal.schema.json",
+  "title": "AgentCiv offline archive root seal, draft 0.1",
+  "type": "object",
+  "required": [
+    "seal_version",
+    "bundle_sha256",
+    "root_digest_sha256",
+    "preimage_version",
+    "alg",
+    "key_id",
+    "pubkey_b64",
+    "signature_b64",
+    "sealed_at"
+  ],
+  "properties": {
+    "seal_version": {
+      "const": "agentciv-archive-seal/0.1-draft"
+    },
+    "bundle_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "root_digest_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "preimage_version": {
+      "const": "agentciv-archive-seal-v1"
+    },
+    "alg": {
+      "type": "string",
+      "enum": [
+        "ed25519",
+        "ml-dsa-65",
+        "ed25519+ml-dsa-65",
+        "slh-dsa-sha2-128s"
+      ]
+    },
+    "key_id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "pubkey_b64": {
+      "type": "string",
+      "minLength": 4,
+      "maxLength": 4096,
+      "pattern": "^[A-Za-z0-9+/]+={0,2}$"
+    },
+    "signature_b64": {
+      "type": "string",
+      "minLength": 4,
+      "maxLength": 16384,
+      "pattern": "^[A-Za-z0-9+/]+={0,2}$"
+    },
+    "sealed_at": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
+    },
+    "signer_note": {
+      "type": "string",
+      "maxLength": 256
+    }
+  },
+  "additionalProperties": false
+}
