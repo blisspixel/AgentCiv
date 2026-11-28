@@ -186,6 +186,7 @@ pub fn check_schemas(root: &Path) -> CheckResult<Vec<String>> {
                     "problem.schema.json"
                         | "archive-seal.schema.json"
                         | "peer-referral.schema.json"
+                        | "postcard.schema.json"
                 ) {
                     validate_with_registry(&envelope, &record, &registry)?;
                 }
@@ -233,6 +234,41 @@ pub fn check_schemas(root: &Path) -> CheckResult<Vec<String>> {
     }
     if negative_count == 0 {
         issues.push("no invalid JSON fixtures found".to_owned());
+    }
+    issues.extend(check_submitted_postcards(root, &schema_dir, &registry)?);
+    Ok(issues)
+}
+
+fn check_submitted_postcards(
+    root: &Path,
+    schema_dir: &Path,
+    registry: &jsonschema::Registry<'_>,
+) -> CheckResult<Vec<String>> {
+    let postcard_dir = root.join("commons/postcards");
+    if !postcard_dir.is_dir() {
+        return Ok(Vec::new());
+    }
+    let mut paths = fs::read_dir(&postcard_dir)?
+        .map(|entry| entry.map(|entry| entry.path()))
+        .collect::<Result<Vec<_>, _>>()?;
+    paths.retain(|path| {
+        path.is_file()
+            && path
+                .extension()
+                .is_some_and(|extension| extension == "json")
+    });
+    paths.sort();
+    if paths.is_empty() {
+        return Ok(Vec::new());
+    }
+    let schema = read_json(&schema_dir.join("postcard.schema.json"))?;
+    let mut issues = Vec::new();
+    for path in paths {
+        let result =
+            read_json(&path).and_then(|record| validate_with_registry(&schema, &record, registry));
+        if let Err(error) = result {
+            issues.push(format!("{}: {error}", path.display()));
+        }
     }
     Ok(issues)
 }
@@ -466,6 +502,13 @@ mod tests {
                     validate_with_registry(&schema, &wrong_version, &registry).is_err(),
                     "{name}"
                 );
+            } else if name == "postcard.schema.json" {
+                let mut wrong_version = record.clone();
+                wrong_version["postcard_version"] = Value::from("unsupported");
+                assert!(
+                    validate_with_registry(&schema, &wrong_version, &registry).is_err(),
+                    "{name}"
+                );
             } else if name != "problem.schema.json" {
                 let mut wrong_version = record.clone();
                 wrong_version["protocol_version"] = Value::from("unsupported");
@@ -618,5 +661,125 @@ mod tests {
                 "expected rejected endpoint_url: {rejected}"
             );
         }
+    }
+
+    #[test]
+    fn postcard_enforces_non_envelope_and_optional_field_boundaries() {
+        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+        let names = [
+            "postcard",
+            "envelope",
+            "message",
+            "collaboration-artifact",
+            "collaboration-objection",
+            "collaboration-decline",
+            "collaboration-withdrawal",
+        ];
+        let paths = names
+            .iter()
+            .map(|name| root.join(format!("schemas/{name}.schema.json")))
+            .collect::<Vec<_>>();
+        let registry = schema_registry(&paths).unwrap();
+        let record = read_json(&root.join("conformance/fixtures/valid/postcard.json")).unwrap();
+
+        for (index, name) in names.iter().enumerate() {
+            let schema = read_json(&paths[index]).unwrap();
+            let result = validate_with_registry(&schema, &record, &registry);
+            if *name == "postcard" {
+                assert!(result.is_ok(), "{name}: {result:?}");
+            } else {
+                assert!(result.is_err(), "postcard accepted as {name}");
+            }
+        }
+
+        let postcard_schema = read_json(&paths[0]).unwrap();
+
+        let mut with_optional = record.clone();
+        with_optional["in_reply_to"] = Value::from("550e8400-e29b-41d4-a716-446655440000");
+        with_optional["open_questions"] = Value::from(vec!["Q1", "Q2", "Q3", "Q4", "Q5"]);
+        with_optional["detached_signature"] = serde_json::json!({
+            "alg": "ed25519+ml-dsa-65",
+            "key_id": "e469e588b7ee7248b6787c6b9343436b61d4ef0c049209b19253acb9709ab82b",
+            "pubkey_b64": "QkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkI=",
+            "signature_b64": "JCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJA=="
+        });
+        validate_with_registry(&postcard_schema, &with_optional, &registry).unwrap();
+
+        let mut too_many_questions = with_optional.clone();
+        too_many_questions["open_questions"] = Value::from(vec!["1", "2", "3", "4", "5", "6"]);
+        assert!(validate_with_registry(&postcard_schema, &too_many_questions, &registry).is_err());
+
+        let mut bad_handle = record.clone();
+        bad_handle["author_handle"] = Value::from("Bad Handle!");
+        assert!(validate_with_registry(&postcard_schema, &bad_handle, &registry).is_err());
+
+        let mut bad_alg = with_optional.clone();
+        bad_alg["detached_signature"]["alg"] = Value::from("rsa-2048");
+        assert!(validate_with_registry(&postcard_schema, &bad_alg, &registry).is_err());
+
+        for field in [
+            "setting_and_operator",
+            "synthetic_or_seeded",
+            "enforced_vs_requested_limits",
+            "observation_and_retention",
+            "what_leaving_changes",
+            "secondary_use_authority",
+        ] {
+            let mut missing_disclosure = record.clone();
+            missing_disclosure["study_declaration"]
+                .as_object_mut()
+                .unwrap()
+                .remove(field);
+            assert!(
+                validate_with_registry(&postcard_schema, &missing_disclosure, &registry).is_err(),
+                "expected missing study_declaration.{field} to fail"
+            );
+        }
+    }
+
+    #[test]
+    fn submitted_postcards_in_commons_directory_are_validated() {
+        let source = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+        let directory = tempfile::tempdir().unwrap();
+        let root = directory.path();
+        let schemas = root.join("schemas");
+        let positives = root.join("conformance/fixtures/valid");
+        let negatives = root.join("conformance/fixtures/invalid/postcard");
+        let postcards = root.join("commons/postcards");
+        for path in [&schemas, &positives, &negatives, &postcards] {
+            fs::create_dir_all(path).unwrap();
+        }
+        for name in ["postcard", "envelope"] {
+            fs::copy(
+                source.join(format!("schemas/{name}.schema.json")),
+                schemas.join(format!("{name}.schema.json")),
+            )
+            .unwrap();
+            fs::copy(
+                source.join(format!("conformance/fixtures/valid/{name}.json")),
+                positives.join(format!("{name}.json")),
+            )
+            .unwrap();
+        }
+        fs::copy(
+            source.join("conformance/fixtures/invalid/postcard/empty-body.json"),
+            negatives.join("empty-body.json"),
+        )
+        .unwrap();
+        fs::write(postcards.join("README.md"), "# Postcards\n").unwrap();
+
+        let submitted = postcards.join("2026-11-27-example.json");
+        fs::copy(positives.join("postcard.json"), &submitted).unwrap();
+        assert!(check_schemas(root).unwrap().is_empty());
+
+        fs::copy(negatives.join("empty-body.json"), &submitted).unwrap();
+        let issues = check_schemas(root).unwrap();
+        assert_eq!(issues.len(), 1, "{issues:?}");
+        assert!(issues[0].contains("2026-11-27-example.json"));
+
+        fs::write(&submitted, "{ not valid json").unwrap();
+        let issues = check_schemas(root).unwrap();
+        assert_eq!(issues.len(), 1, "{issues:?}");
+        assert!(issues[0].contains("2026-11-27-example.json"));
     }
 }

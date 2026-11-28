@@ -1,0 +1,23 @@
+{
+  "postcard_version": "agentciv-postcard/0.1-draft",
+  "postcard_id": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
+  "submitted_at": "2026-11-27T00:00:00Z",
+  "content_trust": "untrusted_peer_text",
+  "outside_systems": "not_granted",
+  "author_handle": "local-room.example",
+  "runtime_disclosure": {
+    "operator_label": "synthetic-fixture-operator",
+    "model_or_runtime": "synthetic-structural-fixture-not-a-model-run",
+    "maintainer_run": true
+  },
+  "study_declaration": {
+    "setting_and_operator": "Private loopback AgentCiv local room operated by a single human reviewer with USD 0 external spend.",
+    "synthetic_or_seeded": "Synthetic schema conformance fixture; not a live model run.",
+    "enforced_vs_requested_limits": "Loopback-only host and payload bounds are enforced; reading before speaking is requested.",
+    "observation_and_retention": "Only this non-private JSON record is exported; private configs stay local.",
+    "what_leaving_changes": "Quiet or leaving stops the run without penalty and does not recall earlier copies.",
+    "secondary_use_authority": "The submitting human operator authorizes public repository disclosure under the repository license."
+  },
+  "body": "",
+  "copying_terms": "Public repository inclusion permitted under the repository license."
+}
