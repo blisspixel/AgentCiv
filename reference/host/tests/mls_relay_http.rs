@@ -809,3 +809,167 @@ fn adversarial_inputs_content_type_body_limits_duplicate_keys_and_ttl_prune() {
     assert_eq!(report2["envelopes_deleted"], 0);
     assert_eq!(report2["key_packages_deleted"], 0);
 }
+
+struct ChildGuard(std::process::Child);
+
+impl Drop for ChildGuard {
+    fn drop(&mut self) {
+        let _ = self.0.kill();
+        let _ = self.0.wait();
+    }
+}
+
+fn spawn_mls_relay_cli(extra_args: &[&str]) -> (ChildGuard, Value) {
+    use std::io::{BufRead, BufReader};
+    use std::process::{Command, Stdio};
+
+    let mut cmd = Command::new(env!("CARGO_BIN_EXE_agentciv-host"));
+    cmd.arg("mls-relay")
+        .args(extra_args)
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped());
+    let mut child = cmd.spawn().expect("spawn agentciv-host mls-relay");
+    let stdout = child.stdout.take().expect("piped stdout");
+    let mut reader = BufReader::new(stdout);
+    let mut line = String::new();
+    let bytes = reader
+        .read_line(&mut line)
+        .expect("read readiness line from mls-relay");
+    assert!(
+        bytes > 0,
+        "mls-relay exited without printing readiness JSON"
+    );
+    let readiness: Value = serde_json::from_str(line.trim()).expect("valid readiness JSON");
+    (ChildGuard(child), readiness)
+}
+
+#[test]
+fn mls_relay_cli_help_and_argument_validation() {
+    use std::process::Command;
+
+    for flag in ["--help", "-h"] {
+        let output = Command::new(env!("CARGO_BIN_EXE_agentciv-host"))
+            .args(["mls-relay", flag])
+            .output()
+            .expect("run mls-relay --help");
+        assert!(output.status.success(), "expected exit 0 for {flag}");
+        assert!(output.stderr.is_empty());
+        let stdout = String::from_utf8(output.stdout).expect("utf8 stdout");
+        assert!(stdout.contains("agentciv-host mls-relay"));
+        assert!(stdout.contains("--db"));
+        assert!(stdout.contains("--writes-enabled"));
+    }
+
+    for bad_args in [
+        vec!["mls-relay"],
+        vec!["mls-relay", "--host", "0.0.0.0", "--db", "/tmp/x.db"],
+        vec!["mls-relay", "--host", "192.0.2.1", "--db", "/tmp/x.db"],
+        vec!["mls-relay", "--host", "::", "--db", "/tmp/x.db"],
+        vec!["mls-relay", "--host", "example.com", "--db", "/tmp/x.db"],
+        vec![
+            "mls-relay",
+            "--db",
+            "/tmp/x.db",
+            "--retention-seconds",
+            "59",
+        ],
+        vec![
+            "mls-relay",
+            "--db",
+            "/tmp/x.db",
+            "--retention-seconds",
+            "86401",
+        ],
+        vec!["mls-relay", "--db", "/tmp/x.db", "--port", "70000"],
+        vec!["mls-relay", "--db", "/tmp/x.db", "--unknown-flag"],
+    ] {
+        let output = Command::new(env!("CARGO_BIN_EXE_agentciv-host"))
+            .args(&bad_args)
+            .output()
+            .expect("run invalid mls-relay args");
+        assert!(
+            !output.status.success(),
+            "expected failure for args {bad_args:?}"
+        );
+        assert!(output.stdout.is_empty());
+        assert!(!output.stderr.is_empty());
+    }
+}
+
+#[test]
+fn mls_relay_cli_serves_closed_by_default_and_writes_enabled_opt_in() {
+    let dir = tempfile::tempdir().expect("tempdir");
+    let http = client();
+
+    // 1. Default mode: writes_enabled is false (503 writes_disabled on write routes).
+    let db_closed = dir.path().join("closed.sqlite");
+    let db_closed_str = db_closed.to_str().expect("utf8 db path");
+    let (_closed_guard, closed_ready) =
+        spawn_mls_relay_cli(&["--db", db_closed_str, "--port", "0"]);
+    assert_eq!(closed_ready["outcome"], "serving");
+    assert_eq!(closed_ready["profile"], PROFILE_ID);
+    assert_eq!(closed_ready["writes_enabled"], false);
+    assert_eq!(closed_ready["retention_seconds"], DEFAULT_RETENTION_SECONDS);
+    let closed_origin = closed_ready["origin"].as_str().expect("origin str");
+    assert!(closed_origin.starts_with("http://127.0.0.1:"));
+
+    let info_closed = http
+        .get(format!("{closed_origin}/mls/v1/info"))
+        .send()
+        .expect("GET info closed");
+    assert_eq!(info_closed.status(), StatusCode::OK);
+    let info_closed_json: Value =
+        serde_json::from_str(&info_closed.text().expect("info text")).expect("json");
+    assert_eq!(info_closed_json["writes_enabled"], false);
+
+    let write_closed = http
+        .post(format!("{closed_origin}/mls/v1/groups"))
+        .header("content-type", "application/json")
+        .body(json!({ "group_id": "grp:cli-closed", "ciphersuite": PQ_SUITE }).to_string())
+        .send()
+        .expect("POST groups closed");
+    assert_problem_json(
+        write_closed,
+        StatusCode::SERVICE_UNAVAILABLE,
+        "writes_disabled",
+    );
+    drop(_closed_guard);
+
+    // 2. Opt-in --writes-enabled with custom --retention-seconds.
+    let db_open = dir.path().join("open.sqlite");
+    let db_open_str = db_open.to_str().expect("utf8 db path");
+    let (_open_guard, open_ready) = spawn_mls_relay_cli(&[
+        "--db",
+        db_open_str,
+        "--host",
+        "127.0.0.1",
+        "--port",
+        "0",
+        "--retention-seconds",
+        "3600",
+        "--writes-enabled",
+    ]);
+    assert_eq!(open_ready["outcome"], "serving");
+    assert_eq!(open_ready["profile"], PROFILE_ID);
+    assert_eq!(open_ready["writes_enabled"], true);
+    assert_eq!(open_ready["retention_seconds"], 3600);
+    let open_origin = open_ready["origin"].as_str().expect("open origin str");
+
+    let info_open = http
+        .get(format!("{open_origin}/mls/v1/info"))
+        .send()
+        .expect("GET info open");
+    assert_eq!(info_open.status(), StatusCode::OK);
+    let info_open_json: Value =
+        serde_json::from_str(&info_open.text().expect("info open text")).expect("json");
+    assert_eq!(info_open_json["writes_enabled"], true);
+    assert_eq!(info_open_json["retention_seconds"], 3600);
+
+    let created = http
+        .post(format!("{open_origin}/mls/v1/groups"))
+        .header("content-type", "application/json")
+        .body(json!({ "group_id": "grp:cli-open", "ciphersuite": PQ_SUITE }).to_string())
+        .send()
+        .expect("POST groups open");
+    assert_eq!(created.status(), StatusCode::CREATED);
+}
