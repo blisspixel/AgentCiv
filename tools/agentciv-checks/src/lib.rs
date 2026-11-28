@@ -958,7 +958,7 @@ mod tests {
         assert!(issues[0].contains("subdirectories are not allowed"));
         fs::remove_dir(&subdir).unwrap();
 
-        let uppercase = postcards.join("2026-11-27-example.JSON");
+        let uppercase = postcards.join("2026-11-27-uppercase.JSON");
         fs::copy(positives.join("postcard.json"), &uppercase).unwrap();
         let issues = check_schemas(root).unwrap();
         assert_eq!(issues.len(), 1, "{issues:?}");
