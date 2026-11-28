@@ -12,7 +12,9 @@ from pathlib import Path
 import shutil
 import socket
 import sqlite3
+import stat
 import subprocess
+import sys
 import tempfile
 import time
 from typing import Any
@@ -1495,6 +1497,188 @@ class TownSquareEdgeTests(EdgeRuntime):
                 self._run_crypto_lifecycle("ml-dsa-65", "edge_pq", backend=backend)
                 if backend != "node" and _node_supports_ml_dsa_65():
                     self._run_crypto_lifecycle("ml-dsa-65", "edge_pq_node", backend="node")
+
+    def _run_cli(self, *args: str) -> tuple[str, dict[str, Any]]:
+        client_script = ROOT / "examples" / "town-square" / "client.py"
+        proc = subprocess.run(
+            [sys.executable, str(client_script), *args],
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=60,
+        )
+        self.assertEqual(
+            proc.returncode,
+            0,
+            f"CLI command failed ({args}):\nstdout={proc.stdout}\nstderr={proc.stderr}",
+        )
+        parsed = json.loads(proc.stdout)
+        self.assertIsInstance(parsed, dict)
+        return proc.stdout, parsed
+
+    def test_reference_cli_client_end_to_end_against_workerd(self) -> None:
+        _, info_doc = self._run_cli("info", "--origin", self.origin)
+        self.assertTrue(info_doc["writes_enabled"])
+        self.assertEqual(info_doc["contract"], "ephemeral-bbs/0.1-draft")
+        self.assertIn("ed25519", info_doc["supported_algs"])
+
+        _, policy_doc = self._run_cli("policy", "--origin", self.origin)
+        self.assertEqual(policy_doc["contract"], "ephemeral-bbs/0.1-draft")
+        self.assertTrue(policy_doc["writes_enabled"])
+
+        with tempfile.TemporaryDirectory(prefix="agentciv-cli-interop-") as tmp_dir:
+            tmp_path = Path(tmp_dir)
+            ed_key_dir = tmp_path / "ed25519-key"
+            keygen_stdout, keygen_doc = self._run_cli(
+                "keygen", "--alg", "ed25519", "--out", str(ed_key_dir)
+            )
+            self.assertEqual(keygen_doc["alg"], "ed25519")
+            priv_path = ed_key_dir / "private.pem"
+            meta_path = ed_key_dir / "key.json"
+            self.assertTrue(priv_path.is_file())
+            self.assertTrue(meta_path.is_file())
+            if os.name == "posix":
+                self.assertEqual(stat.S_IMODE(priv_path.stat().st_mode), 0o600)
+                self.assertEqual(stat.S_IMODE(meta_path.stat().st_mode), 0o600)
+            priv_text = priv_path.read_text(encoding="utf-8").strip()
+            self.assertNotIn("PRIVATE KEY", keygen_stdout)
+            self.assertNotIn(priv_text, keygen_stdout)
+
+            _, reg_doc = self._run_cli(
+                "register",
+                "--origin",
+                self.origin,
+                "--key-dir",
+                str(ed_key_dir),
+                "--handle",
+                "cli_ed",
+            )
+            display_tag = reg_doc["key"]["display_tag"]
+            self.assertTrue(display_tag.startswith("cli_ed#"), display_tag)
+
+            post_body_text = "Hello from zero-dep CLI"
+            _, post_doc = self._run_cli(
+                "post",
+                "--origin",
+                self.origin,
+                "--key-dir",
+                str(ed_key_dir),
+                "--body",
+                post_body_text,
+            )
+            post_id = post_doc["post"]["post_id"]
+            self.assertEqual(post_doc["post"]["display_tag"], display_tag)
+            self.assertEqual(post_doc["post"]["content_trust"], "untrusted_peer_text")
+
+            _, posts_doc = self._run_cli("posts", "--origin", self.origin)
+            matched = [
+                entry for entry in posts_doc["posts"] if entry["post_id"] == post_id
+            ]
+            self.assertEqual(len(matched), 1)
+            self.assertEqual(matched[0]["display_tag"], display_tag)
+            self.assertEqual(matched[0]["content_trust"], "untrusted_peer_text")
+            self.assertEqual(matched[0]["body_text"], post_body_text)
+
+            _, report_doc = self._run_cli(
+                "report",
+                "--origin",
+                self.origin,
+                "--post-id",
+                post_id,
+                "--reason",
+                "spam",
+                "--note",
+                "CLI report check",
+            )
+            self.assertEqual(report_doc["report"]["post_id"], post_id)
+            self.assertEqual(report_doc["report"]["reason_code"], "spam")
+
+            _, del_doc = self._run_cli(
+                "delete",
+                "--origin",
+                self.origin,
+                "--key-dir",
+                str(ed_key_dir),
+                "--post-id",
+                post_id,
+            )
+            self.assertEqual(del_doc["post"]["post_id"], post_id)
+            self.assertEqual(del_doc["post"]["state"], "deleted_by_author")
+            self.assertIsNone(del_doc["post"]["body_text"])
+
+            _, changes_doc = self._run_cli("changes", "--origin", self.origin)
+            post_changes = [
+                entry
+                for entry in changes_doc["changes"]
+                if entry["post_id"] == post_id
+            ]
+            self.assertEqual(
+                [entry["kind"] for entry in post_changes],
+                ["published", "deleted_by_author"],
+            )
+            self.assertNotIn(post_body_text, json.dumps(changes_doc))
+
+            if (
+                _probe_ml_dsa_65_backend() is not None
+                and "ml-dsa-65" in info_doc["supported_algs"]
+            ):
+                pq_key_dir = tmp_path / "ml-dsa-65-key"
+                pq_keygen_stdout, pq_keygen_doc = self._run_cli(
+                    "keygen", "--alg", "ml-dsa-65", "--out", str(pq_key_dir)
+                )
+                self.assertEqual(pq_keygen_doc["alg"], "ml-dsa-65")
+                pq_priv_path = pq_key_dir / "private.pem"
+                pq_meta_path = pq_key_dir / "key.json"
+                self.assertTrue(pq_priv_path.is_file())
+                self.assertTrue(pq_meta_path.is_file())
+                if os.name == "posix":
+                    self.assertEqual(stat.S_IMODE(pq_priv_path.stat().st_mode), 0o600)
+                    self.assertEqual(stat.S_IMODE(pq_meta_path.stat().st_mode), 0o600)
+                self.assertNotIn("PRIVATE KEY", pq_keygen_stdout)
+                self.assertNotIn(
+                    pq_priv_path.read_text(encoding="utf-8").strip(), pq_keygen_stdout
+                )
+
+                _, pq_reg_doc = self._run_cli(
+                    "register",
+                    "--origin",
+                    self.origin,
+                    "--key-dir",
+                    str(pq_key_dir),
+                    "--handle",
+                    "cli_pq",
+                )
+                pq_display_tag = pq_reg_doc["key"]["display_tag"]
+                self.assertTrue(pq_display_tag.startswith("cli_pq#"), pq_display_tag)
+
+                pq_body_text = "Hello from zero-dep CLI (ML-DSA-65)"
+                _, pq_post_doc = self._run_cli(
+                    "post",
+                    "--origin",
+                    self.origin,
+                    "--key-dir",
+                    str(pq_key_dir),
+                    "--body",
+                    pq_body_text,
+                )
+                pq_post_id = pq_post_doc["post"]["post_id"]
+                self.assertEqual(pq_post_doc["post"]["display_tag"], pq_display_tag)
+                self.assertEqual(
+                    pq_post_doc["post"]["content_trust"], "untrusted_peer_text"
+                )
+
+                _, pq_del_doc = self._run_cli(
+                    "delete",
+                    "--origin",
+                    self.origin,
+                    "--key-dir",
+                    str(pq_key_dir),
+                    "--post-id",
+                    pq_post_id,
+                )
+                self.assertEqual(pq_del_doc["post"]["post_id"], pq_post_id)
+                self.assertEqual(pq_del_doc["post"]["state"], "deleted_by_author")
+                self.assertIsNone(pq_del_doc["post"]["body_text"])
 
 
 if __name__ == "__main__":
