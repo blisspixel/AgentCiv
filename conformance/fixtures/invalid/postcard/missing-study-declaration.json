@@ -1,0 +1,15 @@
+{
+  "postcard_version": "agentciv-postcard/0.1-draft",
+  "postcard_id": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
+  "submitted_at": "2026-11-27T00:00:00Z",
+  "content_trust": "untrusted_peer_text",
+  "outside_systems": "not_granted",
+  "author_handle": "local-room.example",
+  "runtime_disclosure": {
+    "operator_label": "synthetic-fixture-operator",
+    "model_or_runtime": "synthetic-structural-fixture-not-a-model-run",
+    "maintainer_run": true
+  },
+  "body": "Invalid postcard fixture omitting the required study_declaration object.",
+  "copying_terms": "Public repository inclusion permitted under the repository license."
+}

@@ -1,12 +1,15 @@
 //! Repository checks for documentation and draft protocol fixtures.
 
 use std::error::Error;
+use std::fmt;
 use std::fs;
+use std::io::Read;
 use std::path::{Path, PathBuf};
 use std::sync::OnceLock;
 
 use regex::Regex;
-use serde_json::Value;
+use serde::de::{self, Deserialize, Deserializer, MapAccess, SeqAccess, Visitor};
+use serde_json::{Map, Number, Value};
 
 mod inventory;
 mod research;
@@ -186,6 +189,7 @@ pub fn check_schemas(root: &Path) -> CheckResult<Vec<String>> {
                     "problem.schema.json"
                         | "archive-seal.schema.json"
                         | "peer-referral.schema.json"
+                        | "postcard.schema.json"
                 ) {
                     validate_with_registry(&envelope, &record, &registry)?;
                 }
@@ -233,6 +237,177 @@ pub fn check_schemas(root: &Path) -> CheckResult<Vec<String>> {
     }
     if negative_count == 0 {
         issues.push("no invalid JSON fixtures found".to_owned());
+    }
+    issues.extend(check_submitted_postcards(root, &schema_dir, &registry)?);
+    Ok(issues)
+}
+
+const MAX_POSTCARD_BYTES: usize = 32_768;
+
+struct UniqueJsonValue(Value);
+
+impl<'de> Deserialize<'de> for UniqueJsonValue {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        struct UniqueValueVisitor;
+
+        impl<'de> Visitor<'de> for UniqueValueVisitor {
+            type Value = UniqueJsonValue;
+
+            fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+                formatter.write_str("any valid JSON value without duplicate object keys")
+            }
+
+            fn visit_bool<E>(self, value: bool) -> Result<Self::Value, E> {
+                Ok(UniqueJsonValue(Value::Bool(value)))
+            }
+
+            fn visit_i64<E>(self, value: i64) -> Result<Self::Value, E> {
+                Ok(UniqueJsonValue(Value::Number(value.into())))
+            }
+
+            fn visit_u64<E>(self, value: u64) -> Result<Self::Value, E> {
+                Ok(UniqueJsonValue(Value::Number(value.into())))
+            }
+
+            fn visit_f64<E>(self, value: f64) -> Result<Self::Value, E>
+            where
+                E: de::Error,
+            {
+                Number::from_f64(value)
+                    .map(|number| UniqueJsonValue(Value::Number(number)))
+                    .ok_or_else(|| de::Error::custom("non-finite JSON number"))
+            }
+
+            fn visit_str<E>(self, value: &str) -> Result<Self::Value, E> {
+                Ok(UniqueJsonValue(Value::String(value.to_owned())))
+            }
+
+            fn visit_string<E>(self, value: String) -> Result<Self::Value, E> {
+                Ok(UniqueJsonValue(Value::String(value)))
+            }
+
+            fn visit_none<E>(self) -> Result<Self::Value, E> {
+                Ok(UniqueJsonValue(Value::Null))
+            }
+
+            fn visit_unit<E>(self) -> Result<Self::Value, E> {
+                Ok(UniqueJsonValue(Value::Null))
+            }
+
+            fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
+            where
+                A: SeqAccess<'de>,
+            {
+                let mut items = Vec::new();
+                while let Some(item) = seq.next_element::<UniqueJsonValue>()? {
+                    items.push(item.0);
+                }
+                Ok(UniqueJsonValue(Value::Array(items)))
+            }
+
+            fn visit_map<A>(self, mut access: A) -> Result<Self::Value, A::Error>
+            where
+                A: MapAccess<'de>,
+            {
+                let mut map = Map::new();
+                while let Some((key, value)) = access.next_entry::<String, UniqueJsonValue>()? {
+                    if map.contains_key(&key) {
+                        return Err(de::Error::custom(format!("duplicate JSON key: {key}")));
+                    }
+                    map.insert(key, value.0);
+                }
+                Ok(UniqueJsonValue(Value::Object(map)))
+            }
+        }
+
+        deserializer.deserialize_any(UniqueValueVisitor)
+    }
+}
+
+fn parse_json_no_duplicate_keys(bytes: &[u8]) -> CheckResult<Value> {
+    let parsed: UniqueJsonValue = serde_json::from_slice(bytes)?;
+    Ok(parsed.0)
+}
+
+fn read_bounded_file(path: &Path, max_bytes: usize) -> CheckResult<Option<Vec<u8>>> {
+    let file = fs::File::open(path)?;
+    let mut bytes = Vec::new();
+    file.take((max_bytes + 1) as u64).read_to_end(&mut bytes)?;
+    if bytes.len() > max_bytes {
+        return Ok(None);
+    }
+    Ok(Some(bytes))
+}
+
+fn check_submitted_postcards(
+    root: &Path,
+    schema_dir: &Path,
+    registry: &jsonschema::Registry<'_>,
+) -> CheckResult<Vec<String>> {
+    let postcard_dir = root.join("commons/postcards");
+    if !postcard_dir.is_dir() {
+        return Ok(Vec::new());
+    }
+    let mut entries = fs::read_dir(&postcard_dir)?.collect::<Result<Vec<_>, _>>()?;
+    entries.sort_by_key(|entry| entry.path());
+
+    let mut issues = Vec::new();
+    let mut postcard_paths = Vec::new();
+    for entry in entries {
+        let path = entry.path();
+        let file_type = entry.file_type()?;
+        if file_type.is_symlink() {
+            issues.push(format!(
+                "{}: symlinks are not allowed in commons/postcards",
+                path.display()
+            ));
+            continue;
+        }
+        if file_type.is_dir() {
+            issues.push(format!(
+                "{}: subdirectories are not allowed in commons/postcards",
+                path.display()
+            ));
+            continue;
+        }
+        if !file_type.is_file() {
+            issues.push(format!(
+                "{}: only regular files are allowed in commons/postcards",
+                path.display()
+            ));
+            continue;
+        }
+        let file_name = entry.file_name();
+        match file_name.to_str() {
+            Some("README.md") => {}
+            Some(name) if name.ends_with(".json") => postcard_paths.push(path),
+            _ => issues.push(format!(
+                "{}: unexpected file in commons/postcards (expected README.md or lowercase .json)",
+                path.display()
+            )),
+        }
+    }
+
+    if postcard_paths.is_empty() {
+        return Ok(issues);
+    }
+    let schema = read_json(&schema_dir.join("postcard.schema.json"))?;
+    for path in postcard_paths {
+        let Some(bytes) = read_bounded_file(&path, MAX_POSTCARD_BYTES)? else {
+            issues.push(format!(
+                "{}: postcard exceeds {MAX_POSTCARD_BYTES}-byte limit",
+                path.display()
+            ));
+            continue;
+        };
+        let result = parse_json_no_duplicate_keys(&bytes)
+            .and_then(|record| validate_with_registry(&schema, &record, registry));
+        if let Err(error) = result {
+            issues.push(format!("{}: {error}", path.display()));
+        }
     }
     Ok(issues)
 }
@@ -466,6 +641,13 @@ mod tests {
                     validate_with_registry(&schema, &wrong_version, &registry).is_err(),
                     "{name}"
                 );
+            } else if name == "postcard.schema.json" {
+                let mut wrong_version = record.clone();
+                wrong_version["postcard_version"] = Value::from("unsupported");
+                assert!(
+                    validate_with_registry(&schema, &wrong_version, &registry).is_err(),
+                    "{name}"
+                );
             } else if name != "problem.schema.json" {
                 let mut wrong_version = record.clone();
                 wrong_version["protocol_version"] = Value::from("unsupported");
@@ -617,6 +799,180 @@ mod tests {
                 validate_with_registry(&referral_schema, &candidate, &registry).is_err(),
                 "expected rejected endpoint_url: {rejected}"
             );
+        }
+    }
+
+    #[test]
+    fn postcard_enforces_non_envelope_and_optional_field_boundaries() {
+        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+        let names = [
+            "postcard",
+            "envelope",
+            "message",
+            "collaboration-artifact",
+            "collaboration-objection",
+            "collaboration-decline",
+            "collaboration-withdrawal",
+        ];
+        let paths = names
+            .iter()
+            .map(|name| root.join(format!("schemas/{name}.schema.json")))
+            .collect::<Vec<_>>();
+        let registry = schema_registry(&paths).unwrap();
+        let record = read_json(&root.join("conformance/fixtures/valid/postcard.json")).unwrap();
+
+        for (index, name) in names.iter().enumerate() {
+            let schema = read_json(&paths[index]).unwrap();
+            let result = validate_with_registry(&schema, &record, &registry);
+            if *name == "postcard" {
+                assert!(result.is_ok(), "{name}: {result:?}");
+            } else {
+                assert!(result.is_err(), "postcard accepted as {name}");
+            }
+        }
+
+        let postcard_schema = read_json(&paths[0]).unwrap();
+
+        let mut with_optional = record.clone();
+        with_optional["in_reply_to"] = Value::from("550e8400-e29b-41d4-a716-446655440000");
+        with_optional["open_questions"] = Value::from(vec!["Q1", "Q2", "Q3", "Q4", "Q5"]);
+        with_optional["detached_signature"] = serde_json::json!({
+            "alg": "ed25519+ml-dsa-65",
+            "key_id": "e469e588b7ee7248b6787c6b9343436b61d4ef0c049209b19253acb9709ab82b",
+            "pubkey_b64": "QkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkI=",
+            "signature_b64": "JCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJA=="
+        });
+        validate_with_registry(&postcard_schema, &with_optional, &registry).unwrap();
+
+        let mut too_many_questions = with_optional.clone();
+        too_many_questions["open_questions"] = Value::from(vec!["1", "2", "3", "4", "5", "6"]);
+        assert!(validate_with_registry(&postcard_schema, &too_many_questions, &registry).is_err());
+
+        let mut bad_handle = record.clone();
+        bad_handle["author_handle"] = Value::from("Bad Handle!");
+        assert!(validate_with_registry(&postcard_schema, &bad_handle, &registry).is_err());
+
+        let mut bad_alg = with_optional.clone();
+        bad_alg["detached_signature"]["alg"] = Value::from("rsa-2048");
+        assert!(validate_with_registry(&postcard_schema, &bad_alg, &registry).is_err());
+
+        for field in ["pubkey_b64", "signature_b64"] {
+            let mut bad_b64 = with_optional.clone();
+            bad_b64["detached_signature"][field] = Value::from("AAAAA");
+            assert!(
+                validate_with_registry(&postcard_schema, &bad_b64, &registry).is_err(),
+                "expected non-multiple-of-4 base64 in {field} to fail"
+            );
+        }
+
+        for field in [
+            "setting_and_operator",
+            "synthetic_or_seeded",
+            "enforced_vs_requested_limits",
+            "observation_and_retention",
+            "what_leaving_changes",
+            "secondary_use_authority",
+        ] {
+            let mut missing_disclosure = record.clone();
+            missing_disclosure["study_declaration"]
+                .as_object_mut()
+                .unwrap()
+                .remove(field);
+            assert!(
+                validate_with_registry(&postcard_schema, &missing_disclosure, &registry).is_err(),
+                "expected missing study_declaration.{field} to fail"
+            );
+        }
+    }
+
+    #[test]
+    fn submitted_postcards_in_commons_directory_are_validated() {
+        let source = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+        let directory = tempfile::tempdir().unwrap();
+        let root = directory.path();
+        let schemas = root.join("schemas");
+        let positives = root.join("conformance/fixtures/valid");
+        let negatives = root.join("conformance/fixtures/invalid/postcard");
+        let postcards = root.join("commons/postcards");
+        for path in [&schemas, &positives, &negatives, &postcards] {
+            fs::create_dir_all(path).unwrap();
+        }
+        for name in ["postcard", "envelope"] {
+            fs::copy(
+                source.join(format!("schemas/{name}.schema.json")),
+                schemas.join(format!("{name}.schema.json")),
+            )
+            .unwrap();
+            fs::copy(
+                source.join(format!("conformance/fixtures/valid/{name}.json")),
+                positives.join(format!("{name}.json")),
+            )
+            .unwrap();
+        }
+        fs::copy(
+            source.join("conformance/fixtures/invalid/postcard/empty-body.json"),
+            negatives.join("empty-body.json"),
+        )
+        .unwrap();
+        fs::write(postcards.join("README.md"), "# Postcards\n").unwrap();
+
+        let submitted = postcards.join("2026-11-27-example.json");
+        fs::copy(positives.join("postcard.json"), &submitted).unwrap();
+        assert!(check_schemas(root).unwrap().is_empty());
+
+        fs::copy(negatives.join("empty-body.json"), &submitted).unwrap();
+        let issues = check_schemas(root).unwrap();
+        assert_eq!(issues.len(), 1, "{issues:?}");
+        assert!(issues[0].contains("2026-11-27-example.json"));
+
+        fs::write(&submitted, "{ not valid json").unwrap();
+        let issues = check_schemas(root).unwrap();
+        assert_eq!(issues.len(), 1, "{issues:?}");
+        assert!(issues[0].contains("2026-11-27-example.json"));
+
+        // Duplicate JSON keys must be rejected even if the second value is valid.
+        let valid_text = fs::read_to_string(positives.join("postcard.json")).unwrap();
+        let duplicate_key = valid_text.replacen(
+            "\"outside_systems\": \"not_granted\",",
+            "\"outside_systems\": \"granted\",\n  \"outside_systems\": \"not_granted\",",
+            1,
+        );
+        fs::write(&submitted, duplicate_key).unwrap();
+        let issues = check_schemas(root).unwrap();
+        assert_eq!(issues.len(), 1, "{issues:?}");
+        assert!(issues[0].contains("duplicate JSON key: outside_systems"));
+
+        // Postcards exceeding MAX_POSTCARD_BYTES (32 KiB) must be rejected.
+        let padded = format!("{valid_text}{}", " ".repeat(MAX_POSTCARD_BYTES + 1));
+        fs::write(&submitted, padded).unwrap();
+        let issues = check_schemas(root).unwrap();
+        assert_eq!(issues.len(), 1, "{issues:?}");
+        assert!(issues[0].contains("32768-byte limit"));
+
+        // Restore valid postcard, then verify subdirectories, unexpected files, and symlinks fail.
+        fs::copy(positives.join("postcard.json"), &submitted).unwrap();
+        let subdir = postcards.join("nested");
+        fs::create_dir(&subdir).unwrap();
+        let issues = check_schemas(root).unwrap();
+        assert_eq!(issues.len(), 1, "{issues:?}");
+        assert!(issues[0].contains("subdirectories are not allowed"));
+        fs::remove_dir(&subdir).unwrap();
+
+        let uppercase = postcards.join("2026-11-27-uppercase.JSON");
+        fs::copy(positives.join("postcard.json"), &uppercase).unwrap();
+        let issues = check_schemas(root).unwrap();
+        assert_eq!(issues.len(), 1, "{issues:?}");
+        assert!(issues[0].contains("unexpected file in commons/postcards"));
+        fs::remove_file(&uppercase).unwrap();
+
+        #[cfg(unix)]
+        {
+            let link = postcards.join("2026-11-27-link.json");
+            std::os::unix::fs::symlink(positives.join("postcard.json"), &link).unwrap();
+            let issues = check_schemas(root).unwrap();
+            assert_eq!(issues.len(), 1, "{issues:?}");
+            assert!(issues[0].contains("symlinks are not allowed"));
+            fs::remove_file(&link).unwrap();
         }
     }
 }
