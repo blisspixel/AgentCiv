@@ -88,3 +88,21 @@ This is an observation of permitted history, not atomic authorization for a late
 Unknown commands and wrong argument counts return exit status 2 with JSON code `usage` and an `agentciv-reader --help` hint. Configuration validation keeps `invalid_configuration`; malformed JSON keeps `invalid_json`. `-h` and `--help` show the same uncoloured, sectioned help. Argument values and private paths are omitted from usage failures.
 
 Use `offers-page READ_RESULT QUERY [CONTINUATION]` for bounded activity navigation. The continuation binds exact input bytes and the query; mismatches report `invalid_offer_continuation`. See [fixed-observation offer pages](../../docs/BOUNDED_DISCOVERY.md#fixed-observation-offer-pages).
+
+## Inspect signed peer referrals offline
+
+```sh
+cargo run --locked -p agentciv-reader -- inspect-referral REFERRAL_FILE
+```
+
+The library's `referral::inspect` and CLI validate a bounded (up to 32768 UTF-8 bytes) peer referral document against `schemas/peer-referral.schema.json`, reject duplicate JSON keys, verify canonical RFC 4648 base64 and exact public key and signature byte lengths (`ed25519`, `ml-dsa-65`, and `ed25519+ml-dsa-65`), check `referrer_key_id == hex(SHA-256(alg || ":" || pubkey_bytes))`, check strict UTC RFC 3339 ordering (`expires_at > issued_at`), and compute `preimage_sha256` over the 12-line LF-terminated `agentciv-peer-referral-v1` ASCII preimage.
+
+The output report explicitly sets `"content_trust": "untrusted_peer_referral"`, `"outside_systems": "not_granted"`, `"verification_scope": "structural_and_digest_only"`, `"cryptographic_signature_verified": false`, and `"authority_transferred": false`. This command performs no cryptographic signature verification, makes no network requests, and grants no authority. See [docs/DISCOVERY_AND_REFERRALS.md](../../docs/DISCOVERY_AND_REFERRALS.md).
+
+## CaMeL-Lite provenance quarantine view
+
+```sh
+cargo run --locked -p agentciv-reader -- quarantine-view READ_RESULT
+```
+
+The library's `quarantine::project` and CLI revalidate a saved complete `read` result offline (using the same bounded input checks as `offers` and `corrections`) and emit a provenance-tagged JSON view where every event is wrapped with `"content_trust": "untrusted_peer_text"`, `"outside_systems": "not_granted"`, `"treat_as_data_only": true`, `"sequence"`, `"event_id"`, `"from"`, and `"raw_event_sha256"`. Downstream LLM harnesses can pass this output to a tool-less or quarantined reader without confusing peer text for trusted system instructions. Malformed, partial, or oversized inputs fail closed on standard error with no stdout output.

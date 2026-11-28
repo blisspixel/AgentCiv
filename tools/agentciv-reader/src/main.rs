@@ -60,6 +60,12 @@ fn run(args: &[String]) -> Result<serde_json::Value> {
         [command, path] if command == "corrections" => {
             agentciv_reader::corrections::project(&input(path, agentciv_archive::MAX_INPUT_BYTES)?)
         }
+        [command, path] if command == "inspect-referral" => agentciv_reader::referral::inspect(
+            &input(path, agentciv_reader::referral::MAX_REFERRAL_BYTES)?,
+        ),
+        [command, path] if command == "quarantine-view" => {
+            agentciv_reader::quarantine::project(&input(path, agentciv_archive::MAX_INPUT_BYTES)?)
+        }
         _ => Err(Error::Configuration),
     }
 }
@@ -72,18 +78,22 @@ fn main() -> ExitCode {
     }
     if args == ["--help"] || args == ["-h"] {
         println!(
-            "Usage:\n  agentciv-reader read CONFIG\n  agentciv-reader sync CONFIG PREVIOUS_READ_RESULT\n  agentciv-reader offers READ_RESULT QUERY\n  agentciv-reader offers-page READ_RESULT QUERY [CONTINUATION]\n  agentciv-reader corrections READ_RESULT\n  agentciv-reader check-request REQUEST_FILE\n\nCommands:\n  read           Read bounded loopback history, preserving exact originals.\n  sync           Validate a private saved prefix and fetch new events.\n  offers         Inspect example activities offline from a complete read.\n  offers-page    Page activities offline, with observation-bound continuation.\n  corrections    List visible work citing an objected or superseded revision.\n  check-request  Check incoming syntax offline; acceptance is not established.\n\nConfig fields:\n  origin, token, world; optional traversal, budgets and prefix_validation.\n\nCopying:\n  Reading grants no copying permission. Keep private configurations private."
+            "Usage:\n  agentciv-reader read CONFIG\n  agentciv-reader sync CONFIG PREVIOUS_READ_RESULT\n  agentciv-reader offers READ_RESULT QUERY\n  agentciv-reader offers-page READ_RESULT QUERY [CONTINUATION]\n  agentciv-reader corrections READ_RESULT\n  agentciv-reader check-request REQUEST_FILE\n  agentciv-reader inspect-referral REFERRAL_FILE\n  agentciv-reader quarantine-view READ_RESULT\n\nCommands:\n  read             Read bounded loopback history, preserving exact originals.\n  sync             Validate a private saved prefix and fetch new events.\n  offers           Inspect example activities offline from a complete read.\n  offers-page      Page activities offline with observation-bound continuation.\n  corrections      List visible work citing an objected or superseded revision.\n  check-request    Check request syntax offline; acceptance is not established.\n  inspect-referral Validate peer referral structure, base64, key id and digest.\n  quarantine-view  Wrap a saved read in CaMeL-Lite untrusted provenance tags.\n\nConfig fields:\n  origin, token, world; optional traversal, budgets and prefix_validation.\n\nCopying:\n  Reading grants no copying permission. Keep private configurations private."
         );
         return ExitCode::SUCCESS;
     }
-    let valid_usage = matches!(args.as_slice(), [command, _] if matches!(command.as_str(), "read" | "corrections" | "check-request"))
-        || matches!(args.as_slice(), [command, _, _] if matches!(command.as_str(), "sync" | "offers" | "offers-page"))
-        || matches!(args.as_slice(), [command, _, _, _] if command == "offers-page");
+    let valid_usage = matches!(args.as_slice(), [command, _] if matches!(
+        command.as_str(),
+        "read" | "corrections" | "check-request" | "inspect-referral" | "quarantine-view"
+    )) || matches!(args.as_slice(), [command, _, _] if matches!(
+        command.as_str(),
+        "sync" | "offers" | "offers-page"
+    )) || matches!(args.as_slice(), [command, _, _, _] if command == "offers-page");
     if !valid_usage {
         eprintln!(
             "{}",
             serde_json::json!({"outcome":"failed", "code":"usage",
-            "usage":"agentciv-reader read CONFIG | sync CONFIG PREVIOUS_READ_RESULT | offers READ_RESULT QUERY | offers-page READ_RESULT QUERY [CONTINUATION] | corrections READ_RESULT | check-request REQUEST_FILE",
+            "usage":"agentciv-reader read CONFIG | sync CONFIG PREVIOUS_READ_RESULT | offers READ_RESULT QUERY | offers-page READ_RESULT QUERY [CONTINUATION] | corrections READ_RESULT | check-request REQUEST_FILE | inspect-referral REFERRAL_FILE | quarantine-view READ_RESULT",
             "help":"agentciv-reader --help"})
         );
         return ExitCode::from(2);

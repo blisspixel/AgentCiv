@@ -5,6 +5,8 @@ pub mod checkpoint;
 pub mod corrections;
 pub mod http;
 pub mod offers;
+pub mod quarantine;
+pub mod referral;
 pub mod requests;
 
 use agentciv_archive::{
@@ -61,6 +63,8 @@ pub enum Error {
     InvalidCorrectionView,
     InvalidRequest,
     InvalidContinuation,
+    InvalidReferral,
+    InvalidQuarantineView,
 }
 
 impl Error {
@@ -105,6 +109,8 @@ impl Error {
             Self::InvalidCorrectionView => "invalid_correction_view_input",
             Self::InvalidRequest => "invalid_request",
             Self::InvalidContinuation => "invalid_offer_continuation",
+            Self::InvalidReferral => "invalid_referral",
+            Self::InvalidQuarantineView => "invalid_quarantine_view_input",
         }
     }
 }
